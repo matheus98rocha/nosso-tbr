@@ -12,4 +12,10 @@ export class BookService {
 
     return data.map(BookMapper.toDomain);
   }
+  async create(book: BookDomain): Promise<void> {
+    const payload = BookMapper.toPersistence(book);
+
+    const { error } = await this.supabase.from("books").insert(payload);
+    if (error) throw new Error(error.message);
+  }
 }

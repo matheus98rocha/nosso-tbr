@@ -1,4 +1,8 @@
-import { BookDomain, BookPersistence } from "@/types/books.types";
+import {
+  BookCreateValidator,
+  BookDomain,
+  BookPersistence,
+} from "@/types/books.types";
 
 export class BookMapper {
   static toDomain(persistence: BookPersistence): BookDomain {
@@ -18,48 +22,36 @@ export class BookMapper {
     }
 
     return {
-      id,
+      id: id ? id : "",
       title,
       author,
       chosen_by,
       pages,
       status,
+      readers: Array.isArray(persistence.readers)
+        ? (persistence.readers.join(" e ") as BookDomain["readers"])
+        : (persistence.readers as BookDomain["readers"]),
     };
   }
 
   static toPersistence(
-    domain: BookDomain,
+    domain: BookCreateValidator,
     extra?: Partial<BookPersistence>
   ): BookPersistence {
-    let start_date: string | null = null;
-    let end_date: string | null = null;
-
-    const now = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
-
-    switch (domain.status) {
-      case "not_started":
-        start_date = null;
-        end_date = null;
-        break;
-      case "reading":
-        start_date = now;
-        end_date = null;
-        break;
-      case "finished":
-        start_date = now;
-        end_date = now;
-        break;
-    }
-
     return {
       id: domain.id,
       title: domain.title,
       author: domain.author,
       chosen_by: domain.chosen_by,
       pages: domain.pages,
-      start_date,
-      end_date,
+      start_date: domain.start_date ?? null,
+      end_date: domain.end_date ?? null,
       inserted_at: extra?.inserted_at ?? undefined,
+      readers: Array.isArray(domain.readers)
+        ? domain.readers
+        : domain.readers
+        ? domain.readers.split(" e ")
+        : [],
     };
   }
 }

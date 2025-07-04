@@ -9,7 +9,7 @@ export function useHome() {
     isFetching: isLoadingAllBooks,
     isFetched,
   } = useQuery({
-    queryKey: ["hospitalBed"],
+    queryKey: ["books"],
     queryFn: async () => {
       const service = new BookService();
       const data = await service.getAll();
