@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookMapper } from "@/mappers/books.mappers";
-import { BookDomain } from "@/types/books.types";
+import { BookCreateValidator, BookDomain } from "@/types/books.types";
 
 export class BookService {
   private supabase = createClient();
@@ -12,7 +12,7 @@ export class BookService {
 
     return data.map(BookMapper.toDomain);
   }
-  async create(book: BookDomain): Promise<void> {
+  async create(book: BookCreateValidator): Promise<void> {
     const payload = BookMapper.toPersistence(book);
 
     const { error } = await this.supabase.from("books").insert(payload);
