@@ -29,4 +29,6 @@ export type BookDomain = {
   pages: number;
   status?: "reading" | "finished" | "not_started";
   readers: "Matheus" | "Fabi" | "Matheus e Fabir" | "Baraba e Fabi";
+  start_date?: string | null;
+  end_date?: string | null;
 };

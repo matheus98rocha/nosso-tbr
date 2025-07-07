@@ -17,9 +17,15 @@ type DatePickerProps = {
   value?: Date;
   onChange?: (date: Date | undefined) => void;
   isRequiredField?: boolean;
+  isAfterTodayHidden?: boolean;
 };
 
-export function DatePicker({ title, value, onChange }: DatePickerProps) {
+export function DatePicker({
+  title,
+  value,
+  onChange,
+  isAfterTodayHidden,
+}: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -47,6 +53,7 @@ export function DatePicker({ title, value, onChange }: DatePickerProps) {
               onChange?.(date);
               setOpen(false);
             }}
+            hidden={isAfterTodayHidden ? { after: new Date() } : undefined}
           />
         </PopoverContent>
       </Popover>

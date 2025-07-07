@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "../datePicker/datePicker";
 import { SelectField } from "../select/select.";
@@ -18,24 +18,34 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BookCreateValidator } from "@/types/books.types";
 import { bookCreateSchema } from "@/validators/createBook.validator";
-import { useCreateBookDialog } from "./useCreateBookDialog";
 import { Checkbox } from "../ui/checkbox";
+import { useBookDialog } from "./useBookDialog";
 
 type CreateBookProps = {
   trigger: ReactNode;
+  bookData?: BookCreateValidator;
 };
 
-export function CreateBookDialog({ trigger }: CreateBookProps) {
+export function BookDialog({ trigger, bookData }: CreateBookProps) {
   const [selected, setSelected] = useState<
     "will_start_reading" | "started_reading" | "finished_reading" | null
   >(null);
   const { register, handleSubmit, control, reset } =
     useForm<BookCreateValidator>({
       resolver: zodResolver(bookCreateSchema),
+      defaultValues: {
+        title: "",
+        author: "",
+        pages: 0,
+        readers: "",
+        start_date: null,
+        end_date: null,
+        ...bookData,
+      },
     });
-
-  const { onSubmit, isLoading, open, setOpen } = useCreateBookDialog({
+  const { onSubmit, isLoading, open, setOpen } = useBookDialog({
     reset,
+    bookData,
   });
 
   const checkboxes: {
@@ -47,12 +57,38 @@ export function CreateBookDialog({ trigger }: CreateBookProps) {
     { id: "finished_reading", label: "Terminei a Leitura" },
   ];
 
+  useEffect(() => {
+    if (bookData) {
+      if (!!bookData.start_date && !!bookData.end_date) {
+        setSelected("finished_reading");
+      } else if (!!bookData.start_date) {
+        console.log("bookData.start_date", bookData.start_date);
+        setSelected("started_reading");
+      } else {
+        setSelected("will_start_reading");
+      }
+    } else {
+      setSelected(null);
+    }
+  }, [bookData]);
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          reset();
+          setSelected(null);
+        }
+        setOpen(isOpen);
+      }}
+    >
       <div onClick={() => setOpen(true)}>{trigger}</div>
       <DialogContent className="h-full sm:h-fit max-w-[425px] overflow-scroll sm:overflow-auto">
         <DialogHeader>
-          <DialogTitle>Adicione um novo livro</DialogTitle>
+          <DialogTitle>
+            {bookData ? "Editar Livro" : "Adicione um novo livro"}
+          </DialogTitle>
         </DialogHeader>
         <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-3">
@@ -118,7 +154,9 @@ export function CreateBookDialog({ trigger }: CreateBookProps) {
                   <Checkbox
                     id={id}
                     checked={selected === id}
-                    onCheckedChange={() => setSelected(id)}
+                    onCheckedChange={() =>
+                      selected === id ? setSelected(null) : setSelected(id)
+                    }
                   />
                   <Label htmlFor={id}>{label}</Label>
                 </div>
@@ -135,6 +173,7 @@ export function CreateBookDialog({ trigger }: CreateBookProps) {
                     control={control}
                     render={({ field }) => (
                       <DatePicker
+                        isAfterTodayHidden={true}
                         title="Data de Início da Leitura"
                         value={field.value ? new Date(field.value) : undefined}
                         onChange={(date) =>
@@ -169,7 +208,7 @@ export function CreateBookDialog({ trigger }: CreateBookProps) {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button type="submit" isLoading={isLoading}>
-              Salvar
+              {bookData ? "Editar" : "Adicionar"}
             </Button>
           </DialogFooter>
         </form>

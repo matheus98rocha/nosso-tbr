@@ -10,15 +10,12 @@ export class BookMapper {
       persistence;
 
     let status: BookDomain["status"] = "not_started";
-    const now = new Date();
 
     if (start_date) {
-      const start = new Date(start_date);
-      if (start <= now) status = "reading";
+      status = "reading";
     }
     if (end_date) {
-      const end = new Date(end_date);
-      if (end <= now) status = "finished";
+      status = "finished";
     }
 
     return {
@@ -28,6 +25,8 @@ export class BookMapper {
       chosen_by,
       pages,
       status,
+      end_date,
+      start_date,
       readers: Array.isArray(persistence.readers)
         ? (persistence.readers.join(" e ") as BookDomain["readers"])
         : (persistence.readers as BookDomain["readers"]),

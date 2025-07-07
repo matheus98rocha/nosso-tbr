@@ -1,21 +1,26 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookService } from "@/services/books.services";
 import { BookCreateValidator } from "@/types/books.types";
 import { useState } from "react";
 import { UseFormReset } from "react-hook-form";
+import { BookService } from "@/services/books.services";
 
 type UseCreateBookDialog = {
   reset: UseFormReset<BookCreateValidator>;
+  bookData: BookCreateValidator | undefined;
 };
 
-export function useCreateBookDialog({ reset }: UseCreateBookDialog) {
+export function useBookDialog({ reset, bookData }: UseCreateBookDialog) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async (data: BookCreateValidator) => {
       const service = new BookService();
-      await service.create(data);
+      if (bookData && bookData.id) {
+        await service.edit(bookData.id, data);
+      } else {
+        await service.create(data);
+      }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
@@ -26,6 +31,7 @@ export function useCreateBookDialog({ reset }: UseCreateBookDialog) {
 
   const onSubmit = (data: BookCreateValidator) => {
     mutation.mutate(data);
+    // console.log(data);
   };
 
   return {

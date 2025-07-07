@@ -18,4 +18,14 @@ export class BookService {
     const { error } = await this.supabase.from("books").insert(payload);
     if (error) throw new Error(error.message);
   }
+  async edit(id: string, book: BookCreateValidator): Promise<void> {
+    const payload = BookMapper.toPersistence(book);
+
+    const { error } = await this.supabase
+      .from("books")
+      .update(payload)
+      .eq("id", id);
+
+    if (error) throw new Error(error.message);
+  }
 }
