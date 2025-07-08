@@ -1,16 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useHome } from "./home/useHome";
 import { Progress } from "@/components/ui/progress";
 import { DialogTrigger } from "@/components/ui/dialog";
-import { BookDialog } from "@/components/bookDialog/bookDialog";
+import { BookDialog } from "@/components/customComponents/bookDialog/bookDialog";
 import { EllipsisVerticalIcon } from "lucide-react";
-import { DropdownBook } from "@/components/dropdownBook/dropdownBook";
+import { DropdownBook } from "@/components/customComponents/dropdownBook/dropdownBook";
+import { useHome } from "@/modules/home/hooks/useHome";
 
 export default function Home() {
   const { allBooks, isLoadingAllBooks, progress, isFetched } = useHome();
-  console.log(allBooks);
   return (
     <main className="p-6 flex flex-col items-center justify-start w-full h-full gap-6">
       <header className="flex justify-between items-center w-full">
@@ -50,7 +49,7 @@ export default function Home() {
                         {book.status === "reading"
                           ? "Já iniciei a leitura"
                           : book.status === "finished"
-                          ? "Terminei"
+                          ? "Terminei a Leitura"
                           : "Vou iniciar a leitura"}
                       </div>
                     </div>

@@ -9,6 +9,7 @@ export const bookCreateSchema = z.object({
   end_date: z.string().nullable().optional(),
   inserted_at: z.string().optional(),
   readers: z.string().min(1),
+  gender: z.string().nullable().optional(),
 });
 
 export type BookCreateValidator = z.infer<typeof bookCreateSchema>;

@@ -30,6 +30,7 @@ export class BookMapper {
       readers: Array.isArray(persistence.readers)
         ? (persistence.readers.join(" e ") as BookDomain["readers"])
         : (persistence.readers as BookDomain["readers"]),
+      gender: persistence.gender ?? null,
     };
   }
 
@@ -51,6 +52,7 @@ export class BookMapper {
         : domain.readers
         ? domain.readers.split(" e ")
         : [],
+      gender: domain.gender ?? null,
     };
   }
 }

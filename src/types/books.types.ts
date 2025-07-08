@@ -1,3 +1,5 @@
+export type Status = "reading" | "finished" | "not_started";
+
 export type BookPersistence = {
   id?: string;
   title: string;
@@ -8,7 +10,9 @@ export type BookPersistence = {
   end_date?: string | null;
   inserted_at?: string;
   readers: string[];
+  gender: string | null;
 };
+
 export type BookCreateValidator = {
   id?: string;
   title: string;
@@ -19,6 +23,8 @@ export type BookCreateValidator = {
   end_date?: string | null;
   inserted_at?: string;
   readers: string;
+  status?: Status;
+  gender?: string | null;
 };
 
 export type BookDomain = {
@@ -27,8 +33,9 @@ export type BookDomain = {
   author: string;
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
-  status?: "reading" | "finished" | "not_started";
+  status?: Status;
   readers: "Matheus" | "Fabi" | "Matheus e Fabir" | "Baraba e Fabi";
   start_date?: string | null;
   end_date?: string | null;
+  gender: string | null;
 };

@@ -12,14 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReactNode, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "../datePicker/datePicker";
 import { SelectField } from "../select/select.";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookCreateValidator } from "@/types/books.types";
+import { BookCreateValidator, Status } from "@/types/books.types";
 import { bookCreateSchema } from "@/validators/createBook.validator";
-import { Checkbox } from "../ui/checkbox";
+import { Checkbox } from "../../ui/checkbox";
 import { useBookDialog } from "./useBookDialog";
+import { DatePicker } from "../datePicker/datePicker";
 
 type CreateBookProps = {
   trigger: ReactNode;
@@ -27,9 +27,7 @@ type CreateBookProps = {
 };
 
 export function BookDialog({ trigger, bookData }: CreateBookProps) {
-  const [selected, setSelected] = useState<
-    "will_start_reading" | "started_reading" | "finished_reading" | null
-  >(null);
+  const [selected, setSelected] = useState<Status | null>(null);
   const { register, handleSubmit, control, reset } =
     useForm<BookCreateValidator>({
       resolver: zodResolver(bookCreateSchema),
@@ -40,6 +38,7 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
         readers: "",
         start_date: null,
         end_date: null,
+        gender: "",
         ...bookData,
       },
     });
@@ -49,24 +48,17 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
   });
 
   const checkboxes: {
-    id: "will_start_reading" | "started_reading" | "finished_reading";
+    id: Status;
     label: string;
   }[] = [
-    { id: "will_start_reading", label: "Vou iniciar a leitura" },
-    { id: "started_reading", label: "Já iniciei a leitura" },
-    { id: "finished_reading", label: "Terminei a Leitura" },
+    { id: "not_started", label: "Vou iniciar a leitura" },
+    { id: "reading", label: "Já iniciei a leitura" },
+    { id: "finished", label: "Terminei a Leitura" },
   ];
 
   useEffect(() => {
     if (bookData) {
-      if (!!bookData.start_date && !!bookData.end_date) {
-        setSelected("finished_reading");
-      } else if (!!bookData.start_date) {
-        console.log("bookData.start_date", bookData.start_date);
-        setSelected("started_reading");
-      } else {
-        setSelected("will_start_reading");
-      }
+      setSelected(bookData.status ?? null);
     } else {
       setSelected(null);
     }
@@ -98,6 +90,44 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
           <div className="grid gap-3">
             <Label htmlFor="author">Autor</Label>
             <Input id="author" {...register("author")} />
+          </div>
+          <div className="grid gap-3">
+            <Label htmlFor="gender">Gênero</Label>
+            <Controller
+              name="gender"
+              control={control}
+              render={({ field }) => (
+                <SelectField
+                  value={field?.value ?? undefined}
+                  onChange={field.onChange}
+                  items={[
+                    { label: "Romance", value: "romance" },
+                    { label: "Romance de época", value: "historical_romance" },
+                    {
+                      label: "Romance contemporâneo",
+                      value: "contemporary_romance",
+                    },
+                    { label: "Fantasia", value: "fantasy" },
+                    { label: "Romantasia", value: "romantasy" },
+                    { label: "Realismo mágico", value: "magical_realism" },
+                    { label: "Ficção científica", value: "science_fiction" },
+                    { label: "Distopia", value: "dystopia" },
+                    { label: "Cozy (Livros aconchegantes)", value: "cozy" },
+                    { label: "Cozy Mistery", value: "cozy_mystery" },
+                    { label: "Cozy Fantasy", value: "cozy_fantasy" },
+                    { label: "Mistério", value: "mystery" },
+                    { label: "Suspense", value: "thriller" },
+                    { label: "Terror", value: "horror" },
+                    { label: "Ficção", value: "fiction" },
+                    {
+                      label: "Ficção contemporânea",
+                      value: "contemporary_fiction",
+                    },
+                    { label: "Ciência social", value: "social_science" },
+                  ]}
+                />
+              )}
+            />
           </div>
           <div className="grid gap-3">
             <Label htmlFor="pages">Número de páginas</Label>
@@ -166,7 +196,7 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
 
           {
             <>
-              {selected !== "will_start_reading" && selected !== null && (
+              {selected !== "not_started" && selected !== null && (
                 <>
                   <Controller
                     name="start_date"
@@ -182,12 +212,13 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
                       />
                     )}
                   />
-                  {selected === "finished_reading" && (
+                  {selected === "finished" && (
                     <Controller
                       name="end_date"
                       control={control}
                       render={({ field }) => (
                         <DatePicker
+                          isAfterTodayHidden={true}
                           title="Data de Termino da Leitura"
                           value={
                             field.value ? new Date(field.value) : undefined
