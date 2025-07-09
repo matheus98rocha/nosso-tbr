@@ -14,7 +14,7 @@ import { DropdownBook } from "../dropdownBook/dropdownBook";
 import { BookDialog } from "../bookDialog/bookDialog";
 import { DeleteBookDialog } from "../deleteBookDialog/deleteBookDialog";
 import { Badge } from "@/components/ui/badge";
-import { getGenderLabel } from "@/utils/genderBook";
+import { getGenderLabel, getGenreBadgeColor } from "@/utils/genderBook";
 
 type BookCardProps = {
   book: BookDomain;
@@ -42,7 +42,9 @@ export function BookCard({ book }: BookCardProps) {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{book.title}</CardTitle>
-          <CardDescription>{book.author}</CardDescription>
+          <CardDescription>
+            {book.author} | {book.pages} páginas
+          </CardDescription>
           <CardAction>
             <DropdownBook
               isOpen={dropdownModal.isOpen}
@@ -66,10 +68,6 @@ export function BookCard({ book }: BookCardProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-start gap-2 flex-wrap">
-            <Badge className="bg-blue-500 text-white">
-              {book.pages} páginas
-            </Badge>
-
             <Badge
               className={
                 book.status === "not_started"
@@ -87,8 +85,7 @@ export function BookCard({ book }: BookCardProps) {
             </Badge>
 
             {book.gender && (
-              <Badge className="bg-purple-500 text-white">
-                {" "}
+              <Badge className={getGenreBadgeColor(book.gender)}>
                 {getGenderLabel(book.gender)}
               </Badge>
             )}
