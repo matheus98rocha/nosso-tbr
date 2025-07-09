@@ -6,19 +6,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ReactNode } from "react";
-import { BookDialog } from "../bookDialog/bookDialog";
-import { DialogTrigger } from "@radix-ui/react-dialog";
 
 type DropdownMenuWrapperProps = {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   trigger: ReactNode;
+  editBook: () => void;
+  removeBook: () => void;
 };
 
-export function DropdownBook({ trigger }: DropdownMenuWrapperProps) {
+export function DropdownBook({
+  isOpen,
+  onOpenChange,
+  trigger,
+  editBook,
+  removeBook,
+}: DropdownMenuWrapperProps) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <div>{trigger}</div>
-      </DropdownMenuTrigger>
+    <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-56 z-50"
         align="end"
@@ -26,14 +32,11 @@ export function DropdownBook({ trigger }: DropdownMenuWrapperProps) {
         sideOffset={8}
       >
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <BookDialog
-              trigger={
-                <DialogTrigger asChild>
-                  <p>Editar Livro Livro</p>
-                </DialogTrigger>
-              }
-            />
+          <DropdownMenuItem onClick={editBook}>
+            <p>Editar Livro</p>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={removeBook}>
+            <p>Remover livro</p>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

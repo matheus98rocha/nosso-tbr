@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Dialog,
   DialogClose,
@@ -10,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SelectField } from "../select/select.";
 import { Controller, useForm } from "react-hook-form";
@@ -18,16 +16,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { BookCreateValidator, Status } from "@/types/books.types";
 import { bookCreateSchema } from "@/validators/createBook.validator";
 import { Checkbox } from "../../ui/checkbox";
-import { useBookDialog } from "./useBookDialog";
 import { DatePicker } from "../datePicker/datePicker";
+import { useBookDialog } from "./useBookDialog";
+import { genders } from "@/utils/genderBook";
 
 type CreateBookProps = {
-  trigger: ReactNode;
   bookData?: BookCreateValidator;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
-export function BookDialog({ trigger, bookData }: CreateBookProps) {
+export function BookDialog({
+  bookData,
+  isOpen,
+  onOpenChange,
+}: CreateBookProps) {
   const [selected, setSelected] = useState<Status | null>(null);
+
   const { register, handleSubmit, control, reset } =
     useForm<BookCreateValidator>({
       resolver: zodResolver(bookCreateSchema),
@@ -42,9 +47,11 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
         ...bookData,
       },
     });
-  const { onSubmit, isLoading, open, setOpen } = useBookDialog({
+
+  const { onSubmit, isLoading } = useBookDialog({
     reset,
     bookData,
+    onOpenChange,
   });
 
   const checkboxes: {
@@ -66,16 +73,15 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
 
   return (
     <Dialog
-      open={open}
+      open={isOpen}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
           reset();
           setSelected(null);
         }
-        setOpen(isOpen);
+        onOpenChange(isOpen);
       }}
     >
-      <div onClick={() => setOpen(true)}>{trigger}</div>
       <DialogContent className="h-full sm:h-fit max-w-[425px] overflow-scroll sm:overflow-auto">
         <DialogHeader>
           <DialogTitle>
@@ -100,31 +106,7 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
                 <SelectField
                   value={field?.value ?? undefined}
                   onChange={field.onChange}
-                  items={[
-                    { label: "Romance", value: "romance" },
-                    { label: "Romance de época", value: "historical_romance" },
-                    {
-                      label: "Romance contemporâneo",
-                      value: "contemporary_romance",
-                    },
-                    { label: "Fantasia", value: "fantasy" },
-                    { label: "Romantasia", value: "romantasy" },
-                    { label: "Realismo mágico", value: "magical_realism" },
-                    { label: "Ficção científica", value: "science_fiction" },
-                    { label: "Distopia", value: "dystopia" },
-                    { label: "Cozy (Livros aconchegantes)", value: "cozy" },
-                    { label: "Cozy Mistery", value: "cozy_mystery" },
-                    { label: "Cozy Fantasy", value: "cozy_fantasy" },
-                    { label: "Mistério", value: "mystery" },
-                    { label: "Suspense", value: "thriller" },
-                    { label: "Terror", value: "horror" },
-                    { label: "Ficção", value: "fiction" },
-                    {
-                      label: "Ficção contemporânea",
-                      value: "contemporary_fiction",
-                    },
-                    { label: "Ciência social", value: "social_science" },
-                  ]}
+                  items={genders}
                 />
               )}
             />
@@ -236,7 +218,7 @@ export function BookDialog({ trigger, bookData }: CreateBookProps) {
           }
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">Cancelar</Button>
             </DialogClose>
             <Button type="submit" isLoading={isLoading}>
               {bookData ? "Editar" : "Adicionar"}
