@@ -56,7 +56,7 @@ export function BookCard({ book }: BookCardProps) {
                 />
               }
               editBook={() => {
-                dialogDeleteModal.setIsOpen(true);
+                dialogEditModal.setIsOpen(true);
                 // dropdownModal.setIsOpen(false);
               }}
               removeBook={() => {

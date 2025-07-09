@@ -15,7 +15,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BookCreateValidator, Status } from "@/types/books.types";
 import { bookCreateSchema } from "@/validators/createBook.validator";
-import { Checkbox } from "../../ui/checkbox";
+import { Checkbox } from "../../../../components/ui/checkbox";
 import { DatePicker } from "../datePicker/datePicker";
 import { useBookDialog } from "./useBookDialog";
 import { genders } from "@/utils/genderBook";
