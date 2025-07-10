@@ -26,6 +26,52 @@ export function BookCard({ book }: BookCardProps) {
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
 
+  const renderStatusBadge = () => {
+    return (
+      <div className="flex items-center justify-start gap-2 flex-wrap">
+        <Badge
+          className={
+            book.status === "not_started"
+              ? "bg-gray-500 text-white"
+              : book.status === "reading"
+              ? "bg-green-800 text-white"
+              : "bg-red-500 text-white"
+          }
+        >
+          {book.status === "reading"
+            ? "Já iniciei a leitura"
+            : book.status === "finished"
+            ? "Terminei a Leitura"
+            : "Vou iniciar a leitura"}
+        </Badge>
+
+        {book.status === "finished" && book.end_date && (
+          <Badge className={"bg-red-500 text-white"}>
+            Finalizado em:{" "}
+            {new Date(book.end_date).toLocaleDateString("pt-BR", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </Badge>
+        )}
+        <Badge className="bg-amber-500 text-white">
+          Leitores: {book.readers}
+        </Badge>
+
+        <Badge className="bg-amber-500 text-white">
+          Escolhido por: {book.chosen_by}
+        </Badge>
+
+        {book.gender && (
+          <Badge className={getGenreBadgeColor(book.gender)}>
+            {getGenderLabel(book.gender)}
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <DeleteBookDialog
@@ -57,48 +103,14 @@ export function BookCard({ book }: BookCardProps) {
               }
               editBook={() => {
                 dialogEditModal.setIsOpen(true);
-                // dropdownModal.setIsOpen(false);
               }}
               removeBook={() => {
-                // Implement remove book logic here
                 dialogDeleteModal.setIsOpen(true);
               }}
             />
           </CardAction>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-start gap-2 flex-wrap">
-            <Badge
-              className={
-                book.status === "not_started"
-                  ? "bg-gray-500 text-white"
-                  : book.status === "reading"
-                  ? "bg-green-800 text-white"
-                  : "bg-red-500 text-white"
-              }
-            >
-              {book.status === "reading"
-                ? "Já iniciei a leitura"
-                : book.status === "finished"
-                ? "Terminei a Leitura"
-                : "Vou iniciar a leitura"}
-            </Badge>
-
-            {book.gender && (
-              <Badge className={getGenreBadgeColor(book.gender)}>
-                {getGenderLabel(book.gender)}
-              </Badge>
-            )}
-
-            <Badge className="bg-amber-500 text-white">
-              Escolhido por: {book.chosen_by}
-            </Badge>
-
-            <Badge className="bg-amber-500 text-white">
-              Leitores: {book.readers}
-            </Badge>
-          </div>
-        </CardContent>
+        <CardContent>{renderStatusBadge()}</CardContent>
         <CardFooter className="flex-col gap-2"></CardFooter>
       </Card>
     </>

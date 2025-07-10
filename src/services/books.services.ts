@@ -5,8 +5,14 @@ import { BookCreateValidator, BookDomain } from "@/types/books.types";
 export class BookService {
   private supabase = createClient();
 
-  async getAll(): Promise<BookDomain[]> {
-    const { data, error } = await this.supabase.from("books").select("*");
+  async getAll(filters?: { readers?: string[] }): Promise<BookDomain[]> {
+    let query = this.supabase.from("books").select("*");
+
+    if (filters?.readers && filters.readers.length > 0) {
+      query = query.contains("readers", filters.readers);
+    }
+
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     if (!data) return [];
 

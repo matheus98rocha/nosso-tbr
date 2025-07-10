@@ -1,19 +1,23 @@
 import * as React from "react";
 import { BookService } from "@/services/books.services";
 import { useQuery } from "@tanstack/react-query";
+import { FiltersOptions } from "../components/filtersSheet/filters";
 
-export function useHome() {
+type UseHome = {
+  filters: FiltersOptions;
+};
+
+export function useHome({ filters }: UseHome) {
   const [progress, setProgress] = React.useState(0);
   const {
     data: allBooks,
     isFetching: isLoadingAllBooks,
     isFetched,
   } = useQuery({
-    queryKey: ["books"],
+    queryKey: ["books", filters],
     queryFn: async () => {
       const service = new BookService();
-      const data = await service.getAll();
-      return data;
+      return service.getAll(filters);
     },
   });
 
