@@ -35,30 +35,28 @@ export default function ClientHome() {
         setIsOpen={filtersSheet.setIsOpen}
       />
 
-      <main className="p-6 flex flex-col items-center w-full gap-6">
+      <main className="p-6 flex flex-col items-center gap-6">
         <header className="flex justify-between items-center w-full">
           <h1 className="text-2xl font-bold mb-4">Nosso TBR</h1>
           <Button onClick={() => dialogModal.setIsOpen(true)}>
             Adicionar Livro
           </Button>
         </header>
-
-        <div className="w-full flex justify-end container">
-          <Button
-            variant="outline"
-            onClick={() => filtersSheet.setIsOpen(true)}
-          >
-            Filtros
-          </Button>
-        </div>
-
-        <>
+        <div className="flex items-center justify-center flex-col gap-4">
+          <div className="flex justify-end container">
+            <Button
+              variant="outline"
+              onClick={() => filtersSheet.setIsOpen(true)}
+            >
+              Filtros
+            </Button>
+          </div>
           {isLoadingAllBooks ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {Array.from({ length: 8 }).map((_, index) => (
                 <Skeleton
                   key={index}
-                  className="h-[327px] w-[292px] rounded-xl bg-primary opacity-40"
+                  className="h-[327px] w-[327px] rounded-xl bg-primary opacity-40"
                 />
               ))}
             </div>
@@ -73,7 +71,7 @@ export default function ClientHome() {
               )}
             </>
           )}
-        </>
+        </div>
       </main>
     </>
   );
