@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { BookDialog } from "@/modules/home/components/bookDialog/bookDialog";
 import { useHome } from "@/modules/home/hooks/useHome";
 import { useModal } from "@/hooks/useModal";
@@ -10,6 +9,7 @@ import { BookList } from "./components/bookList/bookList";
 import FiltersSheet, {
   FiltersOptions,
 } from "./components/filtersSheet/filters";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClientHome() {
   const [filters, setFilters] = useState<FiltersOptions>({ readers: [] });
@@ -17,7 +17,7 @@ export default function ClientHome() {
   const dialogModal = useModal();
   const filtersSheet = useModal();
 
-  const { allBooks, isLoadingAllBooks, progress, isFetched } = useHome({
+  const { allBooks, isFetched, isLoadingAllBooks } = useHome({
     filters,
   });
 
@@ -52,10 +52,15 @@ export default function ClientHome() {
           </Button>
         </div>
 
-        <div>
+        <>
           {isLoadingAllBooks ? (
-            <div className="flex flex-col items-center justify-center w-full h-full">
-              <Progress value={progress} className="w-[60%] mb-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <Skeleton
+                  key={index}
+                  className="h-[327px] w-[292px] rounded-xl bg-primary opacity-40"
+                />
+              ))}
             </div>
           ) : (
             <>
@@ -68,7 +73,7 @@ export default function ClientHome() {
               )}
             </>
           )}
-        </div>
+        </>
       </main>
     </>
   );

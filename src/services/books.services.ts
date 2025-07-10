@@ -9,7 +9,7 @@ export class BookService {
     let query = this.supabase.from("books").select("*");
 
     if (filters?.readers && filters.readers.length > 0) {
-      query = query.contains("readers", filters.readers);
+      query = query.filter("readers", "eq", `{${filters.readers.join(",")}}`);
     }
 
     const { data, error } = await query;
