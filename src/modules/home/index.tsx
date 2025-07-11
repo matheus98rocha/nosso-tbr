@@ -9,7 +9,6 @@ import { BookList } from "./components/bookList/bookList";
 import FiltersSheet, {
   FiltersOptions,
 } from "./components/filtersSheet/filters";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClientHome() {
   const [filters, setFilters] = useState<FiltersOptions>({ readers: [] });
@@ -51,26 +50,12 @@ export default function ClientHome() {
               Filtros
             </Button>
           </div>
-          {isLoadingAllBooks ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <Skeleton
-                  key={index}
-                  className="h-[327px] w-[327px] rounded-xl bg-primary opacity-40"
-                />
-              ))}
-            </div>
-          ) : (
-            <>
-              {isFetched && allBooks?.length === 0 ? (
-                <div className="text-gray-500 text-center mt-4">
-                  Nenhum livro encontrado.
-                </div>
-              ) : (
-                <BookList books={allBooks ?? []} />
-              )}
-            </>
-          )}
+
+          <BookList
+            books={allBooks ?? []}
+            isLoading={isLoadingAllBooks}
+            isFetched={isFetched}
+          />
         </div>
       </main>
     </>
