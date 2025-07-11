@@ -13,12 +13,12 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-  SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 export type FiltersOptions = {
   readers?: string[];
+  status?: string;
 };
 
 export type FiltersProps = {
@@ -36,12 +36,19 @@ export default function FiltersSheet({
 }: FiltersProps) {
   const [localFilters, setLocalFilters] = useState<FiltersOptions>(filters);
 
-  const handleChange = (value: string) => {
-    setLocalFilters({
-      readers: value === "all" ? [] : value.split(","),
-    });
+  const handleFilterChange = (key: keyof FiltersOptions, value: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      [key]:
+        value === "all"
+          ? key === "readers"
+            ? []
+            : undefined
+          : key === "readers"
+          ? value.split(",")
+          : value,
+    }));
   };
-
   const applyFilters = () => {
     setFilters(localFilters);
     setIsOpen(false);
@@ -62,7 +69,7 @@ export default function FiltersSheet({
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">Leitores</span>
             <Select
-              onValueChange={handleChange}
+              onValueChange={(value) => handleFilterChange("readers", value)}
               value={
                 localFilters.readers?.length === 0
                   ? "all"
@@ -90,15 +97,47 @@ export default function FiltersSheet({
           </div>
         </div>
 
+        <div className="flex flex-col gap-6 p-3">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Status</span>
+            <Select
+              onValueChange={(value) => handleFilterChange("status", value)}
+              value={
+                localFilters.status === undefined ? "all" : localFilters.status
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Filtro por Status do livro" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="reading">Já iniciei a leitura</SelectItem>
+                <SelectItem value="finished">Terminei a Leitura</SelectItem>
+                <SelectItem value="not_started">
+                  Vou iniciar a leitura
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <SheetFooter className="mt-auto">
           <Button onClick={applyFilters} className="w-full">
             Aplicar Filtros
           </Button>
-          <SheetClose asChild>
-            <Button variant="outline" className="w-full mt-2">
-              Cancelar
-            </Button>
-          </SheetClose>
+          <Button
+            onClick={() => {
+              setIsOpen(false);
+              setFilters({
+                readers: [],
+              });
+              setLocalFilters({ readers: [] });
+            }}
+            variant="outline"
+            className="w-full mt-2"
+          >
+            Cancelar
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

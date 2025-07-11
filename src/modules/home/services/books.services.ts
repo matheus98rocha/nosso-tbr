@@ -1,16 +1,29 @@
 import { createClient } from "@/lib/supabase/client";
-import { BookMapper } from "@/mappers/books.mappers";
-import { BookCreateValidator, BookDomain } from "@/types/books.types";
+import { BookMapper } from "@/modules/home/services/mappers/books.mappers";
+import {
+  BookCreateValidator,
+  BookDomain,
+} from "@/modules/home/types/books.types";
+import { FiltersOptions } from "../components/filtersSheet/filters";
+import { BookQueryBuilder } from "./builders/bookQuery.builder";
 
 export class BookService {
   private supabase = createClient();
 
-  async getAll(filters?: { readers?: string[] }): Promise<BookDomain[]> {
-    let query = this.supabase.from("books").select("*");
+  async getAll(filters?: FiltersOptions): Promise<BookDomain[]> {
+    // let query = this.supabase.from("books").select("*");
 
-    if (filters?.readers && filters.readers.length > 0) {
-      query = query.filter("readers", "eq", `{${filters.readers.join(",")}}`);
-    }
+    const status: "not_started" | "reading" | "finished" | undefined =
+      filters?.status === "not_started" ||
+      filters?.status === "reading" ||
+      filters?.status === "finished"
+        ? filters.status
+        : undefined;
+
+    const query = new BookQueryBuilder(this.supabase)
+      .withReaders(filters?.readers)
+      .withStatus(status)
+      .build();
 
     const { data, error } = await query;
     if (error) throw new Error(error.message);

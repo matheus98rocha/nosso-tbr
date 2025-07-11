@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BookService } from "@/services/books.services";
+import { BookService } from "@/modules/home/services/books.services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 type DeleteBookDialogProps = {

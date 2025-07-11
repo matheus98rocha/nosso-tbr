@@ -36,14 +36,14 @@ export default function ClientHome() {
       />
 
       <main className="p-6 flex flex-col items-center gap-6">
-        <header className="flex justify-between items-center w-full">
+        <header className="flex justify-between items-center container">
           <h1 className="text-2xl font-bold mb-4">Nosso TBR</h1>
           <Button onClick={() => dialogModal.setIsOpen(true)}>
             Adicionar Livro
           </Button>
         </header>
-        <div className="flex items-center justify-center flex-col gap-4">
-          <div className="flex justify-end container">
+        <div className="flex items-center justify-center flex-col gap-4 container">
+          <div className="flex justify-end w-full">
             <Button
               variant="outline"
               onClick={() => filtersSheet.setIsOpen(true)}
@@ -52,7 +52,7 @@ export default function ClientHome() {
             </Button>
           </div>
           {isLoadingAllBooks ? (
-            <div className="container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {Array.from({ length: 8 }).map((_, index) => (
                 <Skeleton
                   key={index}

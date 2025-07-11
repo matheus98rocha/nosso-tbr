@@ -8,13 +8,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useModal } from "@/hooks/useModal";
-import { BookDomain } from "@/types/books.types";
+import { BookDomain } from "@/modules/home/types/books.types";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { DropdownBook } from "../dropdownBook/dropdownBook";
 import { BookDialog } from "../bookDialog/bookDialog";
 import { DeleteBookDialog } from "../deleteBookDialog/deleteBookDialog";
 import { Badge } from "@/components/ui/badge";
-import { getGenderLabel, getGenreBadgeColor } from "@/utils/genderBook";
+import { getGenderLabel, getGenreBadgeColor } from "@/modules/utils/genderBook";
 
 type BookCardProps = {
   book: BookDomain;
@@ -110,7 +110,10 @@ export function BookCard({ book }: BookCardProps) {
             />
           </CardAction>
         </CardHeader>
-        <CardContent>{renderStatusBadge()}</CardContent>
+        <CardContent>
+          {/* Badges */}
+          {renderStatusBadge()}
+        </CardContent>
         <CardFooter className="flex-col gap-2"></CardFooter>
       </Card>
     </>

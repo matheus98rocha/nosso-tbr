@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BookService } from "@/services/books.services";
+import { BookService } from "@/modules/home/services/books.services";
 import { useQuery } from "@tanstack/react-query";
 import { FiltersOptions } from "../components/filtersSheet/filters";
 
