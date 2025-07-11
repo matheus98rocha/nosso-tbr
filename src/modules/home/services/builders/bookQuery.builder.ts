@@ -5,7 +5,7 @@ export class BookQueryBuilder {
   private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
 
   constructor(
-    private supabase: SupabaseClient<Database>,
+    supabase: SupabaseClient<Database>,
     initialQuery = supabase.from("books").select("*")
   ) {
     this.query = initialQuery;
