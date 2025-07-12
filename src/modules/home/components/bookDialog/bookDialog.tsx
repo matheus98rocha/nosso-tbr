@@ -82,7 +82,7 @@ export function BookDialog({
         onOpenChange(isOpen);
       }}
     >
-      <DialogContent className="h-full sm:h-[90%] max-w-[425px] overflow-scroll lg:overflow-auto">
+      <DialogContent className="max-h-screen sm:max-h-[90%] overflow-y-auto max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
             {bookData ? "Editar Livro" : "Adicione um novo livro"}
@@ -91,7 +91,7 @@ export function BookDialog({
         <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-3">
             <Label htmlFor="title">Nome do Livro</Label>
-            <Input id="title" {...register("title")} />
+            <Input id="title" {...register("title")} autoFocus={false} />
           </div>
           <div className="grid gap-3">
             <Label htmlFor="author">Autor</Label>
