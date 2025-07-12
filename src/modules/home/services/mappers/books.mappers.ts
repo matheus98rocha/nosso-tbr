@@ -31,6 +31,7 @@ export class BookMapper {
         ? (persistence.readers.join(" e ") as BookDomain["readers"])
         : (persistence.readers as BookDomain["readers"]),
       gender: persistence.gender ?? null,
+      image_url: persistence.image_url,
     };
   }
 
@@ -53,6 +54,7 @@ export class BookMapper {
         ? domain.readers.split(" e ")
         : [],
       gender: domain.gender ?? null,
+      image_url: domain.image_url,
     };
   }
 }

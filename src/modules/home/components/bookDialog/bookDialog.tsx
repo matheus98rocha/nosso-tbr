@@ -7,18 +7,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { SelectField } from "../select/select.";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BookCreateValidator, Status } from "@/modules/home/types/books.types";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
-import { Checkbox } from "../../../../components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../datePicker/datePicker";
 import { useBookDialog } from "./useBookDialog";
-import { genders } from "@/modules/utils/genderBook";
+import { genders } from "@/modules/home/utils/genderBook";
+
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 type CreateBookProps = {
   bookData?: BookCreateValidator;
@@ -33,20 +41,22 @@ export function BookDialog({
 }: CreateBookProps) {
   const [selected, setSelected] = useState<Status | null>(null);
 
-  const { register, handleSubmit, control, reset } =
-    useForm<BookCreateValidator>({
-      resolver: zodResolver(bookCreateSchema),
-      defaultValues: {
-        title: "",
-        author: "",
-        pages: 0,
-        readers: "",
-        start_date: null,
-        end_date: null,
-        gender: "",
-        ...bookData,
-      },
-    });
+  const form = useForm<BookCreateValidator>({
+    resolver: zodResolver(bookCreateSchema),
+    defaultValues: {
+      title: "",
+      author: "",
+      pages: 1,
+      readers: "",
+      start_date: null,
+      end_date: null,
+      gender: "",
+      image_url: "",
+      ...bookData,
+    },
+  });
+
+  const { reset, handleSubmit, control } = form;
 
   const { onSubmit, isLoading } = useBookDialog({
     reset,
@@ -54,10 +64,7 @@ export function BookDialog({
     onOpenChange,
   });
 
-  const checkboxes: {
-    id: Status;
-    label: string;
-  }[] = [
+  const checkboxes: { id: Status; label: string }[] = [
     { id: "not_started", label: "Vou iniciar a leitura" },
     { id: "reading", label: "Já iniciei a leitura" },
     { id: "finished", label: "Terminei a Leitura" },
@@ -88,120 +95,175 @@ export function BookDialog({
             {bookData ? "Editar Livro" : "Adicione um novo livro"}
           </DialogTitle>
         </DialogHeader>
-        <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-3">
-            <Label htmlFor="title">Nome do Livro</Label>
-            <Input id="title" {...register("title")} autoFocus={false} />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="author">Autor</Label>
-            <Input id="author" {...register("author")} />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="gender">Gênero</Label>
-            <Controller
+
+        <Form {...form}>
+          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
+            <FormField
+              control={control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Livro</FormLabel>
+                  <FormControl>
+                    <Input {...field} autoFocus={false} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="image_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL do Livro</FormLabel>
+                  <FormControl>
+                    <Input {...field} autoFocus={false} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="author"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Autor</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
               name="gender"
-              control={control}
               render={({ field }) => (
-                <SelectField
-                  value={field?.value ?? undefined}
-                  onChange={field.onChange}
-                  items={genders}
-                />
+                <FormItem>
+                  <FormLabel>Gênero</FormLabel>
+                  <FormControl>
+                    <SelectField
+                      value={field.value ?? undefined}
+                      onChange={field.onChange}
+                      items={genders}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="pages">Número de páginas</Label>
-            <Input
-              id="pages"
-              type="number"
-              {...register("pages", { valueAsNumber: true })}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="chosen_by">Quem escolheu?</Label>
-            <Controller
-              name="chosen_by"
-              control={control}
-              render={({ field }) => (
-                <SelectField
-                  value={field.value}
-                  onChange={field.onChange}
-                  items={[
-                    { label: "Matheus", value: "Matheus" },
-                    { label: "Fabi", value: "Fabi" },
-                    { label: "Barbara", value: "Barbara" },
-                  ]}
-                />
-              )}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="readers">Quem vai ler o livro?</Label>
-            <Controller
-              name="readers"
-              control={control}
-              render={({ field }) => (
-                <SelectField
-                  value={field.value}
-                  onChange={field.onChange}
-                  items={[
-                    { label: "Matheus", value: "Matheus" },
-                    { label: "Fabi", value: "Fabi" },
-                    { label: "Matheus e Fabi", value: "Matheus e Fabi" },
-                    { label: "Barbara e Fabi", value: "Barbara e Fabi" },
-                  ]}
-                />
-              )}
-            />
-          </div>
 
-          {/* Checkbox */}
-          <div className="grid gap-3">
-            <Label>Status da leitura</Label>
-            <div className="flex items-start justify-center flex-col gap-3">
-              {checkboxes.map(({ id, label }) => (
-                <div key={id} className="flex items-center gap-2">
-                  <Checkbox
-                    id={id}
-                    checked={selected === id}
-                    onCheckedChange={() =>
-                      selected === id ? setSelected(null) : setSelected(id)
-                    }
-                  />
-                  <Label htmlFor={id}>{label}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
+            <FormField
+              control={control}
+              name="pages"
+              render={({ field }) => {
+                // Garante que o valor nunca seja undefined/null
+                const value =
+                  field.value === undefined || field.value === null
+                    ? 0
+                    : field.value;
 
-          {
-            <>
-              {selected !== "not_started" && selected !== null && (
-                <>
-                  <Controller
-                    name="start_date"
-                    control={control}
-                    render={({ field }) => (
-                      <DatePicker
-                        isAfterTodayHidden={true}
-                        title="Data de Início da Leitura"
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(date?.toISOString() ?? null)
-                        }
+                return (
+                  <FormItem>
+                    <FormLabel>Número de páginas</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        {...field}
+                        value={value}
+                        onChange={(e) => {
+                          const numValue = parseInt(e.target.value);
+                          field.onChange(isNaN(numValue) ? 0 : numValue);
+                        }}
                       />
-                    )}
-                  />
-                  {selected === "finished" && (
-                    <Controller
-                      name="end_date"
-                      control={control}
-                      render={({ field }) => (
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+
+            <FormField
+              control={control}
+              name="chosen_by"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quem escolheu?</FormLabel>
+                  <FormControl>
+                    <SelectField
+                      value={field.value}
+                      onChange={field.onChange}
+                      items={[
+                        { label: "Matheus", value: "Matheus" },
+                        { label: "Fabi", value: "Fabi" },
+                        { label: "Barbara", value: "Barbara" },
+                      ]}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="readers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quem vai ler o livro?</FormLabel>
+                  <FormControl>
+                    <SelectField
+                      value={field.value}
+                      onChange={field.onChange}
+                      items={[
+                        { label: "Matheus", value: "Matheus" },
+                        { label: "Fabi", value: "Fabi" },
+                        { label: "Matheus e Fabi", value: "Matheus e Fabi" },
+                        { label: "Barbara e Fabi", value: "Barbara e Fabi" },
+                      ]}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormItem>
+              <FormLabel>Status da leitura</FormLabel>
+              <div className="flex items-start justify-center flex-col gap-3">
+                {checkboxes.map(({ id, label }) => (
+                  <div key={id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={id}
+                      checked={selected === id}
+                      onCheckedChange={() =>
+                        selected === id ? setSelected(null) : setSelected(id)
+                      }
+                    />
+                    <FormLabel htmlFor={id}>{label}</FormLabel>
+                  </div>
+                ))}
+              </div>
+            </FormItem>
+
+            {selected !== "not_started" && selected !== null && (
+              <>
+                <FormField
+                  control={control}
+                  name="start_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data de Início da Leitura</FormLabel>
+                      <FormControl>
                         <DatePicker
-                          isAfterTodayHidden={true}
-                          title="Data de Termino da Leitura"
+                          isAfterTodayHidden
+                          title="Data de Início da Leitura"
                           value={
                             field.value ? new Date(field.value) : undefined
                           }
@@ -209,22 +271,49 @@ export function BookDialog({
                             field.onChange(date?.toISOString() ?? null)
                           }
                         />
-                      )}
-                    />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </>
-              )}
-            </>
-          }
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-            <Button type="submit" isLoading={isLoading}>
-              {bookData ? "Editar" : "Adicionar"}
-            </Button>
-          </DialogFooter>
-        </form>
+                />
+
+                {selected === "finished" && (
+                  <FormField
+                    control={control}
+                    name="end_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Término da Leitura</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            isAfterTodayHidden
+                            title="Data de Término da Leitura"
+                            value={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            onChange={(date) =>
+                              field.onChange(date?.toISOString() ?? null)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </>
+            )}
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancelar</Button>
+              </DialogClose>
+              <Button type="submit" isLoading={isLoading}>
+                {bookData ? "Editar" : "Adicionar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

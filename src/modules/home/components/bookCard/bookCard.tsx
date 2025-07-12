@@ -14,7 +14,11 @@ import { DropdownBook } from "../dropdownBook/dropdownBook";
 import { BookDialog } from "../bookDialog/bookDialog";
 import { DeleteBookDialog } from "../deleteBookDialog/deleteBookDialog";
 import { Badge } from "@/components/ui/badge";
-import { getGenderLabel, getGenreBadgeColor } from "@/modules/utils/genderBook";
+import {
+  getGenderLabel,
+  getGenreBadgeColor,
+} from "@/modules/home/utils/genderBook";
+import Image from "next/image";
 
 type BookCardProps = {
   book: BookDomain;
@@ -111,8 +115,19 @@ export function BookCard({ book }: BookCardProps) {
           </CardAction>
         </CardHeader>
         <CardContent>
-          {/* Badges */}
-          {renderStatusBadge()}
+          <div className="flex items-center justify-between gap-3 sm:flex-row flex-col w-full">
+            <Image
+              src={book.image_url as string}
+              alt={book.title}
+              width={80}
+              height={80}
+              className="rounded-xl"
+              priority
+            />
+
+            {/* Badges */}
+            {renderStatusBadge()}
+          </div>
         </CardContent>
         <CardFooter className="flex-col gap-2"></CardFooter>
       </Card>

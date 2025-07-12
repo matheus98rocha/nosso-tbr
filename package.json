@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "update-types": "mkdir -p src/types && npx supabase gen types typescript --project-id xmekizajjewqituvnrgk > src/types/supabase.ts || (powershell -Command \"New-Item -ItemType Directory -Path src/types -Force; npx supabase gen types typescript --project-id xmekizajjewqituvnrgk > src/types/supabase.ts\")"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -30,10 +31,10 @@
     "react": "^19.0.0",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.59.0",
+    "react-hook-form": "^7.60.0",
     "shadcn": "^2.7.0",
     "tailwind-merge": "^3.3.1",
-    "zod": "^3.25.71"
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
