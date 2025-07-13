@@ -25,4 +25,13 @@ export class BookshelfService {
 
     return data.map(BookshelfMapper.toDomain);
   }
+
+  async addBookToShelf(bookshelfId: string, bookId: string): Promise<void> {
+    const { error } = await this.supabase.from("custom_shelf_books").insert({
+      shelf_id: bookshelfId,
+      book_id: bookId,
+    });
+
+    if (error) throw new Error(error.message);
+  }
 }

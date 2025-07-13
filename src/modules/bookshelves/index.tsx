@@ -12,14 +12,38 @@ import { CreateEditBookshelves } from "./components/createEditBookshelves/create
 import { useBookshelves } from "./hooks/useBookshelves";
 import { ListGrid } from "../../components/listGrid/listGrid";
 import { BookshelfDomain } from "./types/bookshelves.types";
+import { AddBookToBookshelfDialog } from "./components/addBookToBookshelfDialog/addBookToBookshelfDialog";
+import { LinkButton } from "@/components/linkButton/linkButton";
+
+export type SelectedBookshelf = {
+  id: string;
+  name: string;
+};
 
 function ClientBookshelves() {
   const [isOpenCreateEdit, setOpenCreateEdit] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedBookshelf, setSelectedBookshelf] = useState<SelectedBookshelf>(
+    {
+      id: "",
+      name: "",
+    }
+  );
+
+  const handleOpenDialog = (bookshelfId: SelectedBookshelf) => {
+    setSelectedBookshelf(bookshelfId);
+    setIsDialogOpen(true);
+  };
 
   const { bookshelves, isFetching, isFetched } = useBookshelves({});
 
   return (
     <>
+      <AddBookToBookshelfDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        bookshelfe={selectedBookshelf}
+      />
       <CreateEditBookshelves
         isOpen={isOpenCreateEdit}
         handleClose={setOpenCreateEdit}
@@ -36,14 +60,24 @@ function ClientBookshelves() {
                 <CardTitle>{shelf.name}</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* <div className="flex items-center justify-between gap-3 sm:flex-row flex-col w-full">
-                  <p>Aqui</p>
-                </div> */}
-                <Button variant={"outline"}>
-                  Adicionar livro a essa Estante
+                <Button
+                  variant={"outline"}
+                  onClick={() =>
+                    handleOpenDialog({
+                      id: shelf.id,
+                      name: shelf.name,
+                    })
+                  }
+                >
+                  Adicionar Livro a essa Estante
                 </Button>
               </CardContent>
-              <CardFooter className="flex-col gap-2"></CardFooter>
+              <CardFooter>
+                <LinkButton
+                  href={`/bookshelvesBooks/${shelf.id}`}
+                  label="Acessar Estante"
+                />
+              </CardFooter>
             </Card>
           )}
           emptyMessage="Nenhuma estante encontrada."
