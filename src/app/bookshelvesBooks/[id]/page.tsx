@@ -1,13 +1,9 @@
 import ClientBookshelfBooks from "@/modules/bookshelvesBooks";
 
-type Props = {
-  params: { id: string };
-};
-
-async function BookshelvesBooks({ params }: Props) {
+async function BookshelvesBooks() {
   return (
     <div>
-      <ClientBookshelfBooks bookshelfId={params.id} />
+      <ClientBookshelfBooks />
     </div>
   );
 }
