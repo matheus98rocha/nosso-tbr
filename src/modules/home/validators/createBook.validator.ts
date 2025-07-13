@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const bookCreateSchema = z.object({
   title: z.string().min(1, { message: "O título do livro é obrigatório" }),
-  author: z.string().min(1, { message: "O author do livro é obrigatório" }),
+  author: z.string().min(1, { message: "O autor do livro é obrigatório" }),
   chosen_by: z.enum(["Matheus", "Fabi", "Barbara"], {
     message: "Quem escolheu o livro é obrigatório",
   }),

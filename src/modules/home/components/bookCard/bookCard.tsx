@@ -122,7 +122,7 @@ export function BookCard({ book }: BookCardProps) {
               width={80}
               height={80}
               className="rounded-xl"
-              priority
+              loading="lazy"
             />
 
             {/* Badges */}
