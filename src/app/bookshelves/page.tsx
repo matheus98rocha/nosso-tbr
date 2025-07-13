@@ -8,7 +8,7 @@ export default function BookshelvesPage() {
       <div className="flex items-start justify-between mb-4">
         {/* Go back */}
         <Link href="/" className="flex items-center justify-start gap-2">
-          <ArrowLeft /> Go back
+          <ArrowLeft /> Voltar
         </Link>
       </div>
 

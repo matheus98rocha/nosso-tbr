@@ -7,6 +7,8 @@ import { BookDomain } from "@/modules/home/types/books.types";
 import { BookshelfServiceBooks } from "./bookshelvesBooks.service";
 import { ListGrid } from "@/components/listGrid/listGrid";
 import { BookCard } from "../home/components/bookCard/bookCard";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 function BookshelvesBooks() {
   const { id } = useParams();
@@ -25,6 +27,15 @@ function BookshelvesBooks() {
 
   return (
     <div className="p-4 space-y-4">
+      <div className="flex items-start justify-between mb-4">
+        {/* Go back */}
+        <Link
+          href="/bookshelves"
+          className="flex items-center justify-start gap-2"
+        >
+          <ArrowLeft /> Voltar
+        </Link>
+      </div>
       <h1 className="text-xl font-bold">Livros na estante</h1>
 
       {isPending && <p>Loading...</p>}

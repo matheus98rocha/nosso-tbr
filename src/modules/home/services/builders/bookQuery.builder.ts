@@ -36,6 +36,13 @@ export class BookQueryBuilder {
     return this;
   }
 
+  sortByCreatedAt(ascending = false): this {
+    this.query = this.query.order("inserted_at", {
+      ascending,
+    }) as typeof this.query;
+    return this;
+  }
+
   build() {
     return this.query;
   }
