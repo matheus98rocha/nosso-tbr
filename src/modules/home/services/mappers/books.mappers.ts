@@ -2,7 +2,7 @@ import {
   BookCreateValidator,
   BookDomain,
   BookPersistence,
-} from "@/modules/home/types/books.types";
+} from "@/types/books.types";
 
 export class BookMapper {
   static toDomain(persistence: BookPersistence): BookDomain {

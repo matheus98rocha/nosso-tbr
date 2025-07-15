@@ -13,3 +13,8 @@ export type BookshelfPersistence = {
   name: string;
   created_at: string;
 };
+
+export type SelectedBookshelf = {
+  id: string;
+  name: string;
+};

@@ -3,12 +3,12 @@
 import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { BookDomain } from "@/modules/home/types/books.types";
-import { BookshelfServiceBooks } from "./bookshelvesBooks.service";
+import { BookDomain } from "@/types/books.types";
 import { ListGrid } from "@/components/listGrid/listGrid";
 import { BookCard } from "../home/components/bookCard/bookCard";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { BookshelfServiceBooks } from "./services/bookshelvesBooks.service";
 
 function BookshelvesBooks() {
   const { id } = useParams();

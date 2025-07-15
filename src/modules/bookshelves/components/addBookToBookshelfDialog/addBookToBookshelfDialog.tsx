@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { BookService } from "@/modules/home/services/books.services";
 import { BookCombobox } from "../bookCombobox/bookCombobox";
 import { BookshelfService } from "../../services/booksshelves.service";
-import { SelectedBookshelf } from "../..";
+import { SelectedBookshelf } from "../../types/bookshelves.types";
 
 type AddBookToBookshelfDialogProps = {
   isOpen: boolean;

@@ -24,25 +24,29 @@ import {
   BookshelfCreateValidator,
 } from "../../validators/bookshelves.validator";
 import { useBookshelves } from "../../hooks/useBookshelves";
+import { BookshelfDomain } from "../../types/bookshelves.types";
 
 type BookshelfDialogProps = {
   isOpen: boolean;
   handleClose: (open: boolean) => void;
+  shelf?: BookshelfDomain;
 };
 
 export function CreateEditBookshelves({
   isOpen,
   handleClose,
+  shelf,
 }: BookshelfDialogProps) {
   const form = useForm<BookshelfCreateValidator>({
     resolver: zodResolver(bookshelfCreateSchema),
     defaultValues: {
-      name: "",
+      ...shelf,
     },
   });
 
   const { mutate, isCreating } = useBookshelves({
     handleClose,
+    shelf,
   });
 
   function onSubmit(values: BookshelfCreateValidator) {
@@ -57,7 +61,9 @@ export function CreateEditBookshelves({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Nova Estante</DialogTitle>
+          <DialogTitle>
+            {shelf ? "Editar Estante" : "Criar Nova Estante"}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -81,7 +87,7 @@ export function CreateEditBookshelves({
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
               <Button type="submit" isLoading={isCreating}>
-                Criar Estante
+                {shelf ? "Editar Estante" : "Criar Estante"}
               </Button>
             </DialogFooter>
           </form>

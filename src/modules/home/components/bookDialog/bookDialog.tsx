@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { SelectField } from "../select/select.";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookCreateValidator, Status } from "@/modules/home/types/books.types";
+import { BookCreateValidator, Status } from "@/types/books.types";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../datePicker/datePicker";

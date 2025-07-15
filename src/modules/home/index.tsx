@@ -9,12 +9,16 @@ import FiltersSheet, {
   FiltersOptions,
 } from "./components/filtersSheet/filters";
 import { ListGrid } from "../../components/listGrid/listGrid";
-import { BookDomain } from "./types/books.types";
+import { BookDomain } from "../../types/books.types";
 import { BookCard } from "./components/bookCard/bookCard";
 import { LinkButton } from "@/components/linkButton/linkButton";
 
 export default function ClientHome() {
-  const [filters, setFilters] = useState<FiltersOptions>({ readers: [] });
+  const [filters, setFilters] = useState<FiltersOptions>({
+    readers: [],
+    gender: "",
+    status: "",
+  });
 
   const dialogModal = useModal();
   const filtersSheet = useModal();
@@ -44,9 +48,6 @@ export default function ClientHome() {
             <Button onClick={() => dialogModal.setIsOpen(true)}>
               Adicionar Livro
             </Button>
-            {/* <Button asChild>
-              <Link href="/bookshelves">Estantes</Link>
-            </Button> */}
             <LinkButton href="/bookshelves" label="Estantes" />
           </div>
         </header>

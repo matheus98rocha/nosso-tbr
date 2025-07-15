@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
 import { BookshelfService } from "../services/booksshelves.service";
+import { BookshelfDomain } from "../types/bookshelves.types";
 
 export function useBookshelves({
   handleClose,
+  shelf,
 }: {
   handleClose?: (open: boolean) => void;
+  shelf?: BookshelfDomain;
 }) {
   const queryClient = useQueryClient();
   const service = new BookshelfService();
@@ -22,7 +25,11 @@ export function useBookshelves({
 
   const { mutate, isPending: isCreating } = useMutation({
     mutationFn: async (payload: BookshelfCreateValidator) => {
-      await service.create(payload);
+      if (shelf) {
+        await service.update(shelf.id, payload);
+      } else {
+        await service.create(payload);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookshelves"] });

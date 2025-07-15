@@ -36,6 +36,13 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withGender(gender?: string): this {
+    if (gender) {
+      this.query = this.query.eq("gender", gender) as typeof this.query;
+    }
+    return this;
+  }
+
   sortByCreatedAt(ascending = false): this {
     this.query = this.query.order("inserted_at", {
       ascending,

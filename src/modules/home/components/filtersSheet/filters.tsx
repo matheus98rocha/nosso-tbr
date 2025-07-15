@@ -15,10 +15,12 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { genders } from "../../utils/genderBook";
 
 export type FiltersOptions = {
   readers?: string[];
   status?: string;
+  gender?: string;
 };
 
 export type FiltersProps = {
@@ -46,6 +48,8 @@ export default function FiltersSheet({
             : undefined
           : key === "readers"
           ? value.split(",")
+          : key === "gender"
+          ? value
           : value,
     }));
   };
@@ -116,6 +120,30 @@ export default function FiltersSheet({
                 <SelectItem value="not_started">
                   Vou iniciar a leitura
                 </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-6 p-3">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Gênero</span>
+            <Select
+              onValueChange={(value) => handleFilterChange("gender", value)}
+              value={
+                localFilters.gender === undefined ? "all" : localFilters.gender
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Filtro por Status do livro" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {genders.map((gender) => (
+                  <SelectItem key={gender.value} value={gender.value}>
+                    {gender.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookCreateValidator } from "@/modules/home/types/books.types";
+import { BookCreateValidator } from "@/types/books.types";
 import { UseFormReset } from "react-hook-form";
 import { BookService } from "@/modules/home/services/books.services";
 

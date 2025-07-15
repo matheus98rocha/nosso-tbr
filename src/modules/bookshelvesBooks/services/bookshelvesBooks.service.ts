@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
+import { BookMapper } from "@/modules/home/services/mappers/books.mappers";
 
-import { BookDomain, BookPersistence } from "@/modules/home/types/books.types";
-import { BookMapper } from "../home/services/mappers/books.mappers";
+import { BookDomain, BookPersistence } from "@/types/books.types";
 
 export class BookshelfServiceBooks {
   private supabase = createClient();

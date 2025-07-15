@@ -1,7 +1,7 @@
 import {
   BookshelfDomain,
   BookshelfPersistence,
-} from "../types/bookshelves.types";
+} from "../../types/bookshelves.types";
 
 export class BookshelfMapper {
   static toDomain(data: BookshelfPersistence): BookshelfDomain {

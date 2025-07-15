@@ -8,29 +8,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BookService } from "@/modules/home/services/books.services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-type DeleteBookDialogProps = {
+type DeleteDialogProps = {
+  title: string;
+  description: string;
   id: string;
+  queryKeyToInvalidate: string;
+  onDelete: (id: string) => Promise<void>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function DeleteBookDialog({
+export function DeleteDialog({
+  title,
+  description,
   id,
+  queryKeyToInvalidate,
+  onDelete,
   open,
   onOpenChange,
-}: DeleteBookDialogProps) {
+}: DeleteDialogProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      const service = new BookService();
-      await service.delete(id);
-    },
+    mutationFn: () => onDelete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
+      queryClient.invalidateQueries({ queryKey: [queryKeyToInvalidate] });
       onOpenChange(false);
     },
   });
@@ -39,10 +43,8 @@ export function DeleteBookDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Excluir livro</DialogTitle>
-          <DialogDescription>
-            Tem certeza que deseja excluir este livro?
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>

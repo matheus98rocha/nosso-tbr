@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { BookDomain } from "@/modules/home/types/books.types";
+import { BookDomain } from "@/types/books.types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {

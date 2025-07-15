@@ -8,17 +8,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useModal } from "@/hooks/useModal";
-import { BookDomain } from "@/modules/home/types/books.types";
+import { BookDomain } from "@/types/books.types";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { DropdownBook } from "../dropdownBook/dropdownBook";
 import { BookDialog } from "../bookDialog/bookDialog";
-import { DeleteBookDialog } from "../deleteBookDialog/deleteBookDialog";
 import { Badge } from "@/components/ui/badge";
 import {
   getGenderLabel,
   getGenreBadgeColor,
 } from "@/modules/home/utils/genderBook";
 import Image from "next/image";
+import { DeleteDialog } from "@/components/deleteModal/deleteModal";
+import { BookService } from "../../services/books.services";
 
 type BookCardProps = {
   book: BookDomain;
@@ -78,10 +79,22 @@ export function BookCard({ book }: BookCardProps) {
 
   return (
     <>
-      <DeleteBookDialog
+      {/* <DeleteBookDialog
         open={dialogDeleteModal.isOpen}
         onOpenChange={dialogDeleteModal.setIsOpen}
         id={String(book.id)}
+      /> */}
+      <DeleteDialog
+        title="Excluir livro"
+        description="Tem certeza que deseja excluir este livro?"
+        id={String(book.id)}
+        queryKeyToInvalidate="books"
+        onDelete={async (id) => {
+          const service = new BookService();
+          await service.delete(id);
+        }}
+        open={dialogDeleteModal.isOpen}
+        onOpenChange={dialogDeleteModal.setIsOpen}
       />
       <BookDialog
         isOpen={dialogEditModal.isOpen}

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
 import { BookshelfDomain } from "../types/bookshelves.types";
-import { BookshelfMapper } from "../mapper/bookshelves.mapper";
+import { BookshelfMapper } from "./mapper/bookshelves.mapper";
 
 export class BookshelfService {
   private supabase = createClient();
@@ -13,7 +13,22 @@ export class BookshelfService {
 
     if (error) throw new Error(error.message);
   }
+  async update(id: string, shelf: BookshelfCreateValidator): Promise<void> {
+    const { error } = await this.supabase
+      .from("custom_shelves")
+      .update({ name: shelf.name })
+      .eq("id", id);
 
+    if (error) throw new Error(error.message);
+  }
+  async delete(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("custom_shelves")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw new Error(error.message);
+  }
   async getAll(): Promise<BookshelfDomain[]> {
     const { data, error } = await this.supabase
       .from("custom_shelves")
