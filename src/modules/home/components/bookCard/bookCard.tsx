@@ -79,11 +79,6 @@ export function BookCard({ book }: BookCardProps) {
 
   return (
     <>
-      {/* <DeleteBookDialog
-        open={dialogDeleteModal.isOpen}
-        onOpenChange={dialogDeleteModal.setIsOpen}
-        id={String(book.id)}
-      /> */}
       <DeleteDialog
         title="Excluir livro"
         description="Tem certeza que deseja excluir este livro?"
@@ -101,8 +96,7 @@ export function BookCard({ book }: BookCardProps) {
         onOpenChange={dialogEditModal.setIsOpen}
         bookData={book}
       />
-
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader>
           <CardTitle>{book.title}</CardTitle>
           <CardDescription>

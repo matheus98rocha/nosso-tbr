@@ -29,7 +29,7 @@ export function BookCombobox({ books, value, onChange }: BookComboboxProps) {
   const selectedBook = books.find((book) => book.id === value);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
