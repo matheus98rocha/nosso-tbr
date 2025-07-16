@@ -43,6 +43,8 @@ export function CreateEditBookshelves({
     resolver: zodResolver(bookshelfCreateSchema),
     defaultValues: {
       name: shelf?.name ?? "",
+      owner: shelf?.owner ?? undefined,
+      ...shelf,
     },
   });
 

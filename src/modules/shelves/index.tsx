@@ -22,8 +22,13 @@ function ClienteShelves() {
     }
   );
 
-  const handleOpenDialog = (bookshelfId: SelectedBookshelf) => {
-    setSelectedBookshelf(bookshelfId);
+  console.log("->", {
+    selectedBookshelf,
+  });
+
+  const handleOpenDialog = (shelf: SelectedBookshelf) => {
+    console.log();
+    setSelectedBookshelf(shelf);
     dialog.setIsOpen(true);
   };
 
@@ -52,7 +57,13 @@ function ClienteShelves() {
             <ShelfCard
               key={shelf.id}
               shelf={shelf}
-              openAddBookDialog={handleOpenDialog}
+              openAddBookDialog={() =>
+                handleOpenDialog({
+                  id: shelf.id,
+                  name: shelf.name,
+                  owner: shelf.owner,
+                })
+              }
             />
           )}
           emptyMessage="Nenhuma estante encontrada."

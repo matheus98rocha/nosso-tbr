@@ -20,6 +20,11 @@ import { DropdownShelf } from "../dropdownShelf/dropdownShelf";
 import { DeleteDialog } from "@/components/deleteModal/deleteModal";
 import { BookshelfService } from "../../services/booksshelves.service";
 import Image from "next/image";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Props = {
   shelf: BookshelfDomain;
@@ -54,10 +59,24 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
 
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{shelf.name}</CardTitle>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CardTitle className="truncate">{shelf.name}</CardTitle>
+            </TooltipTrigger>
+            <TooltipContent>{shelf.name}</TooltipContent>
+          </Tooltip>
           <CardDescription>
-            {shelf.books.length} livro{shelf.books.length > 1 ? "s" : ""} nessa
-            estante
+            <div className="flex items-center gap-1">
+              <span className="font-medium text-gray-900">{shelf.owner}</span>
+              <span>:</span>
+              <span className="text-gray-600">
+                {shelf.books.length === 0
+                  ? " Nenhum livro"
+                  : ` ${shelf.books.length} livro${
+                      shelf.books.length !== 1 ? "s" : ""
+                    }`}
+              </span>
+            </div>
           </CardDescription>
           <CardAction>
             <DropdownShelf

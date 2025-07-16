@@ -31,6 +31,6 @@ export type BookshelfPersistence = {
 
 export type SelectedBookshelf = {
   id: string;
-  owner: string;
+  owner: "Matheus" | "Fabi" | "";
   name: string;
 };
