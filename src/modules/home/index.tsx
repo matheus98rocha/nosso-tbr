@@ -48,7 +48,7 @@ export default function ClientHome() {
             <Button onClick={() => dialogModal.setIsOpen(true)}>
               Adicionar Livro
             </Button>
-            <LinkButton href="/bookshelves" label="Estantes" />
+            <LinkButton href="/shelves" label="Estantes" />
           </div>
         </header>
         <div className="flex items-center justify-center flex-col gap-4 container">

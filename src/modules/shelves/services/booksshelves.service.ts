@@ -9,14 +9,14 @@ export class BookshelfService {
   async create(shelf: BookshelfCreateValidator): Promise<void> {
     const { error } = await this.supabase
       .from("custom_shelves")
-      .insert({ name: shelf.name });
+      .insert({ name: shelf.name, owner: shelf.owner });
 
     if (error) throw new Error(error.message);
   }
   async update(id: string, shelf: BookshelfCreateValidator): Promise<void> {
     const { error } = await this.supabase
       .from("custom_shelves")
-      .update({ name: shelf.name })
+      .update({ name: shelf.name, owner: shelf.owner })
       .eq("id", id);
 
     if (error) throw new Error(error.message);

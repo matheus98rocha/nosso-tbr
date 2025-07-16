@@ -40,9 +40,7 @@ export function AddBookToBookshelfDialog({
       await service.addBookToShelf(bookshelfe.id, selectedBookId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bookshelf-books", bookshelfe.id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["bookshelves"] });
       setSelectedBookId("");
       onOpenChange(false);
     },

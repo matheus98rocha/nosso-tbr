@@ -1,8 +1,8 @@
-import ClientBookshelves from "@/modules/bookshelves";
+import ClienteShelves from "@/modules/shelves";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function BookshelvesPage() {
+export default function ShelvesPage() {
   return (
     <div className="p-6">
       <div className="flex items-start justify-between mb-4">
@@ -18,7 +18,7 @@ export default function BookshelvesPage() {
       </h1>
 
       {/* Client code */}
-      <ClientBookshelves />
+      <ClienteShelves />
     </div>
   );
 }

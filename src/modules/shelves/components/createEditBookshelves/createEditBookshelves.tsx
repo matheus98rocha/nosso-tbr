@@ -26,6 +26,7 @@ import {
 import { useBookshelves } from "../../hooks/useBookshelves";
 import { BookshelfDomain } from "../../types/bookshelves.types";
 import { useEffect } from "react";
+import { SelectField } from "@/modules/home/components/select/select.";
 
 type BookshelfDialogProps = {
   isOpen: boolean;
@@ -85,6 +86,27 @@ export function CreateEditBookshelves({
                   <FormLabel>Nome da Estante</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Ex: Livros de Ficção" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="owner"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dono da Estante</FormLabel>
+                  <FormControl>
+                    <SelectField
+                      value={field.value}
+                      onChange={field.onChange}
+                      items={[
+                        { label: "Matheus", value: "Matheus" },
+                        { label: "Fabi", value: "Fabi" },
+                      ]}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

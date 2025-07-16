@@ -106,6 +106,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
               openAddBookDialog({
                 id: shelf.id,
                 name: shelf.name,
+                owner: shelf.owner,
               })
             }
           >

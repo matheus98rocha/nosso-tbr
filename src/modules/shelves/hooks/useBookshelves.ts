@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
 import { BookshelfService } from "../services/booksshelves.service";
-import { BookshelfDomain } from "../types/bookshelves.types";
+import {
+  BookshelfCreateValidator,
+  BookshelfDomain,
+} from "../types/bookshelves.types";
 
 export function useBookshelves({
   handleClose,
