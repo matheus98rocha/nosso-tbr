@@ -35,7 +35,7 @@ export function BookCombobox({ books, value, onChange }: BookComboboxProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-[200px] justify-between truncate"
         >
           {selectedBook ? selectedBook.title : "Selecione um livro"}
           <ChevronsUpDown className="opacity-50 h-4 w-4" />
@@ -56,7 +56,9 @@ export function BookCombobox({ books, value, onChange }: BookComboboxProps) {
                     setOpen(false);
                   }}
                 >
-                  {book.title}
+                  <span className="truncate max-w-[150px] overflow-hidden whitespace-nowrap">
+                    {book.title}
+                  </span>
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",

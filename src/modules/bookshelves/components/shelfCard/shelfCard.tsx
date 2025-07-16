@@ -2,6 +2,7 @@ import {
   Card,
   CardAction,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -18,6 +19,7 @@ import { CreateEditBookshelves } from "../createEditBookshelves/createEditBooksh
 import { DropdownShelf } from "../dropdownShelf/dropdownShelf";
 import { DeleteDialog } from "@/components/deleteModal/deleteModal";
 import { BookshelfService } from "../../services/booksshelves.service";
+import Image from "next/image";
 
 type Props = {
   shelf: BookshelfDomain;
@@ -53,6 +55,10 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{shelf.name}</CardTitle>
+          <CardDescription>
+            {shelf.books.length} livro{shelf.books.length > 1 ? "s" : ""} nessa
+            estante
+          </CardDescription>
           <CardAction>
             <DropdownShelf
               isOpen={dropdownModal.isOpen}
@@ -72,7 +78,28 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
             />
           </CardAction>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative flex items-center justify-center flex-col">
+          <div className="relative h-40 w-[180px] mb-4">
+            {shelf.books.slice(0, 3).map((book, index) => (
+              <div
+                key={book.id}
+                className="absolute w-24 h-40 rounded overflow-hidden"
+                style={{
+                  left: `${index * 40}px`,
+                  zIndex: index,
+                }}
+              >
+                <Image
+                  src={book.imageUrl as string}
+                  alt={`Book ${index}`}
+                  width={96}
+                  height={160}
+                  className="object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
           <Button
             variant={"outline"}
             onClick={() =>
@@ -85,6 +112,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
             Adicionar Livro a essa Estante
           </Button>
         </CardContent>
+
         <CardFooter>
           <LinkButton
             href={`/bookshelvesBooks/${shelf.id}`}

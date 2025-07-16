@@ -32,7 +32,15 @@ export class BookshelfService {
   async getAll(): Promise<BookshelfDomain[]> {
     const { data, error } = await this.supabase
       .from("custom_shelves")
-      .select("*")
+      .select(
+        `*,custom_shelf_books (
+          book:books 
+          (
+            id,
+            image_url
+          )
+        )`
+      )
       .order("created_at", { ascending: false });
 
     if (error) throw new Error(error.message);

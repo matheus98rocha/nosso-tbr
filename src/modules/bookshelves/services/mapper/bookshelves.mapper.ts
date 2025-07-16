@@ -4,11 +4,15 @@ import {
 } from "../../types/bookshelves.types";
 
 export class BookshelfMapper {
-  static toDomain(data: BookshelfPersistence): BookshelfDomain {
+  static toDomain(persistence: BookshelfPersistence): BookshelfDomain {
     return {
-      id: data.id,
-      name: data.name,
-      createdAt: data.created_at,
+      id: persistence.id,
+      name: persistence.name,
+      createdAt: persistence.created_at,
+      books: persistence.custom_shelf_books.map((book) => ({
+        id: book.book.id,
+        imageUrl: book.book.image_url,
+      })),
     };
   }
 }

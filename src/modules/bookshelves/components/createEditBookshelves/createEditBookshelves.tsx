@@ -25,6 +25,7 @@ import {
 } from "../../validators/bookshelves.validator";
 import { useBookshelves } from "../../hooks/useBookshelves";
 import { BookshelfDomain } from "../../types/bookshelves.types";
+import { useEffect } from "react";
 
 type BookshelfDialogProps = {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export function CreateEditBookshelves({
   const form = useForm<BookshelfCreateValidator>({
     resolver: zodResolver(bookshelfCreateSchema),
     defaultValues: {
-      ...shelf,
+      name: shelf?.name ?? "",
     },
   });
 
@@ -56,6 +57,14 @@ export function CreateEditBookshelves({
       },
     });
   }
+
+  useEffect(() => {
+    if (!isOpen) {
+      form.reset({
+        name: shelf?.name ?? "",
+      });
+    }
+  }, [form, isOpen, shelf]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

@@ -19,6 +19,7 @@ export class BookService {
       .withReaders(filters?.readers)
       .withStatus(status)
       .withGender(filters?.gender)
+      .sortByCreatedAt()
       .build();
 
     const { data, error } = await query;
