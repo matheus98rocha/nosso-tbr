@@ -20,4 +20,13 @@ export class BookshelfServiceBooks {
         BookMapper.toDomain(row.book as unknown as BookPersistence)
       );
   }
+
+  async removeBookFromShelf(bookId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("custom_shelf_books")
+      .delete()
+      .eq("book_id", bookId);
+
+    if (error) throw new Error(error.message);
+  }
 }

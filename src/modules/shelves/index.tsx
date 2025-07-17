@@ -22,12 +22,7 @@ function ClienteShelves() {
     }
   );
 
-  console.log("->", {
-    selectedBookshelf,
-  });
-
   const handleOpenDialog = (shelf: SelectedBookshelf) => {
-    console.log();
     setSelectedBookshelf(shelf);
     dialog.setIsOpen(true);
   };

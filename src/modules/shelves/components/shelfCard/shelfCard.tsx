@@ -135,7 +135,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
 
         <CardFooter>
           <LinkButton
-            href={`/bookshelvesBooks/${shelf.id}`}
+            href={`/bookshelves/${shelf.id}`}
             label="Acessar Estante"
           />
         </CardFooter>

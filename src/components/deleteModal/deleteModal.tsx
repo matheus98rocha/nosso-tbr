@@ -18,6 +18,7 @@ type DeleteDialogProps = {
   onDelete: (id: string) => Promise<void>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  buttomLabel?: string;
 };
 
 export function DeleteDialog({
@@ -28,6 +29,7 @@ export function DeleteDialog({
   onDelete,
   open,
   onOpenChange,
+  buttomLabel = "Deletar",
 }: DeleteDialogProps) {
   const queryClient = useQueryClient();
 
@@ -55,7 +57,7 @@ export function DeleteDialog({
             type="button"
             onClick={() => mutation.mutate()}
           >
-            Deletar
+            {buttomLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

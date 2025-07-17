@@ -44,7 +44,9 @@ function ClientBookshelves() {
         items={data ?? []}
         isLoading={isPending}
         isFetched={isSuccess}
-        renderItem={(book) => <BookCard key={book.id} book={book} />}
+        renderItem={(book) => (
+          <BookCard key={book.id} book={book} isShelf={true} />
+        )}
       />
     </div>
   );

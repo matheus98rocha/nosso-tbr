@@ -13,6 +13,7 @@ type DropdownMenuWrapperProps = {
   trigger: ReactNode;
   editBook: () => void;
   removeBook: () => void;
+  addToShelf: () => void;
 };
 
 export function DropdownBook({
@@ -21,6 +22,7 @@ export function DropdownBook({
   trigger,
   editBook,
   removeBook,
+  addToShelf,
 }: DropdownMenuWrapperProps) {
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
@@ -32,6 +34,10 @@ export function DropdownBook({
         sideOffset={8}
       >
         <DropdownMenuGroup>
+          <DropdownMenuItem onClick={addToShelf}>
+            <p>Adicionar Livro a Estante</p>
+          </DropdownMenuItem>
+
           <DropdownMenuItem onClick={editBook}>
             <p>Editar Livro</p>
           </DropdownMenuItem>

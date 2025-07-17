@@ -20,16 +20,20 @@ import {
 import Image from "next/image";
 import { DeleteDialog } from "@/components/deleteModal/deleteModal";
 import { BookService } from "../../services/books.services";
+import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
+import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 
 type BookCardProps = {
   book: BookDomain;
+  isShelf?: boolean;
 };
 
-export function BookCard({ book }: BookCardProps) {
+export function BookCard({ book, isShelf = false }: BookCardProps) {
   const dropdownModal = useModal();
 
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
+  const dialogAddShelfModal = useModal();
 
   const renderStatusBadge = () => {
     return (
@@ -79,14 +83,30 @@ export function BookCard({ book }: BookCardProps) {
 
   return (
     <>
+      <AddBookToShelf
+        isOpen={dialogAddShelfModal.isOpen}
+        handleClose={dialogAddShelfModal.setIsOpen}
+        bookId={book.id ?? ""}
+      />
       <DeleteDialog
         title="Excluir livro"
-        description="Tem certeza que deseja excluir este livro?"
+        buttomLabel={!isShelf ? "Deletar" : "Remover"}
+        description={
+          !isShelf
+            ? "Tem certeza que deseja excluir este livro?"
+            : "Tem certeza que deseja remover este livro da estante?"
+        }
         id={String(book.id)}
         queryKeyToInvalidate="books"
         onDelete={async (id) => {
-          const service = new BookService();
-          await service.delete(id);
+          if (!isShelf) {
+            const service = new BookService();
+            await service.delete(id);
+          } else {
+            const service = new BookshelfServiceBooks();
+            await service.removeBookFromShelf(id);
+            window.location.reload();
+          }
         }}
         open={dialogDeleteModal.isOpen}
         onOpenChange={dialogDeleteModal.setIsOpen}
@@ -117,6 +137,9 @@ export function BookCard({ book }: BookCardProps) {
               }}
               removeBook={() => {
                 dialogDeleteModal.setIsOpen(true);
+              }}
+              addToShelf={() => {
+                dialogAddShelfModal.setIsOpen(true);
               }}
             />
           </CardAction>
