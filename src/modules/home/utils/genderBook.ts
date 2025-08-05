@@ -23,6 +23,7 @@ export const genders = [
   },
   { label: "Ciência social", value: "social_science" },
   { label: "Clássico", value: "classic" },
+  { label: "Biográfico", value: "biographic" },
 ];
 
 export const getGenderLabel = (value: string | undefined) => {

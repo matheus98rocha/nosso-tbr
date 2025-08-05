@@ -27,35 +27,42 @@ import { useBookshelves } from "../../hooks/useBookshelves";
 import { BookshelfDomain } from "../../types/bookshelves.types";
 import { useEffect } from "react";
 import { SelectField } from "@/modules/home/components/select/select.";
+import { usePathname, useRouter } from "next/navigation";
 
 type BookshelfDialogProps = {
   isOpen: boolean;
   handleClose: (open: boolean) => void;
-  shelf?: BookshelfDomain;
+  editShelf?: BookshelfDomain;
 };
 
 export function CreateEditBookshelves({
   isOpen,
   handleClose,
-  shelf,
+  editShelf,
 }: BookshelfDialogProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+
   const form = useForm<BookshelfCreateValidator>({
     resolver: zodResolver(bookshelfCreateSchema),
     defaultValues: {
-      name: shelf?.name ?? "",
-      owner: shelf?.owner ?? undefined,
-      ...shelf,
+      name: editShelf?.name ?? "",
+      owner: editShelf?.owner ?? undefined,
+      ...editShelf,
     },
   });
 
   const { mutate, isCreating } = useBookshelves({
     handleClose,
-    shelf,
+    editShelf,
   });
 
   function onSubmit(values: BookshelfCreateValidator) {
     mutate(values, {
       onSuccess: () => {
+        if (pathname !== "/shelves") {
+          router.push("/shelves");
+        }
         form.reset();
       },
     });
@@ -64,17 +71,17 @@ export function CreateEditBookshelves({
   useEffect(() => {
     if (!isOpen) {
       form.reset({
-        name: shelf?.name ?? "",
+        name: editShelf?.name ?? "",
       });
     }
-  }, [form, isOpen, shelf]);
+  }, [form, isOpen, editShelf]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {shelf ? "Editar Estante" : "Criar Nova Estante"}
+            {editShelf ? "Editar Estante" : "Criar Nova Estante"}
           </DialogTitle>
         </DialogHeader>
 
@@ -120,7 +127,7 @@ export function CreateEditBookshelves({
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
               <Button type="submit" isLoading={isCreating}>
-                {shelf ? "Editar Estante" : "Criar Estante"}
+                {editShelf ? "Editar Estante" : "Criar Estante"}
               </Button>
             </DialogFooter>
           </form>

@@ -11,9 +11,18 @@ import FiltersSheet, {
 import { ListGrid } from "../../components/listGrid/listGrid";
 import { BookDomain } from "../../types/books.types";
 import { BookCard } from "./components/bookCard/bookCard";
-import { LinkButton } from "@/components/linkButton/linkButton";
+import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+import { useRouter } from "next/navigation";
 
 export default function ClientHome() {
+  const router = useRouter();
   const [filters, setFilters] = useState<FiltersOptions>({
     readers: [],
     gender: "",
@@ -22,6 +31,7 @@ export default function ClientHome() {
 
   const dialogModal = useModal();
   const filtersSheet = useModal();
+  const createShelfDialog = useModal();
 
   const { allBooks, isFetched, isLoadingAllBooks } = useHome({
     filters,
@@ -41,14 +51,46 @@ export default function ClientHome() {
         setIsOpen={filtersSheet.setIsOpen}
       />
 
+      <CreateEditBookshelves
+        isOpen={createShelfDialog.isOpen}
+        handleClose={createShelfDialog.setIsOpen}
+      />
+
       <main className="p-6 flex flex-col items-center gap-6">
         <header className="flex justify-between items-center container">
           <h1 className="text-2xl font-bold mb-4">Nosso TBR</h1>
           <div className="flex items-center gap-2">
+            {/* <Button onClick={() => createShelfDialog.setIsOpen(true)}>
+              Criar Estante
+            </Button>
             <Button onClick={() => dialogModal.setIsOpen(true)}>
               Adicionar Livro
             </Button>
-            <LinkButton href="/shelves" label="Estantes" />
+            <LinkButton href="/shelves" label="Estantes" /> */}
+            <Menubar>
+              <MenubarMenu>
+                <MenubarTrigger>Livros</MenubarTrigger>
+                <MenubarContent>
+                  <MenubarItem onClick={() => dialogModal.setIsOpen(true)}>
+                    Adicionar Livro
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+
+              <MenubarMenu>
+                <MenubarTrigger>Estantes</MenubarTrigger>
+                <MenubarContent>
+                  <MenubarItem onClick={() => router.push("/shelves")}>
+                    Ver Estantes
+                  </MenubarItem>
+                  <MenubarItem
+                    onClick={() => createShelfDialog.setIsOpen(true)}
+                  >
+                    Adicionar Estante
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+            </Menubar>
           </div>
         </header>
         <div className="flex items-center justify-center flex-col gap-4 container">

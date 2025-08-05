@@ -7,10 +7,10 @@ import {
 
 export function useBookshelves({
   handleClose,
-  shelf,
+  editShelf,
 }: {
   handleClose?: (open: boolean) => void;
-  shelf?: BookshelfDomain;
+  editShelf?: BookshelfDomain;
 }) {
   const queryClient = useQueryClient();
   const service = new BookshelfService();
@@ -27,8 +27,8 @@ export function useBookshelves({
 
   const { mutate, isPending: isCreating } = useMutation({
     mutationFn: async (payload: BookshelfCreateValidator) => {
-      if (shelf) {
-        await service.update(shelf.id, payload);
+      if (editShelf) {
+        await service.update(editShelf.id, payload);
       } else {
         await service.create(payload);
       }
