@@ -11,7 +11,7 @@ import { useModal } from "@/hooks/useModal";
 import { BookDomain } from "@/types/books.types";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { DropdownBook } from "../dropdownBook/dropdownBook";
-import { BookDialog } from "../bookDialog/bookDialog";
+import { BookDialog } from "../../../../components/bookDialog/bookDialog";
 import { Badge } from "@/components/ui/badge";
 import {
   getGenderLabel,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BookDialog } from "@/modules/home/components/bookDialog/bookDialog";
+import { BookDialog } from "@/components/bookDialog/bookDialog";
 import { useHome } from "@/modules/home/hooks/useHome";
 import { useModal } from "@/hooks/useModal";
 import FiltersSheet, {
@@ -20,6 +20,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { useRouter } from "next/navigation";
+import { genders } from "./utils/genderBook";
 
 export default function ClientHome() {
   const router = useRouter();
@@ -29,6 +30,12 @@ export default function ClientHome() {
     status: [],
   });
 
+  const statusDictionary = {
+    finished: "Já iniciei a leitura",
+    reading: "Terminei a Leitura",
+    not_started: "Vou iniciar a leitura",
+  };
+
   const dialogModal = useModal();
   const filtersSheet = useModal();
   const createShelfDialog = useModal();
@@ -36,6 +43,39 @@ export default function ClientHome() {
   const { allBooks, isFetched, isLoadingAllBooks, isError } = useHome({
     filters,
   });
+
+  const formatList = (items: string[]) => {
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} e ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
+  };
+
+  const formattedGenres =
+    Array.isArray(filters?.gender) && filters.gender.length > 0
+      ? formatList(
+          filters.gender.map(
+            (value) => genders.find((g) => g.value === value)?.label ?? value
+          )
+        )
+      : null;
+
+  const formattedReaders =
+    Array.isArray(filters?.readers) && filters.readers.length > 0
+      ? formatList(filters.readers)
+      : null;
+
+  const formattedStatus =
+    Array.isArray(filters?.status) && filters.status.length > 0
+      ? formatList(
+          filters.status.map(
+            (value) =>
+              `"${
+                statusDictionary[value as keyof typeof statusDictionary] ??
+                value
+              }"`
+          )
+        )
+      : null;
 
   return (
     <>
@@ -95,6 +135,32 @@ export default function ClientHome() {
               Filtros
             </Button>
           </div>
+          {!isLoadingAllBooks && (
+            <div className="flex items-start justify-center flex-col container">
+              <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                Resultados
+              </h3>
+
+              <p className="leading-7">
+                Foram encontrados: {allBooks?.length || 0} livros
+              </p>
+
+              {(formattedGenres || formattedReaders || formattedStatus) && (
+                <p className="leading-7 text-muted-foreground mt-2">
+                  Filtros aplicados:
+                  {formattedGenres && ` gênero ${formattedGenres}`}
+                  {formattedReaders &&
+                    `${
+                      formattedGenres ? "," : ""
+                    } Leitor(s) ${formattedReaders}`}
+                  {formattedStatus &&
+                    `${
+                      formattedGenres || formattedReaders ? " e" : ""
+                    } com status ${formattedStatus}`}
+                </p>
+              )}
+            </div>
+          )}
 
           <ListGrid<BookDomain>
             items={allBooks ?? []}

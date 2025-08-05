@@ -9,13 +9,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { SelectField } from "../select/select.";
+import { SelectField } from "../../modules/home/components/select/select.";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BookCreateValidator, Status } from "@/types/books.types";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "../datePicker/datePicker";
+import { DatePicker } from "../../modules/home/components/datePicker/datePicker";
 import { useBookDialog } from "./useBookDialog";
 import { genders } from "@/modules/home/utils/genderBook";
 
