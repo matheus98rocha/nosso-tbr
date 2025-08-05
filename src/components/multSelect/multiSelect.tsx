@@ -38,7 +38,7 @@ export function MultiSelect({
     .filter(Boolean);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -53,10 +53,9 @@ export function MultiSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[300px]"
-        onInteractOutside={(e) => {
-          if ((e.target as HTMLElement)?.closest(".multi-select-item")) return;
-        }}
+        className="w-[300px] max-h-60 overflow-y-auto"
+        side="bottom"
+        align="start"
       >
         <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
           {options.map(({ label, value }) => {
@@ -65,14 +64,9 @@ export function MultiSelect({
               <div
                 key={value}
                 className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted transition-all multi-select-item"
-                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => toggleValue(value)}
               >
-                <Checkbox
-                  checked={isChecked}
-                  onCheckedChange={() => {}}
-                  className="pointer-events-none"
-                />
+                <Checkbox checked={isChecked} onCheckedChange={() => {}} />
                 <span className="text-sm">{label}</span>
                 {isChecked && (
                   <Check className="h-4 w-4 ml-auto text-muted-foreground" />
