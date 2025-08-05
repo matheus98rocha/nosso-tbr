@@ -36,10 +36,6 @@ export class BookService {
         );
       }
 
-      if (!data || data.length === 0) {
-        throw new NotFoundError("Livros", undefined, { filters });
-      }
-
       return data.map(BookMapper.toDomain);
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
