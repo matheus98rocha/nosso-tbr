@@ -41,7 +41,8 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
       <CreateEditBookshelves
         isOpen={editShelve.isOpen}
         handleClose={editShelve.setIsOpen}
-        shelf={shelf}
+        // shelf={shelf}
+        editShelf={shelf}
       />
 
       <DeleteDialog
