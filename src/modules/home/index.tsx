@@ -25,15 +25,15 @@ export default function ClientHome() {
   const router = useRouter();
   const [filters, setFilters] = useState<FiltersOptions>({
     readers: [],
-    gender: "",
-    status: "",
+    gender: [],
+    status: [],
   });
 
   const dialogModal = useModal();
   const filtersSheet = useModal();
   const createShelfDialog = useModal();
 
-  const { allBooks, isFetched, isLoadingAllBooks } = useHome({
+  const { allBooks, isFetched, isLoadingAllBooks, isError } = useHome({
     filters,
   });
 
@@ -60,13 +60,6 @@ export default function ClientHome() {
         <header className="flex justify-between items-center container">
           <h1 className="text-2xl font-bold mb-4">Nosso TBR</h1>
           <div className="flex items-center gap-2">
-            {/* <Button onClick={() => createShelfDialog.setIsOpen(true)}>
-              Criar Estante
-            </Button>
-            <Button onClick={() => dialogModal.setIsOpen(true)}>
-              Adicionar Livro
-            </Button>
-            <LinkButton href="/shelves" label="Estantes" /> */}
             <Menubar>
               <MenubarMenu>
                 <MenubarTrigger>Livros</MenubarTrigger>
@@ -108,6 +101,7 @@ export default function ClientHome() {
             isLoading={isLoadingAllBooks}
             isFetched={isFetched}
             renderItem={(book) => <BookCard key={book.id} book={book} />}
+            isError={isError}
           />
         </div>
       </main>

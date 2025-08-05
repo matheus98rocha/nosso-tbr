@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Sheet,
   SheetContent,
@@ -17,10 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { genders } from "../../utils/genderBook";
 
+import { MultiSelect } from "@/components/multSelect/multiSelect";
+
 export type FiltersOptions = {
   readers?: string[];
-  status?: string;
-  gender?: string;
+  status?: string[];
+  gender?: string[];
 };
 
 export type FiltersProps = {
@@ -38,21 +34,23 @@ export default function FiltersSheet({
 }: FiltersProps) {
   const [localFilters, setLocalFilters] = useState<FiltersOptions>(filters);
 
-  const handleFilterChange = (key: keyof FiltersOptions, value: string) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      [key]:
-        value === "all"
-          ? key === "readers"
-            ? []
-            : undefined
-          : key === "readers"
-          ? value.split(",")
-          : key === "gender"
-          ? value
-          : value,
-    }));
+  const handleFilterChange = (
+    key: keyof FiltersOptions,
+    value: string | string[]
+  ) => {
+    setLocalFilters((prev) => {
+      if (key === "readers" || key === "status" || key === "gender") {
+        const values = Array.isArray(value) ? value : [value];
+        return {
+          ...prev,
+          [key]: values.filter(Boolean),
+        };
+      }
+
+      return prev;
+    });
   };
+
   const applyFilters = () => {
     setFilters(localFilters);
     setIsOpen(false);
@@ -69,84 +67,44 @@ export default function FiltersSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col gap-6 p-3">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Leitores</span>
-            <Select
-              onValueChange={(value) => handleFilterChange("readers", value)}
-              value={
-                localFilters.readers?.length === 0
-                  ? "all"
-                  : localFilters.readers?.join(",")
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione os leitores" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="Matheus">Matheus</SelectItem>
-                <SelectItem value="Fabi">Fabi</SelectItem>
-                <SelectItem value="Barbara">Barbara</SelectItem>
-                <SelectItem value="Matheus,Fabi">Matheus e Fabi</SelectItem>
-                <SelectItem value="Matheus,Barbara">
-                  Matheus e Barbara
-                </SelectItem>
-                <SelectItem value="Fabi,Barbara">Fabi e Barbara</SelectItem>
-                <SelectItem value="Matheus,Fabi,Barbara">
-                  Fabi, Barbara e Matheus
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex flex-col gap-2 p-3">
+          <span className="text-sm font-medium">Leitores</span>
+          <MultiSelect
+            options={["Matheus", "Fabi", "Barbara"].map((name) => ({
+              label: name,
+              value: name,
+            }))}
+            selected={localFilters.readers || []}
+            onChange={(values) => handleFilterChange("readers", values)}
+            placeholder="Selecione os leitores"
+          />
         </div>
 
-        <div className="flex flex-col gap-6 p-3">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Status</span>
-            <Select
-              onValueChange={(value) => handleFilterChange("status", value)}
-              value={
-                localFilters.status === undefined ? "all" : localFilters.status
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filtro por Status do livro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="reading">Já iniciei a leitura</SelectItem>
-                <SelectItem value="finished">Terminei a Leitura</SelectItem>
-                <SelectItem value="not_started">
-                  Vou iniciar a leitura
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex flex-col gap-2 p-3">
+          <span className="text-sm font-medium">Status</span>
+          <MultiSelect
+            options={[
+              { label: "Já iniciei a leitura", value: "reading" },
+              { label: "Terminei a Leitura", value: "finished" },
+              { label: "Vou iniciar a leitura", value: "not_started" },
+            ]}
+            selected={localFilters.status || []}
+            onChange={(values) => handleFilterChange("status", values)}
+            placeholder="Selecione os status"
+          />
         </div>
 
-        <div className="flex flex-col gap-6 p-3">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Gênero</span>
-            <Select
-              onValueChange={(value) => handleFilterChange("gender", value)}
-              value={
-                localFilters.gender === undefined ? "all" : localFilters.gender
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filtro por Status do livro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {genders.map((gender) => (
-                  <SelectItem key={gender.value} value={gender.value}>
-                    {gender.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex flex-col gap-2 p-3">
+          <span className="text-sm font-medium">Gênero</span>
+          <MultiSelect
+            options={genders.map((gender) => ({
+              label: gender.label,
+              value: gender.value,
+            }))}
+            selected={localFilters.gender || []}
+            onChange={(values) => handleFilterChange("gender", values)}
+            placeholder="Selecione os gêneros"
+          />
         </div>
 
         <SheetFooter className="mt-auto">

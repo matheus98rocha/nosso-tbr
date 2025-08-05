@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import ErrorComponent from "../error/error";
 
 type ListGridProps<T> = {
   items: T[];
@@ -8,6 +9,7 @@ type ListGridProps<T> = {
   emptyMessage?: string;
   skeletonCount?: number;
   skeletonClassName?: string;
+  isError?: boolean;
 };
 
 export function ListGrid<T>({
@@ -18,7 +20,12 @@ export function ListGrid<T>({
   emptyMessage = "Nenhum item encontrado.",
   skeletonCount = 8,
   skeletonClassName = "h-[192px] w-[327px] rounded-xl bg-primary opacity-40",
+  isError = false,
 }: ListGridProps<T>) {
+  if (isError) {
+    return <ErrorComponent />;
+  }
+
   if (isFetched && items.length === 0) {
     return <div className="text-gray-500 text-center mt-4">{emptyMessage}</div>;
   }

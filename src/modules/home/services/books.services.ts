@@ -3,30 +3,53 @@ import { BookMapper } from "@/modules/home/services/mappers/books.mappers";
 import { BookCreateValidator, BookDomain } from "@/types/books.types";
 import { FiltersOptions } from "../components/filtersSheet/filters";
 import { BookQueryBuilder } from "./builders/bookQuery.builder";
+import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 
+const ALLOWED_STATUSES = ["reading", "finished", "not_started"] as const;
+type BookStatus = (typeof ALLOWED_STATUSES)[number];
+
+function isBookStatus(value: unknown): value is BookStatus {
+  return ALLOWED_STATUSES.includes(value as BookStatus);
+}
 export class BookService {
   private supabase = createClient();
-
   async getAll(filters?: FiltersOptions): Promise<BookDomain[]> {
-    const status: "not_started" | "reading" | "finished" | undefined =
-      filters?.status === "not_started" ||
-      filters?.status === "reading" ||
-      filters?.status === "finished"
-        ? filters.status
-        : undefined;
+    try {
+      const statuses = (filters?.status ?? []).filter(isBookStatus);
 
-    const query = new BookQueryBuilder(this.supabase)
-      .withReaders(filters?.readers)
-      .withStatus(status)
-      .withGender(filters?.gender)
-      .sortByCreatedAt()
-      .build();
+      const query = new BookQueryBuilder(this.supabase)
+        .withReaders(filters?.readers)
+        .withStatus(statuses)
+        .withGender(filters?.gender)
+        .sortByCreatedAt()
+        .build();
 
-    const { data, error } = await query;
-    if (error) throw new Error(error.message);
-    if (!data) return [];
+      const { data, error } = await query;
 
-    return data.map(BookMapper.toDomain);
+      if (error) {
+        throw new RepositoryError(
+          "Falha ao buscar livros",
+          undefined,
+          undefined,
+          error,
+          { filters }
+        );
+      }
+
+      if (!data || data.length === 0) {
+        throw new NotFoundError("Livros", undefined, { filters });
+      }
+
+      return data.map(BookMapper.toDomain);
+    } catch (error) {
+      const normalizedError = ErrorHandler.normalize(error, {
+        service: "BookService",
+        method: "getAll",
+        filters,
+      });
+      ErrorHandler.log(normalizedError);
+      throw normalizedError; // Será capturado pelo useQuery
+    }
   }
   async create(book: BookCreateValidator): Promise<void> {
     const payload = BookMapper.toPersistence(book);

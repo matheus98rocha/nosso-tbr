@@ -18,28 +18,39 @@ export class BookQueryBuilder {
     return this;
   }
 
-  withStatus(status?: "not_started" | "reading" | "finished"): this {
-    if (!status) return this;
+  withStatus(statuses?: ("not_started" | "reading" | "finished")[]): this {
+    if (!statuses || statuses.length === 0) return this;
 
-    if (status === "not_started") {
-      this.query = this.query.is("start_date", null) as typeof this.query;
-    } else if (status === "reading") {
-      this.query = this.query
-        .not("start_date", "is", null)
-        .is("end_date", null) as typeof this.query;
-    } else if (status === "finished") {
-      this.query = this.query
-        .not("start_date", "is", null)
-        .not("end_date", "is", null) as typeof this.query;
+    const filters = statuses
+      .map((status) => {
+        if (status === "not_started") {
+          return `start_date.is.null`;
+        } else if (status === "reading") {
+          return `and(start_date.not.is.null,end_date.is.null)`;
+        } else if (status === "finished") {
+          return `and(start_date.not.is.null,end_date.not.is.null)`;
+        }
+        return "";
+      })
+      .filter(Boolean);
+
+    if (filters.length > 0) {
+      const rawFilter = filters.join(",");
+      this.query = this.query.or(rawFilter) as typeof this.query;
     }
 
     return this;
   }
 
-  withGender(gender?: string): this {
-    if (gender) {
-      this.query = this.query.eq("gender", gender) as typeof this.query;
+  withGender(genders?: string[]): this {
+    if (!genders || genders.length === 0) return this;
+
+    if (genders.length === 1) {
+      this.query = this.query.eq("gender", genders[0]);
+    } else {
+      this.query = this.query.in("gender", genders);
     }
+
     return this;
   }
 

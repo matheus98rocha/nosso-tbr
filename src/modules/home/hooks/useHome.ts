@@ -11,6 +11,7 @@ export function useHome({ filters }: UseHome) {
     data: allBooks,
     isFetching: isLoadingAllBooks,
     isFetched,
+    isError,
   } = useQuery({
     queryKey: ["books", filters],
     queryFn: async () => {
@@ -19,10 +20,10 @@ export function useHome({ filters }: UseHome) {
       return service.getAll(filters);
     },
   });
-
   return {
     allBooks,
     isLoadingAllBooks,
     isFetched,
+    isError,
   };
 }
