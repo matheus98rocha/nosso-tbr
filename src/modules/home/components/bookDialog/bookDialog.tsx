@@ -263,7 +263,6 @@ export function BookDialog({
                       <FormControl>
                         <DatePicker
                           isAfterTodayHidden
-                          title="Data de Início da Leitura"
                           value={
                             field.value ? new Date(field.value) : undefined
                           }
@@ -287,7 +286,6 @@ export function BookDialog({
                         <FormControl>
                           <DatePicker
                             isAfterTodayHidden
-                            title="Data de Término da Leitura"
                             value={
                               field.value ? new Date(field.value) : undefined
                             }
