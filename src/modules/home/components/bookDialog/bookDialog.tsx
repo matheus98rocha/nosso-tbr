@@ -89,7 +89,7 @@ export function BookDialog({
         onOpenChange(isOpen);
       }}
     >
-      <DialogContent className="h-full sm:max-h-[95%] w-full">
+      <DialogContent className="h-full sm:max-h-[95%] w-full overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {bookData ? "Editar Livro" : "Adicione um novo livro"}
