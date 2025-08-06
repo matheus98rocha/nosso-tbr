@@ -1,8 +1,4 @@
-import {
-  BookCreateValidator,
-  BookDomain,
-  BookPersistence,
-} from "@/types/books.types";
+import { BookDomain, BookPersistence } from "@/types/books.types";
 
 export class BookMapper {
   static toDomain(persistence: BookPersistence): BookDomain {
@@ -32,29 +28,6 @@ export class BookMapper {
         : (persistence.readers as BookDomain["readers"]),
       gender: persistence.gender ?? null,
       image_url: persistence.image_url,
-    };
-  }
-
-  static toPersistence(
-    domain: BookCreateValidator,
-    extra?: Partial<BookPersistence>
-  ): BookPersistence {
-    return {
-      id: domain.id,
-      title: domain.title,
-      author: domain.author,
-      chosen_by: domain.chosen_by,
-      pages: domain.pages,
-      start_date: domain.start_date ?? null,
-      end_date: domain.end_date ?? null,
-      inserted_at: extra?.inserted_at ?? undefined,
-      readers: Array.isArray(domain.readers)
-        ? domain.readers
-        : domain.readers
-        ? domain.readers.split(" e ")
-        : [],
-      gender: domain.gender ?? null,
-      image_url: domain.image_url,
     };
   }
 }

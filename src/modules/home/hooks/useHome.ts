@@ -15,7 +15,6 @@ export function useHome({ filters }: UseHome) {
   } = useQuery({
     queryKey: ["books", filters],
     queryFn: async () => {
-      console.log(filters);
       const service = new BookService();
       return service.getAll(filters);
     },

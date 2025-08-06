@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookMapper } from "@/modules/home/services/mappers/books.mappers";
-import { BookCreateValidator, BookDomain } from "@/types/books.types";
+import { BookDomain } from "@/types/books.types";
 import { FiltersOptions } from "../components/filtersSheet/filters";
 import { BookQueryBuilder } from "./builders/bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
@@ -46,22 +46,6 @@ export class BookService {
       ErrorHandler.log(normalizedError);
       throw normalizedError; // Será capturado pelo useQuery
     }
-  }
-  async create(book: BookCreateValidator): Promise<void> {
-    const payload = BookMapper.toPersistence(book);
-
-    const { error } = await this.supabase.from("books").insert(payload);
-    if (error) throw new Error(error.message);
-  }
-  async edit(id: string, book: BookCreateValidator): Promise<void> {
-    const payload = BookMapper.toPersistence(book);
-
-    const { error } = await this.supabase
-      .from("books")
-      .update(payload)
-      .eq("id", id);
-
-    if (error) throw new Error(error.message);
   }
   async delete(id: string): Promise<void> {
     const { error } = await this.supabase.from("books").delete().eq("id", id);

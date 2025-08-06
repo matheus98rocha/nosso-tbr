@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BookDialog } from "@/components/bookDialog/bookDialog";
+import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
 import { useModal } from "@/hooks/useModal";
 import FiltersSheet, {
@@ -79,7 +79,7 @@ export default function ClientHome() {
 
   return (
     <>
-      <BookDialog
+      <BookUpsert
         isOpen={dialogModal.isOpen}
         onOpenChange={dialogModal.setIsOpen}
       />
@@ -142,7 +142,8 @@ export default function ClientHome() {
               </h3>
 
               <p className="leading-7">
-                Foram encontrados: {allBooks?.length || 0} livros
+                Foram encontrados:{" "}
+                <strong>{allBooks?.length || 0} livros</strong>
               </p>
 
               {(formattedGenres || formattedReaders || formattedStatus) && (

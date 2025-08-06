@@ -10,7 +10,6 @@ export class BookshelfMapper {
     return {
       shelfName: data[0]?.shelf?.[0]?.name ?? "",
       books: data.map((row) => {
-        console.log("->", row);
         return BookMapper.toDomain(row.book[0] as BookPersistence);
       }),
     };

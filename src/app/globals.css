@@ -126,4 +126,14 @@
       cursor: pointer;
     }
   }
+
+  .toast-success {
+    background-color: #22c55e !important;
+    color: white !important;
+  }
+
+  .toast-error {
+    background-color: #ef4444 !important;
+    color: white !important;
+  }
 }

@@ -11,7 +11,7 @@ import { useModal } from "@/hooks/useModal";
 import { BookDomain } from "@/types/books.types";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { DropdownBook } from "../dropdownBook/dropdownBook";
-import { BookDialog } from "../../../../components/bookDialog/bookDialog";
+import { BookUpsert } from "../../../bookUpsert/bookUpsert";
 import { Badge } from "@/components/ui/badge";
 import {
   getGenderLabel,
@@ -111,14 +111,14 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
         open={dialogDeleteModal.isOpen}
         onOpenChange={dialogDeleteModal.setIsOpen}
       />
-      <BookDialog
+      <BookUpsert
         isOpen={dialogEditModal.isOpen}
         onOpenChange={dialogEditModal.setIsOpen}
         bookData={book}
       />
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader>
-          <CardTitle>{book.title}</CardTitle>
+          <CardTitle className="truncate">{book.title}</CardTitle>
           <CardDescription>
             {book.author} | {book.pages} páginas
           </CardDescription>
