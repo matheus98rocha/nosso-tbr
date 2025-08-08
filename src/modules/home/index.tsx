@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
@@ -22,7 +22,10 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { genders } from "./utils/genderBook";
 import { Sliders } from "lucide-react";
-import { InputWithButton } from "@/components/inputWithButton/inputWithButton";
+import {
+  InputWithButton,
+  InputWithButtonRef,
+} from "@/components/inputWithButton/inputWithButton";
 
 export default function ClientHome() {
   const router = useRouter();
@@ -36,6 +39,7 @@ export default function ClientHome() {
 
   const initialSearch = searchParams.get("search") ?? "";
   const searchQuery = searchParams.get("search") ?? "";
+  const inputRef = useRef<InputWithButtonRef>(null);
 
   const statusDictionary = {
     finished: "Terminei a Leitura",
@@ -57,6 +61,14 @@ export default function ClientHome() {
     if (event.key === "Enter" && value.trim() !== "") {
       updateSearchInUrl(value);
     }
+  };
+
+  const handleClearAllFilters = () => {
+    setFilters({ readers: [], gender: [], status: [] });
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    updateSearchInUrl("");
+    inputRef.current?.clear();
   };
 
   const updateSearchInUrl = (term: string) => {
@@ -164,6 +176,7 @@ export default function ClientHome() {
         <div className="w-full flex items-center justify-center flex-col gap-4 container">
           <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
             <InputWithButton
+              ref={inputRef}
               defaultValue={initialSearch}
               onBlur={handleInputBlur}
               onButtonClick={handleSearchButtonClick}
@@ -191,21 +204,58 @@ export default function ClientHome() {
                 Foram encontrados:{" "}
                 <strong>{allBooks?.length || 0} livros</strong>
               </p>
+              <div className="flex items-center justify-center gap-4">
+                {(formattedGenres ||
+                  formattedReaders ||
+                  formattedStatus ||
+                  searchQuery) && (
+                  <p className="leading-7 text-muted-foreground mt-2">
+                    {searchQuery && (
+                      <>
+                        Buscando por: <strong>{searchQuery}</strong>
+                        {(formattedGenres ||
+                          formattedReaders ||
+                          formattedStatus) && <br />}
+                      </>
+                    )}
 
-              {(formattedGenres || formattedReaders || formattedStatus) && (
-                <p className="leading-7 text-muted-foreground mt-2">
-                  Filtros aplicados:
-                  {formattedGenres && ` gênero ${formattedGenres}`}
-                  {formattedReaders &&
-                    `${
-                      formattedGenres ? "," : ""
-                    } Leitor(s) ${formattedReaders}`}
-                  {formattedStatus &&
-                    `${
-                      formattedGenres || formattedReaders ? " e" : ""
-                    } com status ${formattedStatus}`}
-                </p>
-              )}
+                    {(formattedGenres ||
+                      formattedReaders ||
+                      formattedStatus) && (
+                      <>
+                        Filtros aplicados:
+                        {formattedGenres && ` gênero ${formattedGenres}`}
+                        {formattedReaders &&
+                          `${
+                            formattedGenres ? "," : ""
+                          } Leitor(s) ${formattedReaders}`}
+                        {formattedStatus &&
+                          `${
+                            formattedGenres || formattedReaders ? " e" : ""
+                          } com status ${formattedStatus}`}
+                      </>
+                    )}
+                  </p>
+                )}
+
+                {(searchQuery ||
+                  (Array.isArray(filters.gender) &&
+                    filters.gender.length > 0) ||
+                  (Array.isArray(filters.readers) &&
+                    filters.readers.length > 0) ||
+                  (Array.isArray(filters.status) &&
+                    filters.status.length > 0)) && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      handleClearAllFilters();
+                    }}
+                  >
+                    Limpar filtros
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 

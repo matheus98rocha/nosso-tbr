@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
 type InputWithButtonProps = {
@@ -13,14 +13,23 @@ type InputWithButtonProps = {
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 };
 
-export function InputWithButton({
-  placeholder,
-  defaultValue,
-  onButtonClick,
-  onBlur,
-  onKeyDown,
-}: InputWithButtonProps) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
+export type InputWithButtonRef = {
+  clear: () => void;
+};
+
+export const InputWithButton = forwardRef<
+  InputWithButtonRef,
+  InputWithButtonProps
+>(({ placeholder, defaultValue, onButtonClick, onBlur, onKeyDown }, ref) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    clear() {
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    },
+  }));
 
   const handlePressEnter = () => {
     const val = inputRef.current?.value ?? "";
@@ -53,4 +62,6 @@ export function InputWithButton({
       </Button>
     </div>
   );
-}
+});
+
+InputWithButton.displayName = "InputWithButton";
