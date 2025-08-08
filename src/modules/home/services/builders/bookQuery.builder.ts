@@ -13,7 +13,7 @@ export class BookQueryBuilder {
 
   withReaders(readers?: string[]): this {
     if (readers?.length) {
-      this.query = this.query.filter("readers", "eq", `{${readers.join(",")}}`);
+      this.query = this.query.contains("readers", readers);
     }
     return this;
   }
@@ -58,6 +58,16 @@ export class BookQueryBuilder {
     this.query = this.query.order("inserted_at", {
       ascending,
     }) as typeof this.query;
+    return this;
+  }
+
+  withSearchTerm(searchTerm?: string): this {
+    if (searchTerm?.trim()) {
+      const ilikeValue = `%${searchTerm}%`;
+      this.query = this.query.or(
+        `title.ilike.${ilikeValue},author.ilike.${ilikeValue}`
+      );
+    }
     return this;
   }
 

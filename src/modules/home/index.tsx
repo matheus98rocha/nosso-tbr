@@ -19,20 +19,27 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { genders } from "./utils/genderBook";
+import { Sliders } from "lucide-react";
+import { InputWithButton } from "@/components/inputWithButton/inputWithButton";
 
 export default function ClientHome() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [filters, setFilters] = useState<FiltersOptions>({
     readers: [],
     gender: [],
     status: [],
   });
 
+  const initialSearch = searchParams.get("search") ?? "";
+  const searchQuery = searchParams.get("search") ?? "";
+
   const statusDictionary = {
-    finished: "Já iniciei a leitura",
-    reading: "Terminei a Leitura",
+    finished: "Terminei a Leitura",
+    reading: "Já iniciei a leitura",
     not_started: "Vou iniciar a leitura",
   };
 
@@ -42,7 +49,33 @@ export default function ClientHome() {
 
   const { allBooks, isFetched, isLoadingAllBooks, isError } = useHome({
     filters,
+    search: searchQuery,
   });
+
+  const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value;
+    if (event.key === "Enter" && value.trim() !== "") {
+      updateSearchInUrl(value);
+    }
+  };
+
+  const updateSearchInUrl = (term: string) => {
+    const trimmed = term.trim();
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (trimmed) {
+      params.set("search", trimmed);
+    } else {
+      params.delete("search");
+    }
+
+    const qs = params.toString();
+    const target = qs ? `?${qs}` : window.location.pathname;
+    router.push(target);
+  };
+
+  const handleInputBlur = (value: string) => updateSearchInUrl(value);
+  const handleSearchButtonClick = (value: string) => updateSearchInUrl(value);
 
   const formatList = (items: string[]) => {
     if (items.length === 1) return items[0];
@@ -98,7 +131,9 @@ export default function ClientHome() {
 
       <main className="p-6 flex flex-col items-center gap-6">
         <header className="flex justify-between items-center container">
-          <h1 className="text-2xl font-bold mb-4">Nosso TBR</h1>
+          <button onClick={() => router.push("/")}>
+            <h1 className="text-2xl font-bold mb-4">Nosso TBR</h1>
+          </button>
           <div className="flex items-center gap-2">
             <Menubar>
               <MenubarMenu>
@@ -126,20 +161,31 @@ export default function ClientHome() {
             </Menubar>
           </div>
         </header>
-        <div className="flex items-center justify-center flex-col gap-4 container">
-          <div className="flex justify-end w-full">
+        <div className="w-full flex items-center justify-center flex-col gap-4 container">
+          <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
+            <InputWithButton
+              defaultValue={initialSearch}
+              onBlur={handleInputBlur}
+              onButtonClick={handleSearchButtonClick}
+              placeholder="Pesquise por título do livro ou nome do autor"
+              onKeyDown={handleOnPressEnter}
+            />
+
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => filtersSheet.setIsOpen(true)}
+              className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
+              aria-label="Filters"
             >
+              <Sliders size={16} />
               Filtros
             </Button>
           </div>
           {!isLoadingAllBooks && (
             <div className="flex items-start justify-center flex-col container">
-              <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+              <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
                 Resultados
-              </h3>
+              </h4>
 
               <p className="leading-7">
                 Foram encontrados:{" "}

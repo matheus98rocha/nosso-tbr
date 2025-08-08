@@ -4,19 +4,20 @@ import { FiltersOptions } from "../components/filtersSheet/filters";
 
 type UseHome = {
   filters: FiltersOptions;
+  search?: string;
 };
 
-export function useHome({ filters }: UseHome) {
+export function useHome({ filters, search }: UseHome) {
   const {
     data: allBooks,
     isFetching: isLoadingAllBooks,
     isFetched,
     isError,
   } = useQuery({
-    queryKey: ["books", filters],
+    queryKey: ["books", filters, search],
     queryFn: async () => {
       const service = new BookService();
-      return service.getAll(filters);
+      return service.getAll(filters, search);
     },
   });
   return {

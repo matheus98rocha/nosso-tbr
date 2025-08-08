@@ -13,7 +13,10 @@ function isBookStatus(value: unknown): value is BookStatus {
 }
 export class BookService {
   private supabase = createClient();
-  async getAll(filters?: FiltersOptions): Promise<BookDomain[]> {
+  async getAll(
+    filters?: FiltersOptions,
+    search?: string
+  ): Promise<BookDomain[]> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
 
@@ -22,6 +25,7 @@ export class BookService {
         .withStatus(statuses)
         .withGender(filters?.gender)
         .sortByCreatedAt()
+        .withSearchTerm(search)
         .build();
 
       const { data, error } = await query;

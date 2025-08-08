@@ -30,7 +30,7 @@ export function useBookDialog({
 
       if (isEdit) {
         if (!bookData || !bookData.id) {
-          throw new Error("Dados do livro ou ID ausentes para edição.");
+          throw new Error("Erro inesperado.");
         }
         await service.edit(bookData.id, data);
       } else {
@@ -62,10 +62,26 @@ export function useBookDialog({
     },
     onError: (error) => {
       if (error instanceof Error) {
-        toast("Erro ao salvar livro", {
-          description: error.message || "Ocorreu um erro inesperado.",
-          className: "toast-error",
-        });
+        if (error.message === "Falha ao adicionar livro á estante") {
+          onOpenChange(false);
+          reset();
+
+          toast(
+            "O livro foi criado, porém houve um erro ao adicionar o livro a estante...",
+            {
+              description: error.message || "Ocorreu um erro inesperado.",
+              className: "toast-error",
+            }
+          );
+
+          queryClient.invalidateQueries({ queryKey: ["books"] });
+        } else {
+          console.log("Passei pro else");
+          toast("Erro ao salvar livro", {
+            description: error.message || "Ocorreu um erro inesperado.",
+            className: "toast-error",
+          });
+        }
       }
     },
   });

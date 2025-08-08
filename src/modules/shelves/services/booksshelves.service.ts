@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
 import { BookshelfDomain } from "../types/bookshelves.types";
 import { BookshelfMapper } from "./mapper/bookshelves.mapper";
+import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 
 export class BookshelfService {
   private supabase = createClient();
@@ -50,11 +51,30 @@ export class BookshelfService {
   }
 
   async addBookToShelf(bookshelfId: string, bookId: string): Promise<void> {
-    const { error } = await this.supabase.from("custom_shelf_books").insert({
-      shelf_id: bookshelfId,
-      book_id: bookId,
-    });
+    try {
+      const { error } = await this.supabase.from("custom_shelf_books").insert({
+        shelf_id: bookshelfId,
+        book_id: bookId,
+      });
 
-    if (error) throw new Error(error.message);
+      if (error) {
+        throw new RepositoryError(
+          "Falha ao adicionar livro á estante",
+          undefined,
+          undefined,
+          error,
+          {
+            origin: "BookshelfService",
+          }
+        );
+      }
+    } catch (error) {
+      const normalizedError = ErrorHandler.normalize(error, {
+        service: "booksshelves",
+        method: "create",
+      });
+      ErrorHandler.log(normalizedError);
+      throw normalizedError;
+    }
   }
 }
