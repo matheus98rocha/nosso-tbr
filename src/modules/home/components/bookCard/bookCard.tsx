@@ -81,6 +81,14 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
     );
   };
 
+  function generateWhatsAppShareLink(): string {
+    const baseUrl = "https://nosso-tbr.vercel.app/";
+    const encodedTitle = encodeURIComponent(book.title);
+    const url = `${baseUrl}?search=${encodedTitle}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(url)}`;
+    return whatsappUrl;
+  }
+
   return (
     <>
       <AddBookToShelf
@@ -140,6 +148,10 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
               }}
               addToShelf={() => {
                 dialogAddShelfModal.setIsOpen(true);
+              }}
+              shareOnWhatsApp={() => {
+                const whatsappUrl = generateWhatsAppShareLink();
+                window.open(whatsappUrl, "_blank");
               }}
             />
           </CardAction>
