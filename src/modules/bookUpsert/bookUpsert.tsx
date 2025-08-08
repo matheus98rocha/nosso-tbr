@@ -54,7 +54,7 @@ export function BookUpsert({
     defaultValues: {
       title: "",
       author: "",
-      pages: 1,
+      pages: undefined,
       readers: "",
       start_date: null,
       end_date: null,
@@ -190,7 +190,7 @@ export function BookUpsert({
                 render={({ field }) => {
                   const value =
                     field.value === undefined || field.value === null
-                      ? 0
+                      ? undefined
                       : field.value;
 
                   return (
@@ -199,12 +199,12 @@ export function BookUpsert({
                       <FormControl>
                         <Input
                           type="number"
-                          min="1"
                           {...field}
-                          value={value}
+                          value={value ?? ""}
                           onChange={(e) => {
-                            const numValue = parseInt(e.target.value);
-                            field.onChange(isNaN(numValue) ? 0 : numValue);
+                            const val = e.target.value;
+                            const parsed = val === "" ? undefined : Number(val);
+                            field.onChange(parsed);
                           }}
                         />
                       </FormControl>
@@ -251,6 +251,10 @@ export function BookUpsert({
                           { label: "Fabi", value: "Fabi" },
                           { label: "Matheus e Fabi", value: "Matheus e Fabi" },
                           { label: "Barbara e Fabi", value: "Barbara e Fabi" },
+                          {
+                            label: "Barbara,Fabi e Matheus",
+                            value: "Barbara,Fabi e Matheus",
+                          },
                         ]}
                       />
                     </FormControl>

@@ -24,8 +24,7 @@ export const genders = [
   { label: "Ciência social", value: "social_science" },
   { label: "Clássico", value: "classic" },
   { label: "Biográfico", value: "biographic" },
-];
-
+].sort((a, b) => a.label.localeCompare(b.label));
 export const getGenderLabel = (value: string | undefined) => {
   return genders.find((g) => g.value === value)?.label ?? value;
 };

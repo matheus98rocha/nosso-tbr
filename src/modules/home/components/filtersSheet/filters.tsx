@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Sheet,
@@ -55,6 +55,10 @@ export default function FiltersSheet({
     setFilters(localFilters);
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
 
   return (
     <Sheet open={open} onOpenChange={setIsOpen}>
@@ -116,6 +120,8 @@ export default function FiltersSheet({
               setIsOpen(false);
               setFilters({
                 readers: [],
+                gender: [],
+                status: [],
               });
               setLocalFilters({ readers: [] });
             }}
