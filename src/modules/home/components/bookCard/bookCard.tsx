@@ -59,13 +59,15 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
             Finalizado em:{" "}
             {new Date(book.end_date).toLocaleDateString("pt-BR", {
               year: "numeric",
-              month: "long",
+              month: "numeric",
               day: "numeric",
             })}
           </Badge>
         )}
         <Badge className="bg-amber-500 text-white">
-          Leitores: {book.readers}
+          {book.readers === "Barbara,Fabi e Matheus"
+            ? "Leitores: 3 (Todos)"
+            : `Leitores: ${book.readers}`}
         </Badge>
 
         <Badge className="bg-amber-500 text-white">

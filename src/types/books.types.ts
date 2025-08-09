@@ -36,7 +36,13 @@ export type BookDomain = {
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
   status?: Status;
-  readers: "Matheus" | "Fabi" | "Matheus e Fabir" | "Baraba e Fabi";
+  readers:
+    | "Matheus"
+    | "Fabi"
+    | "Matheus e Fabir"
+    | "Baraba e Fabi"
+    | "Matheus e Barbara"
+    | "Barbara,Fabi e Matheus";
   start_date?: string | null;
   end_date?: string | null;
   gender: string | null;
