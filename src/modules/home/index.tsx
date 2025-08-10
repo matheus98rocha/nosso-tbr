@@ -149,6 +149,15 @@ export default function ClientHome() {
           <div className="flex items-center gap-2">
             <Menubar>
               <MenubarMenu>
+                <MenubarTrigger>Estatisticas</MenubarTrigger>
+                <MenubarContent>
+                  <MenubarItem onClick={() => router.push("/stats")}>
+                    Estatisticas
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+
+              <MenubarMenu>
                 <MenubarTrigger>Livros</MenubarTrigger>
                 <MenubarContent>
                   <MenubarItem onClick={() => dialogModal.setIsOpen(true)}>

@@ -76,7 +76,6 @@ export function useBookDialog({
 
           queryClient.invalidateQueries({ queryKey: ["books"] });
         } else {
-          console.log("Passei pro else");
           toast("Erro ao salvar livro", {
             description: error.message || "Ocorreu um erro inesperado.",
             className: "toast-error",
