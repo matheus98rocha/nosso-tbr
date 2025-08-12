@@ -122,6 +122,32 @@ export default function ClientHome() {
         )
       : null;
 
+  const menuItems = [
+    {
+      label: "Livros",
+      items: [
+        {
+          label: "Adicionar Livro",
+          action: () => dialogModal.setIsOpen(true),
+        },
+      ],
+    },
+    {
+      label: "Estatisticas",
+      items: [{ label: "Estatisticas", action: () => router.push("/stats") }],
+    },
+    {
+      label: "Estantes",
+      items: [
+        { label: "Ver Estantes", action: () => router.push("/shelves") },
+        {
+          label: "Adicionar Estante",
+          action: () => createShelfDialog.setIsOpen(true),
+        },
+      ],
+    },
+  ];
+
   return (
     <>
       <BookUpsert
@@ -148,37 +174,18 @@ export default function ClientHome() {
           </button>
           <div className="flex items-center gap-2">
             <Menubar>
-              <MenubarMenu>
-                <MenubarTrigger>Estatisticas</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem onClick={() => router.push("/stats")}>
-                    Estatisticas
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
-
-              <MenubarMenu>
-                <MenubarTrigger>Livros</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem onClick={() => dialogModal.setIsOpen(true)}>
-                    Adicionar Livro
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
-
-              <MenubarMenu>
-                <MenubarTrigger>Estantes</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem onClick={() => router.push("/shelves")}>
-                    Ver Estantes
-                  </MenubarItem>
-                  <MenubarItem
-                    onClick={() => createShelfDialog.setIsOpen(true)}
-                  >
-                    Adicionar Estante
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
+              {menuItems.map((menu) => (
+                <MenubarMenu key={menu.label}>
+                  <MenubarTrigger>{menu.label}</MenubarTrigger>
+                  <MenubarContent>
+                    {menu.items.map((item) => (
+                      <MenubarItem key={item.label} onClick={item.action}>
+                        {item.label}
+                      </MenubarItem>
+                    ))}
+                  </MenubarContent>
+                </MenubarMenu>
+              ))}
             </Menubar>
           </div>
         </header>

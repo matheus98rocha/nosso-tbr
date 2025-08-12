@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { SelectField } from "../home/components/select/select.";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,10 +45,6 @@ export function BookUpsert({
   isOpen,
   onOpenChange,
 }: CreateBookProps) {
-  const [selected, setSelected] = useState<Status | null>(null);
-  const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
-  const [selectedShelfId, setSelectedShelfId] = useState("");
-
   const form = useForm<BookCreateValidator>({
     resolver: zodResolver(bookCreateSchema),
     defaultValues: {
@@ -66,13 +62,20 @@ export function BookUpsert({
 
   const { reset, handleSubmit, control } = form;
   const isEdit: boolean = Boolean(bookData && bookData.id);
-  const { onSubmit, isLoading } = useBookDialog({
+  const {
+    onSubmit,
+    isLoading,
+    isAddToShelfEnabled,
+    selected,
+    selectedShelfId,
+    setIsAddToShelfEnabled,
+    setSelected,
+    setSelectedShelfId,
+  } = useBookDialog({
     reset,
     bookData,
     onOpenChange,
     isEdit,
-    isAddToShelfEnabled,
-    selectedShelfId,
   });
 
   const checkboxes: { id: Status; label: string }[] = [
@@ -87,7 +90,7 @@ export function BookUpsert({
     } else {
       setSelected(null);
     }
-  }, [bookData]);
+  }, [bookData, setSelected]);
 
   const { data: bookshelves = [], isLoading: isLoadingBookShelfs } = useQuery({
     queryKey: ["bookshelves"],

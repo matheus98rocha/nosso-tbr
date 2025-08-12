@@ -1,17 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookCreateValidator } from "@/types/books.types";
+import { BookCreateValidator, Status } from "@/types/books.types";
 import { UseFormReset } from "react-hook-form";
 import { BookUpsertService } from "./services/bookUpsert.service";
 import { toast } from "sonner";
 import { BookshelfService } from "../shelves/services/booksshelves.service";
+import { useCallback, useState } from "react";
 
 type UseCreateBookDialog = {
   reset: UseFormReset<BookCreateValidator>;
   bookData: BookCreateValidator | undefined;
   isEdit: boolean;
   onOpenChange: (open: boolean) => void;
-  isAddToShelfEnabled: boolean;
-  selectedShelfId: string;
 };
 
 export function useBookDialog({
@@ -19,10 +18,20 @@ export function useBookDialog({
   bookData,
   onOpenChange,
   isEdit,
-  isAddToShelfEnabled,
-  selectedShelfId,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
+
+  const [selected, setSelected] = useState<Status | null>(null);
+  const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
+  const [selectedShelfId, setSelectedShelfId] = useState("");
+
+  const handleResetForm = useCallback(() => {
+    onOpenChange(false);
+    reset();
+    setSelected(null);
+    setIsAddToShelfEnabled(false);
+    setSelectedShelfId("");
+  }, [onOpenChange, reset]);
 
   const mutation = useMutation({
     mutationFn: async (data: BookCreateValidator) => {
@@ -50,8 +59,7 @@ export function useBookDialog({
       }
     },
     onSuccess: () => {
-      onOpenChange(false);
-      reset();
+      handleResetForm();
 
       toast("Livro salvo com sucesso!", {
         description: bookData ? "Edição concluída" : "Novo livro adicionado",
@@ -63,8 +71,7 @@ export function useBookDialog({
     onError: (error) => {
       if (error instanceof Error) {
         if (error.message === "Falha ao adicionar livro á estante") {
-          onOpenChange(false);
-          reset();
+          handleResetForm();
 
           toast(
             "O livro foi criado, porém houve um erro ao adicionar o livro a estante...",
@@ -95,5 +102,14 @@ export function useBookDialog({
     isSuccess: mutation.isSuccess,
     isError: mutation.isError,
     error: mutation.error,
+
+    selected,
+    setSelected,
+
+    isAddToShelfEnabled,
+    setIsAddToShelfEnabled,
+
+    selectedShelfId,
+    setSelectedShelfId,
   };
 }
