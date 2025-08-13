@@ -25,7 +25,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUserStore } from "@/stores/userStore";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 type Props = {
   shelf: BookshelfDomain;
@@ -37,7 +37,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
   const editShelve = useModal();
   const deleteShelf = useModal();
 
-  const user = useUserStore((state) => state.user);
+  const isLogged = useIsLoggedIn();
 
   return (
     <>
@@ -81,7 +81,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
               </span>
             </div>
           </CardDescription>
-          {user !== null && (
+          {isLogged && (
             <CardAction>
               <DropdownShelf
                 isOpen={dropdownModal.isOpen}
@@ -124,7 +124,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
               </div>
             ))}
           </div>
-          {user !== null && (
+          {isLogged && (
             <Button
               variant={"outline"}
               onClick={() =>

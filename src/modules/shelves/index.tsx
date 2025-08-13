@@ -9,13 +9,13 @@ import { BookshelfDomain, SelectedBookshelf } from "./types/bookshelves.types";
 import { AddBookToBookshelfDialog } from "./components/addBookToBookshelfDialog/addBookToBookshelfDialog";
 import { useModal } from "@/hooks/useModal";
 import { ShelfCard } from "./components/shelfCard/shelfCard";
-import { useUserStore } from "@/stores/userStore";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 function ClienteShelves() {
   const createEdit = useModal();
   const dialog = useModal();
 
-  const user = useUserStore((state) => state.user);
+  const isLogged = useIsLoggedIn();
 
   const [selectedBookshelf, setSelectedBookshelf] = useState<SelectedBookshelf>(
     {
@@ -44,7 +44,7 @@ function ClienteShelves() {
         handleClose={createEdit.setIsOpen}
       />
       <div className="p-6 flex flex-col items-start gap-6">
-        {user !== null && (
+        {isLogged && (
           <Button onClick={() => createEdit.setIsOpen(true)}>
             Criar Estante
           </Button>

@@ -22,7 +22,7 @@ import { DeleteDialog } from "@/components/deleteModal/deleteModal";
 import { BookService } from "../../services/books.services";
 import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
-import { useUserStore } from "@/stores/userStore";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 type BookCardProps = {
   book: BookDomain;
@@ -36,7 +36,7 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
   const dialogDeleteModal = useModal();
   const dialogAddShelfModal = useModal();
 
-  const user = useUserStore((state) => state.user);
+  const isLogged = useIsLoggedIn();
 
   const renderStatusBadge = () => {
     return (
@@ -136,7 +136,7 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
             {book.author} | {book.pages} páginas
           </CardDescription>
 
-          {user !== null && (
+          {isLogged && (
             <CardAction>
               <DropdownBook
                 isOpen={dropdownModal.isOpen}

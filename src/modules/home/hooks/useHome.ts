@@ -1,7 +1,7 @@
 import { BookService } from "@/modules/home/services/books.services";
 import { useQuery } from "@tanstack/react-query";
 import { FiltersOptions } from "../components/filtersSheet/filters";
-import { createClient } from "@/lib/supabase/client";
+import { useUserStore } from "@/stores/userStore";
 
 type UseHome = {
   filters: FiltersOptions;
@@ -9,6 +9,8 @@ type UseHome = {
 };
 
 export function useHome({ filters, search }: UseHome) {
+  const fetchUser = useUserStore((state) => state.fetchUser);
+
   const {
     data: allBooks,
     isFetching: isLoadingAllBooks,
@@ -28,12 +30,13 @@ export function useHome({ filters, search }: UseHome) {
     isError: isErrorUser,
   } = useQuery({
     queryKey: ["user"],
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      return data.user;
-    },
+    queryFn: () =>
+      fetchUser().then(() => {
+        const user = useUserStore.getState().user;
+        const error = useUserStore.getState().error;
+        if (error) throw new Error(error);
+        return user;
+      }),
   });
 
   return {
