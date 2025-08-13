@@ -22,6 +22,7 @@ import { DeleteDialog } from "@/components/deleteModal/deleteModal";
 import { BookService } from "../../services/books.services";
 import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
+import { useUserStore } from "@/stores/userStore";
 
 type BookCardProps = {
   book: BookDomain;
@@ -34,6 +35,8 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
   const dialogAddShelfModal = useModal();
+
+  const user = useUserStore((state) => state.user);
 
   const renderStatusBadge = () => {
     return (
@@ -132,31 +135,34 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
           <CardDescription>
             {book.author} | {book.pages} páginas
           </CardDescription>
-          <CardAction>
-            <DropdownBook
-              isOpen={dropdownModal.isOpen}
-              onOpenChange={dropdownModal.setIsOpen}
-              trigger={
-                <EllipsisVerticalIcon
-                  className="w-5 h-5 cursor-pointer"
-                  onClick={() => dropdownModal.setIsOpen(true)}
-                />
-              }
-              editBook={() => {
-                dialogEditModal.setIsOpen(true);
-              }}
-              removeBook={() => {
-                dialogDeleteModal.setIsOpen(true);
-              }}
-              addToShelf={() => {
-                dialogAddShelfModal.setIsOpen(true);
-              }}
-              shareOnWhatsApp={() => {
-                const whatsappUrl = generateWhatsAppShareLink();
-                window.open(whatsappUrl, "_blank");
-              }}
-            />
-          </CardAction>
+
+          {user !== null && (
+            <CardAction>
+              <DropdownBook
+                isOpen={dropdownModal.isOpen}
+                onOpenChange={dropdownModal.setIsOpen}
+                trigger={
+                  <EllipsisVerticalIcon
+                    className="w-5 h-5 cursor-pointer"
+                    onClick={() => dropdownModal.setIsOpen(true)}
+                  />
+                }
+                editBook={() => {
+                  dialogEditModal.setIsOpen(true);
+                }}
+                removeBook={() => {
+                  dialogDeleteModal.setIsOpen(true);
+                }}
+                addToShelf={() => {
+                  dialogAddShelfModal.setIsOpen(true);
+                }}
+                shareOnWhatsApp={() => {
+                  const whatsappUrl = generateWhatsAppShareLink();
+                  window.open(whatsappUrl, "_blank");
+                }}
+              />
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between gap-3 sm:flex-row flex-col w-full">

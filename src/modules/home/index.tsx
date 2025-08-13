@@ -26,8 +26,19 @@ import {
   InputWithButton,
   InputWithButtonRef,
 } from "@/components/inputWithButton/inputWithButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useUserStore } from "@/stores/userStore";
 
 export default function ClientHome() {
+  const logout = useUserStore((state) => state.logout);
+  const isLoggingOut = useUserStore((state) => state.isLoggingOut);
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -51,11 +62,18 @@ export default function ClientHome() {
   const filtersSheet = useModal();
   const createShelfDialog = useModal();
 
-  const { allBooks, isFetched, isLoadingAllBooks, isError } = useHome({
+  const {
+    allBooks,
+    isFetched,
+    isLoadingAllBooks,
+    isError,
+    user,
+    isLoadingUser,
+  } = useHome({
     filters,
     search: searchQuery,
   });
-
+  console.log("User data:", user);
   const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value;
     if (event.key === "Enter" && value.trim() !== "") {
@@ -121,14 +139,26 @@ export default function ClientHome() {
           )
         )
       : null;
+  type MenuItem = {
+    label: string;
+    action: () => void;
+    requiresAuth?: boolean;
+    hideIfLoggedIn?: boolean;
+  };
 
-  const menuItems = [
+  type Menu = {
+    label: string;
+    items: MenuItem[];
+  };
+
+  const allMenuItems: Menu[] = [
     {
       label: "Livros",
       items: [
         {
           label: "Adicionar Livro",
           action: () => dialogModal.setIsOpen(true),
+          requiresAuth: true,
         },
       ],
     },
@@ -143,10 +173,33 @@ export default function ClientHome() {
         {
           label: "Adicionar Estante",
           action: () => createShelfDialog.setIsOpen(true),
+          requiresAuth: true,
+        },
+      ],
+    },
+    {
+      label: "Conta",
+      items: [
+        {
+          label: "Login",
+          action: () => router.push("/auth"),
+          requiresAuth: false, // só exibe se não estiver logado
+          hideIfLoggedIn: true,
         },
       ],
     },
   ];
+
+  const menuItems = allMenuItems
+    .map((menu) => ({
+      ...menu,
+      items: menu.items.filter((item) => {
+        if (item.requiresAuth && !user) return false;
+        if (item.hideIfLoggedIn && user) return false;
+        return true;
+      }),
+    }))
+    .filter((menu) => menu.items.length > 0);
 
   return (
     <>
@@ -187,6 +240,28 @@ export default function ClientHome() {
                 </MenubarMenu>
               ))}
             </Menubar>
+
+            {user !== undefined && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback>ADM</AvatarFallback>
+                    <span className="sr-only">Toggle user menu</span>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Button
+                      variant="outline"
+                      className="block w-full text-left"
+                      onClick={() => logout()}
+                    >
+                      Sair
+                    </Button>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </header>
         <div className="w-full flex items-center justify-center flex-col gap-4 container">
@@ -277,7 +352,7 @@ export default function ClientHome() {
 
           <ListGrid<BookDomain>
             items={allBooks ?? []}
-            isLoading={isLoadingAllBooks}
+            isLoading={isLoadingAllBooks || isLoadingUser || isLoggingOut}
             isFetched={isFetched}
             renderItem={(book) => <BookCard key={book.id} book={book} />}
             isError={isError}

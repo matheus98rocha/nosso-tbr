@@ -25,6 +25,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useUserStore } from "@/stores/userStore";
 
 type Props = {
   shelf: BookshelfDomain;
@@ -36,12 +37,13 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
   const editShelve = useModal();
   const deleteShelf = useModal();
 
+  const user = useUserStore((state) => state.user);
+
   return (
     <>
       <CreateEditBookshelves
         isOpen={editShelve.isOpen}
         handleClose={editShelve.setIsOpen}
-        // shelf={shelf}
         editShelf={shelf}
       />
 
@@ -79,24 +81,26 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
               </span>
             </div>
           </CardDescription>
-          <CardAction>
-            <DropdownShelf
-              isOpen={dropdownModal.isOpen}
-              onOpenChange={dropdownModal.setIsOpen}
-              trigger={
-                <EllipsisVerticalIcon
-                  className="w-5 h-5 cursor-pointer"
-                  onClick={() => dropdownModal.setIsOpen(true)}
-                />
-              }
-              editShelve={() => {
-                editShelve.setIsOpen(true);
-              }}
-              removeShelve={() => {
-                deleteShelf.setIsOpen(true);
-              }}
-            />
-          </CardAction>
+          {user !== null && (
+            <CardAction>
+              <DropdownShelf
+                isOpen={dropdownModal.isOpen}
+                onOpenChange={dropdownModal.setIsOpen}
+                trigger={
+                  <EllipsisVerticalIcon
+                    className="w-5 h-5 cursor-pointer"
+                    onClick={() => dropdownModal.setIsOpen(true)}
+                  />
+                }
+                editShelve={() => {
+                  editShelve.setIsOpen(true);
+                }}
+                removeShelve={() => {
+                  deleteShelf.setIsOpen(true);
+                }}
+              />
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent className="relative flex items-center justify-center flex-col">
           <div className="relative h-40 w-[180px] mb-4">
@@ -120,18 +124,20 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
               </div>
             ))}
           </div>
-          <Button
-            variant={"outline"}
-            onClick={() =>
-              openAddBookDialog({
-                id: shelf.id,
-                name: shelf.name,
-                owner: shelf.owner,
-              })
-            }
-          >
-            Adicionar Livro a essa Estante
-          </Button>
+          {user !== null && (
+            <Button
+              variant={"outline"}
+              onClick={() =>
+                openAddBookDialog({
+                  id: shelf.id,
+                  name: shelf.name,
+                  owner: shelf.owner,
+                })
+              }
+            >
+              Adicionar Livro a essa Estante
+            </Button>
+          )}
         </CardContent>
 
         <CardFooter>
