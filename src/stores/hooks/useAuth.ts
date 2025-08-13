@@ -1,4 +1,4 @@
-import { useUserStore } from "../stores/userStore";
+import { useUserStore } from "../userStore";
 
 export function useIsLoggedIn() {
   const user = useUserStore((state) => state.user);
