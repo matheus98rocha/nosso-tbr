@@ -26,13 +26,7 @@ import {
   InputWithButton,
   InputWithButtonRef,
 } from "@/components/inputWithButton/inputWithButton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 import { useUserStore } from "@/stores/userStore";
 
 export default function ClientHome() {
@@ -73,7 +67,6 @@ export default function ClientHome() {
     filters,
     search: searchQuery,
   });
-  console.log("User data:", user);
   const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value;
     if (event.key === "Enter" && value.trim() !== "") {
@@ -139,6 +132,7 @@ export default function ClientHome() {
           )
         )
       : null;
+
   type MenuItem = {
     label: string;
     action: () => void;
@@ -183,8 +177,20 @@ export default function ClientHome() {
         {
           label: "Login",
           action: () => router.push("/auth"),
-          requiresAuth: false, // só exibe se não estiver logado
+          requiresAuth: false,
           hideIfLoggedIn: true,
+        },
+      ],
+    },
+
+    {
+      label: "Conta",
+      items: [
+        {
+          label: "Logout",
+          action: () => logout(),
+          requiresAuth: true,
+          hideIfLoggedIn: false,
         },
       ],
     },
@@ -240,31 +246,11 @@ export default function ClientHome() {
                 </MenubarMenu>
               ))}
             </Menubar>
-
-            {user !== undefined && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback>ADM</AvatarFallback>
-                    <span className="sr-only">Toggle user menu</span>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Button
-                      variant="outline"
-                      className="block w-full text-left"
-                      onClick={() => logout()}
-                    >
-                      Sair
-                    </Button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
         </header>
+
         <div className="w-full flex items-center justify-center flex-col gap-4 container">
+          {/* Filtros e resultado de filtros */}
           <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
             <InputWithButton
               ref={inputRef}
