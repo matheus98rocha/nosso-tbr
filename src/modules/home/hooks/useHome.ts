@@ -24,11 +24,7 @@ export function useHome({ filters, search }: UseHome) {
     },
   });
 
-  const {
-    data: userData,
-    isLoading: isLoadingUser,
-    isError: isErrorUser,
-  } = useQuery({
+  const { isLoading: isLoadingUser, isError: isErrorUser } = useQuery({
     queryKey: ["user"],
     queryFn: () =>
       fetchUser().then(() => {
@@ -44,7 +40,6 @@ export function useHome({ filters, search }: UseHome) {
     isLoadingAllBooks,
     isFetched,
     isError,
-    user: userData,
     isLoadingUser,
     isErrorUser,
   };

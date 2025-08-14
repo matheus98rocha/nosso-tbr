@@ -12,13 +12,7 @@ import { ListGrid } from "../../components/listGrid/listGrid";
 import { BookDomain } from "../../types/books.types";
 import { BookCard } from "./components/bookCard/bookCard";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
-import {
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { genders } from "./utils/genderBook";
 import { Sliders } from "lucide-react";
@@ -28,9 +22,9 @@ import {
 } from "@/components/inputWithButton/inputWithButton";
 
 import { useUserStore } from "@/stores/userStore";
+import Header from "@/components/header/header";
 
 export default function ClientHome() {
-  const logout = useUserStore((state) => state.logout);
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
 
   const router = useRouter();
@@ -42,7 +36,6 @@ export default function ClientHome() {
     status: [],
   });
 
-  const initialSearch = searchParams.get("search") ?? "";
   const searchQuery = searchParams.get("search") ?? "";
   const inputRef = useRef<InputWithButtonRef>(null);
 
@@ -56,17 +49,12 @@ export default function ClientHome() {
   const filtersSheet = useModal();
   const createShelfDialog = useModal();
 
-  const {
-    allBooks,
-    isFetched,
-    isLoadingAllBooks,
-    isError,
-    user,
-    isLoadingUser,
-  } = useHome({
-    filters,
-    search: searchQuery,
-  });
+  const { allBooks, isFetched, isLoadingAllBooks, isError, isLoadingUser } =
+    useHome({
+      filters,
+      search: searchQuery,
+    });
+
   const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value;
     if (event.key === "Enter" && value.trim() !== "") {
@@ -133,80 +121,6 @@ export default function ClientHome() {
         )
       : null;
 
-  type MenuItem = {
-    label: string;
-    action: () => void;
-    requiresAuth?: boolean;
-    hideIfLoggedIn?: boolean;
-  };
-
-  type Menu = {
-    label: string;
-    items: MenuItem[];
-  };
-
-  const allMenuItems: Menu[] = [
-    {
-      label: "Livros",
-      items: [
-        {
-          label: "Adicionar Livro",
-          action: () => dialogModal.setIsOpen(true),
-          requiresAuth: true,
-        },
-      ],
-    },
-    {
-      label: "Estatisticas",
-      items: [{ label: "Estatisticas", action: () => router.push("/stats") }],
-    },
-    {
-      label: "Estantes",
-      items: [
-        { label: "Ver Estantes", action: () => router.push("/shelves") },
-        {
-          label: "Adicionar Estante",
-          action: () => createShelfDialog.setIsOpen(true),
-          requiresAuth: true,
-        },
-      ],
-    },
-    {
-      label: "Conta",
-      items: [
-        {
-          label: "Login",
-          action: () => router.push("/auth"),
-          requiresAuth: false,
-          hideIfLoggedIn: true,
-        },
-      ],
-    },
-
-    {
-      label: "Conta",
-      items: [
-        {
-          label: "Logout",
-          action: () => logout(),
-          requiresAuth: true,
-          hideIfLoggedIn: false,
-        },
-      ],
-    },
-  ];
-
-  const menuItems = allMenuItems
-    .map((menu) => ({
-      ...menu,
-      items: menu.items.filter((item) => {
-        if (item.requiresAuth && !user) return false;
-        if (item.hideIfLoggedIn && user) return false;
-        return true;
-      }),
-    }))
-    .filter((menu) => menu.items.length > 0);
-
   return (
     <>
       <BookUpsert
@@ -226,125 +140,101 @@ export default function ClientHome() {
         handleClose={createShelfDialog.setIsOpen}
       />
 
-      <main className="p-6 flex flex-col items-center gap-6">
-        <header className="flex justify-between items-center container">
-          <button onClick={() => router.push("/")}>
-            <h1 className="text-2xl font-bold mb-4">Nosso TBR</h1>
-          </button>
-          <div className="flex items-center gap-2">
-            <Menubar>
-              {menuItems.map((menu) => (
-                <MenubarMenu key={menu.label}>
-                  <MenubarTrigger>{menu.label}</MenubarTrigger>
-                  <MenubarContent>
-                    {menu.items.map((item) => (
-                      <MenubarItem key={item.label} onClick={item.action}>
-                        {item.label}
-                      </MenubarItem>
-                    ))}
-                  </MenubarContent>
-                </MenubarMenu>
-              ))}
-            </Menubar>
-          </div>
-        </header>
+      {/* <main className="p-6 flex flex-col items-center gap-6">
+        <Header /> */}
 
-        <div className="w-full flex items-center justify-center flex-col gap-4 container">
-          {/* Filtros e resultado de filtros */}
-          <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
-            <InputWithButton
-              ref={inputRef}
-              defaultValue={initialSearch}
-              onBlur={handleInputBlur}
-              onButtonClick={handleSearchButtonClick}
-              placeholder="Pesquise por título do livro ou nome do autor"
-              onKeyDown={handleOnPressEnter}
-            />
-
-            <Button
-              variant="ghost"
-              onClick={() => filtersSheet.setIsOpen(true)}
-              className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
-              aria-label="Filters"
-            >
-              <Sliders size={16} />
-              Filtros
-            </Button>
-          </div>
-          {!isLoadingAllBooks && (
-            <div className="flex items-start justify-center flex-col container">
-              <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-                Resultados
-              </h4>
-
-              <p className="leading-7">
-                Foram encontrados:{" "}
-                <strong>{allBooks?.length || 0} livros</strong>
-              </p>
-              <div className="flex items-center justify-center gap-4">
-                {(formattedGenres ||
-                  formattedReaders ||
-                  formattedStatus ||
-                  searchQuery) && (
-                  <p className="leading-7 text-muted-foreground mt-2">
-                    {searchQuery && (
-                      <>
-                        Buscando por: <strong>{searchQuery}</strong>
-                        {(formattedGenres ||
-                          formattedReaders ||
-                          formattedStatus) && <br />}
-                      </>
-                    )}
-
-                    {(formattedGenres ||
-                      formattedReaders ||
-                      formattedStatus) && (
-                      <>
-                        Filtros aplicados:
-                        {formattedGenres && ` gênero ${formattedGenres}`}
-                        {formattedReaders &&
-                          `${
-                            formattedGenres ? "," : ""
-                          } Leitor(s) ${formattedReaders}`}
-                        {formattedStatus &&
-                          `${
-                            formattedGenres || formattedReaders ? " e" : ""
-                          } com status ${formattedStatus}`}
-                      </>
-                    )}
-                  </p>
-                )}
-
-                {(searchQuery ||
-                  (Array.isArray(filters.gender) &&
-                    filters.gender.length > 0) ||
-                  (Array.isArray(filters.readers) &&
-                    filters.readers.length > 0) ||
-                  (Array.isArray(filters.status) &&
-                    filters.status.length > 0)) && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      handleClearAllFilters();
-                    }}
-                  >
-                    Limpar filtros
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-
-          <ListGrid<BookDomain>
-            items={allBooks ?? []}
-            isLoading={isLoadingAllBooks || isLoadingUser || isLoggingOut}
-            isFetched={isFetched}
-            renderItem={(book) => <BookCard key={book.id} book={book} />}
-            isError={isError}
+      <div className="w-full flex items-center justify-center flex-col gap-4 container">
+        {/* Filtros e resultado de filtros */}
+        <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
+          <InputWithButton
+            ref={inputRef}
+            defaultValue={searchQuery}
+            onBlur={handleInputBlur}
+            onButtonClick={handleSearchButtonClick}
+            placeholder="Pesquise por título do livro ou nome do autor"
+            onKeyDown={handleOnPressEnter}
           />
+
+          <Button
+            variant="ghost"
+            onClick={() => filtersSheet.setIsOpen(true)}
+            className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
+            aria-label="Filters"
+          >
+            <Sliders size={16} />
+            Filtros
+          </Button>
         </div>
-      </main>
+        {!isLoadingAllBooks && (
+          <div className="flex items-start justify-center flex-col container">
+            <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+              Resultados
+            </h4>
+
+            <p className="leading-7">
+              Foram encontrados: <strong>{allBooks?.length || 0} livros</strong>
+            </p>
+            <div className="flex items-center justify-center gap-4">
+              {(formattedGenres ||
+                formattedReaders ||
+                formattedStatus ||
+                searchQuery) && (
+                <p className="leading-7 text-muted-foreground mt-2">
+                  {searchQuery && (
+                    <>
+                      Buscando por: <strong>{searchQuery}</strong>
+                      {(formattedGenres ||
+                        formattedReaders ||
+                        formattedStatus) && <br />}
+                    </>
+                  )}
+
+                  {(formattedGenres || formattedReaders || formattedStatus) && (
+                    <>
+                      Filtros aplicados:
+                      {formattedGenres && ` gênero ${formattedGenres}`}
+                      {formattedReaders &&
+                        `${
+                          formattedGenres ? "," : ""
+                        } Leitor(s) ${formattedReaders}`}
+                      {formattedStatus &&
+                        `${
+                          formattedGenres || formattedReaders ? " e" : ""
+                        } com status ${formattedStatus}`}
+                    </>
+                  )}
+                </p>
+              )}
+
+              {(searchQuery ||
+                (Array.isArray(filters.gender) && filters.gender.length > 0) ||
+                (Array.isArray(filters.readers) &&
+                  filters.readers.length > 0) ||
+                (Array.isArray(filters.status) &&
+                  filters.status.length > 0)) && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    handleClearAllFilters();
+                  }}
+                >
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <ListGrid<BookDomain>
+          items={allBooks ?? []}
+          isLoading={isLoadingAllBooks || isLoadingUser || isLoggingOut}
+          isFetched={isFetched}
+          renderItem={(book) => <BookCard key={book.id} book={book} />}
+          isError={isError}
+        />
+      </div>
+      {/* </main> */}
     </>
   );
 }

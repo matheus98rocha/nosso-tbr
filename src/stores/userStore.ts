@@ -22,10 +22,8 @@ export const useUserStore = create<UserStore>((set) => ({
     const supabase = createClient();
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      console.log("Passei aqui");
       set({ error: error.message, user: null, loading: false });
     } else {
-      console.log("Passei aqui 2");
       set({ user: data.user as unknown as User, loading: false });
     }
   },
