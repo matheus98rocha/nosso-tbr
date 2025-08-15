@@ -121,14 +121,18 @@ export function BookUpsert({
           onOpenChange(isOpen);
         }}
       >
-        <DialogContent className="h-full sm:h-[80%] w-full overflow-y-auto">
+        <DialogContent
+          className={`h-full sm:h-[80%] w-full ${
+            isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
+          }`}
+        >
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="mb-4">
                 {bookData ? "Editar Livro" : "Adicione um novo livro"}
               </DialogTitle>
             </DialogHeader>
-            <Separator orientation="horizontal" />
+            <Separator orientation="horizontal" className="mt-4 mb-4" />
             <Form {...form}>
               <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
                 <FormField
