@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
 
 type BlurOverlayProps = {
   showOverlay: boolean;
@@ -10,23 +11,25 @@ type BlurOverlayProps = {
 export function BlurOverlay({
   showOverlay,
   children,
-  overlayContent = (
-    <div className="flex flex-col items-center gap-4">
-      <p className="text-lg font-medium text-gray-800">
-        Faça login para continuar
-      </p>
-      <Button>Entrar</Button>
-    </div>
-  ),
+  overlayContent,
 }: BlurOverlayProps) {
+  const router = useRouter();
+
   return (
-    <div className="relative h-full w-full">
+    <>
       {children}
       {showOverlay && (
-        <div className="absolute inset-0 z-50 backdrop-blur-sm bg-white/70 flex items-center justify-center">
-          {overlayContent}
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-sm bg-white/50">
+          {overlayContent ?? (
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-lg font-medium text-gray-800">
+                Faça login para continuar
+              </p>
+              <Button onClick={() => router.push("/auth")}>Entrar</Button>
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }

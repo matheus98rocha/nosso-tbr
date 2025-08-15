@@ -45,7 +45,7 @@ export function useHeader() {
         {
           label: "Adicionar Estante",
           action: () => createShelfDialog.setIsOpen(true),
-          requiresAuth: true,
+          requiresAuth: false,
         },
       ],
     },

@@ -33,14 +33,14 @@ function Header() {
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
-              <MenuIcon size={24} />
+              <MenuIcon size={64} />
             </Button>
           </SheetTrigger>
           <SheetContent
             side="right"
             className="w-full sm:max-w-sm flex flex-col p-0"
           >
-            <SheetHeader className="p-6 pb-4 border-b">
+            <SheetHeader className="p-8 pb-4 border-b">
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
 
@@ -52,15 +52,16 @@ function Header() {
                     {menu.items.map((item) => {
                       const isActive = item.path && pathname === item.path;
                       return (
-                        <Button
-                          key={item.label}
-                          variant="ghost"
-                          className="justify-start"
-                          onClick={!isActive ? item.action : undefined}
-                          disabled={!!isActive}
-                        >
-                          {item.label}
-                        </Button>
+                        <SheetClose asChild key={item.label}>
+                          <Button
+                            variant="ghost"
+                            className="justify-start"
+                            onClick={!isActive ? item.action : undefined}
+                            disabled={!!isActive}
+                          >
+                            {item.label}
+                          </Button>
+                        </SheetClose>
                       );
                     })}
                   </div>

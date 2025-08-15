@@ -122,15 +122,6 @@ export function BookUpsert({
         }}
       >
         <DialogContent className="h-full sm:h-[80%] w-full overflow-y-auto">
-          {/* {!isLoggedIn && (
-            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-sm bg-white/50">
-              <p className="text-lg font-medium text-gray-800 mb-4">
-                Faça login para adicionar um livro
-              </p>
-              <Button>Entrar</Button>
-            </div>
-          )} */}
-
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>
               <DialogTitle>

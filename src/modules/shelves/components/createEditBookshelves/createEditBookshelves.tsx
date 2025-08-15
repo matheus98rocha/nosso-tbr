@@ -28,6 +28,8 @@ import { BookshelfDomain } from "../../types/bookshelves.types";
 import { useEffect } from "react";
 import { SelectField } from "@/modules/home/components/select/select.";
 import { usePathname, useRouter } from "next/navigation";
+import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 type BookshelfDialogProps = {
   isOpen: boolean;
@@ -42,6 +44,7 @@ export function CreateEditBookshelves({
 }: BookshelfDialogProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const isLoggedIn = useIsLoggedIn();
 
   const form = useForm<BookshelfCreateValidator>({
     resolver: zodResolver(bookshelfCreateSchema),
@@ -86,51 +89,53 @@ export function CreateEditBookshelves({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome da Estante</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ex: Livros de Ficção" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <BlurOverlay showOverlay={!isLoggedIn}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome da Estante</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: Livros de Ficção" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="owner"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dono da Estante</FormLabel>
-                  <FormControl>
-                    <SelectField
-                      value={field.value}
-                      onChange={field.onChange}
-                      items={[
-                        { label: "Matheus", value: "Matheus" },
-                        { label: "Fabi", value: "Fabi" },
-                      ]}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="owner"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dono da Estante</FormLabel>
+                    <FormControl>
+                      <SelectField
+                        value={field.value}
+                        onChange={field.onChange}
+                        items={[
+                          { label: "Matheus", value: "Matheus" },
+                          { label: "Fabi", value: "Fabi" },
+                        ]}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogClose>
-              <Button type="submit" isLoading={isCreating}>
-                {editShelf ? "Editar Estante" : "Criar Estante"}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancelar</Button>
+                </DialogClose>
+                <Button type="submit" isLoading={isCreating}>
+                  {editShelf ? "Editar Estante" : "Criar Estante"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </BlurOverlay>
         </Form>
       </DialogContent>
     </Dialog>
