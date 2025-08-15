@@ -1,8 +1,8 @@
-````markdown
 # 📚 Nosso TBR
 
 **Nosso TBR** é uma aplicação para organização e acompanhamento de leituras, feita para ajudar leitores a gerenciar suas listas de livros, acompanhar o progresso e criar experiências personalizadas.
 
+````markdown
 ---
 
 ## 🚀 Começando
