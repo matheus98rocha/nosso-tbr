@@ -126,10 +126,9 @@ function Header() {
         <button onClick={() => router.push("/")}>
           <h1 className="text-2xl font-bold">Nosso TBR</h1>
         </button>
-        {/* Desktop */}
+
         {renderDesktopMenu()}
 
-        {/* Mobile */}
         {renderMobileMenu()}
       </header>
     </>
