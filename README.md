@@ -119,8 +119,6 @@ export default async function BooksPage() {
 }
 ```
 
-Com certeza! Aqui está a sessão de agradecimento e inspiração no formato Markdown. Você pode adicioná-la no final do seu arquivo `README.md`.
-
 ---
 
 ## 🙏 Agradecimentos e Mensagem Final
