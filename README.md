@@ -121,6 +121,65 @@ export default async function BooksPage() {
 
 ---
 
+### **Exemplo de Componente/Page Cliente** (`app/nome-do-componente/nome-do-componente.tsx`)
+
+````md
+### **Exemplo de Componente Cliente**
+
+Nossos componentes de cliente seguem um padrão com o arquivo `.tsx`, o hook de lógica (`useHook`) e um arquivo de tipos (`.types.ts`).
+
+**Estrutura de arquivos:**
+
+**Exemplo de `nomeDoComponente.tsx`:**
+
+```ts
+"use client";
+import React from "react";
+import { useNomeDoComponente } from "./hooks/useNomeDoComponente";
+import { ExemploProps } from "./nomeDoComponente.types";
+
+export function NomeDoComponente({}: ExemploProps) {
+  const { state, handleEvent } = useNomeDoComponente();
+
+  return (
+    <div className="p-4">
+            <h1>Exemplo de Componente</h1>      <p>{state.message}</p>     {" "}
+      <button onClick={handleEvent}>Clique em mim</button>   {" "}
+    </div>
+  );
+}
+```
+````
+
+**Exemplo de `useNomeDoComponente.ts`:**
+
+```ts
+import { useState } from "react";
+
+export function useNomeDoComponente() {
+  const [message, setMessage] = useState("Olá, mundo!");
+
+  const handleEvent = () => {
+    setMessage("Você clicou no botão!");
+  };
+
+  return {
+    state: {
+      message,
+    },
+    handleEvent,
+  };
+}
+```
+
+**Exemplo de `nomeDoComponente.types.ts`:**
+
+```ts
+export type ExemploProps = {
+  // Adicione as props do componente aqui
+};
+```
+
 ## 🙏 Agradecimentos e Mensagem Final
 
 Gostaríamos de expressar nossa sincera gratidão a todos os contribuidores. Cada `pull request`, `issue` e sugestão de melhoria nos ajuda a construir uma ferramenta cada vez melhor para a comunidade de leitores. O **Nosso TBR** é um projeto colaborativo, e seu apoio é o que nos move.
