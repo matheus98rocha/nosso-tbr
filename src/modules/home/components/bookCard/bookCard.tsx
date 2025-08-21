@@ -165,18 +165,20 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
           )}
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between gap-3 sm:flex-row flex-col w-full">
-            <Image
-              src={book.image_url as string}
-              alt={book.title}
-              width={80}
-              height={80}
-              className="rounded-xl"
-              loading="lazy"
-            />
+          <div className="grid grid-cols-[80px_auto] gap-3 w-full">
+            <div className="relative w-[80px] h-[120px]">
+              <Image
+                src={book.image_url as string}
+                alt={book.title}
+                fill
+                sizes="(max-width: 640px) 100vw, 640px"
+                className="rounded-xl object-cover h-auto w-auto "
+                loading="eager"
+              />
+            </div>
 
             {/* Badges */}
-            {renderStatusBadge()}
+            <div className="flex flex-col gap-1">{renderStatusBadge()}</div>
           </div>
         </CardContent>
         <CardFooter className="flex-col gap-2"></CardFooter>
