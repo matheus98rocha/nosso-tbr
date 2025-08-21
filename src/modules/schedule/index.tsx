@@ -1,17 +1,11 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
-import { CreateScheduleForm } from "./components/createScheduleForm/createScheduleForm";
-import { ScheduleUpsertService } from "./services/schedule.service";
 
-export type ClientScheduleProps = { id: string; startDate: string };
+import { CreateScheduleForm } from "./components/createScheduleForm/createScheduleForm";
+import { useSchedule } from "./hooks/useSchedule";
+import { ClientScheduleProps } from "./types/schedule.types";
 
 export default function ClientSchedule({ id, startDate }: ClientScheduleProps) {
-  const scheduleService = new ScheduleUpsertService();
-
-  const { data: schedule, isLoading } = useQuery({
-    queryKey: ["schedule", id],
-    queryFn: () => scheduleService.getByBookId(id),
-  });
+  const { isLoading, schedule } = useSchedule({ id, startDate });
 
   if (isLoading) return <p>Carregando...</p>;
 

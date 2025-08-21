@@ -6,17 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { scheduleSchema } from "../../validators/schedule.validator";
 import { ScheduleUpsertService } from "../../services/schedule.service";
-import { ScheduleCreateValidator } from "../../types/schedule.types";
+import {
+  ClientScheduleProps,
+  ScheduleCreateValidator,
+} from "../../types/schedule.types";
 import { generateBookSchedule } from "../../utils/generateBookSchedule";
-import { ClientScheduleProps } from "../..";
-
-type ScheduleFormInput = {
-  totalChapters: number;
-  startDate: Date;
-  includePrologue?: boolean;
-  roundUp?: boolean;
-  includeWeekends?: boolean;
-};
+import { ScheduleFormInput } from "./types/createScheduleForm.types";
 
 export function CreateScheduleForm({
   id: bookId,

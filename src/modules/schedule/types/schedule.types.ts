@@ -20,3 +20,5 @@ export type ScheduleDomain = {
   chapters: string;
   completed: boolean;
 };
+
+export type ClientScheduleProps = { id: string; startDate: string };
