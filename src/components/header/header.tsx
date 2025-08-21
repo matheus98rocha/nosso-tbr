@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Menu as MenuIcon } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { useHeader } from "./useHeader";
+import { useHeader } from "./hooks/useHeader";
 
 function Header() {
   const { bookUpsertModal, createShelfDialog, menuItems, pathname, router } =

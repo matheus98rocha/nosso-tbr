@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useModal } from "@/hooks/useModal";
 import { BookDomain } from "@/types/books.types";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { DropdownBook } from "../dropdownBook/dropdownBook";
@@ -22,22 +21,30 @@ import { DeleteDialog } from "@/components/deleteModal/deleteModal";
 import { BookService } from "../../services/books.services";
 import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
-import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { useBookCard } from "./hooks/useBookCard";
 
 type BookCardProps = {
   book: BookDomain;
   isShelf?: boolean;
 };
 
-export function BookCard({ book, isShelf = false }: BookCardProps) {
-  const dropdownModal = useModal();
+export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
+  const {
+    book,
+    dialogAddShelfModal,
+    dialogDeleteModal,
+    dialogEditModal,
+    dropdownModal,
+    dropdownTap,
+    shareOnWhatsApp,
+    handleNavigateToSchedule,
+    isLogged,
+  } = useBookCard({
+    book: bookProp,
+    isShelf,
+  });
 
-  const dialogEditModal = useModal();
-  const dialogDeleteModal = useModal();
-  const dialogAddShelfModal = useModal();
-
-  const isLogged = useIsLoggedIn();
-
+  // Function to render the status badge based on book status
   const renderStatusBadge = () => {
     return (
       <div className="flex items-center justify-start gap-2 flex-wrap">
@@ -85,14 +92,6 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
       </div>
     );
   };
-
-  function generateWhatsAppShareLink(): string {
-    const baseUrl = "https://nosso-tbr.vercel.app/";
-    const encodedTitle = encodeURIComponent(book.title);
-    const url = `${baseUrl}?search=${encodedTitle}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(url)}`;
-    return whatsappUrl;
-  }
 
   return (
     <>
@@ -144,7 +143,9 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
                 trigger={
                   <EllipsisVerticalIcon
                     className="w-5 h-5 cursor-pointer"
-                    onClick={() => dropdownModal.setIsOpen(true)}
+                    onTouchStart={dropdownTap.handleTouchStart}
+                    onTouchEnd={dropdownTap.handleTouchEnd}
+                    onClick={dropdownTap.handleClick}
                   />
                 }
                 editBook={() => {
@@ -156,10 +157,9 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
                 addToShelf={() => {
                   dialogAddShelfModal.setIsOpen(true);
                 }}
-                shareOnWhatsApp={() => {
-                  const whatsappUrl = generateWhatsAppShareLink();
-                  window.open(whatsappUrl, "_blank");
-                }}
+                shareOnWhatsApp={() => shareOnWhatsApp()}
+                schedule={() => handleNavigateToSchedule()}
+                isStartedReading={book.status === "reading"}
               />
             </CardAction>
           )}
