@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { scheduleSchema } from "../../validators/schedule.validator";
 import { ScheduleUpsertService } from "../../services/schedule.service";
 import {
@@ -39,12 +39,13 @@ export function CreateScheduleForm({
   });
 
   const scheduleService = new ScheduleUpsertService();
+  const queryClient = useQueryClient();
 
   const createScheduleMutation = useMutation({
     mutationFn: (schedules: ScheduleCreateValidator[]) =>
       scheduleService.createMany(schedules),
     onSuccess: () => {
-      console.log("Cronograma criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
     onError: (error) => {
       console.error("Erro ao criar cronograma:", error);

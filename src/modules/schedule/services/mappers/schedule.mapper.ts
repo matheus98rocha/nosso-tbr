@@ -1,5 +1,6 @@
 import {
   ScheduleCreateValidator,
+  ScheduleDomain,
   SchedulePersistence,
 } from "../../types/schedule.types";
 
@@ -19,10 +20,10 @@ export class ScheduleUpsertMapper {
     };
   }
 
-  static toDomain(persistence: SchedulePersistence): ScheduleCreateValidator {
+  static toDomain(persistence: SchedulePersistence): ScheduleDomain {
     return {
-      book_id: persistence.book_id,
-      date: persistence.date,
+      id: persistence.id,
+      date: persistence.date ? new Date(persistence.date).toISOString() : "",
       chapters: persistence.chapters ? persistence.chapters : "",
       completed: persistence.completed ?? false,
     };
