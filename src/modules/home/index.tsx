@@ -123,8 +123,8 @@ export default function ClientHome() {
   return (
     <>
       <BookUpsert
-        isOpen={dialogModal.isOpen}
-        onOpenChange={dialogModal.setIsOpen}
+        isBookFormOpen={dialogModal.isOpen}
+        setIsBookFormOpen={dialogModal.setIsOpen}
       />
 
       <FiltersSheet
