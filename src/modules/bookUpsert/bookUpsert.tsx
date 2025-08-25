@@ -35,17 +35,18 @@ import { BookshelfService } from "../shelves/services/booksshelves.service";
 import { Separator } from "@/components/ui/separator";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
+import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 
 type CreateBookProps = {
   bookData?: BookCreateValidator;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  isBookFormOpen: boolean;
+  setIsBookFormOpen: (open: boolean) => void;
 };
 
 export function BookUpsert({
   bookData,
-  isOpen,
-  onOpenChange,
+  isBookFormOpen,
+  setIsBookFormOpen,
 }: CreateBookProps) {
   const isLoggedIn = useIsLoggedIn();
   const form = useForm<BookCreateValidator>({
@@ -67,6 +68,7 @@ export function BookUpsert({
   const isEdit: boolean = Boolean(bookData && bookData.id);
   const {
     onSubmit,
+    createBook,
     isLoading,
     isAddToShelfEnabled,
     selected,
@@ -74,13 +76,14 @@ export function BookUpsert({
     setIsAddToShelfEnabled,
     setSelected,
     setSelectedShelfId,
+    isDuplicateBookDialogOpen,
+    setIsDuplicateBookDialogOpen
   } = useBookDialog({
     reset,
     bookData,
-    onOpenChange,
-    isEdit,
+    setIsBookFormOpen,
+    isEdit
   });
-
   const checkboxes: { id: Status; label: string }[] = [
     { id: "not_started", label: "Vou iniciar a leitura" },
     { id: "reading", label: "Já iniciei a leitura" },
@@ -111,20 +114,37 @@ export function BookUpsert({
 
   return (
     <>
+      <ConfirmDialog
+        open={isDuplicateBookDialogOpen}
+        onOpenChange={setIsDuplicateBookDialogOpen}
+        title="Livro Duplicado"
+        description="Um livro com este título já existe, deseja continuar?"
+        onConfirm={async () => {
+          setIsDuplicateBookDialogOpen(false);
+          const formData = form.getValues();
+          createBook.mutate(formData);
+        }}
+        id="duplicate-book-warning"
+        queryKeyToInvalidate="books"
+        buttomLabel="Continuar"
+        onCancel={() => {
+          setIsDuplicateBookDialogOpen(false);
+          setIsBookFormOpen(true);
+        }}
+      />
       <Dialog
-        open={isOpen}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
+        open={isBookFormOpen}
+        onOpenChange={(isBookFormOpen) => {
+          if (!isBookFormOpen) {
             reset();
             setSelected(null);
           }
-          onOpenChange(isOpen);
+          setIsBookFormOpen(isBookFormOpen);
         }}
       >
         <DialogContent
-          className={`h-full sm:h-[80%] w-full ${
-            isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
-          }`}
+          className={`h-full sm:h-[80%] w-full ${isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
+            }`}
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>

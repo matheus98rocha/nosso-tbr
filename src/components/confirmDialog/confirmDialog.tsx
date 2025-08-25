@@ -10,31 +10,33 @@ import {
 } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-type DeleteDialogProps = {
+type ConfirmDialogProps = {
   title: string;
   description: string;
   id: string;
   queryKeyToInvalidate: string;
-  onDelete: (id: string) => Promise<void>;
+  onConfirm: (id: string) => Promise<void>;
+  onCancel?: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   buttomLabel?: string;
 };
 
-export function DeleteDialog({
+export function ConfirmDialog({
   title,
   description,
   id,
   queryKeyToInvalidate,
-  onDelete,
+  onConfirm,
+  onCancel,
   open,
   onOpenChange,
-  buttomLabel = "Deletar",
-}: DeleteDialogProps) {
+  buttomLabel,
+}: ConfirmDialogProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: () => onDelete(id),
+    mutationFn: () => onConfirm(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeyToInvalidate] });
       onOpenChange(false);
@@ -50,7 +52,7 @@ export function DeleteDialog({
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
+            <Button onClick={onCancel} variant="outline">Cancelar</Button>
           </DialogClose>
           <Button
             isLoading={mutation.isPending}

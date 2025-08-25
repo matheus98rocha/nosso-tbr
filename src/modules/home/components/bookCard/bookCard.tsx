@@ -18,7 +18,7 @@ import {
   getGenreBadgeColor,
 } from "@/modules/home/utils/genderBook";
 import Image from "next/image";
-import { DeleteDialog } from "@/components/deleteModal/deleteModal";
+import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 import { BookService } from "../../services/books.services";
 import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
@@ -31,11 +31,9 @@ type BookCardProps = {
 
 export function BookCard({ book, isShelf = false }: BookCardProps) {
   const dropdownModal = useModal();
-
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
   const dialogAddShelfModal = useModal();
-
   const isLogged = useIsLoggedIn();
 
   const renderStatusBadge = () => {
@@ -101,7 +99,7 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
         handleClose={dialogAddShelfModal.setIsOpen}
         bookId={book.id ?? ""}
       />
-      <DeleteDialog
+      <ConfirmDialog
         title="Excluir livro"
         buttomLabel={!isShelf ? "Deletar" : "Remover"}
         description={
@@ -111,7 +109,7 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
         }
         id={String(book.id)}
         queryKeyToInvalidate="books"
-        onDelete={async (id) => {
+        onConfirm={async (id: string) => {
           if (!isShelf) {
             const service = new BookService();
             await service.delete(id);
@@ -125,8 +123,8 @@ export function BookCard({ book, isShelf = false }: BookCardProps) {
         onOpenChange={dialogDeleteModal.setIsOpen}
       />
       <BookUpsert
-        isOpen={dialogEditModal.isOpen}
-        onOpenChange={dialogEditModal.setIsOpen}
+        isBookFormOpen={dialogEditModal.isOpen}
+        setIsBookFormOpen={dialogEditModal.setIsOpen}
         bookData={book}
       />
       <Card className="w-full max-w-sm overflow-hidden">

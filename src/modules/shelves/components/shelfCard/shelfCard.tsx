@@ -17,7 +17,7 @@ import {
 } from "../../types/bookshelves.types";
 import { CreateEditBookshelves } from "../createEditBookshelves/createEditBookshelves";
 import { DropdownShelf } from "../dropdownShelf/dropdownShelf";
-import { DeleteDialog } from "@/components/deleteModal/deleteModal";
+import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 import { BookshelfService } from "../../services/booksshelves.service";
 import Image from "next/image";
 import {
@@ -36,7 +36,6 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
   const dropdownModal = useModal();
   const editShelve = useModal();
   const deleteShelf = useModal();
-
   const isLogged = useIsLoggedIn();
 
   return (
@@ -47,14 +46,15 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
         editShelf={shelf}
       />
 
-      <DeleteDialog
+      <ConfirmDialog
         id={shelf.id}
         open={deleteShelf.isOpen}
         onOpenChange={deleteShelf.setIsOpen}
         title="Excluir estante"
+        buttomLabel="Excluir"
         description="Tem certeza que deseja excluir esta estante?"
         queryKeyToInvalidate="bookshelves"
-        onDelete={async (id) => {
+        onConfirm={async (id: string) => {
           const service = new BookshelfService();
           await service.delete(id);
         }}

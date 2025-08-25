@@ -22,7 +22,7 @@ import {
 } from "@/components/inputWithButton/inputWithButton";
 
 import { useUserStore } from "@/stores/userStore";
-
+console.log("ClientHome");
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
 
@@ -123,8 +123,8 @@ export default function ClientHome() {
   return (
     <>
       <BookUpsert
-        isOpen={dialogModal.isOpen}
-        onOpenChange={dialogModal.setIsOpen}
+        isBookFormOpen={dialogModal.isOpen}
+        setIsBookFormOpen={dialogModal.setIsOpen}
       />
 
       <FiltersSheet
