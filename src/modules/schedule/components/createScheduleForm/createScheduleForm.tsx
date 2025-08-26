@@ -13,6 +13,18 @@ import {
 import { generateBookSchedule } from "../../utils/generateBookSchedule";
 import { ScheduleFormInput } from "./types/createScheduleForm.types";
 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
 export function CreateScheduleForm({
   id: bookId,
   startDate,
@@ -33,8 +45,8 @@ export function CreateScheduleForm({
       totalChapters: undefined,
       startDate: startDateMemo,
       includePrologue: false,
-      roundUp: true,
-      includeWeekends: true,
+      roundUp: false,
+      includeWeekends: false,
     },
   });
 
@@ -71,76 +83,102 @@ export function CreateScheduleForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <div>
-        <label className="block mb-2">Número de capítulos</label>
-        <input
-          type="number"
-          {...register("totalChapters", { valueAsNumber: true })}
-          placeholder="Digite o número de capítulos"
-          className="w-full p-2 border rounded"
-        />
-        {errors.totalChapters && (
-          <p className="text-red-500 text-sm">{errors.totalChapters.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label>Data de início</label>
-        <Controller
-          control={control}
-          name="startDate"
-          render={({ field }) => (
-            <input
-              type="date"
-              value={
-                field.value
-                  ? new Date(field.value).toISOString().split("T")[0]
-                  : ""
-              }
-              onChange={(e) => {
-                const value = e.target.value;
-                field.onChange(value ? new Date(value) : null);
-              }}
-              onBlur={field.onBlur}
-              name={field.name}
-              ref={field.ref}
+    <Card className="w-full max-w-2xl mx-auto shadow-2xl h-fit">
+      <CardHeader>
+        <CardTitle className="text-3xl font-bold">Gerar Cronograma</CardTitle>
+        <CardDescription>
+          Preencha as informações abaixo para criar o cronograma de leitura.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="totalChapters">Número de capítulos</Label>
+            <Input
+              id="totalChapters"
+              type="number"
+              {...register("totalChapters", {
+                setValueAs: (val) => (val === "" ? undefined : Number(val)),
+              })}
+              placeholder="Digite o número de capítulos"
             />
-          )}
-        />
-        {errors.startDate && <p>{errors.startDate.message}</p>}
-      </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          {...register("includePrologue")}
-          className="w-4 h-4"
-        />
-        <label>Incluir prólogo</label>
-      </div>
+            {errors.totalChapters && (
+              <p className="text-red-500 text-sm">
+                {errors.totalChapters.message}
+              </p>
+            )}
+          </div>
 
-      <div className="flex items-center gap-2">
-        <input type="checkbox" {...register("roundUp")} className="w-4 h-4" />
-        <label>Arredondar capítulos por dia para cima</label>
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="startDate">Data de início</Label>
+            <Controller
+              control={control}
+              name="startDate"
+              render={({ field }) => (
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={
+                    field.value
+                      ? new Date(field.value).toISOString().split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value ? new Date(value) : null);
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
+              )}
+            />
+            {errors.startDate && (
+              <p className="text-red-500 text-sm">{errors.startDate.message}</p>
+            )}
+          </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          {...register("includeWeekends")}
-          className="w-4 h-4"
-        />
-        <label>Incluir finais de semana</label>
-      </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="checkbox"
+              {...register("includePrologue")}
+              className="w-4 h-4"
+            />
+            <Label htmlFor="includePrologue">Incluir prólogo</Label>
+          </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-      >
-        {isSubmitting ? "Gerando..." : "Gerar Cronograma"}
-      </button>
-    </form>
+          <div className="flex items-center gap-2">
+            <Input
+              type="checkbox"
+              {...register("roundUp")}
+              className="w-4 h-4"
+            />
+            <Label htmlFor="roundUp">
+              Arredondar capítulos por dia para cima
+            </Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Input
+              type="checkbox"
+              {...register("includeWeekends")}
+              className="w-4 h-4"
+            />
+            <Label htmlFor="includeWeekends">Incluir finais de semana</Label>
+          </div>
+
+          <CardFooter className="flex justify-end px-0">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isSubmitting ? "Gerando..." : "Gerar Cronograma"}
+            </Button>
+          </CardFooter>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

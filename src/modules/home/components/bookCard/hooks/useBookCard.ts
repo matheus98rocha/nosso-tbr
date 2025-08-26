@@ -27,8 +27,8 @@ export function useBookCard({ book }: BookCardProps) {
   }, [book.title]);
 
   const handleNavigateToSchedule = useCallback(() => {
-    router.push(`/schedule/${book.id}/${book.start_date}`);
-  }, [router, book.id, book.start_date]);
+    router.push(`/schedule/${book.id}/${book.start_date}/${book.title}`);
+  }, [router, book.id, book.start_date, book.title]);
 
   return {
     dropdownModal,

@@ -1,12 +1,18 @@
 "use client";
 
-import { Switch } from "@/components/ui/switch";
+// import { Switch } from "@/components/ui/switch";
 import { CreateScheduleForm } from "./components/createScheduleForm/createScheduleForm";
 import { useSchedule } from "./hooks/useSchedule";
 import { ClientScheduleProps } from "./types/schedule.types";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
+import { ScheduleTable } from "./components/scheduleTable/scheduleTable";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function ClientSchedule({ id, startDate }: ClientScheduleProps) {
+export default function ClientSchedule({
+  id,
+  startDate,
+  title,
+}: ClientScheduleProps) {
   const {
     isLoading,
     schedule,
@@ -18,41 +24,49 @@ export default function ClientSchedule({ id, startDate }: ClientScheduleProps) {
     startDate,
   });
 
-  if (isLoading || isPendingDelete) return <p>Carregando...</p>;
+  if (isLoading || isPendingDelete) {
+    return (
+      <div className="w-full max-w-5xl mx-auto space-y-6 animate-pulse">
+        {/* Título */}
+        <Skeleton className="h-12 w-72 mx-auto rounded" />
+
+        {/* Subtítulo */}
+        <Skeleton className="h-4 w-96 mx-auto rounded" />
+
+        {/* Form ou Tabela */}
+        <div className="space-y-4 mt-4">
+          <Skeleton className="h-[300px] w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {schedule && schedule.length > 0 ? (
-        <div>
-          <h2 className="text-lg font-bold mb-4">
-            ADICIONAR NOME DO LIVRO AQUI
-          </h2>
-          <Button
-            onClick={() => deleteSchedule({ id })}
-            variant={"destructive"}
-          >
-            Deletar Cronograma
-          </Button>
-          <ul className="flex flex-col gap-2">
-            {schedule.map((day, index) => (
-              <li key={index} className="flex items-center gap-2">
-                <div>
-                  <strong>{new Date(day.date).toLocaleDateString()}:</strong>{" "}
-                  {day.chapters}
-                </div>
-                <Switch
-                  checked={day.completed}
-                  onCheckedChange={(checked) =>
-                    updateIsCompleted({ id: day.id ?? "", isRead: checked })
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <CreateScheduleForm id={id} startDate={startDate} />
-      )}
+    <div className="w-full max-w-5xl mx-auto space-y-6">
+      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
+        📖 {title}
+      </h1>
+      <p className="leading-7 [&:not(:first-child)]:mt-6 text-center">
+        {schedule && schedule.length > 0
+          ? "Crie um cronograma personalizado para organizar melhor a sua leitura."
+          : "        Seu cronograma de leitura foi gerado! Acompanhe os capítulos planejados e marque os que você já concluiu."}
+      </p>
+      <>
+        {schedule && schedule.length > 0 ? (
+          <ScheduleTable
+            schedule={schedule}
+            updateIsCompleted={updateIsCompleted}
+            deleteSchedule={async (id: string) =>
+              deleteSchedule({
+                id,
+              })
+            }
+            bookId={id}
+          />
+        ) : (
+          <CreateScheduleForm id={id} startDate={startDate} title={title} />
+        )}
+      </>
     </div>
   );
 }
