@@ -78,13 +78,23 @@ export class BookUpsertService {
   }
 
   async checkDuplicateBook(title: string): Promise<boolean> {
-    const supabase = createClient();
-    const duplicateCheckQuery = await new BookQueryBuilder(supabase)
-      .withSearchTerm(title)
-      .build();
+    try {
+      const supabase = createClient();
+      const duplicateCheckQuery = await new BookQueryBuilder(supabase)
+        .withSearchTerm(title)
+        .build();
 
-    const { data: booksWithSameTitle } = await duplicateCheckQuery;
+      const { data: booksWithSameTitle } = await duplicateCheckQuery;
 
-    return booksWithSameTitle?.length > 0;
+      return booksWithSameTitle?.length > 0;
+    } catch (error) {
+      const normalizedError = ErrorHandler.normalize(error, {
+        service: "BookService",
+        method: "checkDuplicateBook",
+        title,
+      });
+      ErrorHandler.log(normalizedError);
+      throw normalizedError;
+    }
   }
 }
