@@ -7,16 +7,9 @@ import {
   CardAction,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { ScheduleDomain } from "../../types/schedule.types";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/deleteModal/deleteModal";
-
-type ScheduleTableProps = {
-  schedule?: ScheduleDomain[];
-  bookId: string;
-  updateIsCompleted: (payload: { id: string; isRead: boolean }) => void;
-  deleteSchedule: (id: string) => Promise<void>;
-};
+import { ScheduleTableProps } from "./types/scheduleTable.types";
 
 export function ScheduleTable({
   schedule,
@@ -81,7 +74,7 @@ export function ScheduleTable({
                     className="border-b border-zinc-200 last:border-none hover:bg-zinc-50 transition"
                   >
                     <td className="p-3 text-sm text-black">
-                      {new Date(row.date).toLocaleDateString("pt-BR")}
+                      {row.date.split("T")[0].split("-").reverse().join("/")}
                     </td>
                     <td className="p-3 text-sm text-black">{row.chapters}</td>
                     <td className="p-3 text-center">

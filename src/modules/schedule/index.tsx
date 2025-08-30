@@ -1,10 +1,8 @@
 "use client";
 
-// import { Switch } from "@/components/ui/switch";
 import { CreateScheduleForm } from "./components/createScheduleForm/createScheduleForm";
 import { useSchedule } from "./hooks/useSchedule";
 import { ClientScheduleProps } from "./types/schedule.types";
-// import { Button } from "@/components/ui/button";
 import { ScheduleTable } from "./components/scheduleTable/scheduleTable";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -14,17 +12,18 @@ export default function ClientSchedule({
   title,
 }: ClientScheduleProps) {
   const {
-    isLoading,
     schedule,
     updateIsCompleted,
     deleteSchedule,
-    isPendingDelete,
+    isLoadingSchedule,
+    shouldDisplayScheduleTable,
+    emptySchedule,
   } = useSchedule({
     id,
     startDate,
   });
 
-  if (isLoading || isPendingDelete) {
+  if (isLoadingSchedule) {
     return (
       <div className="w-full max-w-5xl mx-auto space-y-6 animate-pulse">
         {/* Título */}
@@ -43,16 +42,16 @@ export default function ClientSchedule({
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6">
-      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
-        📖 {title}
+      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance max-w-xl mx-auto">
+        📖 {decodeURIComponent(title)}
       </h1>
-      <p className="leading-7 [&:not(:first-child)]:mt-6 text-center">
-        {schedule && schedule.length > 0
+      <p className="leading-7 [&:not(:first-child)]:mt-6 text-center max-w-xl mx-auto">
+        {emptySchedule
           ? "Crie um cronograma personalizado para organizar melhor a sua leitura."
-          : "        Seu cronograma de leitura foi gerado! Acompanhe os capítulos planejados e marque os que você já concluiu."}
+          : "Seu cronograma de leitura foi gerado! Acompanhe os capítulos planejados e marque os que você já concluiu."}
       </p>
       <>
-        {schedule && schedule.length > 0 ? (
+        {shouldDisplayScheduleTable ? (
           <ScheduleTable
             schedule={schedule}
             updateIsCompleted={updateIsCompleted}

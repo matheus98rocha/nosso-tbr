@@ -11,7 +11,7 @@ export function useSchedule({ id }: UseScheduleProps) {
   const queryClient = useQueryClient();
   const scheduleService = new ScheduleUpsertService();
 
-  const { data: schedule, isLoading } = useQuery({
+  const { data: schedule, isLoading: isLoadingSchedules } = useQuery({
     queryKey: ["schedule", id],
     queryFn: () => scheduleService.getByBookId(id),
   });
@@ -51,16 +51,25 @@ export function useSchedule({ id }: UseScheduleProps) {
     mutationFn: ({ id }: { id: string }) => {
       return scheduleService.deleteSchedule(id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["schedule"] });
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<ScheduleDomain[]>(
+        ["schedule", variables.id],
+        []
+      );
     },
   });
 
+  const isLoadingSchedule = isLoadingSchedules || isPendingDelete;
+  const shouldDisplayScheduleTable =
+    !isLoadingSchedule && schedule && schedule.length > 0 && !isPendingDelete;
+  const emptySchedule = schedule && schedule.length === 0;
+
   return {
     schedule,
-    isLoading,
     updateIsCompleted,
     deleteSchedule,
-    isPendingDelete,
+    shouldDisplayScheduleTable,
+    isLoadingSchedule,
+    emptySchedule,
   };
 }

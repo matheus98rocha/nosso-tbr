@@ -1,15 +1,4 @@
-type ScheduleInput = {
-  totalChapters: number;
-  startDate: Date;
-  includePrologue?: boolean;
-  chaptersPerDay?: number;
-  includeWeekends?: boolean;
-};
-
-type DailySchedule = {
-  date: Date;
-  chapters: string;
-};
+import { DailySchedule, ScheduleInput } from "../types/schedule.types";
 
 export function generateBookSchedule({
   totalChapters,

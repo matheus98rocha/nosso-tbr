@@ -2,7 +2,7 @@ import { useModal } from "@/hooks/useModal";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu } from "../header.types";
+import { Menu } from "../types/header.types";
 
 export function useHeader() {
   const router = useRouter();

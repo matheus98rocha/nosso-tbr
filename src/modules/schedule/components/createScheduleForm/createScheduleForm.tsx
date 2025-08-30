@@ -1,17 +1,8 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { scheduleSchema } from "../../validators/schedule.validator";
-import { ScheduleUpsertService } from "../../services/schedule.service";
-import {
-  ClientScheduleProps,
-  ScheduleCreateValidator,
-} from "../../types/schedule.types";
-import { generateBookSchedule } from "../../utils/generateBookSchedule";
-import { ScheduleFormInput } from "./types/createScheduleForm.types";
+import React from "react";
+import { Controller } from "react-hook-form";
+import { ClientScheduleProps } from "../../types/schedule.types";
 
 import {
   Card,
@@ -24,63 +15,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useCreateScheduleForm } from "./hooks/useCreateScheduleForm";
 
 export function CreateScheduleForm({
   id: bookId,
   startDate,
 }: ClientScheduleProps) {
-  const startDateMemo = useMemo(
-    () => (startDate ? new Date(startDate) : new Date()),
-    [startDate]
-  );
-
-  const {
-    handleSubmit,
-    register,
-    formState: { errors, isSubmitting },
-    control,
-  } = useForm<ScheduleFormInput>({
-    resolver: zodResolver(scheduleSchema),
-    defaultValues: {
-      totalChapters: undefined,
-      startDate: startDateMemo,
-      includePrologue: false,
-      roundUp: false,
-      includeWeekends: false,
-    },
-  });
-
-  const scheduleService = new ScheduleUpsertService();
-  const queryClient = useQueryClient();
-
-  const createScheduleMutation = useMutation({
-    mutationFn: (schedules: ScheduleCreateValidator[]) =>
-      scheduleService.createMany(schedules),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["schedule"] });
-    },
-    onError: (error) => {
-      console.error("Erro ao criar cronograma:", error);
-    },
-  });
-
-  const onSubmit: SubmitHandler<ScheduleFormInput> = async (data) => {
-    if (!data.totalChapters || data.totalChapters <= 0) {
-      console.error("Número de capítulos inválido");
-      return;
-    }
-
-    const schedulePayloads: ScheduleCreateValidator[] = generateBookSchedule(
-      data as Required<ScheduleFormInput>
-    ).map((day) => ({
-      book_id: bookId,
-      date: day.date,
-      chapters: day.chapters,
-      completed: false,
-    }));
-
-    await createScheduleMutation.mutateAsync(schedulePayloads);
-  };
+  const { onSubmit, isSubmitting, errors, register, control, handleSubmit } =
+    useCreateScheduleForm({ id: bookId, startDate, title: "" });
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-2xl h-fit">

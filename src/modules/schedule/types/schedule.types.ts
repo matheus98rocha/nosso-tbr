@@ -26,3 +26,16 @@ export type ClientScheduleProps = {
   startDate: string;
   title: string;
 };
+
+export type ScheduleInput = {
+  totalChapters: number;
+  startDate: Date;
+  includePrologue?: boolean;
+  chaptersPerDay?: number;
+  includeWeekends?: boolean;
+};
+
+export type DailySchedule = {
+  date: Date;
+  chapters: string;
+};
