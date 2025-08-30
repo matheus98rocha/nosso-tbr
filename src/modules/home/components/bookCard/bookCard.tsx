@@ -19,7 +19,7 @@ import {
 } from "@/modules/home/utils/genderBook";
 import Image from "next/image";
 import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
-import { BookService } from "../../services/books.services";
+import { BookService } from "../../../../services/books/books.service";
 import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";

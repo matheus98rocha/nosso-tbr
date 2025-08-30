@@ -22,7 +22,6 @@ import {
 } from "@/components/inputWithButton/inputWithButton";
 
 import { useUserStore } from "@/stores/userStore";
-console.log("ClientHome");
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
 

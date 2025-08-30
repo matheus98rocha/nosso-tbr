@@ -8,19 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-type ConfirmDialogProps = {
-  title: string;
-  description: string;
-  id: string;
-  queryKeyToInvalidate: string;
-  onConfirm: (id: string) => Promise<void>;
-  onCancel?: () => void;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  buttomLabel?: string;
-};
+import { ConfirmDialogProps } from "./confirmDialog.types";
+import { useConfirmDialog } from "./useConfirmDialog";
 
 export function ConfirmDialog({
   title,
@@ -33,16 +22,7 @@ export function ConfirmDialog({
   onOpenChange,
   buttomLabel,
 }: ConfirmDialogProps) {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: () => onConfirm(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKeyToInvalidate] });
-      onOpenChange(false);
-    },
-  });
-
+  const {confirmBookMutation, isLoading} = useConfirmDialog({onConfirm, id, queryKeyToInvalidate, onOpenChange, title, description, open});
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -55,9 +35,9 @@ export function ConfirmDialog({
             <Button onClick={onCancel} variant="outline">Cancelar</Button>
           </DialogClose>
           <Button
-            isLoading={mutation.isPending}
+            isLoading={isLoading}
             type="button"
-            onClick={() => mutation.mutate()}
+            onClick={() =>confirmBookMutation()}
           >
             {buttomLabel}
           </Button>
