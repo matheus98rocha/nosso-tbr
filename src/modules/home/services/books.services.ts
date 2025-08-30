@@ -48,7 +48,7 @@ export class BookService {
         filters,
       });
       ErrorHandler.log(normalizedError);
-      throw normalizedError; // Será capturado pelo useQuery
+      throw normalizedError;
     }
   }
   async delete(id: string): Promise<void> {

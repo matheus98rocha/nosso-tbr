@@ -19,7 +19,7 @@ export function BlurOverlay({
     <>
       {children}
       {showOverlay && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-sm bg-white/50">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-sm bg-white/50 rounded">
           {overlayContent ?? (
             <div className="flex flex-col items-center gap-4">
               <p className="text-lg font-medium text-gray-800">
