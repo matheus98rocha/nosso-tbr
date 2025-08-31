@@ -82,14 +82,14 @@ export function CreateEditBookshelves({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {editShelf ? "Editar Estante" : "Criar Nova Estante"}
-          </DialogTitle>
-        </DialogHeader>
+        <BlurOverlay showOverlay={!isLoggedIn}>
+          <DialogHeader>
+            <DialogTitle>
+              {editShelf ? "Editar Estante" : "Criar Nova Estante"}
+            </DialogTitle>
+          </DialogHeader>
 
-        <Form {...form}>
-          <BlurOverlay showOverlay={!isLoggedIn}>
+          <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
               <FormField
                 control={form.control}
@@ -135,8 +135,8 @@ export function CreateEditBookshelves({
                 </Button>
               </DialogFooter>
             </form>
-          </BlurOverlay>
-        </Form>
+          </Form>
+        </BlurOverlay>
       </DialogContent>
     </Dialog>
   );
