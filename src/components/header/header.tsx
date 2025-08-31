@@ -21,7 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Menu as MenuIcon } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { useHeader } from "./useHeader";
+import { useHeader } from "./hooks/useHeader";
+import LogoIcon from "@/assets/icons/logo";
 
 function Header() {
   const { bookUpsertModal, createShelfDialog, menuItems, pathname, router } =
@@ -124,7 +125,11 @@ function Header() {
       />
 
       <header className="flex justify-between items-center container py-2">
-        <button onClick={() => router.push("/")}>
+        <button
+          className="flex items-center justify-center gap-0.5"
+          onClick={() => router.push("/")}
+        >
+          <LogoIcon />
           <h1 className="text-2xl font-bold">Nosso TBR</h1>
         </button>
 
