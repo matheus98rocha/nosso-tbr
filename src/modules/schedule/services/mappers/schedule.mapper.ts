@@ -24,7 +24,7 @@ export class ScheduleUpsertMapper {
     return {
       id: persistence.id,
       date: persistence.date ? new Date(persistence.date).toISOString() : "",
-      chapters: persistence.chapters ? persistence.chapters : "",
+      chapters: persistence.chapters || "",
       completed: persistence.completed ?? false,
     };
   }

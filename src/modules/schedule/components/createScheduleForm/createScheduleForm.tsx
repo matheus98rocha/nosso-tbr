@@ -67,7 +67,7 @@ export function CreateScheduleForm({
                       : ""
                   }
                   onChange={(e) => {
-                    const value = e.target.value;
+                    const { value } = e.target;
                     field.onChange(value ? new Date(value) : null);
                   }}
                   onBlur={field.onBlur}
