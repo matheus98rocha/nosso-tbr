@@ -30,6 +30,10 @@ export function useBookCard({ book }: BookCardProps) {
     router.push(`/schedule/${book.id}/${book.start_date}/${book.title}`);
   }, [router, book.id, book.start_date, book.title]);
 
+  const handleNavigateToQuotes = useCallback(() => {
+    router.push(`/quotes/${book.id}`);
+  }, [router, book.id]);
+
   return {
     dropdownModal,
     dialogEditModal,
@@ -40,5 +44,6 @@ export function useBookCard({ book }: BookCardProps) {
     shareOnWhatsApp,
     handleNavigateToSchedule,
     book,
+    handleNavigateToQuotes,
   };
 }

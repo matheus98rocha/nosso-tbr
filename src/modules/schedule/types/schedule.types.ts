@@ -33,6 +33,7 @@ export type ScheduleInput = {
   includePrologue?: boolean;
   chaptersPerDay?: number;
   includeWeekends?: boolean;
+  includeEpilogue?: boolean;
 };
 
 export type DailySchedule = {

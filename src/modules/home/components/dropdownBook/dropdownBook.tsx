@@ -16,6 +16,7 @@ type DropdownMenuWrapperProps = {
   addToShelf: () => void;
   shareOnWhatsApp: () => void;
   schedule?: () => void;
+  quotes?: () => void;
   isStartedReading?: boolean;
 };
 
@@ -29,6 +30,7 @@ export function DropdownBook({
   shareOnWhatsApp,
   schedule,
   isStartedReading,
+  quotes,
 }: DropdownMenuWrapperProps) {
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
@@ -57,6 +59,10 @@ export function DropdownBook({
 
           <DropdownMenuItem onClick={schedule} disabled={!isStartedReading}>
             <p>Cronograma</p>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={quotes} disabled={!isStartedReading}>
+            <p>Citações</p>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
