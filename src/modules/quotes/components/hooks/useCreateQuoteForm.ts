@@ -7,11 +7,7 @@ import {
   CreateQuoteFormInput,
   createQuoteSchema,
 } from "../../validators/quotes.validator";
-
-type UseCreateQuoteFormProps = {
-  bookId: string;
-  onSuccessCloseModal?: () => void;
-};
+import { UseCreateQuoteFormProps } from "../../types/quotes.types";
 
 export function useCreateQuoteForm({
   bookId,
@@ -33,6 +29,7 @@ export function useCreateQuoteForm({
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset,
   } = form;
 
   const createQuoteMutation = useMutation({
@@ -40,6 +37,7 @@ export function useCreateQuoteForm({
       quotesService.createQuote(bookId, data.content, data.page),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes", bookId] });
+      reset({ content: "", page: undefined });
       onSuccessCloseModal?.();
     },
     onError: (error) => {

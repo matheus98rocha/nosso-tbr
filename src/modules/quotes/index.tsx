@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardHeader,
@@ -12,50 +12,43 @@ import { useQuotes } from "./hooks/useQuotes";
 import { X } from "lucide-react";
 import { CreateQuoteModal } from "./components/createQuoteForm";
 import { DeleteDialog } from "@/components/deleteModal/deleteModal";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { QuotesService } from "./services/quotes.service";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ClientQuotesProps } from "./types/quotes.types";
+import { Separator } from "@/components/ui/separator";
 
-type ClientQuotesProps = {
-  id: string;
-};
-
-export function ClientQuotes({ id }: ClientQuotesProps) {
-  const { quotes, isLoading, hasQuotes } = useQuotes({ bookId: id });
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const queryClient = useQueryClient();
-
-  // Mutation de remoção
-  const deleteMutation = useMutation({
-    mutationFn: (quoteId: string) => {
-      const quotesService = new QuotesService();
-      return quotesService.removeQuote(quoteId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quotes", id] });
-      setDeleteOpen(false);
-      setDeleteId(null);
-    },
-  });
-
-  const handleOpenDelete = (quoteId: string) => {
-    setDeleteId(quoteId);
-    setDeleteOpen(true);
-  };
+export function ClientQuotes({ id, title }: ClientQuotesProps) {
+  const {
+    quotes,
+    isLoading,
+    hasQuotes,
+    deleteId,
+    deleteMutation,
+    deleteOpen,
+    handleOpenDelete,
+    setDeleteOpen,
+  } = useQuotes({ id, title });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-4 w-full container animate-pulse">
+        <Skeleton className="h-12 w-48 rounded" />
+
+        <Skeleton className="h-12 w-48 rounded" />
+
+        <div className="space-y-4 mt-4">
+          <Skeleton className="h-36 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4 w-full container">
-      <CreateQuoteModal bookId={id} />
-
-      {quotes && quotes.length > 0 && (
-        <h2 className="text-xl font-bold mb-4">
-          📚 {quotes[0].bookTitle ?? "Título do Livro"}
-        </h2>
-      )}
+      <CreateQuoteModal id={id} title={title} />
+      <Separator orientation="horizontal" className="mt-4 mb-4" />
+      <h2 className="text-xl font-bold mb-4">📚 {title}</h2>
 
       {deleteId && (
         <DeleteDialog

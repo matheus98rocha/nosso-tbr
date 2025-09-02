@@ -10,10 +10,7 @@ export class QuotesService {
     try {
       const { data, error } = await this.supabase
         .from("quotes")
-        .select(
-          `*,
-            book:books(title)`
-        )
+        .select("*")
         .eq("book_id", bookId)
         .order("created_at", { ascending: true });
 

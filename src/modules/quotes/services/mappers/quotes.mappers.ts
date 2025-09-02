@@ -10,7 +10,6 @@ export class QuoteMapper {
       content: data.content,
       page: data.page ?? null,
       createdAt: data.created_at,
-      bookTitle: data.book?.title ?? undefined,
     };
   }
 

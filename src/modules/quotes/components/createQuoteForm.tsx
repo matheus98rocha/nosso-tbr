@@ -17,12 +17,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ClientQuotesProps } from "../types/quotes.types";
 
-type QuoteModalProps = {
-  bookId: string;
-};
-
-export function CreateQuoteModal({ bookId }: QuoteModalProps) {
+export function CreateQuoteModal({ id: bookId }: ClientQuotesProps) {
   const [open, setOpen] = useState(false);
   const { onSubmit, isSubmitting, errors, register, control, handleSubmit } =
     useCreateQuoteForm({ bookId, onSuccessCloseModal: () => setOpen(false) });
@@ -65,7 +62,7 @@ export function CreateQuoteModal({ bookId }: QuoteModalProps) {
                   id="page"
                   type="number"
                   placeholder="Número da página"
-                  value={field.value ?? ""}
+                  value={field.value ?? ""} // mostra vazio se undefined
                   onChange={(e) => {
                     const value = e.target.value;
                     field.onChange(value === "" ? undefined : Number(value));

@@ -1,7 +1,6 @@
 export interface QuoteDomain {
   id: string;
   bookId: string;
-  bookTitle?: string;
   content: string;
   page: number | null;
   createdAt: string;
@@ -13,4 +12,14 @@ export type QuotePersistence = {
   content: string;
   page: number | null;
   created_at: string;
+};
+
+export type ClientQuotesProps = {
+  id: string;
+  title: string;
+};
+
+export type UseCreateQuoteFormProps = {
+  bookId: string;
+  onSuccessCloseModal?: () => void;
 };
