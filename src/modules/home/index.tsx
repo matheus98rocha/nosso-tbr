@@ -137,10 +137,6 @@ export default function ClientHome() {
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
       />
-
-      {/* <main className="p-6 flex flex-col items-center gap-6">
-        <Header /> */}
-
       <div className="w-full flex items-center justify-center flex-col gap-4 container">
         {/* Filtros e resultado de filtros */}
         <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">

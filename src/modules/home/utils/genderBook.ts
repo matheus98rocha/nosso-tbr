@@ -22,6 +22,7 @@ export const genders = [
     value: "contemporary_fiction",
   },
   { label: "Ciência social", value: "social_science" },
+  { label: "Ciência", value: "science" },
   { label: "Clássico", value: "classic" },
   { label: "Biográfico", value: "biographic" },
 ].sort((a, b) => a.label.localeCompare(b.label));
@@ -54,6 +55,8 @@ export const genreColorMap: Record<string, string> = {
 
   classic: "bg-stone-600 text-white",
   social_science: "bg-sky-200 text-black",
+
+  science: "bg-sky-300 text-black",
 };
 
 export const getGenreBadgeColor = (value: string | undefined) =>
