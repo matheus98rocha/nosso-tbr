@@ -38,6 +38,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
     dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
+    handleNavigateToAuthor,
     isLogged,
   } = useBookCard({
     book: bookProp,
@@ -132,7 +133,8 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
         <CardHeader>
           <CardTitle className="truncate">{book.title}</CardTitle>
           <CardDescription>
-            {book.author} | {book.pages} páginas
+            <p onClick={handleNavigateToAuthor} className="hover:cursor-pointer hover:underline hover:text-blue-500">{book.author} (Autor)</p>
+            <p>| {book.pages} páginas</p>
           </CardDescription>
 
           {isLogged && (
