@@ -71,7 +71,7 @@ export function BookUpsert({
         onConfirm={() => handleConfirmCreateBook()}
         id="duplicate-book-warning"
         queryKeyToInvalidate="books"
-        buttomLabel="Continuar"
+        buttonLabel="Continuar"
         onCancel={() => {
           setIsDuplicateBookDialogOpen(false);
           setIsBookFormOpen(true);

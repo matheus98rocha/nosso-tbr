@@ -7,5 +7,5 @@ export type ConfirmDialogProps = {
     onCancel?: () => void;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    buttomLabel?: string;
+    buttonLabel?: string;
 };

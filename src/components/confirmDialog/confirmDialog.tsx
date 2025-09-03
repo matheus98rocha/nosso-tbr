@@ -20,7 +20,7 @@ export function ConfirmDialog({
   onCancel,
   open,
   onOpenChange,
-  buttomLabel,
+  buttonLabel
 }: ConfirmDialogProps) {
   const {confirmBookMutation, isLoading} = useConfirmDialog({onConfirm, id, queryKeyToInvalidate, onOpenChange, title, description, open});
   return (
@@ -39,7 +39,7 @@ export function ConfirmDialog({
             type="button"
             onClick={() =>confirmBookMutation()}
           >
-            {buttomLabel}
+            {buttonLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

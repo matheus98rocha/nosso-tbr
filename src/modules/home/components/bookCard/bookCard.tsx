@@ -102,7 +102,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
       />
       <ConfirmDialog
         title="Excluir livro"
-        buttomLabel={!isShelf ? "Deletar" : "Remover"}
+        buttonLabel={!isShelf ? "Deletar" : "Remover"}
         description={
           !isShelf
             ? "Tem certeza que deseja excluir este livro?"

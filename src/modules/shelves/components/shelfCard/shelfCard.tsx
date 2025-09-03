@@ -51,7 +51,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
         open={deleteShelf.isOpen}
         onOpenChange={deleteShelf.setIsOpen}
         title="Excluir estante"
-        buttomLabel="Excluir"
+        buttonLabel="Excluir"
         description="Tem certeza que deseja excluir esta estante?"
         queryKeyToInvalidate="bookshelves"
         onConfirm={async (id: string) => {
