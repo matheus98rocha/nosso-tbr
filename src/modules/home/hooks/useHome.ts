@@ -1,4 +1,4 @@
-import { BookService } from "@/modules/home/services/books.services";
+import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
 import { FiltersOptions } from "../components/filtersSheet/filters";
 import { useUserStore } from "@/stores/userStore";

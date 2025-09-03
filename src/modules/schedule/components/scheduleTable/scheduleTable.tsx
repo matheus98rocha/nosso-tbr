@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { DeleteDialog } from "@/components/deleteModal/deleteModal";
+import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 import { ScheduleTableProps } from "./types/scheduleTable.types";
 
 export function ScheduleTable({
@@ -21,16 +21,17 @@ export function ScheduleTable({
 
   return (
     <>
-      <DeleteDialog
+      <ConfirmDialog
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         id={bookId}
-        onDelete={async (id: string) => {
+        onConfirm={async (id: string) => {
           await deleteSchedule(id);
           setIsModalOpen(false);
         }}
         queryKeyToInvalidate="schedule"
         title="Deletar Cronograma"
+        buttonLabel="Deletar"
         description="Tem certeza que deseja deletar todo o cronograma? Essa ação não pode ser desfeita."
       />
 

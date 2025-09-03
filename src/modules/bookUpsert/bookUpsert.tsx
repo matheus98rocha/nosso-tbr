@@ -8,12 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
 import { SelectField } from "../home/components/select/select.";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { BookCreateValidator, Status } from "@/types/books.types";
-import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../home/components/datePicker/datePicker";
 import { useBookDialog } from "./useBookDialog";
@@ -29,42 +24,19 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { SelectedBookshelf } from "../shelves/types/bookshelves.types";
-import { useQuery } from "@tanstack/react-query";
-import { BookshelfService } from "../shelves/services/booksshelves.service";
 import { Separator } from "@/components/ui/separator";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
-
-type CreateBookProps = {
-  bookData?: BookCreateValidator;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-};
+import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
+import { CreateBookProps } from "./bookUpsert.types";
 
 export function BookUpsert({
   bookData,
-  isOpen,
-  onOpenChange,
+  isBookFormOpen,
+  setIsBookFormOpen,
 }: CreateBookProps) {
   const isLoggedIn = useIsLoggedIn();
-  const form = useForm<BookCreateValidator>({
-    resolver: zodResolver(bookCreateSchema),
-    defaultValues: {
-      title: "",
-      author: "",
-      pages: undefined,
-      readers: "",
-      start_date: null,
-      end_date: null,
-      gender: "",
-      image_url: "",
-      ...bookData,
-    },
-  });
 
-  const { reset, handleSubmit, control } = form;
-  const isEdit: boolean = Boolean(bookData && bookData.id);
   const {
     onSubmit,
     isLoading,
@@ -74,57 +46,50 @@ export function BookUpsert({
     setIsAddToShelfEnabled,
     setSelected,
     setSelectedShelfId,
-  } = useBookDialog({
+    isDuplicateBookDialogOpen,
+    setIsDuplicateBookDialogOpen,
+    form,
     reset,
+    handleSubmit,
+    control, 
+    checkboxes, 
+    isEdit, 
+    isLoadingBookShelfs, 
+    bookshelfOptions,
+    handleConfirmCreateBook,
+  } = useBookDialog({
     bookData,
-    onOpenChange,
-    isEdit,
+    setIsBookFormOpen,
   });
-
-  const checkboxes: { id: Status; label: string }[] = [
-    { id: "not_started", label: "Vou iniciar a leitura" },
-    { id: "reading", label: "Já iniciei a leitura" },
-    { id: "finished", label: "Terminei a Leitura" },
-  ];
-
-  useEffect(() => {
-    if (bookData) {
-      setSelected(bookData.status ?? null);
-    } else {
-      setSelected(null);
-    }
-  }, [bookData, setSelected]);
-
-  const { data: bookshelves = [], isLoading: isLoadingBookShelfs } = useQuery({
-    queryKey: ["bookshelves"],
-    queryFn: async () => {
-      const service = new BookshelfService();
-      return service.getAll();
-    },
-  });
-
-  const bookshelfOptions =
-    bookshelves?.map((shelf: SelectedBookshelf) => ({
-      label: shelf.name,
-      value: shelf.id,
-    })) ?? [];
-
   return (
     <>
+      <ConfirmDialog
+        open={isDuplicateBookDialogOpen}
+        onOpenChange={setIsDuplicateBookDialogOpen}
+        title="Livro Duplicado"
+        description="Um livro com este título já existe, deseja continuar?"
+        onConfirm={() => handleConfirmCreateBook()}
+        id="duplicate-book-warning"
+        queryKeyToInvalidate="books"
+        buttonLabel="Continuar"
+        onCancel={() => {
+          setIsDuplicateBookDialogOpen(false);
+          setIsBookFormOpen(true);
+        }}
+      />
       <Dialog
-        open={isOpen}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
+        open={isBookFormOpen}
+        onOpenChange={(isBookFormOpen) => {
+          if (!isBookFormOpen) {
             reset();
             setSelected(null);
           }
-          onOpenChange(isOpen);
+          setIsBookFormOpen(isBookFormOpen);
         }}
       >
         <DialogContent
-          className={`h-full sm:h-[80%] w-full ${
-            isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
-          }`}
+          className={`h-full sm:h-[80%] w-full ${isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
+            }`}
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>
