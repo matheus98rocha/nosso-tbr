@@ -6,65 +6,57 @@ export function generateBookSchedule({
   includePrologue = false,
   chaptersPerDay = 3,
   includeWeekends = true,
+  includeEpilogue = true,
 }: ScheduleInput): DailySchedule[] {
   const schedule: DailySchedule[] = [];
-  const chapters: string[] = [];
+  const chapters: number[] = [];
 
-  // Criar lista de capítulos sem contar o prólogo no índice
   for (let i = 1; i <= totalChapters; i++) {
-    chapters.push(`Cap. ${i}`);
+    chapters.push(i);
   }
 
   const currentDate = new Date(startDate);
   let chapterIndex = 0;
 
   while (chapterIndex < chapters.length) {
-    // Pular fins de semana se não incluídos
     if (!includeWeekends) {
       while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
         currentDate.setDate(currentDate.getDate() + 1);
       }
     }
 
-    // Calcular quantos capítulos ler neste dia
-    const remainingChapters = chapters.length - chapterIndex;
-    const chaptersToday = Math.min(chaptersPerDay, remainingChapters);
+    const remaining = chapters.length - chapterIndex;
+    const take = Math.min(chaptersPerDay, remaining);
+    const todayChapters = chapters.slice(chapterIndex, chapterIndex + take);
+    chapterIndex += take;
 
-    // Obter os capítulos deste dia
-    const todayChapters = chapters.slice(
-      chapterIndex,
-      chapterIndex + chaptersToday
-    );
-    chapterIndex += chaptersToday;
+    const parts: string[] = [];
 
-    // Formatar a string de capítulos
-    let chaptersText = "";
-
-    // Adicionar prólogo apenas no primeiro dia
+    // prólogo só no primeiro dia
     if (includePrologue && schedule.length === 0) {
-      chaptersText += "Prólogo";
-      if (todayChapters.length > 0) chaptersText += ", ";
+      parts.push("Prólogo");
     }
 
     if (todayChapters.length > 0) {
       if (todayChapters.length === 1) {
-        chaptersText += todayChapters[0];
+        parts.push(`${todayChapters[0]}`);
       } else {
-        const firstNum = todayChapters[0].replace("Cap. ", "");
-        const lastNum = todayChapters[todayChapters.length - 1].replace(
-          "Cap. ",
-          ""
+        parts.push(
+          `${todayChapters[0]}-${todayChapters[todayChapters.length - 1]}`
         );
-        chaptersText += `Cap. ${firstNum}-${lastNum}`;
       }
+    }
+
+    // Epílogo colado no último grupo
+    if (includeEpilogue && chapterIndex >= chapters.length) {
+      parts.push("Epílogo");
     }
 
     schedule.push({
       date: new Date(currentDate),
-      chapters: chaptersText,
+      chapters: parts.join(", "),
     });
 
-    // Avançar para o próximo dia
     currentDate.setDate(currentDate.getDate() + 1);
   }
 

@@ -92,7 +92,6 @@ export class ScheduleUpsertService {
       throw normalizedError;
     }
   }
-
   async deleteSchedule(bookId: string): Promise<void> {
     try {
       const { error } = await this.supabase

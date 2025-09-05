@@ -93,6 +93,15 @@ export function CreateScheduleForm({
           <div className="flex items-center gap-2">
             <Input
               type="checkbox"
+              {...register("includeEpilogue")}
+              className="w-4 h-4"
+            />
+            <Label htmlFor="includePrologue">Incluir epilogo</Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Input
+              type="checkbox"
               {...register("roundUp")}
               className="w-4 h-4"
             />
