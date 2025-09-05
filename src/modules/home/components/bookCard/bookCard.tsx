@@ -162,6 +162,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
                 schedule={() => handleNavigateToSchedule()}
                 quotes={() => handleNavigateToQuotes()}
                 isStartedReading={book.status === "reading"}
+                quotesDisabled={book.status !== "not_started"}
               />
             </CardAction>
           )}

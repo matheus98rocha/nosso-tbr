@@ -19,7 +19,16 @@ export type ClientQuotesProps = {
   title: string;
 };
 
+export type UpsertQuoteModalProps = ClientQuotesProps & {
+  quote?: QuoteDomain;
+};
 export type UseCreateQuoteFormProps = {
   bookId: string;
+  onSuccessCloseModal?: () => void;
+};
+
+export type UseQuoteFormProps = {
+  bookId: string;
+  quote?: QuoteDomain;
   onSuccessCloseModal?: () => void;
 };

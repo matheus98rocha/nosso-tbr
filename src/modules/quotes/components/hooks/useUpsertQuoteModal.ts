@@ -7,55 +7,65 @@ import {
   CreateQuoteFormInput,
   createQuoteSchema,
 } from "../../validators/quotes.validator";
-import { UseCreateQuoteFormProps } from "../../types/quotes.types";
+import { UseQuoteFormProps } from "../../types/quotes.types";
 
-export function useCreateQuoteForm({
+export function useUpsertQuoteModal({
   bookId,
+  quote,
   onSuccessCloseModal,
-}: UseCreateQuoteFormProps) {
+}: UseQuoteFormProps) {
   const quotesService = new QuotesService();
   const queryClient = useQueryClient();
 
   const form = useForm<CreateQuoteFormInput>({
     resolver: zodResolver(createQuoteSchema),
     defaultValues: {
-      content: "",
-      page: undefined,
+      content: quote?.content ?? "",
+      page: quote?.page ?? undefined,
     },
   });
 
   const {
     register,
+    watch,
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
   } = form;
 
-  const createQuoteMutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: (data: CreateQuoteFormInput) =>
       quotesService.createQuote(bookId, data.content, data.page),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quotes", bookId] });
-      reset({ content: "", page: undefined });
-      onSuccessCloseModal?.();
-    },
-    onError: (error) => {
-      console.error("Erro ao criar citação:", error);
-    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: CreateQuoteFormInput) =>
+      quotesService.updateQuote(quote!.id, data.content, data.page),
   });
 
   const onSubmit: SubmitHandler<CreateQuoteFormInput> = async (data) => {
-    await createQuoteMutation.mutateAsync(data);
+    const mutation = quote ? updateMutation : createMutation;
+
+    await mutation.mutateAsync(data, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["quotes", bookId] });
+        reset({ content: "", page: undefined });
+        onSuccessCloseModal?.();
+      },
+      onError: (error) => {
+        console.error("Erro ao salvar citação:", error);
+      },
+    });
   };
 
   return {
-    form,
     register,
     control,
     handleSubmit,
     errors,
     isSubmitting,
     onSubmit,
+    watch,
   };
 }

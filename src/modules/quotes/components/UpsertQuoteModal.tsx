@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { Controller } from "react-hook-form";
-import { useCreateQuoteForm } from "./hooks/useCreateQuoteForm";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,41 +16,73 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ClientQuotesProps } from "../types/quotes.types";
+import { UpsertQuoteModalProps } from "../types/quotes.types";
+import { useUpsertQuoteModal } from "./hooks/useUpsertQuoteModal";
+import { PencilIcon } from "lucide-react";
 
-export function CreateQuoteModal({ id: bookId }: ClientQuotesProps) {
+export function UpsertQuoteModal({ id: bookId, quote }: UpsertQuoteModalProps) {
   const [open, setOpen] = useState(false);
-  const { onSubmit, isSubmitting, errors, register, control, handleSubmit } =
-    useCreateQuoteForm({ bookId, onSuccessCloseModal: () => setOpen(false) });
+  const isEditing = !!quote;
+
+  const {
+    onSubmit,
+    isSubmitting,
+    errors,
+    register,
+    control,
+    handleSubmit,
+    watch,
+  } = useUpsertQuoteModal({
+    bookId,
+    quote,
+    onSuccessCloseModal: () => setOpen(false),
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mb-4">Adicionar Citação</Button>
+        {isEditing ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-black transition-transform transform hover:scale-110"
+            aria-label="Editar citação"
+          >
+            <PencilIcon size={18} />
+          </Button>
+        ) : (
+          <Button className="mb-4">Adicionar Citação</Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Adicionar Citação</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "Editar Citação" : "Adicionar Citação"}
+          </DialogTitle>
           <DialogDescription>
-            Preencha as informações abaixo para criar uma nova citação do livro.
+            {isEditing
+              ? "Atualize as informações da citação abaixo."
+              : "Preencha as informações abaixo para criar uma nova citação do livro."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 mt-4">
-          {/* Campo de conteúdo usando Textarea */}
           <div className="space-y-2">
             <Label htmlFor="content">Citação</Label>
             <Textarea
               id="content"
               placeholder="Digite o conteúdo da citação"
               {...register("content")}
+              maxLength={200}
             />
-            {errors.content && (
-              <p className="text-red-500 text-sm">{errors.content.message}</p>
-            )}
+            <div className="flex justify-between items-center text-sm text-gray-500">
+              {errors.content && (
+                <p className="text-red-500">{errors.content.message}</p>
+              )}
+              <span>{(watch("content") || "").length}/200</span>
+            </div>
           </div>
 
-          {/* Campo opcional de página */}
           <div className="space-y-2">
             <Label htmlFor="page">Página (opcional)</Label>
             <Controller
@@ -62,7 +93,7 @@ export function CreateQuoteModal({ id: bookId }: ClientQuotesProps) {
                   id="page"
                   type="number"
                   placeholder="Número da página"
-                  value={field.value ?? ""} // mostra vazio se undefined
+                  value={field.value ?? ""}
                   onChange={(e) => {
                     const value = e.target.value;
                     field.onChange(value === "" ? undefined : Number(value));
@@ -81,7 +112,13 @@ export function CreateQuoteModal({ id: bookId }: ClientQuotesProps) {
               disabled={isSubmitting}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {isSubmitting ? "Adicionando..." : "Adicionar Citação"}
+              {isSubmitting
+                ? isEditing
+                  ? "Salvando..."
+                  : "Adicionando..."
+                : isEditing
+                ? "Salvar Alterações"
+                : "Adicionar Citação"}
             </Button>
           </DialogFooter>
         </form>
