@@ -1,41 +1,83 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookCreateValidator, Status } from "@/types/books.types";
-import { UseFormReset } from "react-hook-form";
 import { BookUpsertService } from "./services/bookUpsert.service";
 import { toast } from "sonner";
 import { BookshelfService } from "../shelves/services/booksshelves.service";
-import { useCallback, useState } from "react";
-
-type UseCreateBookDialog = {
-  reset: UseFormReset<BookCreateValidator>;
-  bookData: BookCreateValidator | undefined;
-  isEdit: boolean;
-  onOpenChange: (open: boolean) => void;
-};
+import { useCallback, useEffect, useState } from "react";
+import { UseCreateBookDialog } from "./bookUpsert.types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
+import { SelectedBookshelf } from "../shelves/types/bookshelves.types";
 
 export function useBookDialog({
-  reset,
   bookData,
-  onOpenChange,
-  isEdit,
+  setIsBookFormOpen,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
 
   const [selected, setSelected] = useState<Status | null>(null);
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
   const [selectedShelfId, setSelectedShelfId] = useState("");
+  const [isDuplicateBookDialogOpen, setIsDuplicateBookDialogOpen] = useState<boolean>(false);
+  const isEdit: boolean = Boolean(bookData && bookData.id);
+  const service = new BookUpsertService();
+
+  const form = useForm<BookCreateValidator>({
+    resolver: zodResolver(bookCreateSchema),
+    defaultValues: {
+      title: "",
+      author: "",
+      pages: undefined,
+      readers: "",
+      start_date: null,
+      end_date: null,
+      gender: "",
+      image_url: "",
+      ...bookData,
+    },
+  });
+
+  const { reset, handleSubmit, control } = form;
 
   const handleResetForm = useCallback(() => {
-    onOpenChange(false);
+    setIsBookFormOpen(false);
     reset();
     setSelected(null);
     setIsAddToShelfEnabled(false);
     setSelectedShelfId("");
-  }, [onOpenChange, reset]);
+  }, [setIsBookFormOpen, reset]);
 
-  const mutation = useMutation({
+  const checkboxes: { id: Status; label: string }[] = [
+    { id: "not_started", label: "Vou iniciar a leitura" },
+    { id: "reading", label: "Já iniciei a leitura" },
+    { id: "finished", label: "Terminei a Leitura" },
+  ];
+
+  useEffect(() => {
+    if (bookData) {
+      setSelected(bookData.status ?? null);
+    } else {
+      setSelected(null);
+    }
+  }, [bookData, setSelected]);
+
+  const { data: bookshelves = [], isLoading: isLoadingBookShelfs } = useQuery({
+    queryKey: ["bookshelves"],
+    queryFn: async () => {
+      const service = new BookshelfService();
+      return service.getAll();
+    },
+  });
+
+  const bookshelfOptions =
+    bookshelves?.map((shelf: SelectedBookshelf) => ({
+      label: shelf.name,
+      value: shelf.id,
+    })) ?? [];
+
+  const createBook = useMutation({
     mutationFn: async (data: BookCreateValidator) => {
-      const service = new BookUpsertService();
 
       if (isEdit) {
         if (!bookData || !bookData.id) {
@@ -60,10 +102,11 @@ export function useBookDialog({
     },
     onSuccess: () => {
       handleResetForm();
+      setIsDuplicateBookDialogOpen(false);
 
       toast("Livro salvo com sucesso!", {
         description: bookData ? "Edição concluída" : "Novo livro adicionado",
-        className: "toast-success",
+        className: "toast-success text-white",
       });
 
       queryClient.invalidateQueries({ queryKey: ["books"] });
@@ -92,16 +135,28 @@ export function useBookDialog({
     },
   });
 
-  const onSubmit = (data: BookCreateValidator) => {
-    mutation.mutate(data);
+  const onSubmit = async (data: BookCreateValidator) => {
+    const isDuplicate = await service.checkDuplicateBook(data.title);
+    if (isDuplicate) {
+      setIsDuplicateBookDialogOpen(true);
+      setIsBookFormOpen(false);
+      return;
+    }
+    return createBook.mutate(data);
   };
+
+  const handleConfirmCreateBook = async() => {
+    setIsDuplicateBookDialogOpen(false);
+    const formData = form.getValues();
+    createBook.mutate(formData);
+  }
 
   return {
     onSubmit,
-    isLoading: mutation.isPending,
-    isSuccess: mutation.isSuccess,
-    isError: mutation.isError,
-    error: mutation.error,
+    isLoading: createBook.isPending,
+    isSuccess: createBook.isSuccess,
+    isError: createBook.isError,
+    error: createBook.error,
 
     selected,
     setSelected,
@@ -111,5 +166,19 @@ export function useBookDialog({
 
     selectedShelfId,
     setSelectedShelfId,
+
+    isDuplicateBookDialogOpen,
+    setIsDuplicateBookDialogOpen,
+
+    handleConfirmCreateBook,
+
+    form,
+    reset,
+    handleSubmit,
+    control, 
+    checkboxes, 
+    isEdit, 
+    isLoadingBookShelfs, 
+    bookshelfOptions,
   };
 }

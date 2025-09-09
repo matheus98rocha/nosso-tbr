@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { BookMapper } from "@/modules/home/services/mappers/books.mappers";
+import { BookMapper } from "@/services/books/books.mapper";
 
 import { BookDomain, BookPersistence } from "@/types/books.types";
 

@@ -115,8 +115,8 @@ function Header() {
   return (
     <>
       <BookUpsert
-        isOpen={bookUpsertModal.isOpen}
-        onOpenChange={bookUpsertModal.setIsOpen}
+        isBookFormOpen={bookUpsertModal.isOpen}
+        setIsBookFormOpen={bookUpsertModal.setIsOpen}
       />
 
       <CreateEditBookshelves
