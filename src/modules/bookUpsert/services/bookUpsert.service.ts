@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import { BookCreateValidator } from "@/types/books.types";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { BookUpsertMapper } from "./mappers/bookUpsert.mapper";
+import { BookQueryBuilder } from "@/services/books/bookQuery.builder";
 
 export class BookUpsertService {
   private supabase = createClient();
@@ -70,6 +71,27 @@ export class BookUpsertService {
         method: "edit",
         id,
         book,
+      });
+      ErrorHandler.log(normalizedError);
+      throw normalizedError;
+    }
+  }
+
+  async checkDuplicateBook(title: string): Promise<boolean> {
+    try {
+      const supabase = createClient();
+      const duplicateCheckQuery = await new BookQueryBuilder(supabase)
+        .withSearchTerm(title)
+        .build();
+
+      const { data: booksWithSameTitle } = await duplicateCheckQuery;
+
+      return booksWithSameTitle?.length > 0;
+    } catch (error) {
+      const normalizedError = ErrorHandler.normalize(error, {
+        service: "BookService",
+        method: "checkDuplicateBook",
+        title,
       });
       ErrorHandler.log(normalizedError);
       throw normalizedError;

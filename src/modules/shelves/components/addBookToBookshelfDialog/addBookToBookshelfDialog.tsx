@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BookService } from "@/modules/home/services/books.services";
+import { BookService } from "@/services/books/books.service";
 import { BookCombobox } from "../bookCombobox/bookCombobox";
 import { BookshelfService } from "../../services/booksshelves.service";
 import { SelectedBookshelf } from "../../types/bookshelves.types";
