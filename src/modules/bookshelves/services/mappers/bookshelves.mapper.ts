@@ -3,7 +3,7 @@ import {
   BookshelvesDomain,
   BookshelvesPersistence,
 } from "../../types/bookshelves.types";
-import { BookMapper } from "@/modules/home/services/mappers/books.mappers";
+import { BookMapper } from "@/services/books/books.mapper";
 
 export class BookshelfMapper {
   static toDomain(data: BookshelvesPersistence): BookshelvesDomain {
