@@ -54,15 +54,15 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
             book.status === "not_started"
               ? "bg-gray-500 text-white"
               : book.status === "reading"
-              ? "bg-green-800 text-white"
-              : "bg-red-500 text-white"
+                ? "bg-green-800 text-white"
+                : "bg-red-500 text-white"
           }
         >
           {book.status === "reading"
             ? "Já iniciei a leitura"
             : book.status === "finished"
-            ? "Terminei a Leitura"
-            : "Vou iniciar a leitura"}
+              ? "Terminei a Leitura"
+              : "Vou iniciar a leitura"}
         </Badge>
 
         {book.status === "finished" && book.end_date && (
@@ -132,9 +132,15 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader>
           <CardTitle className="truncate">{book.title}</CardTitle>
-          <CardDescription>
-            <p onClick={handleNavigateToAuthor} className="hover:cursor-pointer hover:underline hover:text-blue-500">{book.author} (Autor)</p>
-            <p>| {book.pages} páginas</p>
+          <CardDescription className="flex flex-col">
+            <span className="flex items-center gap-1">
+              por
+              <p className="text-[#2162a1] hover:underline cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-52"
+              onClick={handleNavigateToAuthor}
+              >{book.author}</p>
+              (Autor)
+            </span>
+            <span>{book.pages} páginas</span>
           </CardDescription>
 
           {isLogged && (
