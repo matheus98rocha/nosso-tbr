@@ -96,7 +96,7 @@ export function CreateScheduleForm({
               {...register("includeEpilogue")}
               className="w-4 h-4"
             />
-            <Label htmlFor="includePrologue">Incluir epilogo</Label>
+            <Label htmlFor="includeEpilogue">Incluir epilogo</Label>
           </div>
 
           <div className="flex items-center gap-2">
