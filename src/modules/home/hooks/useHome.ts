@@ -10,6 +10,7 @@ type UseHome = {
 
 export function useHome({ filters, search }: UseHome) {
   const fetchUser = useUserStore((state) => state.fetchUser);
+  const bookService = new BookService();
 
   const {
     data: allBooks,
@@ -19,8 +20,7 @@ export function useHome({ filters, search }: UseHome) {
   } = useQuery({
     queryKey: ["books", filters, search],
     queryFn: async () => {
-      const service = new BookService();
-      return service.getAll(filters, search);
+      return bookService.getAll(filters, search);
     },
   });
 
