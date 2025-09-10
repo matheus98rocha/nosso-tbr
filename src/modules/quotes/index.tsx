@@ -11,11 +11,11 @@ import {
 import { useQuotes } from "./hooks/useQuotes";
 import { X } from "lucide-react";
 import { UpsertQuoteModal } from "./components/UpsertQuoteModal";
-import { DeleteDialog } from "@/components/deleteModal/deleteModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientQuotesProps } from "./types/quotes.types";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 
 export function ClientQuotes({ id, title }: ClientQuotesProps) {
   const {
@@ -51,17 +51,15 @@ export function ClientQuotes({ id, title }: ClientQuotesProps) {
       <h2 className="text-xl font-bold mb-4">📚 {title}</h2>
 
       {deleteId && (
-        <DeleteDialog
+        <ConfirmDialog
           title="Remover Citação"
           description="Tem certeza que deseja remover esta citação?"
           id={deleteId}
           queryKeyToInvalidate="quotes"
-          onDelete={async () => {
-            await deleteMutation.mutateAsync(deleteId);
-          }}
+          onConfirm={async () => await deleteMutation.mutateAsync(deleteId)}
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
-          buttomLabel={deleteMutation.isPending ? "Removendo..." : "Deletar"}
+          buttonLabel={deleteMutation.isPending ? "Removendo..." : "Deletar"}
         />
       )}
       {hasQuotes ? (
