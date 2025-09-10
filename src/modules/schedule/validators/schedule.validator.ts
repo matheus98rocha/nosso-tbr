@@ -11,6 +11,7 @@ export const scheduleSchema = z.object({
       message: "Data de início é obrigatória",
     }),
   includePrologue: z.boolean().optional(),
+  includeEpilogue: z.boolean().optional(),
   roundUp: z.boolean().optional(),
   includeWeekends: z.boolean().optional(),
 });

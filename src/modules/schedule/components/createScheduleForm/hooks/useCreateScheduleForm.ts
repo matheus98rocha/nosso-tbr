@@ -25,6 +25,7 @@ export function useCreateScheduleForm({
       totalChapters: undefined,
       startDate: startDate ? new Date(startDate) : new Date(),
       includePrologue: false,
+      includeEpilogue: false,
       roundUp: false,
       includeWeekends: false,
     },

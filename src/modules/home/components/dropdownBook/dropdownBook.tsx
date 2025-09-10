@@ -5,19 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ReactNode } from "react";
-
-type DropdownMenuWrapperProps = {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  trigger: ReactNode;
-  editBook: () => void;
-  removeBook: () => void;
-  addToShelf: () => void;
-  shareOnWhatsApp: () => void;
-  schedule?: () => void;
-  isStartedReading?: boolean;
-};
+import { DropdownMenuWrapperProps } from "./types/dropdownBook.types";
 
 export function DropdownBook({
   isOpen,
@@ -28,7 +16,9 @@ export function DropdownBook({
   addToShelf,
   shareOnWhatsApp,
   schedule,
+  quotes,
   isStartedReading,
+  quotesDisabled,
 }: DropdownMenuWrapperProps) {
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
@@ -57,6 +47,10 @@ export function DropdownBook({
 
           <DropdownMenuItem onClick={schedule} disabled={!isStartedReading}>
             <p>Cronograma</p>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={quotes} disabled={!quotesDisabled}>
+            <p>Citações</p>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
