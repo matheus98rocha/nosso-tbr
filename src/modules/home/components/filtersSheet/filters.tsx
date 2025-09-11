@@ -14,9 +14,9 @@ import { genders } from "../../utils/genderBook";
 import { MultiSelect } from "@/components/multSelect/multiSelect";
 
 export type FiltersOptions = {
-  readers?: string[];
-  status?: string[];
-  gender?: string[];
+  readers: string[];
+  status: string[];
+  gender: string[];
 };
 
 export type FiltersProps = {
@@ -24,6 +24,8 @@ export type FiltersProps = {
   setFilters: React.Dispatch<React.SetStateAction<FiltersOptions>>;
   open: boolean;
   setIsOpen: (open: boolean) => void;
+  updateUrlWithFilters: (filters: FiltersOptions, search?: string) => void;
+  searchQuery: string;
 };
 
 export default function FiltersSheet({
@@ -31,6 +33,8 @@ export default function FiltersSheet({
   setFilters,
   open,
   setIsOpen,
+  updateUrlWithFilters,
+  searchQuery,
 }: FiltersProps) {
   const [localFilters, setLocalFilters] = useState<FiltersOptions>(filters);
 
@@ -46,13 +50,13 @@ export default function FiltersSheet({
           [key]: values.filter(Boolean),
         };
       }
-
       return prev;
     });
   };
 
   const applyFilters = () => {
     setFilters(localFilters);
+    updateUrlWithFilters(localFilters, searchQuery);
     setIsOpen(false);
   };
 
@@ -117,13 +121,11 @@ export default function FiltersSheet({
           </Button>
           <Button
             onClick={() => {
+              const cleared = { readers: [], gender: [], status: [] };
               setIsOpen(false);
-              setFilters({
-                readers: [],
-                gender: [],
-                status: [],
-              });
-              setLocalFilters({ readers: [] });
+              setFilters(cleared);
+              updateUrlWithFilters(cleared, "");
+              setLocalFilters(cleared);
             }}
             variant="outline"
             className="w-full mt-2"

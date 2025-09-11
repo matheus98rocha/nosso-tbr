@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
@@ -22,6 +22,14 @@ import {
 } from "@/components/inputWithButton/inputWithButton";
 
 import { useUserStore } from "@/stores/userStore";
+import { formatList } from "./utils/formatList";
+
+const STATUS_DICTIONARY = {
+  finished: "Terminei a Leitura",
+  reading: "Já iniciei a leitura",
+  not_started: "Vou iniciar a leitura",
+} as const;
+
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
 
@@ -37,12 +45,6 @@ export default function ClientHome() {
   const searchQuery = searchParams.get("search") ?? "";
   const inputRef = useRef<InputWithButtonRef>(null);
 
-  const statusDictionary = {
-    finished: "Terminei a Leitura",
-    reading: "Já iniciei a leitura",
-    not_started: "Vou iniciar a leitura",
-  };
-
   const dialogModal = useModal();
   const filtersSheet = useModal();
   const createShelfDialog = useModal();
@@ -53,71 +55,122 @@ export default function ClientHome() {
       search: searchQuery,
     });
 
+  const updateUrlWithFilters = useCallback(
+    (newFilters: FiltersOptions, search?: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (search && search.trim()) {
+        params.set("search", search.trim());
+      } else {
+        params.delete("search");
+      }
+
+      if (newFilters.readers.length) {
+        params.set(
+          "readers",
+          newFilters.readers.map(encodeURIComponent).join(",")
+        );
+      } else {
+        params.delete("readers");
+      }
+
+      if (newFilters.status.length) {
+        params.set(
+          "status",
+          newFilters.status.map(encodeURIComponent).join(",")
+        );
+      } else {
+        params.delete("status");
+      }
+
+      if (newFilters.gender.length) {
+        params.set(
+          "gender",
+          newFilters.gender.map(encodeURIComponent).join(",")
+        );
+      } else {
+        params.delete("gender");
+      }
+
+      const qs = params.toString();
+      const target = qs ? `?${qs}` : window.location.pathname;
+      router.replace(target);
+    },
+    [router, searchParams]
+  );
+
+  useEffect(() => {
+    const readers =
+      searchParams.get("readers")?.split(",").map(decodeURIComponent) ?? [];
+    const status =
+      searchParams.get("status")?.split(",").map(decodeURIComponent) ?? [];
+    const gender =
+      searchParams.get("gender")?.split(",").map(decodeURIComponent) ?? [];
+
+    const next = { readers, status, gender };
+
+    const isSame =
+      filters.readers.join(",") === next.readers.join(",") &&
+      filters.status.join(",") === next.status.join(",") &&
+      filters.gender.join(",") === next.gender.join(",");
+
+    if (!isSame) {
+      setFilters(next);
+    }
+  }, [searchParams, filters]);
+
   const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value;
     if (event.key === "Enter" && value.trim() !== "") {
-      updateSearchInUrl(value);
+      updateUrlWithFilters(filters, value);
     }
   };
 
-  const handleClearAllFilters = () => {
-    setFilters({ readers: [], gender: [], status: [] });
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("search");
-    updateSearchInUrl("");
+  const handleClearAllFilters = useCallback(() => {
+    const cleared = { readers: [], gender: [], status: [] };
+    setFilters(cleared);
+    updateUrlWithFilters(cleared, "");
     inputRef.current?.clear();
-  };
+  }, [updateUrlWithFilters]);
 
-  const updateSearchInUrl = (term: string) => {
-    const trimmed = term.trim();
-    const params = new URLSearchParams(searchParams.toString());
+  const handleInputBlur = useCallback(
+    (value: string) => {
+      updateUrlWithFilters(filters, value);
+    },
+    [filters, updateUrlWithFilters]
+  );
 
-    if (trimmed) {
-      params.set("search", trimmed);
-    } else {
-      params.delete("search");
-    }
+  const handleSearchButtonClick = (value: string) =>
+    updateUrlWithFilters(filters, value);
 
-    const qs = params.toString();
-    const target = qs ? `?${qs}` : window.location.pathname;
-    router.push(target);
-  };
+  const formattedGenres = useMemo(() => {
+    if (!Array.isArray(filters.gender) || filters.gender.length === 0)
+      return null;
+    const labels = filters.gender.map(
+      (value) => genders.find((g) => g.value === value)?.label ?? value
+    );
+    return formatList(labels);
+  }, [filters.gender]);
 
-  const handleInputBlur = (value: string) => updateSearchInUrl(value);
-  const handleSearchButtonClick = (value: string) => updateSearchInUrl(value);
-
-  const formatList = (items: string[]) => {
-    if (items.length === 1) return items[0];
-    if (items.length === 2) return `${items[0]} e ${items[1]}`;
-    return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
-  };
-
-  const formattedGenres =
-    Array.isArray(filters?.gender) && filters.gender.length > 0
-      ? formatList(
-          filters.gender.map(
-            (value) => genders.find((g) => g.value === value)?.label ?? value
-          )
-        )
-      : null;
-
-  const formattedReaders =
-    Array.isArray(filters?.readers) && filters.readers.length > 0
+  const formattedReaders = useMemo(() => {
+    return Array.isArray(filters?.readers) && filters.readers.length > 0
       ? formatList(filters.readers)
       : null;
+  }, [filters.readers]);
 
-  const formattedStatus =
-    Array.isArray(filters?.status) && filters.status.length > 0
+  const formattedStatus = useMemo(() => {
+    return Array.isArray(filters?.status) && filters.status.length > 0
       ? formatList(
           filters.status.map(
             (value) =>
               `"${
-                statusDictionary[value as keyof typeof statusDictionary] ??
+                STATUS_DICTIONARY[value as keyof typeof STATUS_DICTIONARY] ??
                 value
               }"`
           )
         )
       : null;
+  }, [filters.status]);
 
   return (
     <>
@@ -131,6 +184,8 @@ export default function ClientHome() {
         setFilters={setFilters}
         open={filtersSheet.isOpen}
         setIsOpen={filtersSheet.setIsOpen}
+        updateUrlWithFilters={updateUrlWithFilters}
+        searchQuery={searchQuery}
       />
 
       <CreateEditBookshelves
@@ -138,7 +193,6 @@ export default function ClientHome() {
         handleClose={createShelfDialog.setIsOpen}
       />
       <div className="w-full flex items-center justify-center flex-col gap-4 container">
-        {/* Filtros e resultado de filtros */}
         <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
           <InputWithButton
             ref={inputRef}
@@ -228,7 +282,6 @@ export default function ClientHome() {
           isError={isError}
         />
       </div>
-      {/* </main> */}
     </>
   );
 }
