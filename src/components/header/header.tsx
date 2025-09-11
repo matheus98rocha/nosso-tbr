@@ -1,7 +1,7 @@
 "use client";
 import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
 import { CreateEditBookshelves } from "@/modules/shelves/components/createEditBookshelves/createEditBookshelves";
-import React, { JSX } from "react";
+import React, { JSX, useEffect, useState } from "react";
 import {
   Menubar,
   MenubarContent,
@@ -27,6 +27,19 @@ import LogoIcon from "@/assets/icons/logo";
 function Header() {
   const { bookUpsertModal, createShelfDialog, menuItems, pathname, router } =
     useHeader();
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 30);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // regra para encolher:
+  const isCondensed = pathname !== "/" || scrolled;
 
   const renderMobileMenu = (): JSX.Element => {
     return (
@@ -124,18 +137,29 @@ function Header() {
         handleClose={createShelfDialog.setIsOpen}
       />
 
-      <header className="flex justify-between items-center container py-2">
-        <button
-          className="flex items-center justify-center gap-0.5"
-          onClick={() => router.push("/")}
-        >
-          <LogoIcon />
-          <h1 className="text-2xl font-bold">Nosso TBR</h1>
-        </button>
+      <header
+        className={`bg-gray-100 fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+          isCondensed ? "py-2 shadow-md" : "py-6"
+        }`}
+      >
+        <div className="container mx-auto flex justify-between items-center ">
+          <button
+            className="flex items-center justify-center gap-0.5"
+            onClick={() => router.push("/")}
+          >
+            <LogoIcon />
+            <h1
+              className={`font-bold transition-all duration-300 ${
+                isCondensed ? "text-xl" : "text-2xl"
+              }`}
+            >
+              Nosso TBR
+            </h1>
+          </button>
 
-        {renderDesktopMenu()}
-
-        {renderMobileMenu()}
+          {renderDesktopMenu()}
+          {renderMobileMenu()}
+        </div>
       </header>
     </>
   );
