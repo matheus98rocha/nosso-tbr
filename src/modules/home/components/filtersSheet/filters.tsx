@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-
+import { useCallback } from "react";
 import {
   Sheet,
   SheetContent,
@@ -9,60 +8,47 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { genders } from "../../utils/genderBook";
-
 import { MultiSelect } from "@/components/multSelect/multiSelect";
 
-export type FiltersOptions = {
-  readers: string[];
-  status: string[];
-  gender: string[];
-};
-
-export type FiltersProps = {
-  filters: FiltersOptions;
-  setFilters: React.Dispatch<React.SetStateAction<FiltersOptions>>;
-  open: boolean;
-  setIsOpen: (open: boolean) => void;
-  updateUrlWithFilters: (filters: FiltersOptions, search?: string) => void;
-  searchQuery: string;
-};
+import { useSyncLocalFilters } from "./hooks/useSyncLocalFilters";
+import {
+  FiltersProps,
+  GENDER_OPTIONS,
+  READER_OPTIONS,
+  STATUS_OPTIONS,
+  useLocalFilters,
+} from "./hooks/useFiltersSheet";
 
 export default function FiltersSheet({
   filters,
-  setFilters,
   open,
   setIsOpen,
   updateUrlWithFilters,
   searchQuery,
 }: FiltersProps) {
-  const [localFilters, setLocalFilters] = useState<FiltersOptions>(filters);
+  const { localFilters, handleFilterChange, resetLocalFilters } =
+    useLocalFilters(filters);
 
-  const handleFilterChange = (
-    key: keyof FiltersOptions,
-    value: string | string[]
-  ) => {
-    setLocalFilters((prev) => {
-      if (key === "readers" || key === "status" || key === "gender") {
-        const values = Array.isArray(value) ? value : [value];
-        return {
-          ...prev,
-          [key]: values.filter(Boolean),
-        };
-      }
-      return prev;
-    });
-  };
+  useSyncLocalFilters(filters, open, resetLocalFilters);
 
-  const applyFilters = () => {
-    setFilters(localFilters);
+  // Manter a função aqui para evitar prop dealinging
+  const applyFilters = useCallback(() => {
     updateUrlWithFilters(localFilters, searchQuery);
     setIsOpen(false);
-  };
+  }, [localFilters, searchQuery, updateUrlWithFilters, setIsOpen]);
 
-  useEffect(() => {
-    setLocalFilters(filters);
-  }, [filters]);
+  // Manter a função aqui para evitar prop dealinging
+  const handleCancel = useCallback(() => {
+    const cleared = { readers: [], gender: [], status: [] };
+    setIsOpen(false);
+    updateUrlWithFilters(cleared, "");
+    resetLocalFilters(cleared);
+  }, [setIsOpen, updateUrlWithFilters, resetLocalFilters]);
+
+  const handleClearAll = useCallback(() => {
+    const cleared = { readers: [], gender: [], status: [] };
+    resetLocalFilters(cleared);
+  }, [resetLocalFilters]);
 
   return (
     <Sheet open={open} onOpenChange={setIsOpen}>
@@ -76,60 +62,39 @@ export default function FiltersSheet({
         </SheetHeader>
 
         <div className="flex flex-col gap-2 p-3">
-          <span className="text-sm font-medium">Leitores</span>
-          <MultiSelect
-            options={["Matheus", "Fabi", "Barbara"].map((name) => ({
-              label: name,
-              value: name,
-            }))}
-            selected={localFilters.readers || []}
+          <FilterSection
+            title="Leitores"
+            options={READER_OPTIONS}
+            selected={localFilters.readers}
             onChange={(values) => handleFilterChange("readers", values)}
             placeholder="Selecione os leitores"
           />
-        </div>
 
-        <div className="flex flex-col gap-2 p-3">
-          <span className="text-sm font-medium">Status</span>
-          <MultiSelect
-            options={[
-              { label: "Já iniciei a leitura", value: "reading" },
-              { label: "Terminei a Leitura", value: "finished" },
-              { label: "Vou iniciar a leitura", value: "not_started" },
-            ]}
-            selected={localFilters.status || []}
+          <FilterSection
+            title="Status"
+            options={STATUS_OPTIONS}
+            selected={localFilters.status}
             onChange={(values) => handleFilterChange("status", values)}
             placeholder="Selecione os status"
           />
-        </div>
 
-        <div className="flex flex-col gap-2 p-3">
-          <span className="text-sm font-medium">Gênero</span>
-          <MultiSelect
-            options={genders.map((gender) => ({
-              label: gender.label,
-              value: gender.value,
-            }))}
-            selected={localFilters.gender || []}
+          <FilterSection
+            title="Gênero"
+            options={GENDER_OPTIONS}
+            selected={localFilters.gender}
             onChange={(values) => handleFilterChange("gender", values)}
             placeholder="Selecione os gêneros"
           />
         </div>
 
-        <SheetFooter className="mt-auto">
+        <SheetFooter className="flex flex-col gap-2 mt-auto">
           <Button onClick={applyFilters} className="w-full">
             Aplicar Filtros
           </Button>
-          <Button
-            onClick={() => {
-              const cleared = { readers: [], gender: [], status: [] };
-              setIsOpen(false);
-              setFilters(cleared);
-              updateUrlWithFilters(cleared, "");
-              setLocalFilters(cleared);
-            }}
-            variant="outline"
-            className="w-full mt-2"
-          >
+          <Button onClick={handleClearAll} variant="outline" className="w-full">
+            Limpar Tudo
+          </Button>
+          <Button onClick={handleCancel} variant="ghost" className="w-full">
             Cancelar
           </Button>
         </SheetFooter>
@@ -137,3 +102,27 @@ export default function FiltersSheet({
     </Sheet>
   );
 }
+
+const FilterSection = ({
+  title,
+  options,
+  selected,
+  onChange,
+  placeholder,
+}: {
+  title: string;
+  options: Array<{ label: string; value: string }>;
+  selected: string[];
+  onChange: (values: string[]) => void;
+  placeholder: string;
+}) => (
+  <div className="flex flex-col gap-2">
+    <span className="text-sm font-medium">{title}</span>
+    <MultiSelect
+      options={options}
+      selected={selected}
+      onChange={onChange}
+      placeholder={placeholder}
+    />
+  </div>
+);
