@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SelectField } from "../home/components/select/select.";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../home/components/datePicker/datePicker";
-import { useBookDialog } from "./useBookDialog";
+import { useBookDialog } from "./hooks/useBookDialog";
 import { genders } from "@/modules/home/utils/genderBook";
 
 import {
@@ -51,10 +51,10 @@ export function BookUpsert({
     form,
     reset,
     handleSubmit,
-    control, 
-    checkboxes, 
-    isEdit, 
-    isLoadingBookShelfs, 
+    control,
+    checkboxes,
+    isEdit,
+    isLoadingBookShelfs,
     bookshelfOptions,
     handleConfirmCreateBook,
   } = useBookDialog({
@@ -88,8 +88,9 @@ export function BookUpsert({
         }}
       >
         <DialogContent
-          className={`h-full sm:h-[80%] w-full ${isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
-            }`}
+          className={`h-full sm:h-[80%] w-full ${
+            isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
+          }`}
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>
