@@ -15,7 +15,7 @@ export default function MainLayout({
     <>
       <Header />
 
-      <div className="pt-24 p-6 flex flex-col items-center gap-6">
+      <div className="pt-40 p-6 flex flex-col items-center gap-6">
         {children}
       </div>
     </>

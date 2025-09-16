@@ -9,22 +9,16 @@ import { BookDomain } from "../../types/books.types";
 import { BookCard } from "./components/bookCard/bookCard";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
 
-import { Sliders } from "lucide-react";
-import { InputWithButton } from "@/components/inputWithButton/inputWithButton";
+// import { Sliders } from "lucide-react";
+// import { InputWithButton } from "@/components/inputWithButton/inputWithButton";
 
 import { useUserStore } from "@/stores/userStore";
-import FiltersSheet from "./components/filtersSheet/filters";
+// import FiltersSheet from "./components/filtersSheet/filters";
+// import { SearchBar } from "@/components/searchBar/searchBar";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
 
-  // const searchParams = useSearchParams();
-
-  // const [filters, setFilters] = useState<FiltersOptions>({
-  //   readers: [],
-  //   gender: [],
-  //   status: [],
-  // });
   const {
     allBooks,
     isFetched,
@@ -32,20 +26,20 @@ export default function ClientHome() {
     isError,
     isLoadingUser,
     searchQuery,
-    updateUrlWithFilters,
+    // updateUrlWithFilters,
     formattedGenres,
     formattedReaders,
     formattedStatus,
     handleClearAllFilters,
-    handleInputBlur,
-    handleOnPressEnter,
-    handleSearchButtonClick,
-    inputRef,
+    // handleInputBlur,
+    // handleOnPressEnter,
+    // handleSearchButtonClick,
+    // inputRef,
     filters,
   } = useHome();
 
   const dialogModal = useModal();
-  const filtersSheet = useModal();
+  // const filtersSheet = useModal();
   const createShelfDialog = useModal();
 
   return (
@@ -55,20 +49,20 @@ export default function ClientHome() {
         setIsBookFormOpen={dialogModal.setIsOpen}
       />
 
-      <FiltersSheet
+      {/* <FiltersSheet
         filters={filters}
         open={filtersSheet.isOpen}
         setIsOpen={filtersSheet.setIsOpen}
         updateUrlWithFilters={updateUrlWithFilters}
         searchQuery={searchQuery}
-      />
+      /> */}
 
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
       />
       <div className="w-full flex items-center justify-center flex-col gap-4 container">
-        <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
+        {/* <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
           <InputWithButton
             ref={inputRef}
             defaultValue={searchQuery}
@@ -87,7 +81,15 @@ export default function ClientHome() {
             <Sliders size={16} />
             Filtros
           </Button>
-        </div>
+        </div> */}
+        {/* <SearchBar
+          ref={inputRef}
+          searchQuery={searchQuery}
+          onBlur={handleInputBlur}
+          onSearchButtonClick={handleSearchButtonClick}
+          onPressEnter={handleOnPressEnter}
+          onOpenFilters={() => filtersSheet.setIsOpen(true)}
+        /> */}
         {!isLoadingAllBooks && (
           <div className="flex items-start justify-center flex-col container">
             <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
