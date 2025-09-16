@@ -57,6 +57,7 @@ export function BookUpsert({
     isLoadingBookshelves,
     bookshelfOptions,
     handleConfirmCreateBook,
+    handleOnChangePageNumber,
   } = useBookDialog({
     bookData,
     setIsBookFormOpen,
@@ -165,10 +166,10 @@ export function BookUpsert({
                   control={control}
                   name="pages"
                   render={({ field }) => {
-                    const value =
-                      field.value === undefined || field.value === null
-                        ? undefined
-                        : field.value;
+                    const isEmptyField =
+                      field.value === undefined || field.value === null;
+
+                    const value = isEmptyField ? undefined : field.value;
 
                     return (
                       <FormItem>
@@ -178,12 +179,7 @@ export function BookUpsert({
                             type="number"
                             {...field}
                             value={value ?? ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const parsed =
-                                val === "" ? undefined : Number(val);
-                              field.onChange(parsed);
-                            }}
+                            onChange={(e) => handleOnChangePageNumber(field, e)}
                           />
                         </FormControl>
                         <FormMessage />

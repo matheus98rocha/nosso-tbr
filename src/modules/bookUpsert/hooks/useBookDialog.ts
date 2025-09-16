@@ -3,9 +3,9 @@ import { BookCreateValidator, Status } from "@/types/books.types";
 import { BookUpsertService } from "../services/bookUpsert.service";
 import { toast } from "sonner";
 import { BookshelfService } from "../../shelves/services/booksshelves.service";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { UseCreateBookDialog } from "../bookUpsert.types";
-import { useForm } from "react-hook-form";
+import { ControllerRenderProps, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
@@ -150,6 +150,18 @@ export function useBookDialog({
     return createBook.mutate(data);
   };
 
+  const handleOnChangePageNumber = useCallback(
+    (
+      field: ControllerRenderProps<BookCreateValidator, "pages">,
+      e: ChangeEvent<HTMLInputElement>
+    ) => {
+      const val = e.target.value;
+      const parsed = val === "" ? undefined : Number(val);
+      field.onChange(parsed);
+    },
+    []
+  );
+
   const handleConfirmCreateBook = async () => {
     setIsDuplicateBookDialogOpen(false);
     const formData = form.getValues();
@@ -185,5 +197,7 @@ export function useBookDialog({
     isEdit,
     isLoadingBookshelves,
     bookshelfOptions,
+
+    handleOnChangePageNumber,
   };
 }
