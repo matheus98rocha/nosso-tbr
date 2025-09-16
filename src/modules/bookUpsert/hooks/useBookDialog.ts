@@ -1,14 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookCreateValidator, Status } from "@/types/books.types";
-import { BookUpsertService } from "./services/bookUpsert.service";
+import { BookUpsertService } from "../services/bookUpsert.service";
 import { toast } from "sonner";
-import { BookshelfService } from "../shelves/services/booksshelves.service";
-import { useCallback, useEffect, useState } from "react";
-import { UseCreateBookDialog } from "./bookUpsert.types";
-import { useForm } from "react-hook-form";
+import { BookshelfService } from "../../shelves/services/booksshelves.service";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { UseCreateBookDialog } from "../bookUpsert.types";
+import { ControllerRenderProps, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
-import { SelectedBookshelf } from "../shelves/types/bookshelves.types";
+import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
+import { BOOKS_QUERY_KEY } from "@/constants/keys";
 
 export function useBookDialog({
   bookData,
@@ -19,9 +20,12 @@ export function useBookDialog({
   const [selected, setSelected] = useState<Status | null>(null);
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
   const [selectedShelfId, setSelectedShelfId] = useState("");
-  const [isDuplicateBookDialogOpen, setIsDuplicateBookDialogOpen] = useState<boolean>(false);
+  const [isDuplicateBookDialogOpen, setIsDuplicateBookDialogOpen] =
+    useState<boolean>(false);
   const isEdit: boolean = Boolean(bookData && bookData.id);
-  const service = new BookUpsertService();
+
+  const bookUpsertService = useMemo(() => new BookUpsertService(), []);
+  const bookshelfService = useMemo(() => new BookshelfService(), []);
 
   const form = useForm<BookCreateValidator>({
     resolver: zodResolver(bookCreateSchema),
@@ -60,13 +64,12 @@ export function useBookDialog({
     } else {
       setSelected(null);
     }
-  }, [bookData, setSelected]);
+  }, [bookData]);
 
-  const { data: bookshelves = [], isLoading: isLoadingBookShelfs } = useQuery({
+  const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
     queryKey: ["bookshelves"],
     queryFn: async () => {
-      const service = new BookshelfService();
-      return service.getAll();
+      return bookshelfService.getAll();
     },
   });
 
@@ -78,21 +81,19 @@ export function useBookDialog({
 
   const createBook = useMutation({
     mutationFn: async (data: BookCreateValidator) => {
-
       if (isEdit) {
         if (!bookData || !bookData.id) {
           throw new Error("Erro inesperado.");
         }
-        await service.edit(bookData.id, data);
+        await bookUpsertService.edit(bookData.id, data);
       } else {
-        const createdBook = await service.create(data);
+        const createdBook = await bookUpsertService.create(data);
 
         if (isAddToShelfEnabled) {
           if (!createdBook?.id) {
             throw new Error("Algo deu errado ao adicionar o livro à estante.");
           }
 
-          const bookshelfService = new BookshelfService();
           await bookshelfService.addBookToShelf(
             selectedShelfId,
             createdBook.id
@@ -101,6 +102,8 @@ export function useBookDialog({
       }
     },
     onSuccess: () => {
+      console.log(BOOKS_QUERY_KEY);
+
       handleResetForm();
       setIsDuplicateBookDialogOpen(false);
 
@@ -109,7 +112,9 @@ export function useBookDialog({
         className: "toast-success text-white",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["books"] });
+      queryClient.invalidateQueries({
+        queryKey: [BOOKS_QUERY_KEY],
+      });
     },
     onError: (error) => {
       if (error instanceof Error) {
@@ -124,7 +129,7 @@ export function useBookDialog({
             }
           );
 
-          queryClient.invalidateQueries({ queryKey: ["books"] });
+          queryClient.invalidateQueries({ queryKey: [BOOKS_QUERY_KEY] });
         } else {
           toast("Erro ao salvar livro", {
             description: error.message || "Ocorreu um erro inesperado.",
@@ -136,8 +141,8 @@ export function useBookDialog({
   });
 
   const onSubmit = async (data: BookCreateValidator) => {
-    const isDuplicate = await service.checkDuplicateBook(data.title);
-    if (isDuplicate) {
+    const isDuplicate = await bookUpsertService.checkDuplicateBook(data.title);
+    if (isDuplicate && !isEdit) {
       setIsDuplicateBookDialogOpen(true);
       setIsBookFormOpen(false);
       return;
@@ -145,11 +150,23 @@ export function useBookDialog({
     return createBook.mutate(data);
   };
 
-  const handleConfirmCreateBook = async() => {
+  const handleOnChangePageNumber = useCallback(
+    (
+      field: ControllerRenderProps<BookCreateValidator, "pages">,
+      e: ChangeEvent<HTMLInputElement>
+    ) => {
+      const val = e.target.value;
+      const parsed = val === "" ? undefined : Number(val);
+      field.onChange(parsed);
+    },
+    []
+  );
+
+  const handleConfirmCreateBook = async () => {
     setIsDuplicateBookDialogOpen(false);
     const formData = form.getValues();
     createBook.mutate(formData);
-  }
+  };
 
   return {
     onSubmit,
@@ -175,10 +192,12 @@ export function useBookDialog({
     form,
     reset,
     handleSubmit,
-    control, 
-    checkboxes, 
-    isEdit, 
-    isLoadingBookShelfs, 
+    control,
+    checkboxes,
+    isEdit,
+    isLoadingBookshelves,
     bookshelfOptions,
+
+    handleOnChangePageNumber,
   };
 }
