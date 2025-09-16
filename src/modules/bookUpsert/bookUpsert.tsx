@@ -54,7 +54,7 @@ export function BookUpsert({
     control,
     checkboxes,
     isEdit,
-    isLoadingBookShelfs,
+    isLoadingBookshelves,
     bookshelfOptions,
     handleConfirmCreateBook,
   } = useBookDialog({
@@ -330,7 +330,7 @@ export function BookUpsert({
                         Deseja adicionar esse livro a uma estante?
                       </Label>
                     </div>
-                    {!isLoadingBookShelfs && isAddToShelfEnabled && (
+                    {!isLoadingBookshelves && isAddToShelfEnabled && (
                       <SelectField
                         items={bookshelfOptions}
                         value={selectedShelfId}
@@ -338,7 +338,7 @@ export function BookUpsert({
                         placeholder="Selecione uma estante"
                       />
                     )}
-                    {isLoadingBookShelfs && (
+                    {isLoadingBookshelves && (
                       <p className="text-sm text-muted-foreground">
                         Carregando estantes...
                       </p>
