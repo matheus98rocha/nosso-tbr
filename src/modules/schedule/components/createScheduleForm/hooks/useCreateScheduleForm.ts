@@ -15,7 +15,7 @@ import { generateBookSchedule } from "@/modules/schedule/utils/generateBookSched
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { scheduleSchema } from "@/modules/schedule/validators/schedule.validator";
-import { ChangeEvent, useCallback, useMemo } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 
 export function useCreateScheduleForm({
   id: bookId,
@@ -23,6 +23,7 @@ export function useCreateScheduleForm({
 }: ClientScheduleProps) {
   const scheduleService = new ScheduleUpsertService();
   const queryClient = useQueryClient();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm<ScheduleFormInput>({
     resolver: zodResolver(scheduleSchema),
@@ -50,13 +51,27 @@ export function useCreateScheduleForm({
       queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
     onError: (error) => {
+      setFormError("Erro ao criar cronograma. Tente novamente.");
       console.error("Erro ao criar cronograma:", error);
     },
   });
 
   const onSubmit: SubmitHandler<ScheduleFormInput> = async (data) => {
-    if (!data.totalChapters || data.totalChapters <= 0) {
-      console.error("Número de capítulos inválido");
+    setFormError(null);
+    const isInvalidChaptersNumber =
+      !data.totalChapters || data.totalChapters <= 0;
+
+    if (isInvalidChaptersNumber) {
+      setFormError("Número de capítulos inválido");
+      return;
+    }
+    const isInvalidChaptersPerDay =
+      data.chaptersPerDay !== null &&
+      data.chaptersPerDay !== undefined &&
+      data.chaptersPerDay <= 0;
+
+    if (isInvalidChaptersPerDay) {
+      setFormError("Número de capítulos por dia inválido");
       return;
     }
 
@@ -73,25 +88,21 @@ export function useCreateScheduleForm({
     await createScheduleMutation.mutateAsync(schedulePayloads);
   };
 
-  const startDateMemo = useMemo(
-    () => (startDate ? new Date(startDate) : new Date()),
-    [startDate]
-  );
-
   const handleOnChangeIntField = useCallback(
     <T extends FieldValues>(
       field: ControllerRenderProps<T, Path<T>>,
       e: ChangeEvent<HTMLInputElement>
     ) => {
       const val = e.target.value;
-      const parsed = val === "" ? undefined : Number(val);
+      const parsed = val === "" ? null : Number(val);
       field.onChange(parsed);
     },
     []
   );
 
-  function normalizeNumberField(value: unknown): number | undefined {
-    if (value === undefined || value === null) return undefined;
+  function normalizeNumberField(value: unknown): number | null {
+    const isInvalidValue = value === undefined || value === null;
+    if (isInvalidValue) return null;
     return Number(value);
   }
 
@@ -102,10 +113,10 @@ export function useCreateScheduleForm({
     onSubmit,
     isLoading,
     errors,
+    formError,
     register,
     control,
     handleSubmit,
-    startDateMemo,
     handleOnChangeIntField,
     normalizeNumberField,
   };
