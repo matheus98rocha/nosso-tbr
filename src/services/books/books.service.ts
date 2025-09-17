@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookMapper } from "@/services/books/books.mapper";
 import { BookDomain } from "@/types/books.types";
-import { FiltersOptions } from "../../modules/home/components/filtersSheet/filters";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
+import { FiltersOptions } from "@/modules/home/components/filtersSheet/hooks/useFiltersSheet";
 
 const ALLOWED_STATUSES = ["reading", "finished", "not_started"] as const;
 type BookStatus = (typeof ALLOWED_STATUSES)[number];
