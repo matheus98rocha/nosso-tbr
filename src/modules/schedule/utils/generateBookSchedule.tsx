@@ -7,7 +7,8 @@ export function generateBookSchedule({
   chaptersPerDay = 3,
   includeWeekends = true,
   includeEpilogue = true,
-}: ScheduleInput): DailySchedule[] {
+  days,
+}: ScheduleInput & { days?: number }): DailySchedule[] {
   const schedule: DailySchedule[] = [];
   const chapters: number[] = [];
 
@@ -18,6 +19,12 @@ export function generateBookSchedule({
   const currentDate = new Date(startDate);
   let chapterIndex = 0;
 
+  let effectiveChaptersPerDay = chaptersPerDay;
+
+  if (days && days > 0) {
+    effectiveChaptersPerDay = Math.ceil(totalChapters / days);
+  }
+
   while (chapterIndex < chapters.length) {
     if (!includeWeekends) {
       while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
@@ -26,13 +33,12 @@ export function generateBookSchedule({
     }
 
     const remaining = chapters.length - chapterIndex;
-    const take = Math.min(chaptersPerDay, remaining);
+    const take = Math.min(effectiveChaptersPerDay, remaining);
     const todayChapters = chapters.slice(chapterIndex, chapterIndex + take);
     chapterIndex += take;
 
     const parts: string[] = [];
 
-    // prólogo só no primeiro dia
     if (includePrologue && schedule.length === 0) {
       parts.push("Prólogo");
     }
@@ -47,7 +53,6 @@ export function generateBookSchedule({
       }
     }
 
-    // Epílogo colado no último grupo
     if (includeEpilogue && chapterIndex >= chapters.length) {
       parts.push("Epílogo");
     }

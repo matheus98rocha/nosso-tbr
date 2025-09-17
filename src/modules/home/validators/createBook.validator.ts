@@ -6,7 +6,6 @@ export const bookCreateSchema = z.object({
   chosen_by: z.enum(["Matheus", "Fabi", "Barbara"], {
     message: "Quem escolheu o livro é obrigatório",
   }),
-  // No seu arquivo createBook.validator.ts
   pages: z
     .number({
       message: "O número de páginas é obrigatório",

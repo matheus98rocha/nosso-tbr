@@ -5,12 +5,17 @@ import {
 } from "@/modules/schedule/types/schedule.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ScheduleFormInput } from "../types/createScheduleForm.types";
-import { SubmitHandler } from "react-hook-form";
+import {
+  ControllerRenderProps,
+  FieldValues,
+  Path,
+  SubmitHandler,
+} from "react-hook-form";
 import { generateBookSchedule } from "@/modules/schedule/utils/generateBookSchedule";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { scheduleSchema } from "@/modules/schedule/validators/schedule.validator";
-import { useMemo } from "react";
+import { ChangeEvent, useCallback, useMemo } from "react";
 
 export function useCreateScheduleForm({
   id: bookId,
@@ -26,8 +31,8 @@ export function useCreateScheduleForm({
       startDate: startDate ? new Date(startDate) : new Date(),
       includePrologue: false,
       includeEpilogue: false,
-      roundUp: false,
       includeWeekends: false,
+      chaptersPerDay: undefined,
     },
   });
 
@@ -62,6 +67,7 @@ export function useCreateScheduleForm({
       date: day.date,
       chapters: day.chapters,
       completed: false,
+      chaptersPerDay: data.chaptersPerDay,
     }));
 
     await createScheduleMutation.mutateAsync(schedulePayloads);
@@ -72,14 +78,35 @@ export function useCreateScheduleForm({
     [startDate]
   );
 
+  const handleOnChangeIntField = useCallback(
+    <T extends FieldValues>(
+      field: ControllerRenderProps<T, Path<T>>,
+      e: ChangeEvent<HTMLInputElement>
+    ) => {
+      const val = e.target.value;
+      const parsed = val === "" ? undefined : Number(val);
+      field.onChange(parsed);
+    },
+    []
+  );
+
+  function normalizeNumberField(value: unknown): number | undefined {
+    if (value === undefined || value === null) return undefined;
+    return Number(value);
+  }
+
+  const isLoading = isSubmitting || createScheduleMutation.isPending;
+
   return {
     form,
     onSubmit,
-    isSubmitting,
+    isLoading,
     errors,
     register,
     control,
     handleSubmit,
     startDateMemo,
+    handleOnChangeIntField,
+    normalizeNumberField,
   };
 }
