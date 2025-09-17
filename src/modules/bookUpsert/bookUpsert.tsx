@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SelectField } from "../home/components/select/select.";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../home/components/datePicker/datePicker";
-import { useBookDialog } from "./useBookDialog";
+import { useBookDialog } from "./hooks/useBookDialog";
 import { genders } from "@/modules/home/utils/genderBook";
 
 import {
@@ -51,12 +51,13 @@ export function BookUpsert({
     form,
     reset,
     handleSubmit,
-    control, 
-    checkboxes, 
-    isEdit, 
-    isLoadingBookShelfs, 
+    control,
+    checkboxes,
+    isEdit,
+    isLoadingBookshelves,
     bookshelfOptions,
     handleConfirmCreateBook,
+    handleOnChangePageNumber,
   } = useBookDialog({
     bookData,
     setIsBookFormOpen,
@@ -88,8 +89,9 @@ export function BookUpsert({
         }}
       >
         <DialogContent
-          className={`h-full sm:h-[80%] w-full ${isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
-            }`}
+          className={`h-full sm:h-[80%] w-full ${
+            isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
+          }`}
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>
@@ -164,10 +166,10 @@ export function BookUpsert({
                   control={control}
                   name="pages"
                   render={({ field }) => {
-                    const value =
-                      field.value === undefined || field.value === null
-                        ? undefined
-                        : field.value;
+                    const isEmptyField =
+                      field.value === undefined || field.value === null;
+
+                    const value = isEmptyField ? undefined : field.value;
 
                     return (
                       <FormItem>
@@ -177,12 +179,7 @@ export function BookUpsert({
                             type="number"
                             {...field}
                             value={value ?? ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const parsed =
-                                val === "" ? undefined : Number(val);
-                              field.onChange(parsed);
-                            }}
+                            onChange={(e) => handleOnChangePageNumber(field, e)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -329,7 +326,7 @@ export function BookUpsert({
                         Deseja adicionar esse livro a uma estante?
                       </Label>
                     </div>
-                    {!isLoadingBookShelfs && isAddToShelfEnabled && (
+                    {!isLoadingBookshelves && isAddToShelfEnabled && (
                       <SelectField
                         items={bookshelfOptions}
                         value={selectedShelfId}
@@ -337,7 +334,7 @@ export function BookUpsert({
                         placeholder="Selecione uma estante"
                       />
                     )}
-                    {isLoadingBookShelfs && (
+                    {isLoadingBookshelves && (
                       <p className="text-sm text-muted-foreground">
                         Carregando estantes...
                       </p>
