@@ -17,8 +17,14 @@ export function generateBookSchedule({
   }
 
   const currentDate = new Date(startDate);
-  let chapterIndex = 0;
+  currentDate.setHours(currentDate.getHours() + 3);
+  if (!currentDate) {
+    throw new Error("Data inicial inválida");
+  }
 
+  currentDate.setHours(12, 0, 0, 0);
+
+  let chapterIndex = 0;
   let effectiveChaptersPerDay = chaptersPerDay;
 
   if (days && days > 0) {
@@ -26,9 +32,11 @@ export function generateBookSchedule({
   }
 
   while (chapterIndex < chapters.length) {
+    const scheduleDate = new Date(currentDate);
+
     if (!includeWeekends) {
-      while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-        currentDate.setDate(currentDate.getDate() + 1);
+      while (scheduleDate.getDay() === 0 || scheduleDate.getDay() === 6) {
+        scheduleDate.setDate(scheduleDate.getDate() + 1);
       }
     }
 
@@ -57,13 +65,28 @@ export function generateBookSchedule({
       parts.push("Epílogo");
     }
 
+    scheduleDate.setHours(12, 0, 0, 0);
+
     schedule.push({
-      date: new Date(currentDate),
+      date: scheduleDate,
       chapters: parts.join(", "),
     });
 
+    // Avança para o próximo dia
     currentDate.setDate(currentDate.getDate() + 1);
   }
+
+  console.log(
+    "Cronograma gerado:",
+    schedule.map((item) => ({
+      date: item.date.toLocaleDateString("pt-BR"),
+      time: item.date.getTime(),
+      day: item.date.getDate(),
+      month: item.date.getMonth() + 1,
+      year: item.date.getFullYear(),
+      chapters: item.chapters,
+    }))
+  );
 
   return schedule;
 }
