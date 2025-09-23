@@ -23,11 +23,19 @@ export function useLogin() {
 
   const mutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
-      const { error } = await service.signIn(data.email, data.password);
+      const { data: authData, error } = await service.signIn(
+        data.email,
+        data.password
+      );
       if (error) throw new Error(error.message);
+      return authData;
     },
-    onSuccess: () => {
-      router.push("/");
+    onSuccess: (authData) => {
+      if (authData?.user?.id) {
+        router.push(`/?userId=${authData.user.id}`);
+      } else {
+        router.push("/");
+      }
     },
   });
 
