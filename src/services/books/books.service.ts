@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookMapper } from "@/services/books/books.mapper";
 import { BookDomain } from "@/types/books.types";
-import { FiltersOptions } from "../../modules/home/components/filtersSheet/filters";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
+import { FiltersOptions } from "@/modules/home/components/filtersSheet/hooks/useFiltersSheet";
 
 const ALLOWED_STATUSES = ["reading", "finished", "not_started"] as const;
 type BookStatus = (typeof ALLOWED_STATUSES)[number];
@@ -15,21 +15,24 @@ export class BookService {
   private supabase = createClient();
   async getAll(
     filters?: FiltersOptions,
-    search?: string
+    search?: string,
+    userId?: string
   ): Promise<BookDomain[]> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
 
-      const query = new BookQueryBuilder(this.supabase)
+      let query = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
         .withStatus(statuses)
         .withGender(filters?.gender)
         .sortByCreatedAt()
-        .withSearchTerm(search)
-        .build();
+        .withSearchTerm(search);
 
-      const { data, error } = await query;
+      if (userId) {
+        query = query.withUser(userId);
+      }
 
+      const { data, error } = await query.build();
       if (error) {
         throw new RepositoryError(
           "Falha ao buscar livros",
