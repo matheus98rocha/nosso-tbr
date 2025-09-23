@@ -15,21 +15,24 @@ export class BookService {
   private supabase = createClient();
   async getAll(
     filters?: FiltersOptions,
-    search?: string
+    search?: string,
+    userId?: string
   ): Promise<BookDomain[]> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
 
-      const query = new BookQueryBuilder(this.supabase)
+      let query = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
         .withStatus(statuses)
         .withGender(filters?.gender)
         .sortByCreatedAt()
-        .withSearchTerm(search)
-        .build();
+        .withSearchTerm(search);
 
-      const { data, error } = await query;
+      if (userId) {
+        query = query.withUser(userId);
+      }
 
+      const { data, error } = await query.build();
       if (error) {
         throw new RepositoryError(
           "Falha ao buscar livros",

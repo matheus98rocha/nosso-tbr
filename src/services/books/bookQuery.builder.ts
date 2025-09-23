@@ -71,6 +71,13 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withUser(userId?: string): this {
+    if (userId) {
+      this.query = this.query.eq("user_id", userId);
+    }
+    return this;
+  }
+
   build() {
     return this.query;
   }
