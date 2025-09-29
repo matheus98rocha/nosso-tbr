@@ -13,10 +13,18 @@ export function useHeader() {
   const logout = useUserStore((state) => state.logout);
   const isLoggedIn = useIsLoggedIn();
 
+  const { user } = useUserStore();
+
   const allMenuItems: Menu[] = [
     {
       label: "Livros",
       items: [
+        {
+          label: "Meus Livros",
+          action: () => router.push(`/?userId=${user?.id}`),
+          path: "/meus-livros",
+          requiresAuth: true,
+        },
         {
           label: "Adicionar Livro",
           action: () => bookUpsertModal.setIsOpen(true),

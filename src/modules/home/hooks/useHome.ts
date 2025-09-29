@@ -9,15 +9,22 @@ import { genders } from "../utils/genderBook";
 import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
 import { FiltersOptions } from "../components/filtersSheet/hooks/useFiltersSheet";
 
+export type FiltersOptionsHome = {
+  readers: string[];
+  status: string[];
+  gender: string[];
+  userId: string;
+};
+
 export function useHome() {
   const inputRef = useRef<InputWithButtonRef>(null);
   const fetchUser = useUserStore((state) => state.fetchUser);
   const bookService = new BookService();
+
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Derivar filters diretamente dos searchParams (estado derivado)
-  const filters = useMemo((): FiltersOptions => {
+  const filters = useMemo((): FiltersOptionsHome => {
     const readers =
       searchParams
         .get("readers")
@@ -39,7 +46,9 @@ export function useHome() {
         .filter(Boolean)
         .map(decodeURIComponent) ?? [];
 
-    return { readers, status, gender };
+    const userId = searchParams.get("userId") ?? "";
+
+    return { readers, status, gender, userId };
   }, [searchParams]);
 
   const searchQuery = searchParams.get("search") ?? "";
@@ -52,7 +61,7 @@ export function useHome() {
   } = useQuery({
     queryKey: ["books", filters, searchQuery],
     queryFn: async () => {
-      return bookService.getAll(filters, searchQuery);
+      return bookService.getAll(filters, searchQuery, filters.userId);
     },
   });
 

@@ -38,6 +38,8 @@ export default function ClientHome() {
     filters,
   } = useHome();
 
+  const isMyBooksPage = !!filters.userId;
+
   const dialogModal = useModal();
   // const filtersSheet = useModal();
   const createShelfDialog = useModal();
@@ -93,7 +95,7 @@ export default function ClientHome() {
         {!isLoadingAllBooks && (
           <div className="flex items-start justify-center flex-col container">
             <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-              Resultados
+              {isMyBooksPage ? "Meus livros" : "Resultados"}
             </h4>
 
             <p className="leading-7">
