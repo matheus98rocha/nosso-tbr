@@ -5,4 +5,5 @@ export type ScheduleFormInput = {
   includeEpilogue?: boolean;
   roundUp?: boolean;
   includeWeekends?: boolean;
+  chaptersPerDay?: number;
 };

@@ -7,7 +7,8 @@ export function generateBookSchedule({
   chaptersPerDay = 3,
   includeWeekends = true,
   includeEpilogue = true,
-}: ScheduleInput): DailySchedule[] {
+  days,
+}: ScheduleInput & { days?: number }): DailySchedule[] {
   const schedule: DailySchedule[] = [];
   const chapters: number[] = [];
 
@@ -16,23 +17,36 @@ export function generateBookSchedule({
   }
 
   const currentDate = new Date(startDate);
+  currentDate.setHours(currentDate.getHours() + 3);
+  if (!currentDate) {
+    throw new Error("Data inicial inválida");
+  }
+
+  currentDate.setHours(12, 0, 0, 0);
+
   let chapterIndex = 0;
+  let effectiveChaptersPerDay = chaptersPerDay;
+
+  if (days && days > 0) {
+    effectiveChaptersPerDay = Math.ceil(totalChapters / days);
+  }
 
   while (chapterIndex < chapters.length) {
+    const scheduleDate = new Date(currentDate);
+
     if (!includeWeekends) {
-      while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-        currentDate.setDate(currentDate.getDate() + 1);
+      while (scheduleDate.getDay() === 0 || scheduleDate.getDay() === 6) {
+        scheduleDate.setDate(scheduleDate.getDate() + 1);
       }
     }
 
     const remaining = chapters.length - chapterIndex;
-    const take = Math.min(chaptersPerDay, remaining);
+    const take = Math.min(effectiveChaptersPerDay, remaining);
     const todayChapters = chapters.slice(chapterIndex, chapterIndex + take);
     chapterIndex += take;
 
     const parts: string[] = [];
 
-    // prólogo só no primeiro dia
     if (includePrologue && schedule.length === 0) {
       parts.push("Prólogo");
     }
@@ -47,18 +61,32 @@ export function generateBookSchedule({
       }
     }
 
-    // Epílogo colado no último grupo
     if (includeEpilogue && chapterIndex >= chapters.length) {
       parts.push("Epílogo");
     }
 
+    scheduleDate.setHours(12, 0, 0, 0);
+
     schedule.push({
-      date: new Date(currentDate),
+      date: scheduleDate,
       chapters: parts.join(", "),
     });
 
+    // Avança para o próximo dia
     currentDate.setDate(currentDate.getDate() + 1);
   }
+
+  console.log(
+    "Cronograma gerado:",
+    schedule.map((item) => ({
+      date: item.date.toLocaleDateString("pt-BR"),
+      time: item.date.getTime(),
+      day: item.date.getDate(),
+      month: item.date.getMonth() + 1,
+      year: item.date.getFullYear(),
+      chapters: item.chapters,
+    }))
+  );
 
   return schedule;
 }
