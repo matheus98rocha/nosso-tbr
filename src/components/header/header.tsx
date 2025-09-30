@@ -27,6 +27,8 @@ import {
   DropdownMenuLabel,
 } from "../ui/dropdown-menu";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { DesktopNavMenu } from "./components/navMenu/navMenu";
+import { Skeleton } from "../ui/skeleton";
 function Header() {
   const { bookUpsertModal, createShelfDialog, menuItems, pathname, router } =
     useHeader();
@@ -41,28 +43,32 @@ function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isCondensed = scrolled;
   const user = useUserStore((state) => state.user);
+  const isLoadingUser = useUserStore((state) => state.loading);
+
   const isLogged = useIsLoggedIn();
+  const handleExpandHeaderDesktop = () => {
+    if (scrolled) {
+      setScrolled(false);
+    }
+  };
 
   const renderMobileMenu = (): JSX.Element => {
     return (
-      <div className="hidden">
+      <div className="md:hidden flex items-center justify-center gap-4 flex-col">
         <div className="flex items-center justify-between w-full">
           <button
             className="flex items-center justify-center gap-0.5"
             onClick={() => router.push("/")}
           >
-            <LogoIcon />
             <h1
               className={`font-bold transition-all duration-300 ${
-                isCondensed ? "text-lg" : "text-xl"
+                scrolled ? "text-xl" : "text-2xl"
               }`}
             >
               Nosso TBR
             </h1>
           </button>
-
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -120,54 +126,78 @@ function Header() {
 
   const renderDesktopMenu = (): JSX.Element => {
     return (
-      <div className="">
-        <div className="">
+      <div
+        className="hidden md:flex items-start justify-between"
+        onClick={() => handleExpandHeaderDesktop()}
+      >
+        {/* Left */}
+        <div className="flex items-center gap-3">
           <button
-            className="flex items-center justify-center gap-0.5"
+            className="flex items-center justify-center gap-2 transition-all duration-300"
             onClick={() => router.push("/")}
           >
-            <LogoIcon />
+            <LogoIcon
+              className={`transition-all duration-300 ${
+                scrolled ? "w-6 h-6" : "w-10 h-10"
+              }`}
+            />
             <h1
-              className={`font-bold transition-all duration-300 ${
-                isCondensed ? "text-xl" : "text-2xl"
+              className={`font-bold transition-all duration-300 whitespace-nowrap ${
+                scrolled ? "text-md" : "text-2xl"
               }`}
             >
               Nosso TBR
             </h1>
           </button>
-          <div className="md:flex items-center gap-2">
-            <small className="text-sm leading-none font-medium">
-              {user?.email}
-            </small>
+        </div>
+        <div className="flex-col items-center justify-center w-full gap-2">
+          {!scrolled && (
+            <DesktopNavMenu
+              bookUpsertModal={bookUpsertModal}
+              isLoading={isLoadingUser}
+            />
+          )}
+          {pathname === "/" && <HomeSearchBar />}
+        </div>
+        {/* Right Content */}
+        <div className="md:flex items-center gap-2">
+          {isLoadingUser ? (
+            <Skeleton className="h-4 w-[200px]" />
+          ) : (
+            <>
+              <small className="text-sm leading-none font-medium">
+                {user?.email}
+              </small>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <CircleUser
-                  className="w-6 h-6 text-primary cursor-pointer"
-                  strokeWidth={1.5}
-                />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {isLogged ? (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => useUserStore.getState().logout()}
-                  >
-                    Sair
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => router.push("/auth")}
-                  >
-                    Entrar
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <CircleUser
+                    className="w-6 h-6 text-primary cursor-pointer"
+                    strokeWidth={1.5}
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Conta</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {isLogged ? (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => useUserStore.getState().logout()}
+                    >
+                      Sair
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => router.push("/auth")}
+                    >
+                      Entrar
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
         </div>
       </div>
     );
@@ -186,8 +216,8 @@ function Header() {
       />
 
       <header
-        className={`bg-gray-50 shadow-sm fixed top-0 left-0 w-full z-50 transition-all duration-300 px-6 ${
-          isCondensed ? "py-2 shadow-md" : "py-6"
+        className={`bg-white shadow-sm fixed top-0 left-0 w-full z-50 transition-all duration-300 px-6 ${
+          scrolled ? "py-2 shadow-md" : "py-6"
         }`}
       >
         <div className="container mx-auto flex flex-col gap-2">

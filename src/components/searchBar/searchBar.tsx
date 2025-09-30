@@ -23,7 +23,7 @@ export function SearchBar({
   onOpenFilters,
 }: SearchBarProps) {
   return (
-    <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
+    <div className="grid w-full md:w-[70%] mx-auto grid-cols-[1fr_auto] gap-2 items-center bg-white">
       <InputWithButton
         ref={refInput}
         defaultValue={searchQuery}
