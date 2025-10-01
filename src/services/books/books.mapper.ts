@@ -28,6 +28,7 @@ export class BookMapper {
         : (persistence.readers as BookDomain["readers"]),
       gender: persistence.gender ?? null,
       image_url: persistence.image_url,
+      user_id: persistence.user_id,
     };
   }
 }
