@@ -15,7 +15,7 @@ const allowedLabels = [
   "Meus Livros",
   "Adicionar Livro",
   "Estatisticas",
-  "Estantes",
+  "Ver Estantes",
 ];
 
 type DesktopNavMenuProps = {
@@ -46,9 +46,7 @@ export function DesktopNavMenu({
           length: filteredItems.length + 1,
         }).map((_, index) => (
           <div key={index} className="flex flex-col items-center gap-1">
-            {/* Esqueleto do Ícone (círculo 24x24px) */}
             <Skeleton className="w-6 h-6 rounded-full bg-gray-300" />
-            {/* Esqueleto do Texto (linha pequena) */}
             <Skeleton className="h-3 w-16 bg-gray-300" />
           </div>
         ))}
