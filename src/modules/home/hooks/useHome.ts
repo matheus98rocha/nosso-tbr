@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
 import { useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { STATUS_DICTIONARY } from "../constants";
+import { STATUS_DICTIONARY } from "../constants/constants";
 import { formatList } from "../utils/formatList";
 import { genders } from "../utils/genderBook";
 import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";

@@ -15,7 +15,6 @@ export class BookUpsertService {
         .insert(payload)
         .select("id")
         .single();
-
       if (error) {
         throw new RepositoryError(
           "Falha ao criar livro",
