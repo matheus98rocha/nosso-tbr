@@ -12,9 +12,12 @@ export default function MainLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <main className="p-6 flex flex-col items-center gap-6">
+    <>
       <Header />
-      {children}
-    </main>
+
+      <div className="pt-40 p-6 flex flex-col items-center gap-6">
+        {children}
+      </div>
+    </>
   );
 }
