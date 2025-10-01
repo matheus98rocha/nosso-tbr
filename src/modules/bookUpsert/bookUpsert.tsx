@@ -29,6 +29,7 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
 import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 import { CreateBookProps } from "./bookUpsert.types";
+import { useProfile } from "@/services/users/hooks/useProfile";
 
 export function BookUpsert({
   bookData,
@@ -36,6 +37,7 @@ export function BookUpsert({
   setIsBookFormOpen,
 }: CreateBookProps) {
   const isLoggedIn = useIsLoggedIn();
+  const { chosenByOptions, isLoadingProfiles } = useProfile();
 
   const {
     onSubmit,
@@ -58,10 +60,13 @@ export function BookUpsert({
     bookshelfOptions,
     handleConfirmCreateBook,
     handleOnChangePageNumber,
+    handleChosenByChange,
   } = useBookDialog({
     bookData,
     setIsBookFormOpen,
+    chosenByOptions,
   });
+
   return (
     <>
       <ConfirmDialog
@@ -190,20 +195,27 @@ export function BookUpsert({
 
                 <FormField
                   control={control}
-                  name="chosen_by"
+                  name="user_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Quem escolheu?</FormLabel>
                       <FormControl>
-                        <SelectField
-                          value={field.value}
-                          onChange={field.onChange}
-                          items={[
-                            { label: "Matheus", value: "Matheus" },
-                            { label: "Fabi", value: "Fabi" },
-                            { label: "Barbara", value: "Barbara" },
-                          ]}
-                        />
+                        {isLoadingProfiles ? (
+                          <p className="text-sm text-muted-foreground">
+                            Carregando perfis...
+                          </p>
+                        ) : (
+                          <SelectField
+                            // field.value agora é o user_id, o que o SelectField espera.
+                            value={field.value}
+                            // O onChange recebe o user_id (string) do SelectField
+                            // e executa a lógica de atualização em dois campos.
+                            onChange={(selectedUserId) =>
+                              handleChosenByChange(field, selectedUserId)
+                            }
+                            items={chosenByOptions} // [{ label, value: user_id }]
+                          />
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>

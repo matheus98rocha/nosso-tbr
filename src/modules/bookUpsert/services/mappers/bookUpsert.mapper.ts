@@ -21,6 +21,7 @@ export class BookUpsertMapper {
         : [],
       gender: domain.gender ?? null,
       image_url: domain.image_url,
+      user_id: domain.user_id ?? "",
     };
   }
 }

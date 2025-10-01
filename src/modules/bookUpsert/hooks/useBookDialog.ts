@@ -14,6 +14,7 @@ import { BOOKS_QUERY_KEY } from "@/constants/keys";
 export function useBookDialog({
   bookData,
   setIsBookFormOpen,
+  chosenByOptions,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
 
@@ -38,6 +39,8 @@ export function useBookDialog({
       end_date: null,
       gender: "",
       image_url: "",
+      chosen_by: bookData?.chosen_by ?? ("" as "Matheus" | "Fabi" | "Barbara"),
+      user_id: bookData?.user_id ?? "",
       ...bookData,
     },
   });
@@ -102,8 +105,6 @@ export function useBookDialog({
       }
     },
     onSuccess: () => {
-      console.log(BOOKS_QUERY_KEY);
-
       handleResetForm();
       setIsDuplicateBookDialogOpen(false);
 
@@ -162,6 +163,26 @@ export function useBookDialog({
     []
   );
 
+  const handleChosenByChange = useCallback(
+    (
+      field: ControllerRenderProps<BookCreateValidator, "user_id">,
+      selectedUserId: string
+    ) => {
+      field.onChange(selectedUserId);
+
+      const selectedOption = chosenByOptions.find(
+        (opt) => opt.value === selectedUserId
+      );
+
+      form.setValue(
+        "chosen_by",
+        selectedOption?.label as "Matheus" | "Fabi" | "Barbara",
+        { shouldValidate: true }
+      );
+    },
+    [chosenByOptions, form]
+  );
+
   const handleConfirmCreateBook = async () => {
     setIsDuplicateBookDialogOpen(false);
     const formData = form.getValues();
@@ -199,5 +220,6 @@ export function useBookDialog({
     bookshelfOptions,
 
     handleOnChangePageNumber,
+    handleChosenByChange,
   };
 }

@@ -12,6 +12,7 @@ export type BookPersistence = {
   readers: string[];
   gender: string | null;
   image_url: string;
+  user_id: string;
 };
 
 export type BookCreateValidator = {
@@ -27,6 +28,7 @@ export type BookCreateValidator = {
   status?: Status;
   gender?: string | null;
   image_url: string;
+  user_id?: string;
 };
 
 export type BookDomain = {
@@ -47,4 +49,5 @@ export type BookDomain = {
   end_date?: string | null;
   gender: string | null;
   image_url: string;
+  user_id: string;
 };

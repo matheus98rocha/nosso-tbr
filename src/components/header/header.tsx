@@ -131,14 +131,14 @@ function Header() {
         onClick={() => handleExpandHeaderDesktop()}
       >
         {/* Left */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <button
             className="flex items-center justify-center gap-2 transition-all duration-300"
             onClick={() => router.push("/")}
           >
             <LogoIcon
               className={`transition-all duration-300 ${
-                scrolled ? "w-6 h-6" : "w-10 h-10"
+                scrolled ? "w-6 h-6" : "w-60 h-60"
               }`}
             />
             <h1
@@ -151,12 +151,13 @@ function Header() {
           </button>
         </div>
         <div className="flex-col items-center justify-center w-full gap-2">
-          {!scrolled && (
-            <DesktopNavMenu
-              bookUpsertModal={bookUpsertModal}
-              isLoading={isLoadingUser}
-            />
-          )}
+          { scrolled ||
+            (isLogged && (
+              <DesktopNavMenu
+                bookUpsertModal={bookUpsertModal}
+                isLoading={isLoadingUser}
+              />
+            ))}
           {pathname === "/" && <HomeSearchBar />}
         </div>
         {/* Right Content */}
