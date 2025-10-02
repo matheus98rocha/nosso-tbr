@@ -162,7 +162,12 @@ export function StatsClient({
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="totalBooks" name="Livros Lidos" fill="#8884d8" />
+                <Bar
+                  dataKey="totalBooks"
+                  name="Livros Lidos"
+                  fill="#8884d8"
+                  label={{ position: "top", fill: "#000", fontSize: 14 }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -186,7 +191,11 @@ export function StatsClient({
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label
+                    label={{
+                      position: "insideBottomLeft",
+                      fill: "#000",
+                      fontSize: 14,
+                    }}
                   >
                     {collaborators.map((_, index) => (
                       <Cell key={index} fill={CORES[index % CORES.length]} />
