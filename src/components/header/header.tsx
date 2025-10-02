@@ -151,7 +151,7 @@ function Header() {
           </button>
         </div>
         <div className="flex-col items-center justify-center w-full gap-2">
-          { scrolled ||
+          {scrolled ||
             (isLogged && (
               <DesktopNavMenu
                 bookUpsertModal={bookUpsertModal}
