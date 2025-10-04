@@ -8,6 +8,7 @@ import { formatList } from "../utils/formatList";
 import { genders } from "../utils/genderBook";
 import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
 import { FiltersOptions } from "../components/filtersSheet/hooks/useFiltersSheet";
+import { useUser } from "@/services/users/hooks/useUsers";
 
 export type FiltersOptionsHome = {
   readers: string[];
@@ -23,8 +24,29 @@ export function useHome() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { users, isLoadingUsers } = useUser();
+
+  const DEFAULT_FILTERS = useMemo<FiltersOptionsHome>(
+    () => ({
+      readers: users.map((user) => user.display_name),
+      status: [],
+      gender: [],
+      userId: "",
+    }),
+    [users]
+  );
 
   const filters = useMemo((): FiltersOptionsHome => {
+    const hasParams =
+      searchParams.get("readers") ||
+      searchParams.get("status") ||
+      searchParams.get("gender") ||
+      searchParams.get("userId");
+
+    if (!hasParams) {
+      return DEFAULT_FILTERS;
+    }
+
     const readers =
       searchParams
         .get("readers")
@@ -49,7 +71,7 @@ export function useHome() {
     const userId = searchParams.get("userId") ?? "";
 
     return { readers, status, gender, userId };
-  }, [searchParams]);
+  }, [DEFAULT_FILTERS, searchParams]);
 
   const searchQuery = searchParams.get("search") ?? "";
 
@@ -120,12 +142,11 @@ export function useHome() {
   };
 
   const handleClearAllFilters = useCallback(() => {
-    const cleared = { readers: [], gender: [], status: [] };
-    updateUrlWithFilters(cleared, "");
+    updateUrlWithFilters(DEFAULT_FILTERS, "");
     if (inputRef.current) {
       inputRef.current.clear();
     }
-  }, [updateUrlWithFilters]);
+  }, [DEFAULT_FILTERS, updateUrlWithFilters]);
 
   const handleInputBlur = useCallback(
     (value: string) => {
@@ -170,9 +191,11 @@ export function useHome() {
       : null;
   }, [filters.status]);
 
+  const isLoadingData = isLoadingUsers || isLoadingAllBooks;
+
   return {
     allBooks,
-    isLoadingAllBooks,
+    isLoadingAllBooks: isLoadingData,
     isFetched,
     isError,
     isLoadingUser,
