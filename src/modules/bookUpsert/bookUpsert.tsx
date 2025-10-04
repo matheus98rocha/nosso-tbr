@@ -29,7 +29,7 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
 import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 import { CreateBookProps } from "./bookUpsert.types";
-import { useProfile } from "@/services/users/hooks/useProfile";
+import { useUser } from "@/services/users/hooks/useUsers";
 
 export function BookUpsert({
   bookData,
@@ -37,7 +37,7 @@ export function BookUpsert({
   setIsBookFormOpen,
 }: CreateBookProps) {
   const isLoggedIn = useIsLoggedIn();
-  const { chosenByOptions, isLoadingProfiles } = useProfile();
+  const { chosenByOptions, isLoadingUsers } = useUser();
 
   const {
     onSubmit,
@@ -200,16 +200,13 @@ export function BookUpsert({
                     <FormItem>
                       <FormLabel>Quem escolheu?</FormLabel>
                       <FormControl>
-                        {isLoadingProfiles ? (
+                        {isLoadingUsers ? (
                           <p className="text-sm text-muted-foreground">
                             Carregando perfis...
                           </p>
                         ) : (
                           <SelectField
-                            // field.value agora é o user_id, o que o SelectField espera.
                             value={field.value}
-                            // O onChange recebe o user_id (string) do SelectField
-                            // e executa a lógica de atualização em dois campos.
                             onChange={(selectedUserId) =>
                               handleChosenByChange(field, selectedUserId)
                             }
