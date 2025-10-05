@@ -1,0 +1,29 @@
+# .github/workflows/ci.yml
+
+name: CI - Testes e Cobertura
+
+on:
+  pull_request: # Roda quando um Pull Request é aberto
+  push: # Roda em todo push (especialmente no branch principal)
+    branches: ["main", "master"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Ajuste para a versão do seu projeto
+
+      - name: Instalar Dependências com Yarn
+        run: yarn install --frozen-lockfile # O --frozen-lockfile é crucial para CI
+
+      - name: Rodar Testes e Cobertura
+        # 🚨 ESTE É O PORTÃO DE QUALIDADE 🚨
+        # Rodamos o Vitest com 'run' para garantir que ele não fique em modo 'watch'
+        # e com a flag --coverage para gerar o relatório.
+        run: yarn vitest run --coverage

@@ -192,6 +192,7 @@ export function useHome() {
   }, [filters.status]);
 
   const isLoadingData = isLoadingUsers || isLoadingAllBooks;
+  const hasSearchParams = searchParams.toString().length > 0;
 
   return {
     allBooks,
@@ -211,5 +212,6 @@ export function useHome() {
     handleOnPressEnter,
     handleClearAllFilters,
     filters,
+    hasSearchParams,
   };
 }
