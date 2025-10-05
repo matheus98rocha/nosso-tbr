@@ -4,6 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { AuthService } from "../services/auth.service";
 import { useRouter } from "next/navigation";
+import { User } from "@/types/user.types";
+import { useUserStore } from "@/stores/userStore";
 
 type LoginFormData = {
   email: string;
@@ -13,6 +15,8 @@ type LoginFormData = {
 export function useLogin() {
   const service = new AuthService();
   const router = useRouter();
+
+  const set = useUserStore.setState;
 
   const form = useForm<LoginFormData>({
     defaultValues: {
@@ -27,14 +31,15 @@ export function useLogin() {
         data.email,
         data.password
       );
+
       if (error) throw new Error(error.message);
+      console.log(error);
       return authData;
     },
     onSuccess: (authData) => {
+      set({ user: authData.user as unknown as User, loading: false });
       if (authData?.user?.id) {
         router.push(`/?userId=${authData.user.id}`);
-      } else {
-        router.push("/");
       }
     },
   });
@@ -49,5 +54,6 @@ export function useLogin() {
     isLoading: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error ? (mutation.error as Error).message : null,
+    mutation,
   };
 }
