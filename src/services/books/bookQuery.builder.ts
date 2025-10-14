@@ -78,6 +78,14 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withId(bookId?: string): this {
+    if (bookId) {
+      // Usa eq() para garantir que a coluna 'id' seja exatamente igual ao bookId fornecido
+      this.query = this.query.eq("id", bookId);
+    }
+    return this;
+  }
+
   build() {
     return this.query;
   }

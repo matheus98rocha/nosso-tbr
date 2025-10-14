@@ -15,6 +15,7 @@ export type FiltersOptionsHome = {
   status: string[];
   gender: string[];
   userId: string;
+  bookId: string;
 };
 
 export function useHome() {
@@ -32,6 +33,7 @@ export function useHome() {
       status: [],
       gender: [],
       userId: "",
+      bookId: "",
     }),
     [users]
   );
@@ -41,7 +43,8 @@ export function useHome() {
       searchParams.get("readers") ||
       searchParams.get("status") ||
       searchParams.get("gender") ||
-      searchParams.get("userId");
+      searchParams.get("userId") ||
+      searchParams.get("bookId");
 
     if (!hasParams) {
       return DEFAULT_FILTERS;
@@ -70,7 +73,9 @@ export function useHome() {
 
     const userId = searchParams.get("userId") ?? "";
 
-    return { readers, status, gender, userId };
+    const bookId = searchParams.get("bookId") ?? "";
+
+    return { readers, status, gender, userId, bookId };
   }, [DEFAULT_FILTERS, searchParams]);
 
   const searchQuery = searchParams.get("search") ?? "";
@@ -83,7 +88,12 @@ export function useHome() {
   } = useQuery({
     queryKey: ["books", filters, searchQuery],
     queryFn: async () => {
-      return bookService.getAll(filters, searchQuery, filters.userId);
+      return bookService.getAll(
+        filters,
+        searchQuery,
+        filters.userId,
+        filters.bookId
+      );
     },
   });
 
@@ -99,7 +109,7 @@ export function useHome() {
   });
 
   const updateUrlWithFilters = useCallback(
-    (newFilters: FiltersOptions, search?: string) => {
+    (newFilters: FiltersOptions, search?: string, bookId?: string) => {
       const params = new URLSearchParams();
 
       if (search && search.trim()) {
@@ -125,6 +135,11 @@ export function useHome() {
           "gender",
           newFilters.gender.map(encodeURIComponent).join(",")
         );
+      }
+
+      const idToSet = bookId ?? newFilters.bookId;
+      if (idToSet) {
+        params.set("bookId", idToSet);
       }
 
       const qs = params.toString();
