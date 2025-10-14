@@ -5,6 +5,7 @@ export type FiltersOptions = {
   readers: string[];
   status: string[];
   gender: string[];
+  bookId?: string;
 };
 
 export type FiltersProps = {

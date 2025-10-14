@@ -16,7 +16,8 @@ export class BookService {
   async getAll(
     filters?: FiltersOptions,
     search?: string,
-    userId?: string
+    userId?: string,
+    bookId?: string
   ): Promise<BookDomain[]> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
@@ -26,7 +27,8 @@ export class BookService {
         .withStatus(statuses)
         .withGender(filters?.gender)
         .sortByCreatedAt()
-        .withSearchTerm(search);
+        .withSearchTerm(search)
+        .withId(bookId);
 
       if (userId) {
         query = query.withUser(userId);
