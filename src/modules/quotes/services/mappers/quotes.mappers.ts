@@ -13,7 +13,9 @@ export class QuoteMapper {
     };
   }
 
-  static toPersistence(domain: QuoteDomain): Partial<QuotePersistence> {
+  static toPersistence(
+    domain: Partial<QuoteDomain>
+  ): Partial<QuotePersistence> {
     return {
       book_id: domain.bookId,
       content: domain.content,
