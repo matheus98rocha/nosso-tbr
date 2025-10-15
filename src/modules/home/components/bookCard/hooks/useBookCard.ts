@@ -9,7 +9,6 @@ import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelve
 
 export function useBookCard({ book }: BookCardProps) {
   const dropdownModal = useModal();
-
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
   const dialogAddShelfModal = useModal();

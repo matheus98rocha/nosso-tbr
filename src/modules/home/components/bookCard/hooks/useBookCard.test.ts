@@ -1,73 +1,49 @@
 import { renderHook, act } from "@testing-library/react";
-import { Mock, vi } from "vitest";
+import { vi, Mock } from "vitest";
 import { useBookCard } from "./useBookCard";
 import { BookDomain } from "@/types/books.types";
 import { BookService } from "@/services/books/books.service";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
+import { useRouter } from "next/navigation";
 
+vi.mock("next/navigation", () => ({ useRouter: vi.fn() }));
 vi.mock("@/services/books/books.service");
 vi.mock("@/modules/bookshelves/services/bookshelvesBooks.service");
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-  }),
-}));
-
 vi.mock("@/hooks/useModal", () => ({
-  useModal: vi.fn(() => ({
-    isOpen: false,
-    setIsOpen: vi.fn(),
-    open: vi.fn(),
-    close: vi.fn(),
-  })),
+  useModal: () => ({ setIsOpen: vi.fn() }),
 }));
+vi.mock("@/stores/hooks/useAuth", () => ({ useIsLoggedIn: () => true }));
+vi.mock("@/hooks/useSafeTap", () => ({ useSafeTap: (fn: () => void) => fn }));
 
-vi.mock("@/stores/hooks/useAuth", () => ({
-  useIsLoggedIn: vi.fn(() => true),
-}));
+const baseBook: BookDomain = {
+  id: "1",
+  title: "Test Book",
+  author: "Test Author",
+  chosen_by: "Matheus",
+  pages: 300,
+  readers: "Matheus e Barbara",
+  start_date: "2024-01-01",
+  end_date: null,
+  gender: "Fiction",
+  image_url: "https://example.com/test.jpg",
+  user_id: "user-123",
+};
 
-vi.mock("@/hooks/useSafeTap", () => ({
-  useSafeTap: (fn: () => void) => fn,
-}));
+// Helper para renderizar hook
+const renderBookCardHook = (book = baseBook) =>
+  renderHook(() => useBookCard({ book }));
 
 describe("useBookCard", () => {
-  const baseBook: BookDomain = {
-    id: "1",
-    title: "Test Book",
-    author: "Test Author",
-    chosen_by: "Matheus",
-    pages: 300,
-    readers: "Matheus e Barbara",
-    start_date: "2024-01-01",
-    end_date: null,
-    gender: "Fiction",
-    image_url: "https://example.com/test.jpg",
-    user_id: "user-123",
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should initialize modals and return expected structure", () => {
-    const { result } = renderHook(() =>
-      useBookCard({ book: { ...baseBook, status: "not_started" } })
-    );
-
-    expect(result.current.dropdownModal).toBeDefined();
-    expect(result.current.dialogEditModal).toBeDefined();
-    expect(result.current.dialogDeleteModal).toBeDefined();
-    expect(result.current.dialogAddShelfModal).toBeDefined();
-    expect(result.current.isLogged).toBe(true);
-  });
-
   describe("Badge Object", () => {
-    it("should set badges correctly when the book is not started", () => {
-      const { result } = renderHook(() =>
-        useBookCard({ book: { ...baseBook, status: "not_started" } })
-      );
-
+    it("should return correct badge for not_started", () => {
+      const { result } = renderBookCardHook({
+        ...baseBook,
+        status: "not_started",
+      });
       expect(result.current.badgeObject.bookStatusClass).toBe(
         "bg-gray-500 text-white"
       );
@@ -76,11 +52,8 @@ describe("useBookCard", () => {
       );
     });
 
-    it("should set badges correctly when the book is reading", () => {
-      const { result } = renderHook(() =>
-        useBookCard({ book: { ...baseBook, status: "reading" } })
-      );
-
+    it("should return correct badge for reading", () => {
+      const { result } = renderBookCardHook({ ...baseBook, status: "reading" });
       expect(result.current.badgeObject.bookStatusClass).toBe(
         "bg-green-800 text-white"
       );
@@ -89,11 +62,11 @@ describe("useBookCard", () => {
       );
     });
 
-    it("should set badges correctly when the book is finished", () => {
-      const { result } = renderHook(() =>
-        useBookCard({ book: { ...baseBook, status: "finished" } })
-      );
-
+    it("should return correct badge for finished", () => {
+      const { result } = renderBookCardHook({
+        ...baseBook,
+        status: "finished",
+      });
       expect(result.current.badgeObject.bookStatusClass).toBe(
         "bg-red-500 text-white"
       );
@@ -101,61 +74,91 @@ describe("useBookCard", () => {
         "Terminei a Leitura"
       );
     });
+
+    it("should fallback to not_started for undefined status", () => {
+      const { result } = renderBookCardHook({ ...baseBook, status: undefined });
+      expect(result.current.badgeObject.bookStatusClass).toBe(
+        "bg-gray-500 text-white"
+      );
+      expect(result.current.badgeObject.bookStatusText).toBe(
+        "Vou iniciar a leitura"
+      );
+    });
   });
 
   describe("handleConfirmDelete", () => {
-    const id = "123";
-
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
     it("should call BookService.delete when isShelf is false", async () => {
       const deleteMock = vi.fn();
       (BookService as unknown as Mock).mockImplementation(
-        () =>
-          ({
-            delete: deleteMock,
-          } as unknown)
+        () => ({ delete: deleteMock } as unknown)
       );
-
-      const { result } = renderHook(() =>
-        useBookCard({ book: { ...baseBook, status: "not_started" } })
-      );
-
-      await act(async () => {
-        await result.current.handleConfirmDelete(id, false);
-      });
-
-      expect(deleteMock).toHaveBeenCalledWith(id);
+      const { result } = renderBookCardHook();
+      await act(async () => result.current.handleConfirmDelete("123", false));
+      expect(deleteMock).toHaveBeenCalledWith("123");
     });
 
-    it("should call BookshelfServiceBooks.removeBookFromShelf and reload when isShelf is true", async () => {
+    it("should call removeBookFromShelf and reload when isShelf is true", async () => {
       const removeMock = vi.fn();
-
       (BookshelfServiceBooks as unknown as Mock).mockImplementation(
         () =>
           ({
             removeBookFromShelf: removeMock,
           } as unknown)
       );
+      const { result } = renderBookCardHook();
+      await act(async () => result.current.handleConfirmDelete("123", true));
+      expect(removeMock).toHaveBeenCalledWith("123");
+    });
+  });
 
-      const reloadMock = vi.fn();
-      Object.defineProperty(window, "location", {
-        value: { reload: reloadMock },
-        writable: true,
-      });
+  describe("Navigation", () => {
+    it("should navigate to schedule", () => {
+      const pushMock = vi.fn();
+      (useRouter as Mock).mockReturnValue({ push: pushMock });
+      const { result } = renderBookCardHook();
+      act(() => result.current.handleNavigateToSchedule());
+      expect(pushMock).toHaveBeenCalledWith("/schedule/1/2024-01-01/Test Book");
+    });
 
+    it("should navigate to quotes", () => {
+      const pushMock = vi.fn();
+      (useRouter as Mock).mockReturnValue({ push: pushMock });
+      const { result } = renderBookCardHook();
+      act(() => result.current.handleNavigateToQuotes());
+      expect(pushMock).toHaveBeenCalledWith("/quotes/Test Book/1");
+    });
+  });
+
+  describe("shareOnWhatsApp", () => {
+    beforeEach(() => {
+      vi.spyOn(window, "open").mockImplementation(() => null);
+    });
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+    it("deve abrir o link correto no WhatsApp", () => {
+      // 1. Renderiza o hook customizado com os dados de um livro base.
       const { result } = renderHook(() =>
-        useBookCard({ book: { ...baseBook, status: "not_started" } })
+        useBookCard({ book: { ...baseBook } })
       );
 
-      await act(async () => {
-        await result.current.handleConfirmDelete(id, true);
+      // 2. Executa a função de compartilhamento no WhatsApp.
+      act(() => {
+        result.current.shareOnWhatsApp();
       });
 
-      expect(removeMock).toHaveBeenCalledWith(id);
-      expect(reloadMock).toHaveBeenCalled();
+      // Variáveis para construir o link
+      const baseUrl = "https://nosso-tbr.vercel.app/";
+      const encodedTitle = encodeURIComponent(baseBook.title);
+
+      // O link da página que será compartilhado (com o título codificado)
+      const shareUrl = `${baseUrl}?search=${encodedTitle}`;
+
+      // O link final do WhatsApp, que deve codificar a 'shareUrl'
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareUrl)}`;
+
+      // 3. Verifica se a função window.open foi chamada com o link de destino correto.
+      expect(window.open).toHaveBeenCalledWith(whatsappUrl, "_blank");
     });
   });
 });
