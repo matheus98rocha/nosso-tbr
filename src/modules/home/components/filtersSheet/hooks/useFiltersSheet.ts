@@ -6,6 +6,7 @@ export type FiltersOptions = {
   status: string[];
   gender: string[];
   bookId?: string;
+  userId?: string;
 };
 
 export type FiltersProps = {

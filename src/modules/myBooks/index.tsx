@@ -2,16 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
-import { useHome } from "@/modules/home/hooks/useHome";
 import { useModal } from "@/hooks/useModal";
 import { ListGrid } from "../../components/listGrid/listGrid";
 import { BookDomain } from "../../types/books.types";
-import { BookCard } from "./components/bookCard/bookCard";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
 
 import { useUserStore } from "@/stores/userStore";
+import { BookCard } from "../home/components/bookCard/bookCard";
+import { useMyBooks } from "./hooks/useMyBooks";
 
-export default function ClientHome() {
+export default function ClientMyBook() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
 
   const {
@@ -27,8 +27,7 @@ export default function ClientHome() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
-    isMyBooksPage,
-  } = useHome();
+  } = useMyBooks();
 
   const dialogModal = useModal();
   const createShelfDialog = useModal();
@@ -48,7 +47,7 @@ export default function ClientHome() {
         {!isLoadingAllBooks && (
           <div className="flex items-start justify-center flex-col container">
             <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-              {isMyBooksPage ? "Meus livros" : "Resultados"}
+              Meus livros
             </h4>
 
             <p className="leading-7">

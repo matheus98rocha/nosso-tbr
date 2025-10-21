@@ -3,39 +3,38 @@ import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
 import { useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { STATUS_DICTIONARY } from "../constants/constants";
-import { formatList } from "../utils/formatList";
-import { genders } from "../utils/genderBook";
+
 import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
-import { FiltersOptions } from "../components/filtersSheet/hooks/useFiltersSheet";
-import { useUser } from "@/services/users/hooks/useUsers";
+import { FiltersOptions } from "@/modules/home/components/filtersSheet/hooks/useFiltersSheet";
+import { formatList } from "@/modules/home/utils/formatList";
+import { genders } from "@/modules/home/utils/genderBook";
+import { STATUS_DICTIONARY } from "@/modules/home/constants/constants";
 
 export type FiltersOptionsHome = {
   readers: string[];
   status: string[];
   gender: string[];
-  userId: string;
   bookId: string;
 };
 
-export function useHome() {
+export function useMyBooks() {
   const inputRef = useRef<InputWithButtonRef>(null);
   const fetchUser = useUserStore((state) => state.fetchUser);
   const bookService = new BookService();
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { users, isLoadingUsers } = useUser();
+  const { user } = useUserStore();
 
   const DEFAULT_FILTERS = useMemo<FiltersOptionsHome>(
     () => ({
-      readers: users.map((user) => user.display_name),
+      readers: [],
       status: [],
       gender: [],
       userId: "",
       bookId: "",
     }),
-    [users]
+    []
   );
 
   const filters = useMemo((): FiltersOptionsHome => {
@@ -71,14 +70,10 @@ export function useHome() {
         .filter(Boolean)
         .map(decodeURIComponent) ?? [];
 
-    const userId = searchParams.get("userId") ?? "";
-
     const bookId = searchParams.get("bookId") ?? "";
 
-    return { readers, status, gender, userId, bookId };
+    return { readers, status, gender, bookId };
   }, [DEFAULT_FILTERS, searchParams]);
-
-  const isMyBooksPage = !!filters.userId;
 
   const searchQuery = searchParams.get("search") ?? "";
 
@@ -88,13 +83,14 @@ export function useHome() {
     isFetched,
     isError,
   } = useQuery({
-    queryKey: ["books", filters, searchQuery],
+    queryKey: ["books", filters, searchQuery, user?.id],
     queryFn: async () => {
+      console.log(filters);
       return bookService.getAll({
         bookId: filters.bookId,
         filters,
         search: searchQuery,
-        userId: undefined,
+        userId: user?.id,
       });
     },
   });
@@ -208,7 +204,7 @@ export function useHome() {
       : null;
   }, [filters.status]);
 
-  const isLoadingData = isLoadingUsers || isLoadingAllBooks;
+  const isLoadingData = isLoadingAllBooks;
   const hasSearchParams = searchParams.toString().length > 0;
 
   return {
@@ -230,6 +226,5 @@ export function useHome() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
-    isMyBooksPage,
   };
 }

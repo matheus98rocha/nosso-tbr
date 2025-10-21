@@ -28,8 +28,8 @@ export function useBookCard({ book }: BookCardProps) {
   }, [book.title]);
 
   const handleNavigateToSchedule = useCallback(() => {
-    router.push(`/schedule/${book.id}/${book.start_date}/${book.title}`);
-  }, [router, book.id, book.start_date, book.title]);
+    router.push(`/schedule/${book.id}/${book.title}`);
+  }, [router, book.id, book.title]);
 
   const handleNavigateToQuotes = useCallback(() => {
     router.push(`/quotes/${book.title}/${book.id}`);

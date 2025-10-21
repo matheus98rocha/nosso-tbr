@@ -13,12 +13,17 @@ function isBookStatus(value: unknown): value is BookStatus {
 }
 export class BookService {
   private supabase = createClient();
-  async getAll(
-    filters?: FiltersOptions,
-    search?: string,
-    userId?: string,
-    bookId?: string
-  ): Promise<BookDomain[]> {
+  async getAll({
+    bookId,
+    filters,
+    search,
+    userId,
+  }: {
+    filters?: FiltersOptions;
+    search?: string;
+    userId?: string;
+    bookId?: string;
+  }): Promise<BookDomain[]> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
 
@@ -30,7 +35,9 @@ export class BookService {
         .withSearchTerm(search)
         .withId(bookId);
 
+      console.log("fora do ifuserId -> ", userId);
       if (userId) {
+        console.log("userId -> ", userId);
         query = query.withUser(userId);
       }
 

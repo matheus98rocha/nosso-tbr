@@ -30,6 +30,7 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { DesktopNavMenu } from "./components/navMenu/navMenu";
 import { Skeleton } from "../ui/skeleton";
 import LogoIcon from "@/assets/icons/logo";
+import { MyBooksSearchBar } from "./components/mySearchBar/myBooksSearchBar";
 function Header() {
   const { bookUpsertModal, createShelfDialog, menuItems, pathname, router } =
     useHeader();
@@ -165,6 +166,7 @@ function Header() {
               />
             ))}
           {pathname === "/" && <HomeSearchBar />}
+          {pathname === "/my-books" && <MyBooksSearchBar />}
         </div>
         {/* Right Content */}
         <div className="md:flex items-center gap-2">
