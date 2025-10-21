@@ -22,11 +22,10 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { getGenderLabel } from "../home/utils/genderBook";
+import { getGenderLabel } from "@/constants/genders";
 
 const leitores = ["Matheus", "Fabi", "Barbara"];
 
-// cores para os gráficos
 const CORES = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50"];
 
 export type EstatisticaAnual = {

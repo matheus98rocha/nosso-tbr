@@ -1,13 +1,6 @@
-import { genders } from "@/modules/home/utils/genderBook";
+import { genders } from "@/constants/genders";
+import { FiltersOptions } from "@/types/filters";
 import { useCallback, useState } from "react";
-
-export type FiltersOptions = {
-  readers: string[];
-  status: string[];
-  gender: string[];
-  bookId?: string;
-  userId?: string;
-};
 
 export type FiltersProps = {
   filters: FiltersOptions;

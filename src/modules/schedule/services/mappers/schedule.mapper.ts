@@ -1,4 +1,4 @@
-import { DateUtils } from "@/utils/date/date.utils";
+import { DateUtils } from "@/utils/date/date";
 import {
   ScheduleCreateValidator,
   ScheduleDomain,

@@ -1,5 +1,5 @@
+import { FiltersOptions } from "@/types/filters";
 import { useEffect, useRef } from "react";
-import { FiltersOptions } from "./useFiltersSheet";
 
 export const useSyncLocalFilters = (
   externalFilters: FiltersOptions,

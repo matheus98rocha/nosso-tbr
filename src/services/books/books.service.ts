@@ -3,7 +3,7 @@ import { BookMapper } from "@/services/books/books.mapper";
 import { BookDomain } from "@/types/books.types";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
-import { FiltersOptions } from "@/modules/home/components/filtersSheet/hooks/useFiltersSheet";
+import { FiltersOptions } from "@/types/filters";
 
 const ALLOWED_STATUSES = ["reading", "finished", "not_started"] as const;
 type BookStatus = (typeof ALLOWED_STATUSES)[number];

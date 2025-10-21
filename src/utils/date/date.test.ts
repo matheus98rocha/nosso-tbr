@@ -1,7 +1,7 @@
 // src/utils/dateUtils.test.ts
 
 import { describe, it, expect } from "vitest";
-import { DateUtils } from "./date.utils";
+import { DateUtils } from "./date";
 
 describe("DateUtils", () => {
   describe("dateToISO", () => {

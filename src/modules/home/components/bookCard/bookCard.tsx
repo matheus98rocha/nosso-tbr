@@ -11,15 +11,13 @@ import { EllipsisVerticalIcon } from "lucide-react";
 import { DropdownBook } from "../dropdownBook/dropdownBook";
 import { BookUpsert } from "../../../bookUpsert/bookUpsert";
 import { Badge } from "@/components/ui/badge";
-import {
-  getGenderLabel,
-  getGenreBadgeColor,
-} from "@/modules/home/utils/genderBook";
+
 import Image from "next/image";
 import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
 import { useBookCard } from "./hooks/useBookCard";
 import { BookCardProps } from "./types/bookCard.types";
+import { getGenderLabel, getGenreBadgeColor } from "@/constants/genders";
 
 export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
   const {
