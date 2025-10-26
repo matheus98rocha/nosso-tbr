@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SelectField } from "../home/components/select/select.";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../home/components/datePicker/datePicker";
-import { useBookDialog } from "./useBookDialog";
+import { useBookDialog } from "./hooks/useBookDialog";
 import { genders } from "@/modules/home/utils/genderBook";
 
 import {
@@ -29,6 +29,7 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
 import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
 import { CreateBookProps } from "./bookUpsert.types";
+import { useUser } from "@/services/users/hooks/useUsers";
 
 export function BookUpsert({
   bookData,
@@ -36,6 +37,7 @@ export function BookUpsert({
   setIsBookFormOpen,
 }: CreateBookProps) {
   const isLoggedIn = useIsLoggedIn();
+  const { chosenByOptions, isLoadingUsers } = useUser();
 
   const {
     onSubmit,
@@ -51,16 +53,20 @@ export function BookUpsert({
     form,
     reset,
     handleSubmit,
-    control, 
-    checkboxes, 
-    isEdit, 
-    isLoadingBookShelfs, 
+    control,
+    checkboxes,
+    isEdit,
+    isLoadingBookshelves,
     bookshelfOptions,
     handleConfirmCreateBook,
+    handleOnChangePageNumber,
+    handleChosenByChange,
   } = useBookDialog({
     bookData,
     setIsBookFormOpen,
+    chosenByOptions,
   });
+
   return (
     <>
       <ConfirmDialog
@@ -88,8 +94,9 @@ export function BookUpsert({
         }}
       >
         <DialogContent
-          className={`h-full sm:h-[80%] w-full ${isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
-            }`}
+          className={`h-full sm:h-[80%] w-full ${
+            isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
+          }`}
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>
@@ -164,10 +171,10 @@ export function BookUpsert({
                   control={control}
                   name="pages"
                   render={({ field }) => {
-                    const value =
-                      field.value === undefined || field.value === null
-                        ? undefined
-                        : field.value;
+                    const isEmptyField =
+                      field.value === undefined || field.value === null;
+
+                    const value = isEmptyField ? undefined : field.value;
 
                     return (
                       <FormItem>
@@ -177,12 +184,7 @@ export function BookUpsert({
                             type="number"
                             {...field}
                             value={value ?? ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const parsed =
-                                val === "" ? undefined : Number(val);
-                              field.onChange(parsed);
-                            }}
+                            onChange={(e) => handleOnChangePageNumber(field, e)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -193,20 +195,24 @@ export function BookUpsert({
 
                 <FormField
                   control={control}
-                  name="chosen_by"
+                  name="user_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Quem escolheu?</FormLabel>
                       <FormControl>
-                        <SelectField
-                          value={field.value}
-                          onChange={field.onChange}
-                          items={[
-                            { label: "Matheus", value: "Matheus" },
-                            { label: "Fabi", value: "Fabi" },
-                            { label: "Barbara", value: "Barbara" },
-                          ]}
-                        />
+                        {isLoadingUsers ? (
+                          <p className="text-sm text-muted-foreground">
+                            Carregando perfis...
+                          </p>
+                        ) : (
+                          <SelectField
+                            value={field.value}
+                            onChange={(selectedUserId) =>
+                              handleChosenByChange(field, selectedUserId)
+                            }
+                            items={chosenByOptions} // [{ label, value: user_id }]
+                          />
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -329,7 +335,7 @@ export function BookUpsert({
                         Deseja adicionar esse livro a uma estante?
                       </Label>
                     </div>
-                    {!isLoadingBookShelfs && isAddToShelfEnabled && (
+                    {!isLoadingBookshelves && isAddToShelfEnabled && (
                       <SelectField
                         items={bookshelfOptions}
                         value={selectedShelfId}
@@ -337,7 +343,7 @@ export function BookUpsert({
                         placeholder="Selecione uma estante"
                       />
                     )}
-                    {isLoadingBookShelfs && (
+                    {isLoadingBookshelves && (
                       <p className="text-sm text-muted-foreground">
                         Carregando estantes...
                       </p>

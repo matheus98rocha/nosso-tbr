@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Controller } from "react-hook-form";
 import { ClientScheduleProps } from "../../types/schedule.types";
+import { useCreateScheduleForm } from "./hooks/useCreateScheduleForm";
 
 import {
   Card,
@@ -12,17 +12,29 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useCreateScheduleForm } from "./hooks/useCreateScheduleForm";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function CreateScheduleForm({
   id: bookId,
   startDate,
 }: ClientScheduleProps) {
-  const { onSubmit, isSubmitting, errors, register, control, handleSubmit } =
-    useCreateScheduleForm({ id: bookId, startDate, title: "" });
+  const { form, onSubmit, isLoading, handleOnChangeIntField, control } =
+    useCreateScheduleForm({
+      id: bookId,
+      startDate,
+      title: "",
+    });
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-2xl h-fit">
@@ -33,93 +45,170 @@ export function CreateScheduleForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="totalChapters">Número de capítulos</Label>
-            <Input
-              id="totalChapters"
-              type="number"
-              {...register("totalChapters", {
-                setValueAs: (val) => (val === "" ? undefined : Number(val)),
-              })}
-              placeholder="Digite o número de capítulos"
-            />
-
-            {errors.totalChapters && (
-              <p className="text-red-500 text-sm">
-                {errors.totalChapters.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="startDate">Data de início</Label>
-            <Controller
-              control={control}
-              name="startDate"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            <FormField
+              control={form.control}
+              name="totalChapters"
               render={({ field }) => (
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={
-                    field.value
-                      ? new Date(field.value).toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const { value } = e.target;
-                    field.onChange(value ? new Date(value) : null);
-                  }}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
-                />
+                <FormItem>
+                  <FormLabel htmlFor="totalChapters">
+                    Número de capítulos
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      id="totalChapters"
+                      type="number"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => handleOnChangeIntField(field, e)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-            {errors.startDate && (
-              <p className="text-red-500 text-sm">{errors.startDate.message}</p>
-            )}
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Input
-              type="checkbox"
-              {...register("includePrologue")}
-              className="w-4 h-4"
+            <FormField
+              control={control}
+              name="chaptersPerDay"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="chaptersPerDay">
+                    Número de capítulos por dia (opcional)
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      id="chaptersPerDay"
+                      type="number"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => handleOnChangeIntField(field, e)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Se não informado, será usado o cálculo automático.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Label htmlFor="includePrologue">Incluir prólogo</Label>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Input
-              type="checkbox"
-              {...register("roundUp")}
-              className="w-4 h-4"
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="startDate">Data de início</FormLabel>
+                  <FormControl>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={
+                        field.value
+                          ? new Date(field.value).toISOString().split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) => {
+                        const { value } = e.target;
+                        field.onChange(
+                          value ? new Date(`${value}T00:00:00Z`) : null
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Label htmlFor="roundUp">
-              Arredondar capítulos por dia para cima
-            </Label>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Input
-              type="checkbox"
-              {...register("includeWeekends")}
-              className="w-4 h-4"
+            <FormField
+              control={form.control}
+              name="includePrologue"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      id="includePrologue"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel htmlFor="includePrologue">
+                    Incluir prólogo
+                  </FormLabel>
+                </FormItem>
+              )}
             />
-            <Label htmlFor="includeWeekends">Incluir finais de semana</Label>
-          </div>
 
-          <CardFooter className="flex justify-end px-0">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {isSubmitting ? "Gerando..." : "Gerar Cronograma"}
-            </Button>
-          </CardFooter>
-        </form>
+            <FormField
+              control={form.control}
+              name="includeEpilogue"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      id="includeEpilogue"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel htmlFor="includeEpilogue">
+                    Incluir epílogo
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="roundUp"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      id="roundUp"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel htmlFor="roundUp">
+                    Arredondar capítulos por dia para cima
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="includeWeekends"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      id="includeWeekends"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel htmlFor="includeWeekends">
+                    Incluir finais de semana
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+
+            <CardFooter className="flex justify-end px-0">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {isLoading ? "Gerando..." : "Gerar Cronograma"}
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

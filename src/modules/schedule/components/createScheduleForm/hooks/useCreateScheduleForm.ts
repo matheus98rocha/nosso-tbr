@@ -5,12 +5,17 @@ import {
 } from "@/modules/schedule/types/schedule.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ScheduleFormInput } from "../types/createScheduleForm.types";
-import { SubmitHandler } from "react-hook-form";
+import {
+  ControllerRenderProps,
+  FieldValues,
+  Path,
+  SubmitHandler,
+} from "react-hook-form";
 import { generateBookSchedule } from "@/modules/schedule/utils/generateBookSchedule";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { scheduleSchema } from "@/modules/schedule/validators/schedule.validator";
-import { useMemo } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 
 export function useCreateScheduleForm({
   id: bookId,
@@ -18,6 +23,7 @@ export function useCreateScheduleForm({
 }: ClientScheduleProps) {
   const scheduleService = new ScheduleUpsertService();
   const queryClient = useQueryClient();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm<ScheduleFormInput>({
     resolver: zodResolver(scheduleSchema),
@@ -25,8 +31,9 @@ export function useCreateScheduleForm({
       totalChapters: undefined,
       startDate: startDate ? new Date(startDate) : new Date(),
       includePrologue: false,
-      roundUp: false,
+      includeEpilogue: false,
       includeWeekends: false,
+      chaptersPerDay: undefined,
     },
   });
 
@@ -44,13 +51,27 @@ export function useCreateScheduleForm({
       queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
     onError: (error) => {
+      setFormError("Erro ao criar cronograma. Tente novamente.");
       console.error("Erro ao criar cronograma:", error);
     },
   });
 
   const onSubmit: SubmitHandler<ScheduleFormInput> = async (data) => {
-    if (!data.totalChapters || data.totalChapters <= 0) {
-      console.error("Número de capítulos inválido");
+    setFormError(null);
+    const isInvalidChaptersNumber =
+      !data.totalChapters || data.totalChapters <= 0;
+
+    if (isInvalidChaptersNumber) {
+      setFormError("Número de capítulos inválido");
+      return;
+    }
+    const isInvalidChaptersPerDay =
+      data.chaptersPerDay !== null &&
+      data.chaptersPerDay !== undefined &&
+      data.chaptersPerDay <= 0;
+
+    if (isInvalidChaptersPerDay) {
+      setFormError("Número de capítulos por dia inválido");
       return;
     }
 
@@ -61,24 +82,42 @@ export function useCreateScheduleForm({
       date: day.date,
       chapters: day.chapters,
       completed: false,
+      chaptersPerDay: data.chaptersPerDay,
     }));
 
     await createScheduleMutation.mutateAsync(schedulePayloads);
   };
 
-  const startDateMemo = useMemo(
-    () => (startDate ? new Date(startDate) : new Date()),
-    [startDate]
+  const handleOnChangeIntField = useCallback(
+    <T extends FieldValues>(
+      field: ControllerRenderProps<T, Path<T>>,
+      e: ChangeEvent<HTMLInputElement>
+    ) => {
+      const val = e.target.value;
+      const parsed = val === "" ? null : Number(val);
+      field.onChange(parsed);
+    },
+    []
   );
+
+  function normalizeNumberField(value: unknown): number | null {
+    const isInvalidValue = value === undefined || value === null;
+    if (isInvalidValue) return null;
+    return Number(value);
+  }
+
+  const isLoading = isSubmitting || createScheduleMutation.isPending;
 
   return {
     form,
     onSubmit,
-    isSubmitting,
+    isLoading,
     errors,
+    formError,
     register,
     control,
     handleSubmit,
-    startDateMemo,
+    handleOnChangeIntField,
+    normalizeNumberField,
   };
 }

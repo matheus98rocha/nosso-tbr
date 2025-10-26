@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Header from "@/components/header/header";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Nosso TBR",
@@ -12,9 +13,20 @@ export default function MainLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <main className="p-6 flex flex-col items-center gap-6">
-      <Header />
-      {children}
-    </main>
+    <>
+      <Suspense
+        fallback={
+          <svg
+            className="mr-3 size-5 animate-spin ..."
+            viewBox="0 0 24 24"
+          ></svg>
+        }
+      >
+        <Header />
+      </Suspense>
+      <div className="pt-40 p-6 flex flex-col items-center gap-6">
+        {children}
+      </div>
+    </>
   );
 }

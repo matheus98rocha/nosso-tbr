@@ -6,67 +6,87 @@ export function generateBookSchedule({
   includePrologue = false,
   chaptersPerDay = 3,
   includeWeekends = true,
-}: ScheduleInput): DailySchedule[] {
+  includeEpilogue = true,
+  days,
+}: ScheduleInput & { days?: number }): DailySchedule[] {
   const schedule: DailySchedule[] = [];
-  const chapters: string[] = [];
+  const chapters: number[] = [];
 
-  // Criar lista de capítulos sem contar o prólogo no índice
   for (let i = 1; i <= totalChapters; i++) {
-    chapters.push(`Cap. ${i}`);
+    chapters.push(i);
   }
 
   const currentDate = new Date(startDate);
+  currentDate.setHours(currentDate.getHours() + 3);
+  if (!currentDate) {
+    throw new Error("Data inicial inválida");
+  }
+
+  currentDate.setHours(12, 0, 0, 0);
+
   let chapterIndex = 0;
+  let effectiveChaptersPerDay = chaptersPerDay;
+
+  if (days && days > 0) {
+    effectiveChaptersPerDay = Math.ceil(totalChapters / days);
+  }
 
   while (chapterIndex < chapters.length) {
-    // Pular fins de semana se não incluídos
+    const scheduleDate = new Date(currentDate);
+
     if (!includeWeekends) {
-      while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-        currentDate.setDate(currentDate.getDate() + 1);
+      while (scheduleDate.getDay() === 0 || scheduleDate.getDay() === 6) {
+        scheduleDate.setDate(scheduleDate.getDate() + 1);
       }
     }
 
-    // Calcular quantos capítulos ler neste dia
-    const remainingChapters = chapters.length - chapterIndex;
-    const chaptersToday = Math.min(chaptersPerDay, remainingChapters);
+    const remaining = chapters.length - chapterIndex;
+    const take = Math.min(effectiveChaptersPerDay, remaining);
+    const todayChapters = chapters.slice(chapterIndex, chapterIndex + take);
+    chapterIndex += take;
 
-    // Obter os capítulos deste dia
-    const todayChapters = chapters.slice(
-      chapterIndex,
-      chapterIndex + chaptersToday
-    );
-    chapterIndex += chaptersToday;
+    const parts: string[] = [];
 
-    // Formatar a string de capítulos
-    let chaptersText = "";
-
-    // Adicionar prólogo apenas no primeiro dia
     if (includePrologue && schedule.length === 0) {
-      chaptersText += "Prólogo";
-      if (todayChapters.length > 0) chaptersText += ", ";
+      parts.push("Prólogo");
     }
 
     if (todayChapters.length > 0) {
       if (todayChapters.length === 1) {
-        chaptersText += todayChapters[0];
+        parts.push(`${todayChapters[0]}`);
       } else {
-        const firstNum = todayChapters[0].replace("Cap. ", "");
-        const lastNum = todayChapters[todayChapters.length - 1].replace(
-          "Cap. ",
-          ""
+        parts.push(
+          `${todayChapters[0]}-${todayChapters[todayChapters.length - 1]}`
         );
-        chaptersText += `Cap. ${firstNum}-${lastNum}`;
       }
     }
 
+    if (includeEpilogue && chapterIndex >= chapters.length) {
+      parts.push("Epílogo");
+    }
+
+    scheduleDate.setHours(12, 0, 0, 0);
+
     schedule.push({
-      date: new Date(currentDate),
-      chapters: chaptersText,
+      date: scheduleDate,
+      chapters: parts.join(", "),
     });
 
-    // Avançar para o próximo dia
+    // Avança para o próximo dia
     currentDate.setDate(currentDate.getDate() + 1);
   }
+
+  console.log(
+    "Cronograma gerado:",
+    schedule.map((item) => ({
+      date: item.date.toLocaleDateString("pt-BR"),
+      time: item.date.getTime(),
+      day: item.date.getDate(),
+      month: item.date.getMonth() + 1,
+      year: item.date.getFullYear(),
+      chapters: item.chapters,
+    }))
+  );
 
   return schedule;
 }

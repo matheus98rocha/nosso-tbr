@@ -6,7 +6,6 @@ export const bookCreateSchema = z.object({
   chosen_by: z.enum(["Matheus", "Fabi", "Barbara"], {
     message: "Quem escolheu o livro é obrigatório",
   }),
-  // No seu arquivo createBook.validator.ts
   pages: z
     .number({
       message: "O número de páginas é obrigatório",
@@ -30,6 +29,7 @@ export const bookCreateSchema = z.object({
         message: "A URL da imagem deve ser de um domínio da Amazon válido",
       }
     ),
+  user_id: z.string().optional(),
 });
 
 export type BookCreateValidator = z.infer<typeof bookCreateSchema>;
