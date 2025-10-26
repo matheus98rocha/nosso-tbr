@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Sliders } from "lucide-react";
+import {
+  //  ArrowUpDown,
+  Sliders,
+} from "lucide-react";
 import {
   InputWithButton,
   InputWithButtonRef,
@@ -43,7 +46,7 @@ export function SearchBar({
           Filtros
         </Button>
 
-        <Button
+        {/* <Button
           variant="ghost"
           onClick={() => {}}
           className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
@@ -51,7 +54,7 @@ export function SearchBar({
         >
           <ArrowUpDown size={16} />
           Ordenar
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
