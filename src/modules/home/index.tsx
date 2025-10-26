@@ -28,6 +28,7 @@ export default function ClientHome() {
     filters,
     hasSearchParams,
     isMyBooksPage,
+    handleGenerateReadersObj,
   } = useHome();
 
   const dialogModal = useModal();
@@ -74,9 +75,9 @@ export default function ClientHome() {
                       Filtros aplicados:
                       {formattedGenres && ` gênero ${formattedGenres}`}
                       {formattedReaders &&
-                        `${
-                          formattedGenres ? "," : ""
-                        } Leitor(s) ${formattedReaders}`}
+                        `${formattedGenres ? "," : ""} Leitor(s) ${
+                          handleGenerateReadersObj().readersDisplay
+                        }`}
                       {formattedStatus &&
                         `${
                           formattedGenres || formattedReaders ? " e" : ""

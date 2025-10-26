@@ -55,6 +55,7 @@ export function useMyBooks() {
       }),
   });
 
+  // REMOVER
   const { isLoading: isLoadingUser, isError: isErrorUser } = useQuery({
     queryKey: ["user"],
     queryFn: () =>

@@ -2,7 +2,7 @@ import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { FiltersOptions } from "@/types/filters";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
@@ -40,6 +40,20 @@ export function useHome() {
     handleSearchButtonClick,
   } = useFiltersUrl(defaultFactory);
 
+  const handleGenerateReadersObj = useCallback(() => {
+    if (filters.readers.length > 0) {
+      return {
+        readers: filters.readers,
+        readersDisplay: filters.readers.map((reader) => reader),
+      };
+    } else {
+      return {
+        readers: users.map((u) => u.display_name),
+        readersDisplay: users.map((u) => u.display_name).join(", "),
+      };
+    }
+  }, [filters.readers, users]);
+
   const {
     data: allBooks,
     isFetching: isLoadingAllBooks,
@@ -50,7 +64,11 @@ export function useHome() {
     queryFn: async () =>
       bookService.getAll({
         bookId: filters.bookId,
-        filters,
+        filters: {
+          readers: handleGenerateReadersObj().readers,
+          status: filters.status,
+          gender: filters.gender,
+        },
         search: searchQuery,
         userId: undefined,
       }),
@@ -94,5 +112,6 @@ export function useHome() {
     filters,
     hasSearchParams,
     isMyBooksPage,
+    handleGenerateReadersObj,
   };
 }

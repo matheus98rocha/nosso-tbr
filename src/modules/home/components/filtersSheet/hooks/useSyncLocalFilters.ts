@@ -2,7 +2,7 @@ import { FiltersOptions } from "@/types/filters";
 import { useEffect, useRef } from "react";
 
 export const useSyncLocalFilters = (
-  externalFilters: FiltersOptions,
+  externalFilters: FiltersOptions | string,
   isOpen: boolean,
   resetLocalFilters: (filters: FiltersOptions) => void
 ) => {
@@ -16,7 +16,7 @@ export const useSyncLocalFilters = (
       JSON.stringify(previousFiltersRef.current) !==
         JSON.stringify(externalFilters)
     ) {
-      resetLocalFilters(externalFilters);
+      resetLocalFilters(externalFilters as FiltersOptions);
     }
 
     previousFiltersRef.current = externalFilters;
