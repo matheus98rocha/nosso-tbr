@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { SORT_OPTIONS, useLocalSort } from "./hooks/useLocalSort";
-import { useSyncLocalFilters } from "../filtersSheet/hooks/useSyncLocalFilters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export type SortSheetProps = {
@@ -28,7 +27,7 @@ export default function SortSheet({
 }: SortSheetProps) {
   const { localSort, handleSortChange, resetLocalSort } = useLocalSort(sort);
 
-  useSyncLocalFilters(sort, open, resetLocalSort);
+  // useSyncLocalFilters(sort, open, resetLocalSort);
 
   const applySort = useCallback(() => {
     updateUrlWithSort(localSort);
