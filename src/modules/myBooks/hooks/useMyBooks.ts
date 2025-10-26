@@ -1,8 +1,7 @@
 import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
-import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { FiltersOptions } from "@/types/filters";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
@@ -11,21 +10,21 @@ import {
   formatStatus,
 } from "@/utils/formatters/formatters";
 
-export function useHome() {
-  const bookService = new BookService();
-  const { users, isLoadingUsers } = useUser();
+export function useMyBooks() {
   const fetchUser = useUserStore((state) => state.fetchUser);
+  const bookService = new BookService();
+  const { user } = useUserStore();
 
   const defaultFactory = useMemo(
     () => () =>
       ({
-        readers: users.map((u) => u.display_name),
+        readers: [],
         status: [],
         gender: [],
         userId: "",
         bookId: "",
       } as FiltersOptions),
-    [users]
+    []
   );
 
   const {
@@ -40,40 +39,23 @@ export function useHome() {
     handleSearchButtonClick,
   } = useFiltersUrl(defaultFactory);
 
-  const handleGenerateReadersObj = useCallback(() => {
-    if (filters.readers.length > 0) {
-      return {
-        readers: filters.readers,
-        readersDisplay: filters.readers.map((reader) => reader),
-      };
-    } else {
-      return {
-        readers: users.map((u) => u.display_name),
-        readersDisplay: users.map((u) => u.display_name).join(", "),
-      };
-    }
-  }, [filters.readers, users]);
-
   const {
     data: allBooks,
     isFetching: isLoadingAllBooks,
     isFetched,
     isError,
   } = useQuery({
-    queryKey: ["books", filters, searchQuery],
+    queryKey: ["books", filters, searchQuery, user?.id],
     queryFn: async () =>
       bookService.getAll({
         bookId: filters.bookId,
-        filters: {
-          readers: handleGenerateReadersObj().readers,
-          status: filters.status,
-          gender: filters.gender,
-        },
+        filters,
         search: searchQuery,
-        userId: undefined,
+        userId: user?.id,
       }),
   });
 
+  // REMOVER
   const { isLoading: isLoadingUser, isError: isErrorUser } = useQuery({
     queryKey: ["user"],
     queryFn: () =>
@@ -89,12 +71,9 @@ export function useHome() {
   const formattedReaders = formatReaders(filters.readers);
   const formattedStatus = formatStatus(filters.status);
 
-  const isLoadingData = isLoadingUsers || isLoadingAllBooks;
-  const isMyBooksPage = !!filters.userId;
-
   return {
     allBooks,
-    isLoadingAllBooks: isLoadingData,
+    isLoadingAllBooks: isLoadingAllBooks,
     isFetched,
     isError,
     isLoadingUser,
@@ -111,7 +90,5 @@ export function useHome() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
-    isMyBooksPage,
-    handleGenerateReadersObj,
   };
 }

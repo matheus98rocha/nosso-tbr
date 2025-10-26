@@ -30,7 +30,7 @@ export function AddBookToBookshelfDialog({
     queryKey: ["books"],
     queryFn: async () => {
       const service = new BookService();
-      return service.getAll();
+      return service.getAll({});
     },
   });
 

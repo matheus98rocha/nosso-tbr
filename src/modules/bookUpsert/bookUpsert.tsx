@@ -12,7 +12,6 @@ import { SelectField } from "../home/components/select/select.";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../home/components/datePicker/datePicker";
 import { useBookDialog } from "./hooks/useBookDialog";
-import { genders } from "@/modules/home/utils/genderBook";
 
 import {
   Form,
@@ -26,10 +25,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
-import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
-import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
+import { BlurOverlay, ConfirmDialog } from "@/components/";
 import { CreateBookProps } from "./bookUpsert.types";
 import { useUser } from "@/services/users/hooks/useUsers";
+import { genders } from "@/constants/genders";
 
 export function BookUpsert({
   bookData,

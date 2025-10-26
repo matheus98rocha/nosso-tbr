@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Sliders } from "lucide-react";
+import {
+  //  ArrowUpDown,
+  Sliders,
+} from "lucide-react";
 import {
   InputWithButton,
   InputWithButtonRef,
@@ -32,16 +35,27 @@ export function SearchBar({
         onKeyDown={onKeyDown}
         placeholder="Pesquise por título do livro ou nome do autor"
       />
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="ghost"
+          onClick={onOpenFilters}
+          className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
+          aria-label="Filters"
+        >
+          <Sliders size={16} />
+          Filtros
+        </Button>
 
-      <Button
-        variant="ghost"
-        onClick={onOpenFilters}
-        className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
-        aria-label="Filters"
-      >
-        <Sliders size={16} />
-        Filtros
-      </Button>
+        {/* <Button
+          variant="ghost"
+          onClick={() => {}}
+          className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
+          aria-label="Sort"
+        >
+          <ArrowUpDown size={16} />
+          Ordenar
+        </Button> */}
+      </div>
     </div>
   );
 }

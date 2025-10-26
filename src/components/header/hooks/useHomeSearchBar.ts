@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
-import { FiltersOptions } from "@/modules/home/components/filtersSheet/hooks/useFiltersSheet";
+import { FiltersOptions } from "@/types/filters";
 
 export function useHomeSearchBar() {
   const inputRef = useRef<InputWithButtonRef>(null);

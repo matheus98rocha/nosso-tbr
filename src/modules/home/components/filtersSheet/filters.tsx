@@ -18,6 +18,7 @@ import {
   STATUS_OPTIONS,
   useLocalFilters,
 } from "./hooks/useFiltersSheet";
+import { usePathname } from "next/navigation";
 
 export default function FiltersSheet({
   filters,
@@ -26,6 +27,7 @@ export default function FiltersSheet({
   updateUrlWithFilters,
   searchQuery,
 }: FiltersProps) {
+  const pathname = usePathname();
   const { localFilters, handleFilterChange, resetLocalFilters } =
     useLocalFilters(filters);
 
@@ -62,14 +64,15 @@ export default function FiltersSheet({
         </SheetHeader>
 
         <div className="flex flex-col gap-2 p-3">
-          <FilterSection
-            title="Leitores"
-            options={READER_OPTIONS}
-            selected={localFilters.readers}
-            onChange={(values) => handleFilterChange("readers", values)}
-            placeholder="Selecione os leitores"
-          />
-
+          {pathname === "/" && (
+            <FilterSection
+              title="Leitores"
+              options={READER_OPTIONS}
+              selected={localFilters.readers}
+              onChange={(values) => handleFilterChange("readers", values)}
+              placeholder="Selecione os leitores"
+            />
+          )}
           <FilterSection
             title="Status"
             options={STATUS_OPTIONS}
