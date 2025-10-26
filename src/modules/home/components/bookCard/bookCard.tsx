@@ -31,6 +31,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
     dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
+    handleNavigateToAuthor,
     isLogged,
     handleNavigateToQuotes,
     badgeObject,
@@ -105,8 +106,18 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader>
           <CardTitle className="truncate">{book.title}</CardTitle>
-          <CardDescription>
-            {book.author} | {book.pages} páginas
+          <CardDescription className="flex flex-col">
+            <span className="flex items-center gap-1">
+              por
+              <p
+                className="text-[#2162a1] hover:underline cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-52"
+                onClick={handleNavigateToAuthor}
+              >
+                {book.author}
+              </p>
+              (Autor)
+            </span>
+            <span>{book.pages} páginas</span>
           </CardDescription>
 
           {isLogged && (
