@@ -6,11 +6,7 @@ import { ClientScheduleProps } from "./types/schedule.types";
 import { ScheduleTable } from "./components/scheduleTable/scheduleTable";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function ClientSchedule({
-  id,
-  startDate,
-  title,
-}: ClientScheduleProps) {
+export default function ClientSchedule({ id, title }: ClientScheduleProps) {
   const {
     schedule,
     updateIsCompleted,
@@ -20,7 +16,6 @@ export default function ClientSchedule({
     emptySchedule,
   } = useSchedule({
     id,
-    startDate,
   });
 
   if (isLoadingSchedule) {
@@ -63,7 +58,7 @@ export default function ClientSchedule({
             bookId={id}
           />
         ) : (
-          <CreateScheduleForm id={id} startDate={startDate} title={title} />
+          <CreateScheduleForm id={id} title={title} />
         )}
       </>
     </div>

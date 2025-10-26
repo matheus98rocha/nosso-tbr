@@ -1,84 +1,58 @@
 import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
-import { useUserStore } from "@/stores/userStore";
-import { useCallback, useMemo, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { STATUS_DICTIONARY } from "../constants/constants";
-import { formatList } from "../utils/formatList";
-import { genders } from "../utils/genderBook";
-import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
-import { FiltersOptions } from "../components/filtersSheet/hooks/useFiltersSheet";
 import { useUser } from "@/services/users/hooks/useUsers";
-
-export type FiltersOptionsHome = {
-  readers: string[];
-  status: string[];
-  gender: string[];
-  userId: string;
-  bookId: string;
-};
+import { useUserStore } from "@/stores/userStore";
+import { useCallback, useMemo } from "react";
+import { FiltersOptions } from "@/types/filters";
+import { useFiltersUrl } from "@/hooks/useFiltersUrl";
+import {
+  formatGenres,
+  formatReaders,
+  formatStatus,
+} from "@/utils/formatters/formatters";
 
 export function useHome() {
-  const inputRef = useRef<InputWithButtonRef>(null);
-  const fetchUser = useUserStore((state) => state.fetchUser);
   const bookService = new BookService();
-
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const { users, isLoadingUsers } = useUser();
+  const fetchUser = useUserStore((state) => state.fetchUser);
 
-  const DEFAULT_FILTERS = useMemo<FiltersOptionsHome>(
-    () => ({
-      readers: users.map((user) => user.display_name),
-      status: [],
-      gender: [],
-      userId: "",
-      bookId: "",
-    }),
+  const defaultFactory = useMemo(
+    () => () =>
+      ({
+        readers: users.map((u) => u.display_name),
+        status: [],
+        gender: [],
+        userId: "",
+        bookId: "",
+      } as FiltersOptions),
     [users]
   );
 
-  const filters = useMemo((): FiltersOptionsHome => {
-    const hasParams =
-      searchParams.get("readers") ||
-      searchParams.get("status") ||
-      searchParams.get("gender") ||
-      searchParams.get("userId") ||
-      searchParams.get("bookId");
+  const {
+    filters,
+    searchQuery,
+    hasSearchParams,
+    inputRef,
+    updateUrlWithFilters,
+    handleOnPressEnter,
+    handleClearAllFilters,
+    handleInputBlur,
+    handleSearchButtonClick,
+  } = useFiltersUrl(defaultFactory);
 
-    if (!hasParams) {
-      return DEFAULT_FILTERS;
+  const handleGenerateReadersObj = useCallback(() => {
+    if (filters.readers.length > 0) {
+      return {
+        readers: filters.readers,
+        readersDisplay: filters.readers.map((reader) => reader),
+      };
+    } else {
+      return {
+        readers: users.map((u) => u.display_name),
+        readersDisplay: users.map((u) => u.display_name).join(", "),
+      };
     }
-
-    const readers =
-      searchParams
-        .get("readers")
-        ?.split(",")
-        .filter(Boolean)
-        .map(decodeURIComponent) ?? [];
-
-    const status =
-      searchParams
-        .get("status")
-        ?.split(",")
-        .filter(Boolean)
-        .map(decodeURIComponent) ?? [];
-
-    const gender =
-      searchParams
-        .get("gender")
-        ?.split(",")
-        .filter(Boolean)
-        .map(decodeURIComponent) ?? [];
-
-    const userId = searchParams.get("userId") ?? "";
-
-    const bookId = searchParams.get("bookId") ?? "";
-
-    return { readers, status, gender, userId, bookId };
-  }, [DEFAULT_FILTERS, searchParams]);
-
-  const searchQuery = searchParams.get("search") ?? "";
+  }, [filters.readers, users]);
 
   const {
     data: allBooks,
@@ -87,14 +61,17 @@ export function useHome() {
     isError,
   } = useQuery({
     queryKey: ["books", filters, searchQuery],
-    queryFn: async () => {
-      return bookService.getAll(
-        filters,
-        searchQuery,
-        filters.userId,
-        filters.bookId
-      );
-    },
+    queryFn: async () =>
+      bookService.getAll({
+        bookId: filters.bookId,
+        filters: {
+          readers: handleGenerateReadersObj().readers,
+          status: filters.status,
+          gender: filters.gender,
+        },
+        search: searchQuery,
+        userId: undefined,
+      }),
   });
 
   const { isLoading: isLoadingUser, isError: isErrorUser } = useQuery({
@@ -108,106 +85,12 @@ export function useHome() {
       }),
   });
 
-  const updateUrlWithFilters = useCallback(
-    (newFilters: FiltersOptions, search?: string, bookId?: string) => {
-      const params = new URLSearchParams();
-
-      if (search && search.trim()) {
-        params.set("search", search.trim());
-      }
-
-      if (newFilters.readers.length) {
-        params.set(
-          "readers",
-          newFilters.readers.map(encodeURIComponent).join(",")
-        );
-      }
-
-      if (newFilters.status.length) {
-        params.set(
-          "status",
-          newFilters.status.map(encodeURIComponent).join(",")
-        );
-      }
-
-      if (newFilters.gender.length) {
-        params.set(
-          "gender",
-          newFilters.gender.map(encodeURIComponent).join(",")
-        );
-      }
-
-      const idToSet = bookId ?? newFilters.bookId;
-      if (idToSet) {
-        params.set("bookId", idToSet);
-      }
-
-      const qs = params.toString();
-      const target = qs ? `?${qs}` : window.location.pathname;
-      router.replace(target);
-    },
-    [router]
-  );
-
-  const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.value;
-    if (event.key === "Enter" && value.trim() !== "") {
-      updateUrlWithFilters(filters, value);
-    }
-  };
-
-  const handleClearAllFilters = useCallback(() => {
-    updateUrlWithFilters(DEFAULT_FILTERS, "");
-    if (inputRef.current) {
-      inputRef.current.clear();
-    }
-  }, [DEFAULT_FILTERS, updateUrlWithFilters]);
-
-  const handleInputBlur = useCallback(
-    (value: string) => {
-      updateUrlWithFilters(filters, value);
-    },
-    [filters, updateUrlWithFilters]
-  );
-
-  const handleSearchButtonClick = useCallback(
-    (value: string) => {
-      updateUrlWithFilters(filters, value);
-    },
-    [filters, updateUrlWithFilters]
-  );
-
-  const formattedGenres = useMemo(() => {
-    if (!Array.isArray(filters.gender) || filters.gender.length === 0)
-      return null;
-    const labels = filters.gender.map(
-      (value: string) => genders.find((g) => g.value === value)?.label ?? value
-    );
-    return formatList(labels);
-  }, [filters.gender]);
-
-  const formattedReaders = useMemo(() => {
-    return Array.isArray(filters.readers) && filters.readers.length > 0
-      ? formatList(filters.readers)
-      : null;
-  }, [filters.readers]);
-
-  const formattedStatus = useMemo(() => {
-    return Array.isArray(filters.status) && filters.status.length > 0
-      ? formatList(
-          filters.status.map(
-            (value: string) =>
-              `"${
-                STATUS_DICTIONARY[value as keyof typeof STATUS_DICTIONARY] ??
-                value
-              }"`
-          )
-        )
-      : null;
-  }, [filters.status]);
+  const formattedGenres = formatGenres(filters.gender);
+  const formattedReaders = formatReaders(filters.readers);
+  const formattedStatus = formatStatus(filters.status);
 
   const isLoadingData = isLoadingUsers || isLoadingAllBooks;
-  const hasSearchParams = searchParams.toString().length > 0;
+  const isMyBooksPage = !!filters.userId;
 
   return {
     allBooks,
@@ -228,5 +111,7 @@ export function useHome() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
+    isMyBooksPage,
+    handleGenerateReadersObj,
   };
 }

@@ -27,12 +27,11 @@ export default function ClientHome() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
+    isMyBooksPage,
+    handleGenerateReadersObj,
   } = useHome();
 
-  const isMyBooksPage = !!filters.userId;
-
   const dialogModal = useModal();
-  // const filtersSheet = useModal();
   const createShelfDialog = useModal();
 
   return (
@@ -76,9 +75,9 @@ export default function ClientHome() {
                       Filtros aplicados:
                       {formattedGenres && ` gênero ${formattedGenres}`}
                       {formattedReaders &&
-                        `${
-                          formattedGenres ? "," : ""
-                        } Leitor(s) ${formattedReaders}`}
+                        `${formattedGenres ? "," : ""} Leitor(s) ${
+                          handleGenerateReadersObj().readersDisplay
+                        }`}
                       {formattedStatus &&
                         `${
                           formattedGenres || formattedReaders ? " e" : ""

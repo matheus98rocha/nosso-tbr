@@ -9,7 +9,6 @@ import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelve
 
 export function useBookCard({ book }: BookCardProps) {
   const dropdownModal = useModal();
-
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
   const dialogAddShelfModal = useModal();
@@ -29,9 +28,13 @@ export function useBookCard({ book }: BookCardProps) {
   }, [book.title]);
 
   const handleNavigateToSchedule = useCallback(() => {
-    router.push(`/schedule/${book.id}/${book.start_date}/${book.title}`);
-  }, [router, book.id, book.start_date, book.title]);
+    router.push(`/schedule/${book.id}/${book.title}`);
+  }, [router, book.id, book.title]);
 
+  const handleNavigateToAuthor = useCallback(
+    () => router.push(`?search=${book.author}`),
+    [router, book.author]
+  );
   const handleNavigateToQuotes = useCallback(() => {
     router.push(`/quotes/${book.title}/${book.id}`);
   }, [router, book.title, book.id]);
@@ -73,6 +76,7 @@ export function useBookCard({ book }: BookCardProps) {
     dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
+    handleNavigateToAuthor,
     book,
     handleNavigateToQuotes,
     badgeObject,

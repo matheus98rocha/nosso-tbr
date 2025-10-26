@@ -3,7 +3,7 @@ import { BookMapper } from "@/services/books/books.mapper";
 import { BookDomain } from "@/types/books.types";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
-import { FiltersOptions } from "@/modules/home/components/filtersSheet/hooks/useFiltersSheet";
+import { FiltersOptions } from "@/types/filters";
 
 const ALLOWED_STATUSES = ["reading", "finished", "not_started"] as const;
 type BookStatus = (typeof ALLOWED_STATUSES)[number];
@@ -13,12 +13,17 @@ function isBookStatus(value: unknown): value is BookStatus {
 }
 export class BookService {
   private supabase = createClient();
-  async getAll(
-    filters?: FiltersOptions,
-    search?: string,
-    userId?: string,
-    bookId?: string
-  ): Promise<BookDomain[]> {
+  async getAll({
+    bookId,
+    filters,
+    search,
+    userId,
+  }: {
+    filters?: FiltersOptions;
+    search?: string;
+    userId?: string;
+    bookId?: string;
+  }): Promise<BookDomain[]> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
 
@@ -30,7 +35,9 @@ export class BookService {
         .withSearchTerm(search)
         .withId(bookId);
 
+      console.log("fora do ifuserId -> ", userId);
       if (userId) {
+        console.log("userId -> ", userId);
         query = query.withUser(userId);
       }
 
