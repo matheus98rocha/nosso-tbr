@@ -23,7 +23,6 @@ export type ScheduleDomain = {
 
 export type ClientScheduleProps = {
   id: string;
-  startDate: string;
   title: string;
 };
 

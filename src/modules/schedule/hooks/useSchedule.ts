@@ -4,7 +4,6 @@ import { ScheduleDomain } from "../types/schedule.types";
 
 type UseScheduleProps = {
   id: string;
-  startDate: string;
 };
 
 export function useSchedule({ id }: UseScheduleProps) {

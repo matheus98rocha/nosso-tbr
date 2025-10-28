@@ -14,22 +14,25 @@ import {
 import { generateBookSchedule } from "@/modules/schedule/utils/generateBookSchedule";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { scheduleSchema } from "@/modules/schedule/validators/schedule.validator";
+import { scheduleSchema } from "@/modules/schedule/components/createScheduleForm/validators/schedule.validator";
 import { ChangeEvent, useCallback, useState } from "react";
 
-export function useCreateScheduleForm({
-  id: bookId,
-  startDate,
-}: ClientScheduleProps) {
+export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
   const scheduleService = new ScheduleUpsertService();
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
+
+  const defaultDate = new Date();
+  const year = defaultDate.getFullYear();
+  const month = String(defaultDate.getMonth() + 1).padStart(2, "0");
+  const day = String(defaultDate.getDate()).padStart(2, "0");
+  const formattedDefaultDate = `${year}-${month}-${day}`;
 
   const form = useForm<ScheduleFormInput>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
       totalChapters: undefined,
-      startDate: startDate ? new Date(startDate) : new Date(),
+      startDate: new Date(formattedDefaultDate),
       includePrologue: false,
       includeEpilogue: false,
       includeWeekends: false,
@@ -57,6 +60,8 @@ export function useCreateScheduleForm({
   });
 
   const onSubmit: SubmitHandler<ScheduleFormInput> = async (data) => {
+    console.log(data);
+
     setFormError(null);
     const isInvalidChaptersNumber =
       !data.totalChapters || data.totalChapters <= 0;

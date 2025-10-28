@@ -36,7 +36,7 @@ export function useUpsertQuoteModal({
 
   const createMutation = useMutation({
     mutationFn: (data: CreateQuoteFormInput) =>
-      quotesService.createQuote(bookId, data.content, data.page),
+      quotesService.createQuote(bookId, data.content, data.page ?? null),
   });
 
   const updateMutation = useMutation({
