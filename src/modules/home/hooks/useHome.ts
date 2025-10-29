@@ -14,7 +14,7 @@ import {
 export function useHome() {
   const bookService = new BookService();
   const { users, isLoadingUsers } = useUser();
-  const fetchUser = useUserStore((state) => state.fetchUser);
+  const user = useUserStore((state) => state.user);
 
   const defaultFactory = useMemo(
     () => () =>
@@ -74,17 +74,6 @@ export function useHome() {
       }),
   });
 
-  const { isLoading: isLoadingUser, isError: isErrorUser } = useQuery({
-    queryKey: ["user"],
-    queryFn: () =>
-      fetchUser().then(() => {
-        const user = useUserStore.getState().user;
-        const error = useUserStore.getState().error;
-        if (error) throw new Error(error);
-        return user;
-      }),
-  });
-
   const formattedGenres = formatGenres(filters.gender);
   const formattedReaders = formatReaders(filters.readers);
   const formattedStatus = formatStatus(filters.status);
@@ -97,8 +86,6 @@ export function useHome() {
     isLoadingAllBooks: isLoadingData,
     isFetched,
     isError,
-    isLoadingUser,
-    isErrorUser,
     searchQuery,
     updateUrlWithFilters,
     formattedStatus,
@@ -113,5 +100,6 @@ export function useHome() {
     hasSearchParams,
     isMyBooksPage,
     handleGenerateReadersObj,
+    user,
   };
 }

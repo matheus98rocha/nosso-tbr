@@ -1,30 +1,22 @@
-import { UsersService } from "@/services/users/mappers/users.service";
-import { UserDomain } from "@/services/users/types/users.types";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { UserDomain } from "../types/users.types";
 
 export function useUser() {
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const userService = new UsersService();
-      const data = await userService.get();
-      return data;
+      const res = await fetch("/api/users", {
+        next: { tags: ["users"] },
+      });
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
     },
   });
 
-  const chosenByOptions = useMemo(
-    () =>
-      (users ?? []).map((user: UserDomain) => ({
-        label: user.display_name,
-        value: user.id,
-      })),
-    [users]
-  );
+  const chosenByOptions = (users ?? []).map((user: UserDomain) => ({
+    label: user.display_name,
+    value: user.id,
+  }));
 
-  return {
-    users,
-    chosenByOptions,
-    isLoadingUsers,
-  };
+  return { users, chosenByOptions, isLoadingUsers };
 }
