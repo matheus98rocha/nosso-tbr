@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookshelfService } from "../services/booksshelves.service";
+import {
+  BookshelfService,
+  fetchBookShelves,
+} from "../services/booksshelves.service";
 import {
   BookshelfCreateValidator,
   BookshelfDomain,
@@ -22,7 +25,7 @@ export function useBookshelves({
     error,
   } = useQuery({
     queryKey: ["bookshelves"],
-    queryFn: () => service.getAll(),
+    queryFn: fetchBookShelves,
   });
 
   const { mutate, isPending: isCreating } = useMutation({

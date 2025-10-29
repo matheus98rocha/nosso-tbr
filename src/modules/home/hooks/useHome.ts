@@ -10,6 +10,7 @@ import {
   formatReaders,
   formatStatus,
 } from "@/utils/formatters/formatters";
+import { UserDomain } from "@/services/users/types/users.types";
 
 export function useHome() {
   const bookService = new BookService();
@@ -19,7 +20,7 @@ export function useHome() {
   const defaultFactory = useMemo(
     () => () =>
       ({
-        readers: users.map((u) => u.display_name),
+        readers: users.map((u: UserDomain) => u.display_name),
         status: [],
         gender: [],
         userId: "",

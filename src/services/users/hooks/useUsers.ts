@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { UserDomain } from "../types/users.types";
 
-export function useUser() {
+export function useUser(): {
+  users: UserDomain[];
+  chosenByOptions: { label: string; value: string }[];
+  isLoadingUsers: boolean;
+} {
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
