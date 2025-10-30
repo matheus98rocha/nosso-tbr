@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { AddBookToShelfProps } from "../types/addBookToShelf.types";
-import { BookshelfService } from "@/modules/shelves/services/booksshelves.service";
+import {
+  BookshelfService,
+  fetchBookShelves,
+} from "@/modules/shelves/services/booksshelves.service";
 import { SelectedBookshelf } from "@/modules/shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
 
@@ -15,10 +18,7 @@ export function useAddBookToShelf({
 
   const { data: bookshelves = [], isLoading } = useQuery({
     queryKey: ["bookshelves"],
-    queryFn: async () => {
-      const service = new BookshelfService();
-      return service.getAll();
-    },
+    queryFn: fetchBookShelves,
   });
 
   const { mutate, isPending } = useMutation({

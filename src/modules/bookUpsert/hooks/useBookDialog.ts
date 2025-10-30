@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookCreateValidator, Status } from "@/types/books.types";
 import { BookUpsertService } from "../services/bookUpsert.service";
 import { toast } from "sonner";
-import { BookshelfService } from "../../shelves/services/booksshelves.service";
+import {
+  BookshelfService,
+  fetchBookShelves,
+} from "../../shelves/services/booksshelves.service";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { UseCreateBookDialog } from "../bookUpsert.types";
 import { ControllerRenderProps, useForm } from "react-hook-form";
@@ -73,9 +76,7 @@ export function useBookDialog({
 
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
     queryKey: ["bookshelves"],
-    queryFn: async () => {
-      return bookshelfService.getAll();
-    },
+    queryFn: fetchBookShelves,
   });
 
   const bookshelfOptions =

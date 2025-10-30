@@ -11,7 +11,6 @@ import {
 } from "@/utils/formatters/formatters";
 
 export function useMyBooks() {
-  const fetchUser = useUserStore((state) => state.fetchUser);
   const bookService = new BookService();
   const { user } = useUserStore();
 
@@ -55,18 +54,6 @@ export function useMyBooks() {
       }),
   });
 
-  // REMOVER
-  const { isLoading: isLoadingUser, isError: isErrorUser } = useQuery({
-    queryKey: ["user"],
-    queryFn: () =>
-      fetchUser().then(() => {
-        const user = useUserStore.getState().user;
-        const error = useUserStore.getState().error;
-        if (error) throw new Error(error);
-        return user;
-      }),
-  });
-
   const formattedGenres = formatGenres(filters.gender);
   const formattedReaders = formatReaders(filters.readers);
   const formattedStatus = formatStatus(filters.status);
@@ -76,8 +63,6 @@ export function useMyBooks() {
     isLoadingAllBooks: isLoadingAllBooks,
     isFetched,
     isError,
-    isLoadingUser,
-    isErrorUser,
     searchQuery,
     updateUrlWithFilters,
     formattedStatus,

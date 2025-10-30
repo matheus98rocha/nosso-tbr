@@ -46,6 +46,7 @@ function Header() {
   }, []);
 
   const user = useUserStore((state) => state.user);
+  console.log("->", user);
   const isLoadingUser = useUserStore((state) => state.loading);
 
   const isLogged = useIsLoggedIn();
