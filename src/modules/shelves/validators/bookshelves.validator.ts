@@ -7,7 +7,6 @@ export const bookshelfCreateSchema = z.object({
     .max(100, {
       message: "O nome da estante deve ter no máximo 100 caracteres",
     }),
-  owner: z.enum(["Matheus", "Fabi"]),
 });
 
 export type BookshelfCreateValidator = z.infer<typeof bookshelfCreateSchema>;

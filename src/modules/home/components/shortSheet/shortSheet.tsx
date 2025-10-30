@@ -8,9 +8,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { SORT_OPTIONS, useLocalSort } from "./hooks/useLocalSort";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useLocalSort } from "./hooks/useLocalSort";
 
 export type SortSheetProps = {
   sort: string;
@@ -25,7 +23,7 @@ export default function SortSheet({
   setIsOpen,
   updateUrlWithSort,
 }: SortSheetProps) {
-  const { localSort, handleSortChange, resetLocalSort } = useLocalSort(sort);
+  const { localSort, resetLocalSort } = useLocalSort(sort);
 
   // useSyncLocalFilters(sort, open, resetLocalSort);
 
@@ -55,18 +53,6 @@ export default function SortSheet({
 
         <div className="flex flex-col gap-3 p-3">
           <span className="text-sm font-medium">Critério de Ordenação</span>
-          <RadioGroup
-            value={localSort}
-            onValueChange={handleSortChange}
-            className="flex flex-col gap-2"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
-                <RadioGroupItem value={option.value} id={option.value} />
-                <Label htmlFor={option.value}>{option.label}</Label>
-              </div>
-            ))}
-          </RadioGroup>
         </div>
 
         <SheetFooter className="flex flex-col gap-2 mt-auto">

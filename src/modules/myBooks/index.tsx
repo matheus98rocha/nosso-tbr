@@ -19,7 +19,6 @@ export default function ClientMyBook() {
     isFetched,
     isLoadingAllBooks,
     isError,
-    isLoadingUser,
     searchQuery,
     formattedGenres,
     formattedReaders,
@@ -108,7 +107,7 @@ export default function ClientMyBook() {
 
         <ListGrid<BookDomain>
           items={allBooks ?? []}
-          isLoading={isLoadingAllBooks || isLoadingUser || isLoggingOut}
+          isLoading={isLoadingAllBooks || isLoggingOut}
           isFetched={isFetched}
           renderItem={(book) => <BookCard key={book.id} book={book} />}
           isError={isError}
