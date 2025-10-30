@@ -7,6 +7,7 @@ import {
   BookshelfCreateValidator,
   BookshelfDomain,
 } from "../types/bookshelves.types";
+import { useUserStore } from "@/stores/userStore";
 
 export function useBookshelves({
   handleClose,
@@ -17,6 +18,7 @@ export function useBookshelves({
 }) {
   const queryClient = useQueryClient();
   const service = new BookshelfService();
+  const user = useUserStore((state) => state.user);
 
   const {
     data: bookshelves,
@@ -33,7 +35,10 @@ export function useBookshelves({
       if (editShelf) {
         await service.update(editShelf.id, payload);
       } else {
-        await service.create(payload);
+        await service.create({
+          ...payload,
+          user_id: user?.id || "",
+        });
       }
     },
     onSuccess: () => {

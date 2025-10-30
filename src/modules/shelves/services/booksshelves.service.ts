@@ -5,17 +5,17 @@ import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 export class BookshelfService {
   private supabase = createClient();
 
-  async create(shelf: BookshelfCreateValidator): Promise<void> {
+  async create(shelf: { name: string; user_id: string }): Promise<void> {
     const { error } = await this.supabase
       .from("custom_shelves")
-      .insert({ name: shelf.name, owner: shelf.owner });
+      .insert({ name: shelf.name });
 
     if (error) throw new Error(error.message);
   }
   async update(id: string, shelf: BookshelfCreateValidator): Promise<void> {
     const { error } = await this.supabase
       .from("custom_shelves")
-      .update({ name: shelf.name, owner: shelf.owner })
+      .update({ name: shelf.name })
       .eq("id", id);
 
     if (error) throw new Error(error.message);

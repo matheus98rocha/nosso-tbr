@@ -70,8 +70,9 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
           </Tooltip>
           <CardDescription>
             <div className="flex items-center gap-1">
-              <span className="font-medium text-gray-900">{shelf.owner}</span>
-              <span>:</span>
+              <span className="font-medium text-gray-900">
+                Livros na estante:
+              </span>
               <span className="text-gray-600">
                 {shelf.books.length === 0
                   ? " Nenhum livro"
@@ -131,7 +132,6 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
                 openAddBookDialog({
                   id: shelf.id,
                   name: shelf.name,
-                  owner: shelf.owner,
                 })
               }
             >
