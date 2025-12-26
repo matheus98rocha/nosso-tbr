@@ -7,26 +7,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BookDomain } from "@/types/books.types";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { DropdownBook } from "../dropdownBook/dropdownBook";
 import { BookUpsert } from "../../../bookUpsert/bookUpsert";
 import { Badge } from "@/components/ui/badge";
-import {
-  getGenderLabel,
-  getGenreBadgeColor,
-} from "@/modules/home/utils/genderBook";
+
 import Image from "next/image";
 import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
-import { BookService } from "../../../../services/books/books.service";
 import { AddBookToShelf } from "../AddBookToShelf/AddBookToShelf";
-import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 import { useBookCard } from "./hooks/useBookCard";
-
-type BookCardProps = {
-  book: BookDomain;
-  isShelf?: boolean;
-};
+import { BookCardProps } from "./types/bookCard.types";
+import { getGenderLabel, getGenreBadgeColor } from "@/constants/genders";
 
 export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
   const {
@@ -38,31 +29,21 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
     dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
+    handleNavigateToAuthor,
     isLogged,
     handleNavigateToQuotes,
+    badgeObject,
+    handleConfirmDelete,
   } = useBookCard({
     book: bookProp,
     isShelf,
   });
 
-  // Function to render the status badge based on book status
   const renderStatusBadge = () => {
     return (
       <div className="flex items-center justify-start gap-2 flex-wrap">
-        <Badge
-          className={
-            book.status === "not_started"
-              ? "bg-gray-500 text-white"
-              : book.status === "reading"
-              ? "bg-green-800 text-white"
-              : "bg-red-500 text-white"
-          }
-        >
-          {book.status === "reading"
-            ? "Já iniciei a leitura"
-            : book.status === "finished"
-            ? "Terminei a Leitura"
-            : "Vou iniciar a leitura"}
+        <Badge className={badgeObject.bookStatusClass}>
+          {badgeObject.bookStatusText}
         </Badge>
 
         {book.status === "finished" && book.end_date && (
@@ -111,16 +92,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
         }
         id={String(book.id)}
         queryKeyToInvalidate="books"
-        onConfirm={async (id: string) => {
-          if (!isShelf) {
-            const service = new BookService();
-            await service.delete(id);
-          } else {
-            const service = new BookshelfServiceBooks();
-            await service.removeBookFromShelf(id);
-            window.location.reload();
-          }
-        }}
+        onConfirm={async (id: string) => handleConfirmDelete(id, isShelf)}
         open={dialogDeleteModal.isOpen}
         onOpenChange={dialogDeleteModal.setIsOpen}
       />
@@ -132,8 +104,18 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader>
           <CardTitle className="truncate">{book.title}</CardTitle>
-          <CardDescription>
-            {book.author} | {book.pages} páginas
+          <CardDescription className="flex flex-col">
+            <span className="flex items-center gap-1">
+              por
+              <p
+                className="text-[#2162a1] hover:underline cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-52"
+                onClick={handleNavigateToAuthor}
+              >
+                {book.author}
+              </p>
+              (Autor)
+            </span>
+            <span>{book.pages} páginas</span>
           </CardDescription>
 
           {isLogged && (

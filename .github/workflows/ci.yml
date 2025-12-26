@@ -1,0 +1,29 @@
+# .github/workflows/ci.yml
+
+name: CI - Testes e Cobertura
+
+on:
+  pull_request:
+  push:
+    branches: ["main", "master"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar Dependências com Yarn
+        run: yarn install --frozen-lockfile
+
+      - name: Rodar Testes e Cobertura
+        run: yarn vitest run --coverage
+        env:
+          TZ: America/Sao_Paulo

@@ -25,14 +25,10 @@ import {
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export function CreateScheduleForm({
-  id: bookId,
-  startDate,
-}: ClientScheduleProps) {
+export function CreateScheduleForm({ id: bookId }: ClientScheduleProps) {
   const { form, onSubmit, isLoading, handleOnChangeIntField, control } =
     useCreateScheduleForm({
       id: bookId,
-      startDate,
       title: "",
     });
 
@@ -111,13 +107,21 @@ export function CreateScheduleForm({
                       }
                       onChange={(e) => {
                         const { value } = e.target;
-                        field.onChange(
-                          value ? new Date(`${value}T00:00:00Z`) : null
-                        );
+                        console.log("Selected date:", value);
+
+                        if (value) {
+                          // Cria a data com fuso horário do Brasil
+                          const brazilDate = new Date(
+                            `${value}T00:00:00-03:00`
+                          );
+                          console.log("Brazil date:", brazilDate);
+                          field.onChange(brazilDate);
+                        } else {
+                          field.onChange(null);
+                        }
                       }}
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />

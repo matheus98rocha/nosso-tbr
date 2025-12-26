@@ -9,7 +9,6 @@ export class BookshelfMapper {
     return {
       id: persistence.id,
       name: persistence.name,
-      owner: persistence.owner,
       createdAt: persistence.created_at,
       books: persistence.custom_shelf_books.map((book) => ({
         id: book.book.id,
@@ -21,7 +20,6 @@ export class BookshelfMapper {
   static toPersistence(domain: BookshelfDomain): BookshelfCreateValidator {
     return {
       name: domain.name,
-      owner: domain.owner,
     };
   }
 }

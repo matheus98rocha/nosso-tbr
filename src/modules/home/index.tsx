@@ -9,12 +9,7 @@ import { BookDomain } from "../../types/books.types";
 import { BookCard } from "./components/bookCard/bookCard";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
 
-// import { Sliders } from "lucide-react";
-// import { InputWithButton } from "@/components/inputWithButton/inputWithButton";
-
 import { useUserStore } from "@/stores/userStore";
-// import FiltersSheet from "./components/filtersSheet/filters";
-// import { SearchBar } from "@/components/searchBar/searchBar";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -24,24 +19,18 @@ export default function ClientHome() {
     isFetched,
     isLoadingAllBooks,
     isError,
-    isLoadingUser,
     searchQuery,
-    // updateUrlWithFilters,
     formattedGenres,
     formattedReaders,
     formattedStatus,
     handleClearAllFilters,
-    // handleInputBlur,
-    // handleOnPressEnter,
-    // handleSearchButtonClick,
-    // inputRef,
     filters,
+    hasSearchParams,
+    isMyBooksPage,
+    handleGenerateReadersObj,
   } = useHome();
 
-  const isMyBooksPage = !!filters.userId;
-
   const dialogModal = useModal();
-  // const filtersSheet = useModal();
   const createShelfDialog = useModal();
 
   return (
@@ -51,47 +40,11 @@ export default function ClientHome() {
         setIsBookFormOpen={dialogModal.setIsOpen}
       />
 
-      {/* <FiltersSheet
-        filters={filters}
-        open={filtersSheet.isOpen}
-        setIsOpen={filtersSheet.setIsOpen}
-        updateUrlWithFilters={updateUrlWithFilters}
-        searchQuery={searchQuery}
-      /> */}
-
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
       />
       <div className="w-full flex items-center justify-center flex-col gap-4 container">
-        {/* <div className="grid w-full mx-auto grid-cols-[1fr_auto] gap-2 items-center">
-          <InputWithButton
-            ref={inputRef}
-            defaultValue={searchQuery}
-            onBlur={handleInputBlur}
-            onButtonClick={handleSearchButtonClick}
-            placeholder="Pesquise por título do livro ou nome do autor"
-            onKeyDown={handleOnPressEnter}
-          />
-
-          <Button
-            variant="ghost"
-            onClick={() => filtersSheet.setIsOpen(true)}
-            className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
-            aria-label="Filters"
-          >
-            <Sliders size={16} />
-            Filtros
-          </Button>
-        </div> */}
-        {/* <SearchBar
-          ref={inputRef}
-          searchQuery={searchQuery}
-          onBlur={handleInputBlur}
-          onSearchButtonClick={handleSearchButtonClick}
-          onPressEnter={handleOnPressEnter}
-          onOpenFilters={() => filtersSheet.setIsOpen(true)}
-        /> */}
         {!isLoadingAllBooks && (
           <div className="flex items-start justify-center flex-col container">
             <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
@@ -121,9 +74,9 @@ export default function ClientHome() {
                       Filtros aplicados:
                       {formattedGenres && ` gênero ${formattedGenres}`}
                       {formattedReaders &&
-                        `${
-                          formattedGenres ? "," : ""
-                        } Leitor(s) ${formattedReaders}`}
+                        `${formattedGenres ? "," : ""} Leitor(s) ${
+                          handleGenerateReadersObj().readersDisplay
+                        }`}
                       {formattedStatus &&
                         `${
                           formattedGenres || formattedReaders ? " e" : ""
@@ -133,10 +86,11 @@ export default function ClientHome() {
                 </p>
               )}
 
-              {(searchQuery ||
+              {((searchQuery && hasSearchParams) ||
                 (Array.isArray(filters.gender) && filters.gender.length > 0) ||
                 (Array.isArray(filters.readers) &&
-                  filters.readers.length > 0) ||
+                  filters.readers.length > 0 &&
+                  hasSearchParams) ||
                 (Array.isArray(filters.status) &&
                   filters.status.length > 0)) && (
                 <Button
@@ -155,7 +109,7 @@ export default function ClientHome() {
 
         <ListGrid<BookDomain>
           items={allBooks ?? []}
-          isLoading={isLoadingAllBooks || isLoadingUser || isLoggingOut}
+          isLoading={isLoadingAllBooks || isLoggingOut}
           isFetched={isFetched}
           renderItem={(book) => <BookCard key={book.id} book={book} />}
           isError={isError}

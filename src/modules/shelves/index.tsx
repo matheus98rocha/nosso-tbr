@@ -21,7 +21,6 @@ function ClienteShelves() {
     {
       id: "",
       name: "",
-      owner: "",
     }
   );
 
@@ -61,7 +60,6 @@ function ClienteShelves() {
                 handleOpenDialog({
                   id: shelf.id,
                   name: shelf.name,
-                  owner: shelf.owner,
                 })
               }
             />

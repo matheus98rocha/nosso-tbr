@@ -1,23 +1,21 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
-import { BookshelfDomain } from "../types/bookshelves.types";
-import { BookshelfMapper } from "./mapper/bookshelves.mapper";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 
 export class BookshelfService {
   private supabase = createClient();
 
-  async create(shelf: BookshelfCreateValidator): Promise<void> {
+  async create(shelf: { name: string; user_id: string }): Promise<void> {
     const { error } = await this.supabase
       .from("custom_shelves")
-      .insert({ name: shelf.name, owner: shelf.owner });
+      .insert({ name: shelf.name });
 
     if (error) throw new Error(error.message);
   }
   async update(id: string, shelf: BookshelfCreateValidator): Promise<void> {
     const { error } = await this.supabase
       .from("custom_shelves")
-      .update({ name: shelf.name, owner: shelf.owner })
+      .update({ name: shelf.name })
       .eq("id", id);
 
     if (error) throw new Error(error.message);
@@ -30,26 +28,6 @@ export class BookshelfService {
 
     if (error) throw new Error(error.message);
   }
-  async getAll(): Promise<BookshelfDomain[]> {
-    const { data, error } = await this.supabase
-      .from("custom_shelves")
-      .select(
-        `*,custom_shelf_books (
-          book:books 
-          (
-            id,
-            image_url
-          )
-        )`
-      )
-      .order("created_at", { ascending: false });
-
-    if (error) throw new Error(error.message);
-    if (!data) return [];
-
-    return data.map(BookshelfMapper.toDomain);
-  }
-
   async addBookToShelf(bookshelfId: string, bookId: string): Promise<void> {
     try {
       const { error } = await this.supabase.from("custom_shelf_books").insert({
@@ -77,4 +55,16 @@ export class BookshelfService {
       throw normalizedError;
     }
   }
+}
+
+export async function fetchBookShelves() {
+  const res = await fetch("/api/shelves", {
+    next: { tags: ["shelves"] },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch shelves");
+  }
+
+  return res.json();
 }

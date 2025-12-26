@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { CircleUser, Menu as MenuIcon } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { useHeader } from "./hooks/useHeader";
-import LogoIcon from "@/assets/icons/logo";
+// import LogoIcon from "@/assets/icons/logo";
 import { HomeSearchBar } from "./components/homeSearchBar/homeSearchBar";
 import { useUserStore } from "@/stores/userStore";
 import {
@@ -29,6 +29,8 @@ import {
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { DesktopNavMenu } from "./components/navMenu/navMenu";
 import { Skeleton } from "../ui/skeleton";
+import LogoIcon from "@/assets/icons/logo";
+import { MyBooksSearchBar } from "./components/mySearchBar/myBooksSearchBar";
 function Header() {
   const { bookUpsertModal, createShelfDialog, menuItems, pathname, router } =
     useHeader();
@@ -44,6 +46,7 @@ function Header() {
   }, []);
 
   const user = useUserStore((state) => state.user);
+  console.log("->", user);
   const isLoadingUser = useUserStore((state) => state.loading);
 
   const isLogged = useIsLoggedIn();
@@ -141,6 +144,11 @@ function Header() {
                 scrolled ? "w-6 h-6" : "w-60 h-60"
               }`}
             />
+            {/* <NovaLogo
+              className={`transition-all duration-300 ${
+                scrolled ? "w-6 h-6" : "w-60 h-60"
+              }`}
+            /> */}
             <h1
               className={`font-bold transition-all duration-300 whitespace-nowrap ${
                 scrolled ? "text-md" : "text-2xl"
@@ -159,6 +167,7 @@ function Header() {
               />
             ))}
           {pathname === "/" && <HomeSearchBar />}
+          {pathname === "/my-books" && <MyBooksSearchBar />}
         </div>
         {/* Right Content */}
         <div className="md:flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { DateUtils } from "@/utils/date.utils";
+import { DateUtils } from "@/utils/date/date";
 import {
   ScheduleCreateValidator,
   ScheduleDomain,
@@ -6,23 +6,29 @@ import {
 } from "../../types/schedule.types";
 
 export class ScheduleUpsertMapper {
+  static formateScheduleDate(date: Date | string): Date {
+    const inputDate = date instanceof Date ? date : new Date(date);
+
+    const year = inputDate.getFullYear();
+    const month = String(inputDate.getMonth() + 1).padStart(2, "0");
+    const day = String(inputDate.getDate()).padStart(2, "0");
+
+    const dateString = `${year}-${month}-${day}T00:00:00-03:00`;
+
+    const brazilianDateAtMidnight = new Date(dateString);
+    return brazilianDateAtMidnight;
+  }
   static toPersistence(
     domain: ScheduleCreateValidator,
     extra?: Partial<SchedulePersistence>
   ): SchedulePersistence {
-    let dateForPersistence: string;
-
-    if (domain.date instanceof Date) {
-      dateForPersistence = DateUtils.dateToISO(domain.date);
-    } else if (typeof domain.date === "string") {
-      dateForPersistence = DateUtils.ptBRToISO(domain.date);
-    } else {
-      dateForPersistence = "";
-    }
+    const domainDate: Date =
+      domain.date instanceof Date ? domain.date : new Date(domain.date);
+    const dateAtBrazilianMidnight = this.formateScheduleDate(domainDate);
 
     return {
       book_id: domain.book_id,
-      date: dateForPersistence as unknown as Date,
+      date: dateAtBrazilianMidnight,
       chapters: Array.isArray(domain.chapters)
         ? domain.chapters.join(", ")
         : domain.chapters ?? "",

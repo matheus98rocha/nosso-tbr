@@ -42,10 +42,14 @@ export class QuotesService {
   async createQuote(
     bookId: string,
     content: string,
-    page?: number
+    page: number | null
   ): Promise<QuoteDomain> {
     try {
-      const payload = QuoteMapper.toPersistence({ bookId, content, page });
+      const payload = QuoteMapper.toPersistence({
+        bookId,
+        content,
+        page: page ?? undefined,
+      });
       const { data, error } = await this.supabase
         .from("quotes")
         .insert([payload])

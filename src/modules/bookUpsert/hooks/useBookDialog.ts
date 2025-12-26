@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookCreateValidator, Status } from "@/types/books.types";
 import { BookUpsertService } from "../services/bookUpsert.service";
 import { toast } from "sonner";
-import { BookshelfService } from "../../shelves/services/booksshelves.service";
+import {
+  BookshelfService,
+  fetchBookShelves,
+} from "../../shelves/services/booksshelves.service";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { UseCreateBookDialog } from "../bookUpsert.types";
 import { ControllerRenderProps, useForm } from "react-hook-form";
@@ -10,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
 import { BOOKS_QUERY_KEY } from "@/constants/keys";
+import { useRouter } from "next/navigation";
 
 export function useBookDialog({
   bookData,
@@ -17,6 +21,7 @@ export function useBookDialog({
   chosenByOptions,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [selected, setSelected] = useState<Status | null>(null);
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
@@ -71,9 +76,7 @@ export function useBookDialog({
 
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
     queryKey: ["bookshelves"],
-    queryFn: async () => {
-      return bookshelfService.getAll();
-    },
+    queryFn: fetchBookShelves,
   });
 
   const bookshelfOptions =
@@ -102,9 +105,11 @@ export function useBookDialog({
             createdBook.id
           );
         }
+
+        return createdBook?.id;
       }
     },
-    onSuccess: () => {
+    onSuccess: (createdBook) => {
       handleResetForm();
       setIsDuplicateBookDialogOpen(false);
 
@@ -116,6 +121,10 @@ export function useBookDialog({
       queryClient.invalidateQueries({
         queryKey: [BOOKS_QUERY_KEY],
       });
+
+      if (createdBook && !isEdit) {
+        router.replace(`/?bookId=${createdBook}`);
+      }
     },
     onError: (error) => {
       if (error instanceof Error) {
