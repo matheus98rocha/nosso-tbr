@@ -108,14 +108,14 @@ export class DateUtils {
   static toISOString(date: Date | string | null | undefined): string {
     if (!date) return "";
 
-    try {
-      const dateObj = this.toDate(date);
-      if (!dateObj) return "";
+    const dateObj = this.toDate(date);
+    if (!dateObj) return "";
 
-      return dateObj.toISOString().split("T")[0];
-    } catch {
-      return "";
-    }
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
   }
 
   /**

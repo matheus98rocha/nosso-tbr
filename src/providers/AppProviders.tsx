@@ -4,12 +4,12 @@
 import React from "react";
 import ReactQueryProvider from "@/providers/ReactQuery.provider";
 import { Toaster } from "@/components/ui/sonner";
-import { ProgressLoader } from "nextjs-progressloader";
+import NextNProgress from "nextjs-progressbar";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ReactQueryProvider>
-      <ProgressLoader />
+      <NextNProgress />
       {children}
       <Toaster
         position="top-center"
