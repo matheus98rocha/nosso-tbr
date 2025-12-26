@@ -22,17 +22,11 @@ export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
 
-  const defaultDate = new Date();
-  const year = defaultDate.getFullYear();
-  const month = String(defaultDate.getMonth() + 1).padStart(2, "0");
-  const day = String(defaultDate.getDate()).padStart(2, "0");
-  const formattedDefaultDate = `${year}-${month}-${day}`;
-
   const form = useForm<ScheduleFormInput>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
       totalChapters: undefined,
-      startDate: new Date(formattedDefaultDate),
+      startDate: "",
       includePrologue: false,
       includeEpilogue: false,
       includeWeekends: false,
