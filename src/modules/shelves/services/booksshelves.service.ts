@@ -8,7 +8,7 @@ export class BookshelfService {
   async create(shelf: { name: string; user_id: string }): Promise<void> {
     const { error } = await this.supabase
       .from("custom_shelves")
-      .insert({ name: shelf.name });
+      .insert({ name: shelf.name, user_id: shelf.user_id });
 
     if (error) throw new Error(error.message);
   }

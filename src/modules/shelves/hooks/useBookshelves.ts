@@ -8,6 +8,7 @@ import {
   BookshelfDomain,
 } from "../types/bookshelves.types";
 import { useUserStore } from "@/stores/userStore";
+import { UserConsoleLog } from "vitest";
 
 export function useBookshelves({
   handleClose,
