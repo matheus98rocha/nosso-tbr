@@ -26,7 +26,7 @@ export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
       totalChapters: undefined,
-      startDate: "",
+      startDate: undefined,
       includePrologue: false,
       includeEpilogue: false,
       includeWeekends: false,

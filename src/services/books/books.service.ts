@@ -35,9 +35,7 @@ export class BookService {
         .withSearchTerm(search)
         .withId(bookId);
 
-      console.log("fora do ifuserId -> ", userId);
       if (userId) {
-        console.log("userId -> ", userId);
         query = query.withUser(userId);
       }
 
