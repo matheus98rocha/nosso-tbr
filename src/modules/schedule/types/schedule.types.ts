@@ -1,5 +1,6 @@
 export type ScheduleCreateValidator = {
   book_id: string;
+  owner: string;
   date: Date;
   chapters: string;
   completed?: boolean;
@@ -8,6 +9,7 @@ export type ScheduleCreateValidator = {
 export type SchedulePersistence = {
   id?: string;
   book_id: string;
+  owner: string;
   date: Date;
   chapters: string;
   completed: boolean;
@@ -16,6 +18,7 @@ export type SchedulePersistence = {
 
 export type ScheduleDomain = {
   id?: string;
+  owner: string;
   date: string;
   chapters: string;
   completed: boolean;

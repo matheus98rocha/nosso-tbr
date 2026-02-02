@@ -20,7 +20,7 @@ export class ScheduleUpsertMapper {
   }
   static toPersistence(
     domain: ScheduleCreateValidator,
-    extra?: Partial<SchedulePersistence>
+    extra?: Partial<SchedulePersistence>,
   ): SchedulePersistence {
     const domainDate: Date =
       domain.date instanceof Date ? domain.date : new Date(domain.date);
@@ -31,15 +31,16 @@ export class ScheduleUpsertMapper {
       date: dateAtBrazilianMidnight,
       chapters: Array.isArray(domain.chapters)
         ? domain.chapters.join(", ")
-        : domain.chapters ?? "",
+        : (domain.chapters ?? ""),
       completed: domain.completed ?? false,
       created_at: extra?.created_at,
+      owner: domain.owner,
     };
   }
 
   static toDomain(persistence: SchedulePersistence): ScheduleDomain {
     const dateForDomain = DateUtils.isoToPtBR(
-      persistence.date as unknown as string
+      persistence.date as unknown as string,
     );
 
     return {
@@ -47,6 +48,7 @@ export class ScheduleUpsertMapper {
       date: dateForDomain,
       chapters: persistence.chapters || "",
       completed: persistence.completed ?? false,
+      owner: persistence.owner,
     };
   }
 }

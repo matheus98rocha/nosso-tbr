@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ScheduleUpsertService } from "../services/schedule.service";
 import { ScheduleDomain } from "../types/schedule.types";
+import { useUserStore } from "@/stores/userStore";
 
 type UseScheduleProps = {
   id: string;
@@ -9,10 +10,14 @@ type UseScheduleProps = {
 export function useSchedule({ id }: UseScheduleProps) {
   const queryClient = useQueryClient();
   const scheduleService = new ScheduleUpsertService();
+  const { user } = useUserStore();
+
+  console.log("useSchedule - user:", user);
 
   const { data: schedule, isLoading: isLoadingSchedules } = useQuery({
-    queryKey: ["schedule", id],
-    queryFn: () => scheduleService.getByBookId(id),
+    queryKey: ["schedule", id, user?.id],
+    queryFn: () => scheduleService.getByBookId(id, user!.id),
+    enabled: !!user?.id,
   });
 
   const { mutate: updateIsCompleted } = useMutation({
@@ -29,7 +34,9 @@ export function useSchedule({ id }: UseScheduleProps) {
       ]);
 
       queryClient.setQueryData<ScheduleDomain[]>(["schedule", id], (old) =>
-        old?.map((day) => (day.id === id ? { ...day, completed: isRead } : day))
+        old?.map((day) =>
+          day.id === id ? { ...day, completed: isRead } : day,
+        ),
       );
 
       return { previousSchedule };
@@ -53,7 +60,7 @@ export function useSchedule({ id }: UseScheduleProps) {
     onSuccess: (_, variables) => {
       queryClient.setQueryData<ScheduleDomain[]>(
         ["schedule", variables.id],
-        []
+        [],
       );
     },
   });

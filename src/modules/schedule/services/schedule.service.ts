@@ -12,7 +12,7 @@ export class ScheduleUpsertService {
   async createMany(schedules: ScheduleCreateValidator[]): Promise<void> {
     try {
       const payload = schedules.map((schedule) =>
-        ScheduleUpsertMapper.toPersistence(schedule)
+        ScheduleUpsertMapper.toPersistence(schedule),
       );
 
       const { error } = await this.supabase.from("schedule").insert(payload);
@@ -23,7 +23,7 @@ export class ScheduleUpsertService {
           undefined,
           undefined,
           error,
-          { schedules }
+          { schedules },
         );
       }
     } catch (error) {
@@ -36,12 +36,13 @@ export class ScheduleUpsertService {
       throw normalizedError;
     }
   }
-  async getByBookId(bookId: string): Promise<ScheduleDomain[]> {
+  async getByBookId(bookId: string, userId: string): Promise<ScheduleDomain[]> {
     try {
       const { data, error } = await this.supabase
         .from("schedule")
         .select("*")
         .eq("book_id", bookId)
+        .eq("owner", userId)
         .order("date", { ascending: true });
 
       if (error) {
@@ -50,7 +51,7 @@ export class ScheduleUpsertService {
           undefined,
           undefined,
           error,
-          { bookId }
+          { bookId },
         );
       }
 
@@ -78,7 +79,7 @@ export class ScheduleUpsertService {
           undefined,
           undefined,
           error,
-          { scheduleId, isCompleted }
+          { scheduleId, isCompleted },
         );
       }
     } catch (error) {
@@ -105,7 +106,7 @@ export class ScheduleUpsertService {
           undefined,
           undefined,
           error,
-          { bookId }
+          { bookId },
         );
       }
     } catch (error) {

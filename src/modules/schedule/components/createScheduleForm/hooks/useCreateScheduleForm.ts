@@ -16,11 +16,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { scheduleSchema } from "@/modules/schedule/components/createScheduleForm/validators/schedule.validator";
 import { ChangeEvent, useCallback, useState } from "react";
+import { useUserStore } from "@/stores/userStore";
 
 export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
   const scheduleService = new ScheduleUpsertService();
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
+  const { user } = useUserStore();
 
   const form = useForm<ScheduleFormInput>({
     resolver: zodResolver(scheduleSchema),
@@ -75,13 +77,14 @@ export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
     }
 
     const schedulePayloads: ScheduleCreateValidator[] = generateBookSchedule(
-      data as Required<ScheduleFormInput>
+      data as Required<ScheduleFormInput>,
     ).map((day) => ({
       book_id: bookId,
       date: day.date,
       chapters: day.chapters,
       completed: false,
       chaptersPerDay: data.chaptersPerDay,
+      owner: user?.id ?? "",
     }));
 
     await createScheduleMutation.mutateAsync(schedulePayloads);
@@ -90,13 +93,13 @@ export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
   const handleOnChangeIntField = useCallback(
     <T extends FieldValues>(
       field: ControllerRenderProps<T, Path<T>>,
-      e: ChangeEvent<HTMLInputElement>
+      e: ChangeEvent<HTMLInputElement>,
     ) => {
       const val = e.target.value;
       const parsed = val === "" ? null : Number(val);
       field.onChange(parsed);
     },
-    []
+    [],
   );
 
   function normalizeNumberField(value: unknown): number | null {
