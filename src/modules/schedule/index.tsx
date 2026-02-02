@@ -5,6 +5,7 @@ import { useSchedule } from "./hooks/useSchedule";
 import { ClientScheduleProps } from "./types/schedule.types";
 import { ScheduleTable } from "./components/scheduleTable/scheduleTable";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserStore } from "@/stores/userStore";
 
 export default function ClientSchedule({ id, title }: ClientScheduleProps) {
   const {
@@ -18,7 +19,9 @@ export default function ClientSchedule({ id, title }: ClientScheduleProps) {
     id,
   });
 
-  if (isLoadingSchedule) {
+  const { user } = useUserStore();
+
+  if (isLoadingSchedule && (user?.id === undefined || user.id === null)) {
     return (
       <div className="w-full max-w-5xl mx-auto space-y-6 animate-pulse">
         {/* Título */}
