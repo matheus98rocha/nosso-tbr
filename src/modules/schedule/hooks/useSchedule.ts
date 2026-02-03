@@ -12,8 +12,6 @@ export function useSchedule({ id }: UseScheduleProps) {
   const scheduleService = new ScheduleUpsertService();
   const { user } = useUserStore();
 
-  console.log("useSchedule - user:", user);
-
   const { data: schedule, isLoading: isLoadingSchedules } = useQuery({
     queryKey: ["schedule", id, user?.id],
     queryFn: () => scheduleService.getByBookId(id, user!.id),
@@ -22,7 +20,7 @@ export function useSchedule({ id }: UseScheduleProps) {
 
   const { mutate: updateIsCompleted } = useMutation({
     mutationFn: ({ id, isRead }: { id: string; isRead: boolean }) => {
-      return scheduleService.updateIsRead(id, isRead);
+      return scheduleService.updateIsRead(id, isRead, user!.id);
     },
 
     onMutate: async ({ id, isRead }) => {
@@ -55,7 +53,7 @@ export function useSchedule({ id }: UseScheduleProps) {
 
   const { mutate: deleteSchedule, isPending: isPendingDelete } = useMutation({
     mutationFn: ({ id }: { id: string }) => {
-      return scheduleService.deleteSchedule(id);
+      return scheduleService.deleteSchedule(id, user!.id);
     },
     onSuccess: (_, variables) => {
       queryClient.setQueryData<ScheduleDomain[]>(

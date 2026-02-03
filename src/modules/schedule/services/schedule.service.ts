@@ -66,12 +66,17 @@ export class ScheduleUpsertService {
       throw normalizedError;
     }
   }
-  async updateIsRead(scheduleId: string, isCompleted: boolean): Promise<void> {
+  async updateIsRead(
+    scheduleId: string,
+    isCompleted: boolean,
+    owner: string,
+  ): Promise<void> {
     try {
       const { error } = await this.supabase
         .from("schedule")
         .update({ completed: isCompleted })
-        .eq("id", scheduleId);
+        .eq("id", scheduleId)
+        .eq("owner", owner);
 
       if (error) {
         throw new RepositoryError(
@@ -93,12 +98,13 @@ export class ScheduleUpsertService {
       throw normalizedError;
     }
   }
-  async deleteSchedule(bookId: string): Promise<void> {
+  async deleteSchedule(bookId: string, userId: string): Promise<void> {
     try {
       const { error } = await this.supabase
         .from("schedule")
         .delete()
-        .eq("book_id", bookId);
+        .eq("book_id", bookId)
+        .eq("owner", userId);
 
       if (error) {
         throw new RepositoryError(
