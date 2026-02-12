@@ -3,7 +3,24 @@ export type Status = "reading" | "finished" | "not_started";
 export type BookPersistence = {
   id?: string;
   title: string;
-  author: string;
+  author: {
+    name: string;
+  };
+  chosen_by: "Matheus" | "Fabi" | "Barbara";
+  pages: number;
+  start_date?: string | null;
+  end_date?: string | null;
+  inserted_at?: string;
+  readers: string[];
+  gender: string | null;
+  image_url: string;
+  user_id: string;
+};
+
+export type CreateBookPersistence = {
+  id?: string;
+  title: string;
+  author_id: string;
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
   start_date?: string | null;
@@ -18,7 +35,7 @@ export type BookPersistence = {
 export type BookCreateValidator = {
   id?: string;
   title: string;
-  author: string;
+  author_id: string;
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
   start_date?: string | null;

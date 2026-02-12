@@ -8,7 +8,14 @@ export class BookshelfServiceBooks {
   async getBooksFromShelf(bookshelfId: string): Promise<BookDomain[]> {
     const { data, error } = await this.supabase
       .from("custom_shelf_books")
-      .select("book:books(*)")
+      .select(
+        `
+        book:books(
+          *,
+          author:authors!books_author_id_fkey(name)
+        )
+      `,
+      )
       .eq("shelf_id", bookshelfId);
 
     if (error) throw new Error(error.message);
@@ -17,7 +24,7 @@ export class BookshelfServiceBooks {
     return data
       .filter((row) => row.book && !Array.isArray(row.book))
       .map((row) =>
-        BookMapper.toDomain(row.book as unknown as BookPersistence)
+        BookMapper.toDomain(row.book as unknown as BookPersistence),
       );
   }
 

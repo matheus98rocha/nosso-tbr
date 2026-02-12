@@ -6,7 +6,12 @@ export class BookQueryBuilder {
 
   constructor(
     supabase: SupabaseClient<Database>,
-    initialQuery = supabase.from("books").select("*")
+    initialQuery = supabase.from("books").select(`
+      *,
+      author:authors!books_author_id_fkey (
+        name
+      )
+    `),
   ) {
     this.query = initialQuery;
   }
@@ -62,12 +67,21 @@ export class BookQueryBuilder {
   }
 
   withSearchTerm(searchTerm?: string): this {
-    if (searchTerm?.trim()) {
-      const ilikeValue = `%${searchTerm}%`;
-      this.query = this.query.or(
-        `title.ilike.${ilikeValue},author.ilike.${ilikeValue}`
-      );
+    if (!searchTerm?.trim()) return this;
+
+    // 1. Limpeza: Mantém letras e números, remove o que quebra o SQL
+    const cleanTerm = searchTerm.replace(/[^\w\sÀ-ÿ]/g, " ").trim();
+
+    const words = cleanTerm.split(/\s+/).filter((word) => word.length >= 1); // Mantém o "2"
+
+    if (words.length > 0) {
+      // 2. Montamos a query com prefixos
+      const formattedSearch = words.map((word) => `${word}:*`).join(" & ");
+
+      // 3. Forçamos o uso do operador 'fts'
+      this.query = this.query.filter("search_vector", "fts", formattedSearch);
     }
+
     return this;
   }
 
@@ -80,7 +94,6 @@ export class BookQueryBuilder {
 
   withId(bookId?: string): this {
     if (bookId) {
-      // Usa eq() para garantir que a coluna 'id' seja exatamente igual ao bookId fornecido
       this.query = this.query.eq("id", bookId);
     }
     return this;
