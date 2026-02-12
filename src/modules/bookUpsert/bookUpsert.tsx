@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Dialog,
   DialogClose,
@@ -29,6 +30,10 @@ import { BlurOverlay, ConfirmDialog } from "@/components/";
 import { CreateBookProps } from "./bookUpsert.types";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { genders } from "@/constants/genders";
+import { BookUpsertService } from "./services/bookUpsert.service";
+import { useQuery } from "@tanstack/react-query";
+import { ComboboxOption } from "./types/authorOptions";
+import { AuthorUpsert, AutocompleteInput } from "./components";
 
 export function BookUpsert({
   bookData,
@@ -66,8 +71,35 @@ export function BookUpsert({
     chosenByOptions,
   });
 
+  const [authorSearch, setAuthorSearch] = React.useState("");
+  const [isAuthorModalOpen, setIsAuthorModalOpen] = React.useState(false);
+
+  const deferredAuthorSearch = React.useDeferredValue(authorSearch);
+
+  const bookUpsertService = React.useMemo(() => new BookUpsertService(), []);
+
+  const { data: authors = [], isLoading: isLoadingAuthors } = useQuery({
+    queryKey: ["authors", deferredAuthorSearch], // Use o deferred aqui
+    queryFn: () => bookUpsertService.searchAuthors(deferredAuthorSearch),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const handleOpenAddAuthorModal = () => {
+    setIsAuthorModalOpen(true);
+  };
+
+  const handleAuthorCreated = (authorId: string) => {
+    form.setValue("author_id", authorId);
+  };
+
   return (
     <>
+      <AuthorUpsert
+        isOpen={isAuthorModalOpen}
+        onOpenChange={setIsAuthorModalOpen}
+        defaultName={authorSearch}
+        onSuccess={handleAuthorCreated}
+      />
       <ConfirmDialog
         open={isDuplicateBookDialogOpen}
         onOpenChange={setIsDuplicateBookDialogOpen}
@@ -88,6 +120,7 @@ export function BookUpsert({
           if (!isBookFormOpen) {
             reset();
             setSelected(null);
+            setAuthorSearch("");
           }
           setIsBookFormOpen(isBookFormOpen);
         }}
@@ -136,12 +169,21 @@ export function BookUpsert({
 
                 <FormField
                   control={control}
-                  name="author"
+                  name="author_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Autor</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <AutocompleteInput
+                          items={authors as ComboboxOption[]}
+                          value={field.value}
+                          isLoading={isLoadingAuthors}
+                          onValueChange={field.onChange}
+                          onSearch={setAuthorSearch}
+                          onAddNew={handleOpenAddAuthorModal}
+                          placeholder="Pesquisar autor..."
+                          emptyMessage="Não encontramos esse autor..."
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -209,7 +251,7 @@ export function BookUpsert({
                             onChange={(selectedUserId) =>
                               handleChosenByChange(field, selectedUserId)
                             }
-                            items={chosenByOptions} // [{ label, value: user_id }]
+                            items={chosenByOptions}
                           />
                         )}
                       </FormControl>
@@ -322,6 +364,7 @@ export function BookUpsert({
                     )}
                   </>
                 )}
+
                 {!isEdit && (
                   <>
                     <div className="flex items-center space-x-2">
@@ -349,6 +392,7 @@ export function BookUpsert({
                     )}
                   </>
                 )}
+
                 <Separator orientation="horizontal" />
                 <DialogFooter
                   className={

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const bookCreateSchema = z.object({
   title: z.string().min(1, { message: "O título do livro é obrigatório" }),
-  author: z.string().min(1, { message: "O autor do livro é obrigatório" }),
+  author_id: z.string().min(1, { message: "O autor do livro é obrigatório" }),
   chosen_by: z.enum(["Matheus", "Fabi", "Barbara"], {
     message: "Quem escolheu o livro é obrigatório",
   }),
@@ -23,11 +23,11 @@ export const bookCreateSchema = z.object({
       (url) =>
         !url ||
         /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com)/.test(
-          url
+          url,
         ),
       {
         message: "A URL da imagem deve ser de um domínio da Amazon válido",
-      }
+      },
     ),
   user_id: z.string().optional(),
 });

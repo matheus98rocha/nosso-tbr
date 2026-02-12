@@ -1,13 +1,13 @@
-import { BookCreateValidator } from "@/types/books.types";
+import { BookDomain } from "@/types/books.types";
 
 export type CreateBookProps = {
-  bookData?: BookCreateValidator;
+  bookData?: BookDomain;
   isBookFormOpen: boolean;
   setIsBookFormOpen: (open: boolean) => void;
 };
 
 export type UseCreateBookDialog = {
-  bookData: BookCreateValidator | undefined;
+  bookData: BookDomain | undefined;
   setIsBookFormOpen: (open: boolean) => void;
   chosenByOptions: {
     label: string;

@@ -33,13 +33,11 @@ export default function FiltersSheet({
 
   useSyncLocalFilters(filters, open, resetLocalFilters);
 
-  // Manter a função aqui para evitar prop dealinging
   const applyFilters = useCallback(() => {
     updateUrlWithFilters(localFilters, searchQuery);
     setIsOpen(false);
   }, [localFilters, searchQuery, updateUrlWithFilters, setIsOpen]);
 
-  // Manter a função aqui para evitar prop dealinging
   const handleCancel = useCallback(() => {
     const cleared = { readers: [], gender: [], status: [] };
     setIsOpen(false);

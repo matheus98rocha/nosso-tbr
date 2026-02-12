@@ -17,7 +17,7 @@ export class BookMapper {
     return {
       id: id ? id : "",
       title,
-      author,
+      author: author.name || "Autor desconhecido",
       chosen_by,
       pages,
       status,

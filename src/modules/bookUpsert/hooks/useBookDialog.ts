@@ -37,7 +37,7 @@ export function useBookDialog({
     resolver: zodResolver(bookCreateSchema),
     defaultValues: {
       title: "",
-      author: "",
+      author_id: "",
       pages: undefined,
       readers: "",
       start_date: null,
@@ -102,7 +102,7 @@ export function useBookDialog({
 
           await bookshelfService.addBookToShelf(
             selectedShelfId,
-            createdBook.id
+            createdBook.id,
           );
         }
 
@@ -136,7 +136,7 @@ export function useBookDialog({
             {
               description: error.message || "Ocorreu um erro inesperado.",
               className: "toast-error",
-            }
+            },
           );
 
           queryClient.invalidateQueries({ queryKey: [BOOKS_QUERY_KEY] });
@@ -163,33 +163,33 @@ export function useBookDialog({
   const handleOnChangePageNumber = useCallback(
     (
       field: ControllerRenderProps<BookCreateValidator, "pages">,
-      e: ChangeEvent<HTMLInputElement>
+      e: ChangeEvent<HTMLInputElement>,
     ) => {
       const val = e.target.value;
       const parsed = val === "" ? undefined : Number(val);
       field.onChange(parsed);
     },
-    []
+    [],
   );
 
   const handleChosenByChange = useCallback(
     (
       field: ControllerRenderProps<BookCreateValidator, "user_id">,
-      selectedUserId: string
+      selectedUserId: string,
     ) => {
       field.onChange(selectedUserId);
 
       const selectedOption = chosenByOptions.find(
-        (opt) => opt.value === selectedUserId
+        (opt) => opt.value === selectedUserId,
       );
 
       form.setValue(
         "chosen_by",
         selectedOption?.label as "Matheus" | "Fabi" | "Barbara",
-        { shouldValidate: true }
+        { shouldValidate: true },
       );
     },
-    [chosenByOptions, form]
+    [chosenByOptions, form],
   );
 
   const handleConfirmCreateBook = async () => {
