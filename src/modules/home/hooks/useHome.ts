@@ -25,8 +25,9 @@ export function useHome() {
         gender: [],
         userId: "",
         bookId: "",
-      } as FiltersOptions),
-    [users]
+        authorId: "",
+      }) as FiltersOptions,
+    [users],
   );
 
   const {
@@ -65,6 +66,7 @@ export function useHome() {
     queryFn: async () =>
       bookService.getAll({
         bookId: filters.bookId,
+        authorId: filters.authorId,
         filters: {
           readers: handleGenerateReadersObj().readers,
           status: filters.status,
@@ -74,6 +76,8 @@ export function useHome() {
         userId: undefined,
       }),
   });
+
+  console.log("Filtros atuais da URL:", filters);
 
   const formattedGenres = formatGenres(filters.gender);
   const formattedReaders = formatReaders(filters.readers);

@@ -18,11 +18,13 @@ export class BookService {
     filters,
     search,
     userId,
+    authorId,
   }: {
     filters?: FiltersOptions;
     search?: string;
     userId?: string;
     bookId?: string;
+    authorId?: string;
   }): Promise<BookDomain[]> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
@@ -33,7 +35,8 @@ export class BookService {
         .withGender(filters?.gender)
         .sortByCreatedAt()
         .withSearchTerm(search)
-        .withId(bookId);
+        .withId(bookId)
+        .withAuthor(authorId);
 
       if (userId) {
         query = query.withUser(userId);
@@ -46,7 +49,7 @@ export class BookService {
           undefined,
           undefined,
           error,
-          { filters }
+          { filters },
         );
       }
 

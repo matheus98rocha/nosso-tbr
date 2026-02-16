@@ -17,7 +17,7 @@ export function DropdownBook({
   shareOnWhatsApp,
   schedule,
   quotes,
-  isStartedReading,
+  isEndReading,
   quotesDisabled,
 }: DropdownMenuWrapperProps) {
   return (
@@ -45,7 +45,7 @@ export function DropdownBook({
             <p>Compartilhar livro no Whatsapp</p>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={schedule} disabled={!isStartedReading}>
+          <DropdownMenuItem onClick={schedule} disabled={isEndReading}>
             <p>Cronograma</p>
           </DropdownMenuItem>
 

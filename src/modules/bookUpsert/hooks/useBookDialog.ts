@@ -109,7 +109,7 @@ export function useBookDialog({
         return createdBook?.id;
       }
     },
-    onSuccess: (createdBook) => {
+    onSuccess: async (createdBookId) => {
       handleResetForm();
       setIsDuplicateBookDialogOpen(false);
 
@@ -118,12 +118,10 @@ export function useBookDialog({
         className: "toast-success text-white",
       });
 
-      queryClient.invalidateQueries({
-        queryKey: [BOOKS_QUERY_KEY],
-      });
+      await queryClient.invalidateQueries({ queryKey: [BOOKS_QUERY_KEY] });
 
-      if (createdBook && !isEdit) {
-        router.replace(`/?bookId=${createdBook}`);
+      if (createdBookId && !isEdit) {
+        router.replace(`/?bookId=${createdBookId}`);
       }
     },
     onError: (error) => {

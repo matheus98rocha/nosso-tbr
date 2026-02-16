@@ -56,8 +56,8 @@ export default function AutocompleteInput({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full justify-between font-normal", // font-normal para igualar ao Input
-            !value && "text-muted-foreground", // Cor de placeholder quando não há valor
+            "w-full justify-between font-normal",
+            !value && "text-muted-foreground",
             className,
           )}
         >
@@ -78,7 +78,7 @@ export default function AutocompleteInput({
             placeholder="Digite o nome do autor..."
             onValueChange={onSearch}
           />
-          <CommandList>
+          <CommandList className="max-h-[300px] overflow-y-auto overflow-x-hidden custom-scrollbar">
             {isLoading ? (
               <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -110,10 +110,11 @@ export default function AutocompleteInput({
                   {items.map((item) => (
                     <CommandItem
                       key={item.id}
-                      value={String(item.id)}
-                      onSelect={(currentValue) => {
+                      value={item.name}
+                      onSelect={() => {
+                        const newValue = String(item.id);
                         onValueChange?.(
-                          currentValue === String(value) ? "" : currentValue,
+                          newValue === String(value) ? "" : newValue,
                         );
                         setOpen(false);
                       }}

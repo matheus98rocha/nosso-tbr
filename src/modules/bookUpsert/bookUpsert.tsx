@@ -30,10 +30,11 @@ import { BlurOverlay, ConfirmDialog } from "@/components/";
 import { CreateBookProps } from "./bookUpsert.types";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { genders } from "@/constants/genders";
-import { BookUpsertService } from "./services/bookUpsert.service";
 import { useQuery } from "@tanstack/react-query";
 import { ComboboxOption } from "./types/authorOptions";
-import { AuthorUpsert, AutocompleteInput } from "./components";
+import { AutocompleteInput } from "./components";
+import { AuthorsService } from "../authors/services/authors.service";
+import AuthorUpsert from "../authors/components/authorUpsert";
 
 export function BookUpsert({
   bookData,
@@ -76,20 +77,25 @@ export function BookUpsert({
 
   const deferredAuthorSearch = React.useDeferredValue(authorSearch);
 
-  const bookUpsertService = React.useMemo(() => new BookUpsertService(), []);
+  const authorsService = React.useMemo(() => new AuthorsService(), []);
+
+  const canEnabledAuthorsRequest = !!deferredAuthorSearch && isBookFormOpen;
 
   const { data: authors = [], isLoading: isLoadingAuthors } = useQuery({
-    queryKey: ["authors", deferredAuthorSearch], // Use o deferred aqui
-    queryFn: () => bookUpsertService.searchAuthors(deferredAuthorSearch),
+    queryKey: ["authors", deferredAuthorSearch],
+    queryFn: () => authorsService.searchAuthors(deferredAuthorSearch),
     staleTime: 1000 * 60 * 5,
+    enabled: canEnabledAuthorsRequest,
   });
+
+  const emptyAuthorSearch = !!deferredAuthorSearch && authors.length === 0;
 
   const handleOpenAddAuthorModal = () => {
     setIsAuthorModalOpen(true);
   };
 
-  const handleAuthorCreated = (authorId: string) => {
-    form.setValue("author_id", authorId);
+  const handleAuthorCreated = (authorId?: string) => {
+    form.setValue("author_id", authorId ?? "");
   };
 
   return (
@@ -99,6 +105,7 @@ export function BookUpsert({
         onOpenChange={setIsAuthorModalOpen}
         defaultName={authorSearch}
         onSuccess={handleAuthorCreated}
+        mode="create"
       />
       <ConfirmDialog
         open={isDuplicateBookDialogOpen}
@@ -182,7 +189,11 @@ export function BookUpsert({
                           onSearch={setAuthorSearch}
                           onAddNew={handleOpenAddAuthorModal}
                           placeholder="Pesquisar autor..."
-                          emptyMessage="Não encontramos esse autor..."
+                          emptyMessage={
+                            emptyAuthorSearch
+                              ? "Não encontramos esse autor..."
+                              : ""
+                          }
                         />
                       </FormControl>
                       <FormMessage />

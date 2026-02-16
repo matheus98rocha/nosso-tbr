@@ -10,6 +10,6 @@ export type DropdownMenuWrapperProps = {
   shareOnWhatsApp: () => void;
   schedule?: () => void;
   quotes?: () => void;
-  isStartedReading?: boolean;
+  isEndReading?: boolean;
   quotesDisabled?: boolean;
 };

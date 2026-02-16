@@ -20,23 +20,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookUpsertService } from "../services/bookUpsert.service";
+import { AuthorsService } from "../services/authors.service";
+import { toast } from "sonner";
 
 interface AuthorUpsertProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  mode: "create" | "edit";
+  authorId?: string;
   defaultName?: string;
-  onSuccess?: (authorId: string) => void;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: (authorId?: string) => void;
 }
 
 export default function AuthorUpsert({
   isOpen,
   onOpenChange,
   defaultName = "",
+  authorId,
   onSuccess,
+  mode = "create",
 }: AuthorUpsertProps) {
   const queryClient = useQueryClient();
-  const bookUpsertService = React.useMemo(() => new BookUpsertService(), []);
+  const authorsService = React.useMemo(() => new AuthorsService(), []);
 
   const form = useForm({
     defaultValues: {
@@ -51,25 +56,46 @@ export default function AuthorUpsert({
   }, [isOpen, defaultName, form]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (name: string) => bookUpsertService.createAuthor(name),
-    onSuccess: (newAuthor) => {
+    mutationFn: async (data: { name: string }) => {
+      if (mode === "edit") {
+        if (!authorId) {
+          throw new Error("ID do autor é obrigatório para edição.");
+        }
+        return authorsService.editAuthor(data.name, authorId);
+      }
+
+      return authorsService.createAuthor(data.name);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      onSuccess?.(newAuthor.id);
+      onSuccess?.();
       onOpenChange(false);
       form.reset();
+      toast(
+        `${isEdit ? "Autor editado com sucesso" : "Novo Autor adicionado com sucesso!"}`,
+        {
+          className: "toast-success text-white",
+        },
+      );
     },
   });
 
   const onSubmit = (data: { name: string }) => {
-    mutate(data.name);
+    console.log("Teste");
+    mutate(data);
   };
+
+  const isEdit = mode === "edit";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Cadastrar Novo Autor</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Editar Autor" : "Cadastrar Novo Autor"}
+          </DialogTitle>
         </DialogHeader>
+
         <Separator className="my-2" />
 
         <Form {...form}>
@@ -95,8 +121,9 @@ export default function AuthorUpsert({
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" isLoading={isPending}>
-                Salvar Autor
+
+              <Button type="submit" disabled={isPending}>
+                {isEdit ? "Salvar Alterações" : "Salvar Autor"}
               </Button>
             </DialogFooter>
           </form>
