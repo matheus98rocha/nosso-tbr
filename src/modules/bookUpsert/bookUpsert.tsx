@@ -32,8 +32,9 @@ import { useUser } from "@/services/users/hooks/useUsers";
 import { genders } from "@/constants/genders";
 import { useQuery } from "@tanstack/react-query";
 import { ComboboxOption } from "./types/authorOptions";
-import { AuthorUpsert, AutocompleteInput } from "./components";
+import { AutocompleteInput } from "./components";
 import { AuthorsService } from "../authors/services/authors.service";
+import AuthorUpsert from "../authors/components/authorUpsert";
 
 export function BookUpsert({
   bookData,
@@ -93,8 +94,8 @@ export function BookUpsert({
     setIsAuthorModalOpen(true);
   };
 
-  const handleAuthorCreated = (authorId: string) => {
-    form.setValue("author_id", authorId);
+  const handleAuthorCreated = (authorId?: string) => {
+    form.setValue("author_id", authorId ?? "");
   };
 
   return (

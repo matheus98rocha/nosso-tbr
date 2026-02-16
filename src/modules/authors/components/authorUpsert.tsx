@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AuthorsService } from "../services/authors.service";
+import { toast } from "sonner";
 
 interface AuthorUpsertProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ interface AuthorUpsertProps {
   authorId?: string;
   defaultName?: string;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (authorId: string) => void;
+  onSuccess?: (authorId?: string) => void;
 }
 
 export default function AuthorUpsert({
@@ -56,23 +57,31 @@ export default function AuthorUpsert({
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (data: { name: string }) => {
-      if (mode === "create") {
-        return authorsService.createAuthor(data.name);
+      if (mode === "edit") {
+        if (!authorId) {
+          throw new Error("ID do autor é obrigatório para edição.");
+        }
+        return authorsService.editAuthor(data.name, authorId);
       }
 
-      if (!authorId) throw new Error("Author id is required for edit");
-
-      return authorsService.editAuthor(data.name, authorId);
+      return authorsService.createAuthor(data.name);
     },
-    onSuccess: (author: { id: string }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      onSuccess?.(author.id);
+      onSuccess?.();
       onOpenChange(false);
       form.reset();
+      toast(
+        `${isEdit ? "Autor editado com sucesso" : "Novo Autor adicionado com sucesso!"}`,
+        {
+          className: "toast-success text-white",
+        },
+      );
     },
   });
 
   const onSubmit = (data: { name: string }) => {
+    console.log("Teste");
     mutate(data);
   };
 
@@ -113,7 +122,7 @@ export default function AuthorUpsert({
                 </Button>
               </DialogClose>
 
-              <Button type="submit" isLoading={isPending}>
+              <Button type="submit" disabled={isPending}>
                 {isEdit ? "Salvar Alterações" : "Salvar Autor"}
               </Button>
             </DialogFooter>

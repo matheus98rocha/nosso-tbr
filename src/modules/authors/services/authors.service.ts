@@ -76,10 +76,41 @@ export class AuthorsService {
     }
   }
 
-  async getAuthors(): Promise<AuthorDomain[]> {
+  async deleteAuthor(id: string) {
     try {
-      const { data, error } = await this.supabase
+      const { error } = await this.supabase
         .from("authors")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw new RepositoryError(
+          "Falha ao editar autor",
+          undefined,
+          undefined,
+          error,
+          { id, name },
+        );
+      }
+    } catch (error) {
+      const normalizedError = ErrorHandler.normalize(error, {
+        service: "AuthorsService",
+        method: "edit",
+        id,
+        name,
+      });
+      ErrorHandler.log(normalizedError);
+      throw normalizedError;
+    }
+  }
+
+  async getAuthors(withCountBooks: {
+    withCountBooks: boolean;
+  }): Promise<AuthorDomain[]> {
+    try {
+      const payload = withCountBooks ? "authors_with_counts" : "authors";
+      const { data, error } = await this.supabase
+        .from(payload)
         .select("*")
         .order("created_at", { ascending: true });
 

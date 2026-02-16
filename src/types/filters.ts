@@ -4,4 +4,5 @@ export type FiltersOptions = {
   gender: string[];
   userId?: string;
   bookId?: string;
+  authorId?: string;
 };

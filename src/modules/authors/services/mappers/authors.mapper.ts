@@ -3,8 +3,10 @@ import { AuthorDomain, AuthorPersistence } from "../../types";
 export class AuthorMapper {
   static toDomain(persistence: AuthorPersistence): AuthorDomain {
     return {
+      id: persistence.id,
       name: persistence.name,
-      created_at: persistence.created_at,
+      createdAt: persistence.created_at,
+      totalBooks: persistence.total_books,
     };
   }
 
@@ -12,7 +14,8 @@ export class AuthorMapper {
     return {
       id,
       name: domain.name,
-      created_at: domain.created_at,
+      created_at: domain.createdAt,
+      total_books: domain.totalBooks,
     };
   }
 

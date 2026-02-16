@@ -99,6 +99,13 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withAuthor(authorId?: string) {
+    if (authorId && authorId.trim() !== "") {
+      this.query = this.query.eq("author_id", authorId);
+    }
+    return this;
+  }
+
   build() {
     return this.query;
   }
