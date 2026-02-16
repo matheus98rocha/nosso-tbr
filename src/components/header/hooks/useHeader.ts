@@ -56,6 +56,16 @@ export function useHeader() {
       ],
     },
     {
+      label: "Autores",
+      items: [
+        {
+          label: "Autores",
+          action: () => router.push("/authors"),
+          path: "/authors",
+        },
+      ],
+    },
+    {
       label: "Conta",
       items: [
         {

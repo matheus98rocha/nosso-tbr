@@ -1,4 +1,4 @@
-import { BookOpen, BarChart3, Library, Plus } from "lucide-react";
+import { BookOpen, BarChart3, Library, Plus, BookUser } from "lucide-react";
 import { JSX } from "react";
 import { useHeader } from "../../hooks/useHeader";
 import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
@@ -9,6 +9,7 @@ const iconMap: Record<string, JSX.Element> = {
   "Adicionar Livro": <Plus className="w-6 h-6" />,
   Estatisticas: <BarChart3 className="w-6 h-6" />,
   Estantes: <Library className="w-6 h-6" />,
+  Autores: <BookUser className="w-6 h-6" />,
 };
 
 const allowedLabels = [
@@ -16,6 +17,7 @@ const allowedLabels = [
   "Adicionar Livro",
   "Estatisticas",
   "Ver Estantes",
+  "Autores",
 ];
 
 type DesktopNavMenuProps = {
@@ -36,7 +38,7 @@ export function DesktopNavMenu({
   const { menuItems, pathname } = useHeader();
 
   const filteredItems = menuItems.flatMap((menu) =>
-    menu.items.filter((item) => allowedLabels.includes(item.label))
+    menu.items.filter((item) => allowedLabels.includes(item.label)),
   );
 
   if (isLoading) {

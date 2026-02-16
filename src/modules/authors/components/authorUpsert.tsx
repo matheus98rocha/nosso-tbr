@@ -20,13 +20,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookUpsertService } from "../services/bookUpsert.service";
+import { AuthorsService } from "../services/authors.service";
 
 interface AuthorUpsertProps {
   isOpen: boolean;
   mode: "create" | "edit";
-  onOpenChange: (open: boolean) => void;
+  authorId?: string;
   defaultName?: string;
+  onOpenChange: (open: boolean) => void;
   onSuccess?: (authorId: string) => void;
 }
 
@@ -34,11 +35,12 @@ export default function AuthorUpsert({
   isOpen,
   onOpenChange,
   defaultName = "",
+  authorId,
   onSuccess,
   mode = "create",
 }: AuthorUpsertProps) {
   const queryClient = useQueryClient();
-  const bookUpsertService = React.useMemo(() => new BookUpsertService(), []);
+  const authorsService = React.useMemo(() => new AuthorsService(), []);
 
   const form = useForm({
     defaultValues: {
@@ -53,28 +55,38 @@ export default function AuthorUpsert({
   }, [isOpen, defaultName, form]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (name: string) =>
-      mode
-        ? bookUpsertService.createAuthor(name)
-        : bookUpsertService.createAuthor(name),
-    onSuccess: (newAuthor) => {
+    mutationFn: async (data: { name: string }) => {
+      if (mode === "create") {
+        return authorsService.createAuthor(data.name);
+      }
+
+      if (!authorId) throw new Error("Author id is required for edit");
+
+      return authorsService.editAuthor(data.name, authorId);
+    },
+    onSuccess: (author: { id: string }) => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      onSuccess?.(newAuthor.id);
+      onSuccess?.(author.id);
       onOpenChange(false);
       form.reset();
     },
   });
 
   const onSubmit = (data: { name: string }) => {
-    mutate(data.name);
+    mutate(data);
   };
+
+  const isEdit = mode === "edit";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Cadastrar Novo Autor</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Editar Autor" : "Cadastrar Novo Autor"}
+          </DialogTitle>
         </DialogHeader>
+
         <Separator className="my-2" />
 
         <Form {...form}>
@@ -100,8 +112,9 @@ export default function AuthorUpsert({
                   Cancelar
                 </Button>
               </DialogClose>
+
               <Button type="submit" isLoading={isPending}>
-                Salvar Autor
+                {isEdit ? "Salvar Alterações" : "Salvar Autor"}
               </Button>
             </DialogFooter>
           </form>
