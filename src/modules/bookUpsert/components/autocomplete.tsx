@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Loader2, X } from "lucide-react"; // Importe o X
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,7 @@ interface AutocompleteProps {
   isLoading?: boolean;
   onValueChange?: (currentValue: string) => void;
   onSearch?: (search: string) => void;
+  onClear?: () => void; // Nova prop para limpar
   onAddNew?: () => void;
   placeholder?: string;
   emptyMessage?: string;
@@ -41,6 +42,7 @@ export default function AutocompleteInput({
   isLoading,
   onValueChange,
   onSearch,
+  onClear,
   onAddNew,
   placeholder = "Selecionar...",
   emptyMessage = "Nenhum resultado encontrado.",
@@ -50,25 +52,40 @@ export default function AutocompleteInput({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between font-normal",
-            !value && "text-muted-foreground",
-            className,
-          )}
-        >
-          <span className="truncate">
-            {value
-              ? items.find((item) => String(item.id) === String(value))?.name
-              : placeholder}
-          </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+      <div className={cn("relative w-full", className)}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between font-normal pr-8", // pr-8 para não sobrepor o X
+              !value && "text-muted-foreground",
+            )}
+          >
+            <span className="truncate">
+              {value
+                ? items.find((item) => String(item.id) === String(value))?.name
+                : placeholder}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+
+        {/* Botão de Limpar (X) */}
+        {value && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Evita abrir o popover ao clicar no X
+              onClear?.();
+            }}
+            className="absolute right-8 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
+          >
+            <X className="h-3 w-3 text-muted-foreground" />
+          </button>
+        )}
+      </div>
+
       <PopoverContent
         className="w-[var(--radix-popover-trigger-width)] p-0"
         align="start"
@@ -112,10 +129,7 @@ export default function AutocompleteInput({
                       key={item.id}
                       value={item.name}
                       onSelect={() => {
-                        const newValue = String(item.id);
-                        onValueChange?.(
-                          newValue === String(value) ? "" : newValue,
-                        );
+                        onValueChange?.(String(item.id));
                         setOpen(false);
                       }}
                     >

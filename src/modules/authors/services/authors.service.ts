@@ -104,14 +104,35 @@ export class AuthorsService {
     }
   }
 
-  async getAuthors(withCountBooks: {
-    withCountBooks: boolean;
-  }): Promise<AuthorDomain[]> {
+  async getAuthors({
+    withCountBooks = false,
+    page = 0,
+    pageSize = 10,
+    searchName,
+  }: {
+    withCountBooks?: boolean;
+    page?: number;
+    pageSize?: number;
+    searchName?: string;
+  }): Promise<{ data: AuthorDomain[]; total: number }> {
     try {
       const payload = withCountBooks ? "authors_with_counts" : "authors";
-      const { data, error } = await this.supabase
+
+      let query = this.supabase
         .from(payload)
-        .select("*")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: true });
+
+      if (searchName?.trim()) {
+        query = query.ilike("name", `%${searchName}%`);
+      }
+
+      // Lógica de Paginação (Range)
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await query
+        .range(from, to)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -120,12 +141,18 @@ export class AuthorsService {
           undefined,
           undefined,
           error,
+          { page, pageSize, searchName },
         );
       }
 
-      if (!data) return [];
+      const domainAuthors = (data || []).map((row) =>
+        AuthorMapper.toDomain(row as AuthorPersistence),
+      );
 
-      return data.map((row) => AuthorMapper.toDomain(row as AuthorPersistence));
+      return {
+        data: domainAuthors,
+        total: count || 0,
+      };
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "AuthorsService",
