@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { DataTable } from "./components/dataTable";
 import { AuthorDomain } from "./types";
 import { AuthorsService } from "./services/authors.service";
@@ -8,14 +8,8 @@ import AuthorUpsert from "./components/authorUpsert";
 import { ConfirmDialog } from "@/components";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+
+import DefaultPagination from "@/components/pagintation/pagination";
 
 const PAGE_SIZE = 10;
 
@@ -34,7 +28,7 @@ export default function AuthorsScreen() {
   const [searchName, setSearchName] = useState("");
   const [filterName, setFilterName] = useState("");
 
-  const authorsService = new AuthorsService();
+  const authorsService = useMemo(() => new AuthorsService(), []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -56,28 +50,38 @@ export default function AuthorsScreen() {
       }),
   });
 
-  const totalPages = Math.ceil((data?.total ?? 0) / PAGE_SIZE);
+  const totalPages = useMemo(
+    () => Math.ceil((data?.total ?? 0) / PAGE_SIZE),
+    [data?.total],
+  );
 
-  const handleEdit = (author: AuthorDomain) => {
+  const handleEdit = useCallback((author: AuthorDomain) => {
     setSelectedAuthor(author);
     setIsAuthorModalOpen(true);
     setIsEdit(true);
-  };
+  }, []);
 
-  const handleDelete = (author: AuthorDomain) => {
+  const handleDelete = useCallback((author: AuthorDomain) => {
     setSelectedAuthor(author);
     setIsDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleViewAuthorBooks = (author: AuthorDomain) => {
-    router.replace(`/?authorId=${author.id}`);
-  };
+  const handleViewAuthorBooks = useCallback(
+    (author: AuthorDomain) => {
+      router.replace(`/?authorId=${author.id}`);
+    },
+    [router],
+  );
 
-  const columns = createColumns({
-    onEdit: handleEdit,
-    onDelete: handleDelete,
-    onView: handleViewAuthorBooks,
-  });
+  const columns = useMemo(
+    () =>
+      createColumns({
+        onEdit: handleEdit,
+        onDelete: handleDelete,
+        onView: handleViewAuthorBooks,
+      }),
+    [handleEdit, handleDelete, handleViewAuthorBooks],
+  );
 
   const { mutateAsync: deleteAutor } = useMutation({
     mutationFn: (id: string) => authorsService.deleteAuthor(id),
@@ -108,96 +112,53 @@ export default function AuthorsScreen() {
     setCurrentPage(0);
   }, []);
 
+  const onConfirmDelete = useCallback(
+    async (id: string) => {
+      await deleteAutor(id);
+      setIsDeleteModalOpen(false);
+    },
+    [deleteAutor],
+  );
+
   return (
     <div className="space-y-4">
-      <>
-        <AuthorUpsert
-          isOpen={isAuthorModalOpen}
-          onOpenChange={setIsAuthorModalOpen}
-          onSuccess={() =>
-            queryClient.invalidateQueries({ queryKey: ["authors"] })
-          }
-          mode={isEdit ? "edit" : "create"}
-          defaultName={selectedAuthor?.name ?? ""}
-          authorId={selectedAuthor?.id ?? ""}
-        />
+      <AuthorUpsert
+        isOpen={isAuthorModalOpen}
+        onOpenChange={setIsAuthorModalOpen}
+        onSuccess={() =>
+          queryClient.invalidateQueries({ queryKey: ["authors"] })
+        }
+        mode={isEdit ? "edit" : "create"}
+        defaultName={selectedAuthor?.name ?? ""}
+        authorId={selectedAuthor?.id ?? ""}
+      />
 
-        <ConfirmDialog
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
-          id={selectedAuthor?.id ?? ""}
-          onConfirm={async (id: string) => {
-            await deleteAutor(id);
-            setIsDeleteModalOpen(false);
-          }}
-          queryKeyToInvalidate="authors"
-          title="Deletar Autor"
-          buttonLabel="Deletar"
-          description={`Tem certeza que deseja deletar o autor: ${selectedAuthor?.name}? Essa ação não pode ser desfeita.`}
-        />
+      <ConfirmDialog
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        id={selectedAuthor?.id ?? ""}
+        onConfirm={onConfirmDelete}
+        queryKeyToInvalidate="authors"
+        title="Deletar Autor"
+        buttonLabel="Deletar"
+        description={`Tem certeza que deseja deletar o autor: ${selectedAuthor?.name}? Essa ação não pode ser desfeita.`}
+      />
 
-        <DataTable
-          columns={columns}
-          data={data?.data ?? []}
-          onClickNewAuthor={handleClickNewAuthor}
-          onChangeSearch={handleSearchNameChange}
-          onClearSearch={handleClearSearch}
-          searchValue={searchName}
-          isLoading={isLoadingAuthors}
-        />
+      <DataTable
+        columns={columns}
+        data={data?.data ?? []}
+        onClickNewAuthor={handleClickNewAuthor}
+        onChangeSearch={handleSearchNameChange}
+        onClearSearch={handleClearSearch}
+        searchValue={searchName}
+        isLoading={isLoadingAuthors}
+      />
 
-        {totalPages > 1 && (
-          <Pagination className="mt-4">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage > 0) setCurrentPage((prev) => prev - 1);
-                  }}
-                  className={
-                    currentPage === 0
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
-                />
-              </PaginationItem>
-
-              {Array.from({ length: totalPages }).map((_, idx) => (
-                <PaginationItem key={idx}>
-                  <PaginationLink
-                    href="#"
-                    isActive={currentPage === idx}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage(idx);
-                    }}
-                  >
-                    {idx + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage < totalPages - 1)
-                      setCurrentPage((prev) => prev + 1);
-                  }}
-                  className={
-                    currentPage === totalPages - 1
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </>
+      <DefaultPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
     </div>
   );
 }

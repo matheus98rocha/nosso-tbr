@@ -2,7 +2,7 @@ import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { FiltersOptions } from "@/types/filters";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
@@ -12,10 +12,14 @@ import {
 } from "@/utils/formatters/formatters";
 import { UserDomain } from "@/services/users/types/users.types";
 
+const PAGE_SIZE = 8;
+
 export function useHome() {
-  const bookService = new BookService();
+  const bookService = useMemo(() => new BookService(), []);
   const { users, isLoadingUsers } = useUser();
   const user = useUserStore((state) => state.user);
+
+  const [currentPage, setCurrentPage] = useState(0);
 
   const defaultFactory = useMemo(
     () => () =>
@@ -42,16 +46,21 @@ export function useHome() {
     handleSearchButtonClick,
   } = useFiltersUrl(defaultFactory);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [filters, searchQuery]);
+
   const handleGenerateReadersObj = useCallback(() => {
     if (filters.readers.length > 0) {
       return {
         readers: filters.readers,
-        readersDisplay: filters.readers.map((reader) => reader),
+        readersDisplay: filters.readers,
       };
     } else {
+      const allNames = users.map((u) => u.display_name);
       return {
-        readers: users.map((u) => u.display_name),
-        readersDisplay: users.map((u) => u.display_name).join(", "),
+        readers: allNames,
+        readersDisplay: allNames.join(", "),
       };
     }
   }, [filters.readers, users]);
@@ -62,8 +71,8 @@ export function useHome() {
     isFetched,
     isError,
   } = useQuery({
-    queryKey: ["books", filters, searchQuery],
-    queryFn: async () =>
+    queryKey: ["books", filters, searchQuery, currentPage],
+    queryFn: () =>
       bookService.getAll({
         bookId: filters.bookId,
         authorId: filters.authorId,
@@ -74,17 +83,25 @@ export function useHome() {
         },
         search: searchQuery,
         userId: undefined,
+        page: currentPage,
+        pageSize: PAGE_SIZE,
       }),
   });
 
-  console.log("Filtros atuais da URL:", filters);
-
-  const formattedGenres = formatGenres(filters.gender);
-  const formattedReaders = formatReaders(filters.readers);
-  const formattedStatus = formatStatus(filters.status);
+  const formattedGenres = useMemo(
+    () => formatGenres(filters.gender),
+    [filters.gender],
+  );
+  const formattedReaders = useMemo(
+    () => formatReaders(filters.readers),
+    [filters.readers],
+  );
+  const formattedStatus = useMemo(
+    () => formatStatus(filters.status),
+    [filters.status],
+  );
 
   const isLoadingData = isLoadingUsers || isLoadingAllBooks;
-  const isMyBooksPage = !!filters.userId;
 
   return {
     allBooks,
@@ -103,8 +120,9 @@ export function useHome() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
-    isMyBooksPage,
     handleGenerateReadersObj,
     user,
+    currentPage,
+    setCurrentPage,
   };
 }

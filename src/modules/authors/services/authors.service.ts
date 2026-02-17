@@ -127,7 +127,6 @@ export class AuthorsService {
         query = query.ilike("name", `%${searchName}%`);
       }
 
-      // Lógica de Paginação (Range)
       const from = page * pageSize;
       const to = from + pageSize - 1;
 

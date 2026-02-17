@@ -19,41 +19,47 @@ export class BookService {
     search,
     userId,
     authorId,
+    page = 0,
+    pageSize = 10,
   }: {
     filters?: FiltersOptions;
     search?: string;
     userId?: string;
     bookId?: string;
     authorId?: string;
-  }): Promise<BookDomain[]> {
+    page?: number;
+    pageSize?: number;
+  }): Promise<{ data: BookDomain[]; total: number }> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
 
-      let query = new BookQueryBuilder(this.supabase)
+      const query = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
         .withStatus(statuses)
         .withGender(filters?.gender)
-        .sortByCreatedAt()
         .withSearchTerm(search)
         .withId(bookId)
-        .withAuthor(authorId);
+        .withAuthor(authorId)
+        .withUser(userId)
+        .sortByCreatedAt()
+        .withPagination(page, pageSize); // Aplica a lógica de range do Supabase
 
-      if (userId) {
-        query = query.withUser(userId);
-      }
+      const { data, error, count } = await query.build();
 
-      const { data, error } = await query.build();
       if (error) {
         throw new RepositoryError(
           "Falha ao buscar livros",
           undefined,
           undefined,
           error,
-          { filters },
+          { filters, page, pageSize },
         );
       }
 
-      return data.map(BookMapper.toDomain);
+      return {
+        data: (data || []).map(BookMapper.toDomain),
+        total: count || 0,
+      };
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "BookService",

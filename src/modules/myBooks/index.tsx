@@ -10,6 +10,14 @@ import { CreateEditBookshelves } from "../shelves/components/createEditBookshelv
 import { useUserStore } from "@/stores/userStore";
 import { BookCard } from "../home/components/bookCard/bookCard";
 import { useMyBooks } from "./hooks/useMyBooks";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function ClientMyBook() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -26,6 +34,9 @@ export default function ClientMyBook() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
+    currentPage,
+    setCurrentPage,
+    totalPages,
   } = useMyBooks();
 
   const dialogModal = useModal();
@@ -42,15 +53,11 @@ export default function ClientMyBook() {
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
       />
-      <div className="w-full flex items-center justify-center flex-col gap-4 container">
+      <div className="w-full flex items-center justify-center flex-col gap-2 container">
         {!isLoadingAllBooks && (
           <div className="flex items-start justify-center flex-col container">
-            <h4 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-              Meus livros
-            </h4>
-
             <p className="leading-7">
-              Foram encontrados: <strong>{allBooks?.length || 0} livros</strong>
+              Foram encontrados: <strong>{allBooks?.total || 0} livros</strong>
             </p>
             <div className="flex items-center justify-center gap-4">
               {(formattedGenres ||
@@ -106,12 +113,68 @@ export default function ClientMyBook() {
         )}
 
         <ListGrid<BookDomain>
-          items={allBooks ?? []}
+          items={allBooks?.data ?? []}
           isLoading={isLoadingAllBooks || isLoggingOut}
           isFetched={isFetched}
           renderItem={(book) => <BookCard key={book.id} book={book} />}
           isError={isError}
         />
+
+        {totalPages > 1 && (
+          <Pagination className="mt-4">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 0) setCurrentPage(currentPage - 1);
+                  }}
+                  className={
+                    currentPage === 0
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                >
+                  Anterior
+                </PaginationPrevious>
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <PaginationItem key={idx}>
+                  <PaginationLink
+                    href="#"
+                    isActive={currentPage === idx}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCurrentPage(idx);
+                    }}
+                  >
+                    {idx + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages - 1)
+                      setCurrentPage(currentPage + 1);
+                  }}
+                  className={
+                    currentPage === totalPages - 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                >
+                  Próximo
+                </PaginationNext>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
       </div>
     </>
   );
