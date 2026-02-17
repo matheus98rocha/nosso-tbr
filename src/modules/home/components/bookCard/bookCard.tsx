@@ -39,38 +39,46 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
     isShelf,
   });
 
-  const renderStatusBadge = () => {
+  const renderStatusSection = () => {
     return (
-      <div className="flex items-center justify-start gap-2 flex-wrap">
-        <Badge className={badgeObject.bookStatusClass}>
-          {badgeObject.bookStatusText}
-        </Badge>
+      <div className="flex flex-col">
+        <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+          {book.status === "finished" && book.end_date && (
+            <span className="leading-tight">
+              Finalizado em:{" "}
+              <span className="font-medium text-foreground">
+                {new Date(book.end_date).toLocaleDateString("pt-BR")}
+              </span>
+            </span>
+          )}
 
-        {book.status === "finished" && book.end_date && (
-          <Badge className={"bg-red-500 text-white"}>
-            Finalizado em:{" "}
-            {new Date(book.end_date).toLocaleDateString("pt-BR", {
-              year: "numeric",
-              month: "numeric",
-              day: "numeric",
-            })}
+          <span className="leading-tight">
+            Leitores:
+            <span className="font-medium text-foreground"> {book.readers}</span>
+          </span>
+
+          <span className="leading-tight">
+            Escolhido por{" "}
+            <span className="font-medium text-foreground">
+              {book.chosen_by}
+            </span>
+          </span>
+        </div>
+
+        {/* Tags */}
+        <div className="flex  gap-2 mt-4">
+          <Badge className={`${badgeObject.bookStatusClass} px-3 py-1 text-xs`}>
+            {badgeObject.bookStatusText}
           </Badge>
-        )}
-        <Badge className="bg-amber-500 text-white">
-          {book.readers === "Barbara,Fabi e Matheus"
-            ? "Leitores: 3 (Todos)"
-            : `Leitores: ${book.readers}`}
-        </Badge>
 
-        <Badge className="bg-amber-500 text-white">
-          Escolhido por: {book.chosen_by}
-        </Badge>
-
-        {book.gender && (
-          <Badge className={getGenreBadgeColor(book.gender)}>
-            {getGenderLabel(book.gender)}
-          </Badge>
-        )}
+          {book.gender && (
+            <Badge
+              className={`${getGenreBadgeColor(book.gender)} px-3 py-1 text-xs`}
+            >
+              {getGenderLabel(book.gender)}
+            </Badge>
+          )}
+        </div>
       </div>
     );
   };
@@ -82,6 +90,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
         handleClose={dialogAddShelfModal.setIsOpen}
         bookId={book.id ?? ""}
       />
+
       <ConfirmDialog
         title="Excluir livro"
         buttonLabel={!isShelf ? "Deletar" : "Remover"}
@@ -96,15 +105,18 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
         open={dialogDeleteModal.isOpen}
         onOpenChange={dialogDeleteModal.setIsOpen}
       />
+
       <BookUpsert
         isBookFormOpen={dialogEditModal.isOpen}
         setIsBookFormOpen={dialogEditModal.setIsOpen}
         bookData={book}
       />
+
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader>
           <CardTitle className="truncate">{book.title}</CardTitle>
-          <CardDescription className="flex flex-col">
+
+          <CardDescription className="flex flex-col gap-1">
             <span className="flex items-center gap-1">
               por
               <p
@@ -131,15 +143,9 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
                     onClick={dropdownTap.handleClick}
                   />
                 }
-                editBook={() => {
-                  dialogEditModal.setIsOpen(true);
-                }}
-                removeBook={() => {
-                  dialogDeleteModal.setIsOpen(true);
-                }}
-                addToShelf={() => {
-                  dialogAddShelfModal.setIsOpen(true);
-                }}
+                editBook={() => dialogEditModal.setIsOpen(true)}
+                removeBook={() => dialogDeleteModal.setIsOpen(true)}
+                addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
                 shareOnWhatsApp={() => shareOnWhatsApp()}
                 schedule={() => handleNavigateToSchedule()}
                 quotes={() => handleNavigateToQuotes()}
@@ -149,24 +155,25 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
             </CardAction>
           )}
         </CardHeader>
+
         <CardContent>
-          <div className="grid grid-cols-[80px_auto] gap-3 w-full">
+          <div className="grid grid-cols-[80px_auto] gap-4 w-full">
             <div className="relative w-[80px] h-[120px]">
               <Image
                 src={book.image_url as string}
                 alt={book.title}
                 fill
                 sizes="(max-width: 640px) 100vw, 640px"
-                className="rounded-xl object-cover h-auto w-auto "
+                className="rounded-xl object-cover"
                 loading="eager"
               />
             </div>
 
-            {/* Badges */}
-            <div className="flex flex-col gap-1">{renderStatusBadge()}</div>
+            <div>{renderStatusSection()}</div>
           </div>
         </CardContent>
-        <CardFooter className="flex-col gap-2"></CardFooter>
+
+        <CardFooter />
       </Card>
     </>
   );
