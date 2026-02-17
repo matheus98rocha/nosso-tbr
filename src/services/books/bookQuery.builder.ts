@@ -6,12 +6,15 @@ export class BookQueryBuilder {
 
   constructor(
     supabase: SupabaseClient<Database>,
-    initialQuery = supabase.from("books").select(`
+    initialQuery = supabase.from("books").select(
+      `
       *,
       author:authors!books_author_id_fkey (
         name
       )
-    `),
+    `,
+      { count: "exact" },
+    ),
   ) {
     this.query = initialQuery;
   }
@@ -100,6 +103,13 @@ export class BookQueryBuilder {
     if (authorId && authorId.trim() !== "") {
       this.query = this.query.eq("author_id", authorId);
     }
+    return this;
+  }
+
+  withPagination(page: number, pageSize: number): this {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+    this.query = this.query.range(from, to);
     return this;
   }
 

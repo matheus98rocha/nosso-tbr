@@ -7,3 +7,4 @@ export * from "./linkButton/linkButton";
 export * from "./listGrid/listGrid";
 export * from "./multSelect/multiSelect";
 export * from "./searchBar/searchBar";
+export * from "./pagintation/pagination";

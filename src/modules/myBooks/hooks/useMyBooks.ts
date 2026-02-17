@@ -1,7 +1,7 @@
 import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiltersOptions } from "@/types/filters";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
@@ -11,8 +11,12 @@ import {
 } from "@/utils/formatters/formatters";
 
 export function useMyBooks() {
+  const PAGE_SIZE = 8;
+
   const bookService = new BookService();
   const { user } = useUserStore();
+
+  const [currentPage, setCurrentPage] = useState(0);
 
   const defaultFactory = useMemo(
     () => () =>
@@ -22,8 +26,8 @@ export function useMyBooks() {
         gender: [],
         userId: "",
         bookId: "",
-      } as FiltersOptions),
-    []
+      }) as FiltersOptions,
+    [],
   );
 
   const {
@@ -38,25 +42,36 @@ export function useMyBooks() {
     handleSearchButtonClick,
   } = useFiltersUrl(defaultFactory);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [filters, searchQuery]);
+
   const {
     data: allBooks,
     isFetching: isLoadingAllBooks,
     isFetched,
     isError,
   } = useQuery({
-    queryKey: ["books", filters, searchQuery, user?.id],
+    queryKey: ["books", filters, searchQuery, user?.id, currentPage],
     queryFn: async () =>
       bookService.getAll({
         bookId: filters.bookId,
         filters,
         search: searchQuery,
         userId: user?.id,
+        page: currentPage,
+        pageSize: PAGE_SIZE,
       }),
   });
 
   const formattedGenres = formatGenres(filters.gender);
   const formattedReaders = formatReaders(filters.readers);
   const formattedStatus = formatStatus(filters.status);
+
+  const totalPages = useMemo(
+    () => Math.ceil((allBooks?.total || 0) / PAGE_SIZE),
+    [allBooks?.total],
+  );
 
   return {
     allBooks,
@@ -75,5 +90,8 @@ export function useMyBooks() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
+    currentPage,
+    setCurrentPage,
+    totalPages,
   };
 }
