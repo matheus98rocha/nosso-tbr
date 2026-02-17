@@ -73,7 +73,7 @@ export const createColumns = ({
 
       const actions = [
         {
-          label: "Visualizar Livros do autor",
+          label: "Visualizar livros do autor",
           onClick: () => onView(author),
           icon: <Eye className="h-4 w-4 text-green-500" />,
         },
