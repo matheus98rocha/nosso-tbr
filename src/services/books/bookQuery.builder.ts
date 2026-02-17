@@ -69,16 +69,13 @@ export class BookQueryBuilder {
   withSearchTerm(searchTerm?: string): this {
     if (!searchTerm?.trim()) return this;
 
-    // 1. Limpeza: Mantém letras e números, remove o que quebra o SQL
     const cleanTerm = searchTerm.replace(/[^\w\sÀ-ÿ]/g, " ").trim();
 
     const words = cleanTerm.split(/\s+/).filter((word) => word.length >= 1); // Mantém o "2"
 
     if (words.length > 0) {
-      // 2. Montamos a query com prefixos
       const formattedSearch = words.map((word) => `${word}:*`).join(" & ");
 
-      // 3. Forçamos o uso do operador 'fts'
       this.query = this.query.filter("search_vector", "fts", formattedSearch);
     }
 
