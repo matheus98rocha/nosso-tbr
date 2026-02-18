@@ -114,11 +114,12 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
 
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader>
-          <CardTitle className="truncate">{book.title}</CardTitle>
+          <CardTitle className="whitespace-normal break-words leading-tight">
+            {book.title}
+          </CardTitle>
 
-          <CardDescription className="flex flex-col gap-1">
+          <CardDescription className="flex gap-1">
             <span className="flex items-center gap-1">
-              por
               <p
                 className="text-[#2162a1] hover:underline cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-52"
                 onClick={handleNavigateToAuthor}
