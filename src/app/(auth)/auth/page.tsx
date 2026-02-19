@@ -1,11 +1,7 @@
 import LoginForm from "@/modules/auth";
 
 function AuthPage() {
-  return (
-    <div>
-      <LoginForm />
-    </div>
-  );
+  return <LoginForm />;
 }
 
 export default AuthPage;

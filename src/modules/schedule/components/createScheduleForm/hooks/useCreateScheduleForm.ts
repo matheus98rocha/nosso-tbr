@@ -56,8 +56,6 @@ export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
   });
 
   const onSubmit: SubmitHandler<ScheduleFormInput> = async (data) => {
-    console.log(data);
-
     setFormError(null);
     const isInvalidChaptersNumber =
       !data.totalChapters || data.totalChapters <= 0;

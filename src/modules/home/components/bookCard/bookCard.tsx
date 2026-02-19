@@ -66,7 +66,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
         </div>
 
         {/* Tags */}
-        <div className="gap-2 flex flex-col mt-4">
+        <div className="gap-2 flex flex-col justify-center mt-4 w-[60%]">
           <Badge className={`${badgeObject.bookStatusClass} px-3 py-1 text-xs`}>
             {badgeObject.bookStatusText}
           </Badge>

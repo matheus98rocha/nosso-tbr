@@ -13,19 +13,19 @@ import { loginAction, LoginState } from "./actions/login";
 import { useActionState } from "react";
 import LogoIcon from "@/assets/icons/logo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { useLogin } from "./hooks/useLogin";
 
-interface LoginPageProps {
-  children?: React.ReactNode;
-}
-
-export default function LoginPage({ children }: LoginPageProps) {
+export default function LoginPage() {
   const [state, formAction, isPending] = useActionState<LoginState, FormData>(
     loginAction,
     {
       message: null,
       error: null,
-    } as LoginState
+    } as LoginState,
   );
+
+  const { handleRecoverPassword } = useLogin();
 
   return (
     <div className="flex items-center justify-center min-h-screen w-screen bg-gray-100">
@@ -75,8 +75,12 @@ export default function LoginPage({ children }: LoginPageProps) {
           {state?.message && !isPending && (
             <p className="mt-4 text-green-500 text-sm">{state.message}</p>
           )}
-
-          {children}
+          <Separator />
+          <div className="flex items-center justify-center w-full mt-2">
+            <Button variant="link" onClick={() => handleRecoverPassword()}>
+              Esqueci a senha
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
