@@ -66,7 +66,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
         </div>
 
         {/* Tags */}
-        <div className="flex  gap-2 mt-4">
+        <div className="gap-2 flex flex-col justify-center mt-4 w-full">
           <Badge className={`${badgeObject.bookStatusClass} px-3 py-1 text-xs`}>
             {badgeObject.bookStatusText}
           </Badge>
@@ -112,13 +112,14 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
         bookData={book}
       />
 
-      <Card className="w-full max-w-sm overflow-hidden">
+      <Card className="w-full max-w-full">
         <CardHeader>
-          <CardTitle className="truncate">{book.title}</CardTitle>
+          <CardTitle className="whitespace-normal break-words leading-tight">
+            {book.title}
+          </CardTitle>
 
           <CardDescription className="flex flex-col gap-1">
             <span className="flex items-center gap-1">
-              por
               <p
                 className="text-[#2162a1] hover:underline cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-52"
                 onClick={handleNavigateToAuthor}

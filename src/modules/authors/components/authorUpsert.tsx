@@ -81,7 +81,6 @@ export default function AuthorUpsert({
   });
 
   const onSubmit = (data: { name: string }) => {
-    console.log("Teste");
     mutate(data);
   };
 

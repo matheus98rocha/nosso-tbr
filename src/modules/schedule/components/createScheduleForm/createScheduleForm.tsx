@@ -107,14 +107,11 @@ export function CreateScheduleForm({ id: bookId }: ClientScheduleProps) {
                       }
                       onChange={(e) => {
                         const { value } = e.target;
-                        console.log("Selected date:", value);
 
                         if (value) {
-                          // Cria a data com fuso horário do Brasil
                           const brazilDate = new Date(
-                            `${value}T00:00:00-03:00`
+                            `${value}T00:00:00-03:00`,
                           );
-                          console.log("Brazil date:", brazilDate);
                           field.onChange(brazilDate);
                         } else {
                           field.onChange(null);
