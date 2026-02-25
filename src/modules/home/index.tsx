@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import DefaultPagination from "@/components/pagintation/pagination";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);

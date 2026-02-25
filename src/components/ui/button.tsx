@@ -51,10 +51,6 @@ function Button({
   }) {
   const Comp = asChild ? Slot : "button";
 
-  if (isLoading) {
-    <Loader2Icon className="animate-spin" />;
-  }
-
   return (
     <Comp
       data-slot="button"
@@ -62,6 +58,7 @@ function Button({
       disabled={isLoading || props.disabled}
       {...props}
     >
+      {isLoading && <Loader2Icon className="animate-spin" />}
       {children}
     </Comp>
   );

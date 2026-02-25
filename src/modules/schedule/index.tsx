@@ -21,7 +21,7 @@ export default function ClientSchedule({ id, title }: ClientScheduleProps) {
 
   const { user } = useUserStore();
 
-  if (isLoadingSchedule && (user?.id === undefined || user.id === null)) {
+  if (isLoadingSchedule || user?.id === undefined || user.id === null) {
     return (
       <div className="w-full max-w-5xl mx-auto space-y-6 animate-pulse">
         {/* Título */}

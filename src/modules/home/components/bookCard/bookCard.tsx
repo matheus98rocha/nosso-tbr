@@ -150,7 +150,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
                 shareOnWhatsApp={() => shareOnWhatsApp()}
                 schedule={() => handleNavigateToSchedule()}
                 quotes={() => handleNavigateToQuotes()}
-                isEndReading={book.status === "finished"}
+                isFinishedReading={book.status === "finished"}
                 quotesDisabled={book.status !== "not_started"}
               />
             </CardAction>

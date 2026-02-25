@@ -6,6 +6,7 @@ export type BookPersistence = {
   author: {
     name: string;
   };
+  author_id: string;
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
   start_date?: string | null;
@@ -52,6 +53,7 @@ export type BookDomain = {
   id?: string;
   title: string;
   author: string;
+  authorId?: string;
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
   status?: Status;

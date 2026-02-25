@@ -4,6 +4,7 @@ export type ScheduleCreateValidator = {
   date: Date;
   chapters: string;
   completed?: boolean;
+  chaptersPerDay?: number;
 };
 
 export type SchedulePersistence = {
@@ -14,6 +15,7 @@ export type SchedulePersistence = {
   chapters: string;
   completed: boolean;
   created_at?: string;
+  chaptersPerDay?: number;
 };
 
 export type ScheduleDomain = {

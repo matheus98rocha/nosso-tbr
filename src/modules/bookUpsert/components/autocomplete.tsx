@@ -59,7 +59,7 @@ export default function AutocompleteInput({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between font-normal pr-8", // pr-8 para não sobrepor o X
+              "w-full justify-between font-normal pr-8",
               !value && "text-muted-foreground",
             )}
           >
@@ -76,8 +76,14 @@ export default function AutocompleteInput({
         {value && (
           <button
             onClick={(e) => {
-              e.stopPropagation(); // Evita abrir o popover ao clicar no X
-              onClear?.();
+              e.stopPropagation();
+
+              if (onClear) {
+                onClear();
+              } else {
+                onValueChange?.("");
+                onSearch?.("");
+              }
             }}
             className="absolute right-8 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
           >

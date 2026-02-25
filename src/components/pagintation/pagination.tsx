@@ -60,21 +60,23 @@ function DefaultPagination({
           </PaginationItem>
         ))}
 
-        <PaginationNext
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            if (currentPage < totalPages - 1)
-              setCurrentPage((prev) => prev + 1);
-          }}
-          className={
-            currentPage === totalPages - 1
-              ? "pointer-events-none opacity-50"
-              : "cursor-pointer"
-          }
-        >
-          {nextText}
-        </PaginationNext>
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage < totalPages - 1)
+                setCurrentPage((prev) => prev + 1);
+            }}
+            className={
+              currentPage === totalPages - 1
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
+          >
+            {nextText}
+          </PaginationNext>
+        </PaginationItem>
       </PaginationContent>
     </Pagination>
   );
