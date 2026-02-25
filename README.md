@@ -1,189 +1,332 @@
-# 📚 Nosso TBR
+## 📚 Nosso TBR
 
-**Nosso TBR** é uma aplicação para organização e acompanhamento de leituras, feita para ajudar leitores a gerenciar suas listas de livros, acompanhar o progresso e criar experiências personalizadas.
+**Nosso TBR** é uma aplicação para organização e acompanhamento de leituras, feita para ajudar leitores a gerenciar listas de livros, acompanhar o progresso, registrar citações, criar cronogramas de leitura e visualizar estatísticas.
 
-````markdown
+Este `README` é o **documento de referência do projeto** e deve ser mantido sempre atualizado – tanto por pessoas quanto por novos agentes de IA.
+
 ---
 
-## 🚀 Começando
+### 🎯 Objetivo deste README (para pessoas e agentes)
 
-Siga os passos abaixo para ter o projeto rodando localmente.
+- **Documentar o contexto do produto** (o que o sistema resolve e para quem).
+- **Mapear as principais funcionalidades e fluxos de uso**.
+- **Explicar a arquitetura e organização de pastas**.
+- **Servir como guia de contribuição** (como criar novas features e como documentá‑las aqui).
+
+Sempre que uma nova feature for criada, **atualize, no mínimo**:
+
+- **Mapa de funcionalidades** (seção “Funcionalidades principais”).
+- **Fluxos principais** (se alterarem a jornada do usuário).
+- **Arquitetura / módulos** (se surgir um novo módulo em `src/modules` ou um novo serviço em `src/services`).
+
+---
+
+## 🚀 Como rodar o projeto
 
 ### 📦 Instalação
 
-Primeiro, clone o repositório e acesse a pasta do projeto:
-
 ```bash
-git clone [https://github.com/seu-usuario/nosso-tbr.git](https://github.com/seu-usuario/nosso-tbr.git)
+git clone https://github.com/seu-usuario/nosso-tbr.git
 cd nosso-tbr
-```
-````
-
-Em seguida, instale as dependências usando `yarn`:
-
-```bash
 yarn install
 ```
 
-### ▶️ Execução
-
-Para iniciar a aplicação em modo de desenvolvimento, use o seguinte comando:
+### ▶️ Execução em desenvolvimento
 
 ```bash
 yarn dev
 ```
 
-Para criar uma build de produção e executá-la, utilize:
+### 🏗 Build e produção
 
 ```bash
 # Criar a build
 yarn build
 
-# Executar a build
+# Rodar a build
 yarn start
 ```
 
----
+### 🧪 Testes
 
-## 🛠 Tecnologias
+```bash
+# Rodar testes com coverage
+yarn test
 
-Este projeto foi construído utilizando as seguintes tecnologias:
+# Rodar testes em modo watch
+yarn test:watch
 
-- **Next.js**
-- **TypeScript**
-- **Supabase**
-- **TanStack Query**
-- **Zustand**
-- **React Hook Form**
-- **Tailwind CSS**
-
----
-
-## 📌 Regras de Contribuição
-
-Para garantir a qualidade e a consistência do código, siga as seguintes regras ao contribuir:
-
-- Não é permitido fazer `push` diretamente para a branch `main` ou `develop`.
-- Toda nova funcionalidade, correção ou melhoria deve ser feita em uma branch separada e, ao final, devolvida para a branch `develop`.
-- Toda branch deve ter um propósito claro e seguir o padrão de nomenclatura:
-  - `feat/` para novas funcionalidades
-  - `fix/` para correções de bugs
-  - `chore/` para tarefas de manutenção ou melhorias internas
-- Nenhum **Pull Request** pode ser aprovado sem revisão.
-
----
-
-## 🏗 Estrutura do Projeto
-
-O projeto segue uma arquitetura clara para separar a responsabilidade entre componentes, serviços e lógica.
-
-### 📂 Guia de Componentes
-
-Nossos componentes são divididos em três camadas:
-
-- **Page Server** (`app/.../page.tsx`): Responsável por buscar dados no servidor (SSR/SSG). **Não deve conter lógica de estado ou eventos.**
-- **Componente Cliente** (`app/.../components/NomeDoComponente.tsx`): Contém a renderização e a interação com o usuário. **Deve importar a lógica de hooks, sem acessar dados diretamente.**
-- **Hooks** (`app/.../hooks/useNomeHook.ts`): Armazena a lógica de estado, manipulação de dados, `Tanstack Query` e eventos.
-
-### 📂 Guia de Serviços
-
-A estrutura de serviços segue um padrão para garantir a organização e a reusabilidade do código:
-
-```
-services/
-└── books/
-    ├── bookQuery.builder.ts
-    ├── book.mapper.ts
-    └── book.service.ts
-```
-
-- `Supabase Client`: Conexão configurada com o banco de dados.
-- `Query Builder`: Centraliza consultas, filtros e paginações (`bookQuery.builder.ts`).
-- `Mapper`: Mapeia dados do banco de dados para o formato usado no domínio da aplicação (`book.mapper.ts`).
-- `Service`: Usa o `Query Builder` e o `Mapper` para fornecer métodos reutilizáveis para o restante do projeto (`book.service.ts`).
-
----
-
-## 🖥 Exemplos de Código
-
-### **Exemplo de Page Server** (`app/books/page.tsx`)
-
-```ts
-import BookList from "./components/BookList";
-import { bookService } from "@/services/books/book.service";
-
-export default async function BooksPage() {
-  const initialBooks = await bookService.getFeaturedBooks();
-
-  return <BookList initialBooks={initialBooks} />;
-}
+# UI do Vitest
+yarn test:ui
 ```
 
 ---
 
-### **Exemplo de Componente/Page Cliente** (`app/nome-do-componente/nome-do-componente.tsx`)
+## 🛠 Tecnologias e ferramentas
 
-````md
-### **Exemplo de Componente Cliente**
+Projeto construído principalmente com:
 
-Nossos componentes de cliente seguem um padrão com o arquivo `.tsx`, o hook de lógica (`useHook`) e um arquivo de tipos (`.types.ts`).
+- **Next.js 15** (App Router, `src/app`, `next dev --turbopack`)
+- **React 19** + **TypeScript**
+- **Supabase** (`@supabase/supabase-js`, `@supabase/ssr`) – banco de dados e autenticação
+- **TanStack Query** (`@tanstack/react-query`) – cache e orquestração de chamadas assíncronas
+- **Zustand** – store de estado global (`userStore`, hooks de autenticação etc.)
+- **React Hook Form** + **Zod** – formulários tipados e validação
+- **Tailwind CSS 4** + **shadcn/ui** + **Radix UI** – design system e componentes de UI
+- **Vitest** + **Testing Library** – testes unitários/comportamentais
 
-**Estrutura de arquivos:**
+Script útil relacionado ao Supabase:
 
-**Exemplo de `nomeDoComponente.tsx`:**
-
-```ts
-"use client";
-import React from "react";
-import { useNomeDoComponente } from "./hooks/useNomeDoComponente";
-import { ExemploProps } from "./nomeDoComponente.types";
-
-export function NomeDoComponente({}: ExemploProps) {
-  const { state, handleEvent } = useNomeDoComponente();
-
-  return (
-    <div className="p-4">
-            <h1>Exemplo de Componente</h1>      <p>{state.message}</p>     {" "}
-      <button onClick={handleEvent}>Clique em mim</button>   {" "}
-    </div>
-  );
-}
-```
-````
-
-**Exemplo de `useNomeDoComponente.ts`:**
-
-```ts
-import { useState } from "react";
-
-export function useNomeDoComponente() {
-  const [message, setMessage] = useState("Olá, mundo!");
-
-  const handleEvent = () => {
-    setMessage("Você clicou no botão!");
-  };
-
-  return {
-    state: {
-      message,
-    },
-    handleEvent,
-  };
-}
+```bash
+yarn update-types
 ```
 
-**Exemplo de `nomeDoComponente.types.ts`:**
+Gera os tipos do banco em `src/types/supabase.ts` a partir do projeto configurado no Supabase.
 
-```ts
-export type ExemploProps = {
-  // Adicione as props do componente aqui
-};
+---
+
+## 🏗 Arquitetura geral
+
+- **Rotas (camada de página)**  
+  - Local: `src/app/(main)/**/page.tsx` e `src/app/(auth)/**/page.tsx`.  
+  - Responsáveis por orquestrar dados de servidor/SSR e renderizar os módulos de tela.
+
+- **Módulos de funcionalidade**  
+  - Local: `src/modules/<feature>/`.  
+  - Cada módulo concentra **componentes de tela**, **hooks**, **tipos** e, às vezes, **services específicos da feature**.
+
+- **Serviços de domínio**  
+  - Exemplo: `src/services/books/` com:
+    - `bookQuery.builder.ts`: construção fluente de queries (filtros de gênero, leitores, status, paginação, busca textual etc.).
+    - `books.mapper.ts`: mapeamento entre dados do banco (Supabase) e o domínio (`BookDomain`).
+    - `books.service.ts`: orquestração de consultas, aplicação de filtros e tratamento de erros.
+
+- **Estado global e stores**  
+  - Local: `src/stores/**`.  
+  - Ex.: `useUserStore`, hooks de autenticação como `useIsLoggedIn`, controle de logout, etc.
+
+- **Componentes compartilhados**  
+  - Local: `src/components/**`.  
+  - Exemplos: `ListGrid`, `confirmDialog`, componentes de UI (`button`, `card`, `pagination`, `skeleton`), etc.
+
+> **Regra importante**: mantenha a lógica de negócio em **hooks** e **services**, deixando os componentes focados em **renderização** e **interação com o usuário**.
+
+---
+
+## 📚 Funcionalidades principais
+
+Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma nova tela/fluxo importante for criado, **adicione um item aqui**.
+
+### 🏠 Home (`/`)
+
+- Lista de **todos os livros** cadastrados.
+- **Filtros avançados** usando `BookQueryBuilder`:
+  - Gênero (`gender`)
+  - Leitores (ex.: “Matheus”, “Fabi”, “Barbara”)
+  - Status da leitura (`not_started`, `reading`, `finished`)
+  - Busca textual (título, autor, etc.).
+- **Paginação** com tamanho de página fixo.
+- Ações principais:
+  - **Criar/editar livro** via modal `BookUpsert`.
+  - **Criar/editar estante** via modal `CreateEditBookshelves`.
+
+### 📖 Minhas Leituras (`/my-books`)
+
+- Lista de livros **associados ao usuário logado**.
+- Mesma experiência de filtros da Home (gênero, leitores, status, busca).
+- Paginação própria usando o componente de `Pagination`.
+- Ações principais:
+- Criar/editar livro via `BookUpsert`.
+  - Criar/editar estantes associadas aos livros.
+
+### 🗂 Estantes (`/shelves` e `/bookshelves/[id]`)
+
+- **`/shelves`** – gestão de estantes:
+  - Lista de estantes (`ListGrid<BookshelfDomain>`).
+  - Criação/edição de estantes (`CreateEditBookshelves`).
+  - Adição de livros a uma estante via `AddBookToBookshelfDialog`.
+- **`/bookshelves/[id]`** – livros de uma estante específica:
+  - Carrega livros de uma estante com `BookshelfServiceBooks`.
+  - Renderiza os livros usando `BookCard` com contexto de estante (`isShelf`).
+
+### ✍️ Autores (`/authors`)
+
+- Tela de **CRUD de autores** com paginação, search e contagem de livros.
+- Usa `AuthorsService` + `TanStack Query` para:
+  - Listar autores com total de livros.
+  - Buscar por nome com debounce.
+  - Criar/editar autor via modal `AuthorUpsert`.
+  - Deletar autores com `ConfirmDialog` e feedback via `toast`.
+- Ação extra:
+  - Ver livros de um autor redirecionando para a Home filtrada por `authorId`.
+
+### 💬 Citações (`/quotes/[title]/[id]`)
+
+- Tela de **citações ligadas a um livro específico**.
+- Usa o hook `useQuotes` para:
+  - Buscar citações do livro.
+  - Criar/editar citação via `UpsertQuoteModal`.
+  - Deletar citação com confirmação (`ConfirmDialog`).
+- Interface:
+  - Cards por citação (`Card` + `CardDescription`).
+  - Indicação de página (`quote.page`).
+  - Esqueleton loading enquanto carrega.
+
+### 📅 Cronograma de Leitura (`/schedule/[id]/[title]`)
+
+- Criação e acompanhamento de **cronogramas de leitura** por livro.
+- Usa `useSchedule` para:
+  - Criar um novo cronograma (`CreateScheduleForm`).
+  - Listar cronogramas existentes em tabela (`ScheduleTable`).
+  - Marcar capítulos como concluídos.
+  - Excluir itens do cronograma.
+- Diferencia entre:
+  - Estado vazio (`emptySchedule`) → exibe formulário de criação.
+  - Cronograma existente (`shouldDisplayScheduleTable`) → exibe tabela com ações.
+
+### 📊 Estatísticas de Leitura (`/stats`)
+
+- Dashboard com **métricas agregadas de leitura por leitor**:
+  - Total de livros.
+  - Total de páginas lidas.
+  - Gênero mais lido (usando `getGenderLabel`).
+  - Autor mais lido.
+- Visualizações:
+  - **Gráfico de barras** (`BarChart`) – livros por ano.
+  - **Gráfico de pizza** (`PieChart`) – colaboração/leitura entre leitores.
+- Permite selecionar leitor via `<Select>`; rota é sincronizada com query string (`/stats?reader=Nome`).
+
+### 🔐 Autenticação & Recuperação de Senha
+
+- **Login (`/auth`)**
+  - Formulário com `loginAction` + `useActionState`.
+  - Exibe mensagens de erro/sucesso.
+  - Acesso ao fluxo de “esqueci a senha”.
+
+- **Esqueci a senha (`/forgot-password`)**
+  - Form simples para enviar email de recuperação (`useForgotPassword`).
+  - Feedback de loading e sucesso.
+
+- **Reset de senha (`/reset-password`)**
+  - Valida sessão do Supabase antes de permitir troca de senha.
+  - Form para nova senha (`useResetPassword`).
+  - Feedback de sucesso/erro.
+
+---
+
+## 🧱 Padrões de código e organização
+
+### Componentização e hooks
+
+- **Componentes de tela**:
+  - Focados em renderizar UI, lidar com eventos e compor componentes menores.
+  - Não devem conter lógica complexa de acesso a dados direto no componente.
+- **Hooks (`useHome`, `useMyBooks`, `useQuotes`, `useSchedule`, etc.)**:
+  - Encapsulam lógica de negócio, chamadas de serviço, uso de TanStack Query, estados derivados e side effects.
+- **Types (`*.types.ts`)**:
+  - Centralizam tipos específicos da feature (ex.: `BookDomain`, `BookshelfDomain`, `ClientQuotesProps`).
+
+### Serviços
+
+- **Regra geral**:
+  - Services não conhecem UI; expõem funções assíncronas tipadas para serem consumidas pelos hooks.
+  - Tratamento de erro centralizado com `ErrorHandler` e `RepositoryError` quando aplicável.
+
+Exemplo de responsabilidades no domínio de livros:
+
+- `BookQueryBuilder`: constrói a query (filtros, busca, paginação…).
+- `BookMapper`: transforma o payload do Supabase em `BookDomain`.
+- `BookService`: orquestra a chamada, aplica filtros válidos e normaliza erros.
+
+---
+
+## 📂 Estrutura de pastas (resumo)
+
+Estrutura simplificada (apenas diretórios relevantes):
+
+```text
+src/
+  app/
+    (main)/
+      page.tsx                 # Home
+      my-books/page.tsx        # Minhas leituras
+      shelves/page.tsx         # Estantes
+      bookshelves/[id]/page.tsx# Livros de uma estante
+      quotes/[title]/[id]/page.tsx
+      schedule/[id]/[title]/page.tsx
+      stats/page.tsx
+      authors/page.tsx
+    (auth)/
+      auth/page.tsx
+      forgot-password/page.tsx
+      reset-password/page.tsx
+
+  modules/
+    home/
+    myBooks/
+    shelves/
+    bookshelves/
+    quotes/
+    schedule/
+    authors/
+    stats/
+    auth/
+    ...
+
+  services/
+    books/
+    ...
+
+  components/
+  stores/
+  types/
 ```
 
-## 🙏 Agradecimentos e Mensagem Final
+> **Quando criar um novo módulo**, mantenha esse padrão (pasta em `src/modules`, tipagem própria, hooks dedicados, integração via `src/app`).
 
-Gostaríamos de expressar nossa sincera gratidão a todos os contribuidores. Cada `pull request`, `issue` e sugestão de melhoria nos ajuda a construir uma ferramenta cada vez melhor para a comunidade de leitores. O **Nosso TBR** é um projeto colaborativo, e seu apoio é o que nos move.
+---
 
-Juntos, transformamos linhas de código em experiências de leitura.
+## 🤝 Regras de contribuição
 
-Obrigado por fazer parte dessa história!
+Para garantir qualidade e consistência:
+
+- **Branches**
+  - Não fazer `push` diretamente para `main` ou `develop`.
+  - Toda mudança deve ser feita em uma branch dedicada:
+    - `feat/<descricao>` – novas funcionalidades.
+    - `fix/<descricao>` – correções de bugs.
+    - `chore/<descricao>` – manutenção/refatoração/setup.
+
+- **Pull Requests**
+  - Sempre abrir PR contra `develop`.
+  - Nenhum PR pode ser aprovado sem pelo menos **uma revisão**.
+  - Atualize este `README` sempre que:
+    - Criar uma nova tela/fluxo relevante.
+    - Alterar comportamento importante de uma feature existente.
+
+---
+
+## 📓 Guia rápido para novos agentes
+
+Quando você (agente) for implementar uma nova feature:
+
+1. **Identifique o domínio**:
+   - O que a feature afeta? Livros, autores, estantes, citações, cronogramas, estatísticas, autenticação ou outro?
+2. **Escolha/Crie o módulo** em `src/modules`:
+   - Reaproveite um módulo existente ou crie um novo (seguindo o padrão de hooks, tipos e componentes).
+3. **Conecte a rota** em `src/app`:
+   - Crie/ajuste o `page.tsx` correspondente na pasta `(main)` ou `(auth)`.
+4. **Atualize este README**:
+   - Adicione/atualize a seção em **“Funcionalidades principais”**.
+   - Se criar um serviço novo em `src/services`, documente o papel dele em **“Arquitetura geral”**.
+5. **Se possível, adicione testes**:
+   - Use Vitest + Testing Library para novos hooks e componentes críticos.
+
+Seguindo esses passos, o `Nosso TBR` permanece bem documentado e fácil de evoluir – tanto para humanos quanto para outros agentes de IA.
+
+---
+
+## 🙏 Agradecimentos
+
+Obrigado a todas as pessoas que contribuem com código, ideias e feedback.  
+Cada melhoria deixa o **Nosso TBR** mais útil para quem ama ler e organizar suas leituras.
