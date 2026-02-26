@@ -11,18 +11,16 @@ import { BookCard } from "./components/bookCard/bookCard";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import DefaultPagination from "@/components/pagintation/pagination";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
-
   const {
     allBooks,
-    isFetched,
     isLoadingAllBooks,
+    isFetched,
     isError,
     searchQuery,
     formattedGenres,
@@ -39,12 +37,63 @@ export default function ClientHome() {
   const dialogModal = useModal();
   const createShelfDialog = useModal();
 
+  const isLoading = isLoadingAllBooks || isLoggingOut;
   const totalPages = useMemo(
     () => Math.ceil((allBooks?.total || 0) / PAGE_SIZE),
     [allBooks?.total],
   );
 
-  const isLoading = isLoadingAllBooks || isLoggingOut;
+  const renderResultsCount = () => {
+    if (isLoading) return <Skeleton className="h-6 w-48" />;
+    return (
+      <span>
+        Foram encontrados: <strong>{allBooks?.total || 0} livros</strong>
+      </span>
+    );
+  };
+
+  const renderActiveFilters = () => {
+    if (isLoading) return <Skeleton className="h-5 w-64 mt-2" />;
+
+    const hasAnyFilter =
+      formattedGenres || formattedReaders || formattedStatus || searchQuery;
+    if (!hasAnyFilter) return null;
+
+    return (
+      <div className="leading-7 text-muted-foreground mt-2">
+        {searchQuery && (
+          <div>
+            Buscando por: <strong>{searchQuery}</strong>
+          </div>
+        )}
+        {(formattedGenres || formattedReaders || formattedStatus) && (
+          <div>
+            Filtros aplicados:
+            {formattedGenres && ` gênero ${formattedGenres}`}
+            {formattedReaders &&
+              `, leitor(s) ${handleGenerateReadersObj().readersDisplay}`}
+            {formattedStatus && ` e com status ${formattedStatus}`}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderClearButton = () => {
+    const canClear =
+      (searchQuery && hasSearchParams) ||
+      filters.gender?.length > 0 ||
+      (filters.readers?.length > 0 && hasSearchParams) ||
+      filters.status?.length > 0;
+
+    if (isLoading || !canClear) return null;
+
+    return (
+      <Button variant="secondary" size="sm" onClick={handleClearAllFilters}>
+        Limpar filtros
+      </Button>
+    );
+  };
 
   return (
     <>
@@ -52,7 +101,6 @@ export default function ClientHome() {
         isBookFormOpen={dialogModal.isOpen}
         setIsBookFormOpen={dialogModal.setIsOpen}
       />
-
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
@@ -60,65 +108,10 @@ export default function ClientHome() {
 
       <div className="w-full flex items-center justify-center flex-col gap-2 container">
         <div className="flex items-start justify-center flex-col container">
-          <div className="leading-7">
-            {isLoading ? (
-              <Skeleton className="h-6 w-48" />
-            ) : (
-              <span>
-                Foram encontrados:{" "}
-                <strong>{allBooks?.total || 0} livros</strong>
-              </span>
-            )}
-          </div>
-
+          <div className="leading-7">{renderResultsCount()}</div>
           <div className="flex items-center justify-center gap-4 min-h-[40px]">
-            {isLoading ? (
-              <Skeleton className="h-5 w-64 mt-2" />
-            ) : (
-              (formattedGenres ||
-                formattedReaders ||
-                formattedStatus ||
-                searchQuery) && (
-                <div className="leading-7 text-muted-foreground mt-2">
-                  {searchQuery && (
-                    <div>
-                      Buscando por: <strong>{searchQuery}</strong>
-                    </div>
-                  )}
-                  {(formattedGenres || formattedReaders || formattedStatus) && (
-                    <div>
-                      Filtros aplicados:
-                      {formattedGenres && ` gênero ${formattedGenres}`}
-                      {formattedReaders &&
-                        `${formattedGenres ? "," : ""} Leitor(s) ${
-                          handleGenerateReadersObj().readersDisplay
-                        }`}
-                      {formattedStatus &&
-                        `${
-                          formattedGenres || formattedReaders ? " e" : ""
-                        } com status ${formattedStatus}`}
-                    </div>
-                  )}
-                </div>
-              )
-            )}
-
-            {!isLoading &&
-              ((searchQuery && hasSearchParams) ||
-                (Array.isArray(filters.gender) && filters.gender.length > 0) ||
-                (Array.isArray(filters.readers) &&
-                  filters.readers.length > 0 &&
-                  hasSearchParams) ||
-                (Array.isArray(filters.status) &&
-                  filters.status.length > 0)) && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleClearAllFilters}
-                >
-                  Limpar filtros
-                </Button>
-              )}
+            {renderActiveFilters()}
+            {renderClearButton()}
           </div>
         </div>
 

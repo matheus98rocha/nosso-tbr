@@ -38,7 +38,7 @@ export class AuthorsService {
       return data;
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
-        service: "BookService",
+        service: "AuthorsService",
         method: "createAuthor",
         name,
       });
@@ -85,19 +85,18 @@ export class AuthorsService {
 
       if (error) {
         throw new RepositoryError(
-          "Falha ao editar autor",
+          "Falha ao deletar autor",
           undefined,
           undefined,
           error,
-          { id, name },
+          { id },
         );
       }
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "AuthorsService",
-        method: "edit",
+        method: "delete",
         id,
-        name,
       });
       ErrorHandler.log(normalizedError);
       throw normalizedError;
@@ -189,7 +188,7 @@ export class AuthorsService {
       return data || [];
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
-        service: "BookService",
+        service: "AuthorsService",
         method: "searchAuthors",
         term,
       });

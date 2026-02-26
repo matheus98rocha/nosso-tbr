@@ -37,7 +37,6 @@ export function useBookDialog({
     resolver: zodResolver(bookCreateSchema),
     defaultValues: {
       title: "",
-      author_id: "",
       pages: undefined,
       readers: "",
       start_date: null,
@@ -47,6 +46,7 @@ export function useBookDialog({
       chosen_by: bookData?.chosen_by ?? ("" as "Matheus" | "Fabi" | "Barbara"),
       user_id: bookData?.user_id ?? "",
       ...bookData,
+      author_id: bookData?.authorId ?? "",
     },
   });
 

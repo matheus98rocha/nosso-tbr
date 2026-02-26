@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { SelectField } from "../home/components/select/select.";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "../home/components/datePicker/datePicker";
-import { useBookDialog } from "./hooks/useBookDialog";
 
 import {
   Form,
@@ -25,113 +24,72 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { BlurOverlay, ConfirmDialog } from "@/components/";
 import { CreateBookProps } from "./bookUpsert.types";
-import { useUser } from "@/services/users/hooks/useUsers";
 import { genders } from "@/constants/genders";
-import { useQuery } from "@tanstack/react-query";
-import { ComboboxOption } from "./types/authorOptions";
 import { AutocompleteInput } from "./components";
-import { AuthorsService } from "../authors/services/authors.service";
 import AuthorUpsert from "../authors/components/authorUpsert";
+import { useBookUpsert } from "./hooks/useBookUpsert";
 
-export function BookUpsert({
-  bookData,
-  isBookFormOpen,
-  setIsBookFormOpen,
-}: CreateBookProps) {
-  const isLoggedIn = useIsLoggedIn();
-  const { chosenByOptions, isLoadingUsers } = useUser();
-
+export function BookUpsert(props: CreateBookProps) {
   const {
+    isLoggedIn,
     onSubmit,
     isLoading,
     isAddToShelfEnabled,
     selected,
     selectedShelfId,
     setIsAddToShelfEnabled,
-    setSelected,
     setSelectedShelfId,
     isDuplicateBookDialogOpen,
-    setIsDuplicateBookDialogOpen,
+    handleConfirmCreateBook,
     form,
-    reset,
     handleSubmit,
     control,
     checkboxes,
     isEdit,
     isLoadingBookshelves,
     bookshelfOptions,
-    handleConfirmCreateBook,
-    handleOnChangePageNumber,
-    handleChosenByChange,
-  } = useBookDialog({
-    bookData,
-    setIsBookFormOpen,
+    authors,
+    isLoadingAuthors,
+    emptyAuthorSearch,
+    isAuthorModalOpen,
+    handleOpenAddAuthorModal,
+    handleAuthorModalOpenChange,
+    handleAuthorCreated,
+    authorSearch,
+    handleDialogOpenChange,
+    handleCancelDuplicateDialog,
+    handleStatusChange,
+    handlePageNumberChange,
+    handleChosenByFieldChange,
+    handleAuthorSearchChange,
+    isLoadingUsers,
     chosenByOptions,
-  });
-
-  const [authorSearch, setAuthorSearch] = React.useState("");
-  const [isAuthorModalOpen, setIsAuthorModalOpen] = React.useState(false);
-
-  const deferredAuthorSearch = React.useDeferredValue(authorSearch);
-
-  const authorsService = React.useMemo(() => new AuthorsService(), []);
-
-  const canEnabledAuthorsRequest = !!deferredAuthorSearch && isBookFormOpen;
-
-  const { data: authors = [], isLoading: isLoadingAuthors } = useQuery({
-    queryKey: ["authors", deferredAuthorSearch],
-    queryFn: () => authorsService.searchAuthors(deferredAuthorSearch),
-    staleTime: 1000 * 60 * 5,
-    enabled: canEnabledAuthorsRequest,
-  });
-
-  const emptyAuthorSearch = !!deferredAuthorSearch && authors.length === 0;
-
-  const handleOpenAddAuthorModal = () => {
-    setIsAuthorModalOpen(true);
-  };
-
-  const handleAuthorCreated = (authorId?: string) => {
-    form.setValue("author_id", authorId ?? "");
-  };
+    bookData,
+  } = useBookUpsert(props);
 
   return (
     <>
       <AuthorUpsert
         isOpen={isAuthorModalOpen}
-        onOpenChange={setIsAuthorModalOpen}
+        onOpenChange={handleAuthorModalOpenChange}
         defaultName={authorSearch}
         onSuccess={handleAuthorCreated}
         mode="create"
       />
       <ConfirmDialog
         open={isDuplicateBookDialogOpen}
-        onOpenChange={setIsDuplicateBookDialogOpen}
+        onOpenChange={handleDialogOpenChange}
         title="Livro Duplicado"
         description="Um livro com este título já existe, deseja continuar?"
-        onConfirm={() => handleConfirmCreateBook()}
+        onConfirm={handleConfirmCreateBook}
         id="duplicate-book-warning"
         queryKeyToInvalidate="books"
         buttonLabel="Continuar"
-        onCancel={() => {
-          setIsDuplicateBookDialogOpen(false);
-          setIsBookFormOpen(true);
-        }}
+        onCancel={handleCancelDuplicateDialog}
       />
-      <Dialog
-        open={isBookFormOpen}
-        onOpenChange={(isBookFormOpen) => {
-          if (!isBookFormOpen) {
-            reset();
-            setSelected(null);
-            setAuthorSearch("");
-          }
-          setIsBookFormOpen(isBookFormOpen);
-        }}
-      >
+      <Dialog open={props.isBookFormOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent
           className={`h-full sm:h-[80%] w-full ${
             isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
@@ -140,7 +98,7 @@ export function BookUpsert({
           <BlurOverlay showOverlay={!isLoggedIn}>
             <DialogHeader>
               <DialogTitle className="mb-4">
-                {bookData ? "Editar Livro" : "Adicione um novo livro"}
+                {props.bookData ? "Editar Livro" : "Adicione um novo livro"}
               </DialogTitle>
             </DialogHeader>
             <Separator orientation="horizontal" className="mt-4 mb-4" />
@@ -182,11 +140,11 @@ export function BookUpsert({
                       <FormLabel>Autor</FormLabel>
                       <FormControl>
                         <AutocompleteInput
-                          items={authors as ComboboxOption[]}
+                          items={authors}
                           value={field.value}
                           isLoading={isLoadingAuthors}
                           onValueChange={field.onChange}
-                          onSearch={setAuthorSearch}
+                          onSearch={handleAuthorSearchChange}
                           onAddNew={handleOpenAddAuthorModal}
                           placeholder="Pesquisar autor..."
                           emptyMessage={
@@ -236,7 +194,7 @@ export function BookUpsert({
                             type="number"
                             {...field}
                             value={value ?? ""}
-                            onChange={(e) => handleOnChangePageNumber(field, e)}
+                            onChange={(e) => handlePageNumberChange(field, e)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -260,7 +218,7 @@ export function BookUpsert({
                           <SelectField
                             value={field.value}
                             onChange={(selectedUserId) =>
-                              handleChosenByChange(field, selectedUserId)
+                              handleChosenByFieldChange(field, selectedUserId)
                             }
                             items={chosenByOptions}
                           />
@@ -312,11 +270,7 @@ export function BookUpsert({
                         <Checkbox
                           id={id}
                           checked={selected === id}
-                          onCheckedChange={() =>
-                            selected === id
-                              ? setSelected(null)
-                              : setSelected(id)
-                          }
+                          onCheckedChange={() => handleStatusChange(id)}
                         />
                         <FormLabel htmlFor={id}>{label}</FormLabel>
                       </div>
