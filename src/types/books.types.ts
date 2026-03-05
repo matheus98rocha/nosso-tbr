@@ -1,4 +1,7 @@
-export type Status = "reading" | "finished" | "not_started";
+import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
+import z from "zod";
+
+export type Status = "reading" | "finished" | "not_started" | "planned";
 
 export type BookPersistence = {
   id?: string;
@@ -10,6 +13,7 @@ export type BookPersistence = {
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
   start_date?: string | null;
+  planned_start_date?: string | null;
   end_date?: string | null;
   inserted_at?: string;
   readers: string[];
@@ -25,6 +29,7 @@ export type CreateBookPersistence = {
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
   start_date?: string | null;
+  planned_start_date?: string | null;
   end_date?: string | null;
   inserted_at?: string;
   readers: string[];
@@ -32,21 +37,9 @@ export type CreateBookPersistence = {
   image_url: string;
   user_id: string;
 };
-
-export type BookCreateValidator = {
+export type BookCreateValidator = z.infer<typeof bookCreateSchema> & {
   id?: string;
-  title: string;
-  author_id: string;
-  chosen_by: "Matheus" | "Fabi" | "Barbara";
-  pages: number;
-  start_date?: string | null;
-  end_date?: string | null;
-  inserted_at?: string;
-  readers: string;
   status?: Status;
-  gender?: string | null;
-  image_url: string;
-  user_id?: string;
 };
 
 export type BookDomain = {
@@ -60,11 +53,12 @@ export type BookDomain = {
   readers:
     | "Matheus"
     | "Fabi"
-    | "Matheus e Fabir"
-    | "Baraba e Fabi"
+    | "Matheus e Fabi"
+    | "Barbara e Fabi"
     | "Matheus e Barbara"
-    | "Barbara,Fabi e Matheus";
+    | "Barbara, Fabi e Matheus";
   start_date?: string | null;
+  planned_start_date?: string | null;
   end_date?: string | null;
   gender: string | null;
   image_url: string;

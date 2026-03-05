@@ -69,6 +69,8 @@ export function BookUpsert(props: CreateBookProps) {
     bookData,
   } = useBookUpsert(props);
 
+  const showPlannedDate = !form.watch("start_date") && !form.watch("end_date");
+  console.log("->", bookData?.author);
   return (
     <>
       <AuthorUpsert
@@ -142,6 +144,7 @@ export function BookUpsert(props: CreateBookProps) {
                         <AutocompleteInput
                           items={authors}
                           value={field.value}
+                          initialLabel={props.bookData?.author}
                           isLoading={isLoadingAuthors}
                           onValueChange={field.onChange}
                           onSearch={handleAuthorSearchChange}
@@ -261,6 +264,29 @@ export function BookUpsert(props: CreateBookProps) {
                     </FormItem>
                   )}
                 />
+
+                {showPlannedDate && (
+                  <FormField
+                    control={control}
+                    name="planned_start_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Previsão de Início da Leitura</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            value={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            onChange={(date) =>
+                              field.onChange(date?.toISOString() ?? null)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormItem>
                   <FormLabel>Status da leitura</FormLabel>

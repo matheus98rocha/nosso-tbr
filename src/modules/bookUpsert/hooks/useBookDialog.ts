@@ -148,15 +148,34 @@ export function useBookDialog({
     },
   });
 
-  const onSubmit = async (data: BookCreateValidator) => {
-    const isDuplicate = await bookUpsertService.checkDuplicateBook(data.title);
-    if (isDuplicate && !isEdit) {
-      setIsDuplicateBookDialogOpen(true);
-      setIsBookFormOpen(false);
-      return;
-    }
-    return createBook.mutate(data);
-  };
+  const onSubmit = useCallback(
+    async (data: BookCreateValidator) => {
+      const isDuplicate = await bookUpsertService.checkDuplicateBook(
+        data.title,
+      );
+
+      if (isDuplicate && !isEdit) {
+        setIsDuplicateBookDialogOpen(true);
+        setIsBookFormOpen(false);
+        return;
+      }
+
+      const payload = { ...data };
+
+      if (isEdit) {
+        if (selected === "not_started" || selected === "planned") {
+          payload.start_date = null;
+          payload.end_date = null;
+        } else if (selected === "reading") {
+          payload.end_date = null;
+          payload.planned_start_date = null;
+        }
+      }
+
+      return createBook.mutate(payload);
+    },
+    [bookUpsertService, isEdit, createBook, setIsBookFormOpen, selected],
+  );
 
   const handleOnChangePageNumber = useCallback(
     (

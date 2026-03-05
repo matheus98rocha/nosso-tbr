@@ -11,7 +11,9 @@ export class BookMapper {
       pages,
       start_date,
       end_date,
+      planned_start_date,
     } = persistence;
+
     let status: BookDomain["status"] = "not_started";
 
     if (start_date) {
@@ -31,6 +33,7 @@ export class BookMapper {
       status,
       end_date,
       start_date,
+      planned_start_date: planned_start_date ?? null,
       readers: Array.isArray(persistence.readers)
         ? (persistence.readers.join(" e ") as BookDomain["readers"])
         : (persistence.readers as BookDomain["readers"]),
