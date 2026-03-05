@@ -5,14 +5,21 @@ import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { FiltersOptions } from "@/types/filters";
 
-const ALLOWED_STATUSES = ["reading", "finished", "not_started"] as const;
+const ALLOWED_STATUSES = [
+  "reading",
+  "finished",
+  "not_started",
+  "planned",
+] as const;
 type BookStatus = (typeof ALLOWED_STATUSES)[number];
 
 function isBookStatus(value: unknown): value is BookStatus {
   return ALLOWED_STATUSES.includes(value as BookStatus);
 }
+
 export class BookService {
   private supabase = createClient();
+
   async getAll({
     bookId,
     filters,
@@ -35,14 +42,16 @@ export class BookService {
 
       const query = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
-        .withStatus(statuses)
+        .withStatus(
+          statuses as ("reading" | "finished" | "not_started" | "planned")[],
+        )
         .withGender(filters?.gender)
         .withSearchTerm(search)
         .withId(bookId)
         .withAuthor(authorId)
         .withUser(userId)
-        .sortByCreatedAt()
-        .withPagination(page, pageSize); // Aplica a lógica de range do Supabase
+        .withDefaultOrdering(statuses.includes("planned"))
+        .withPagination(page, pageSize);
 
       const { data, error, count } = await query.build();
 
@@ -70,6 +79,7 @@ export class BookService {
       throw normalizedError;
     }
   }
+
   async delete(id: string): Promise<void> {
     const { error } = await this.supabase.from("books").delete().eq("id", id);
     if (error) throw new Error(error.message);

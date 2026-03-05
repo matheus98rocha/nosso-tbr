@@ -33,7 +33,7 @@ export function useBookCard({ book }: BookCardProps) {
 
   const handleNavigateToAuthor = useCallback(
     () => router.push(`?search=${book.author}`),
-    [router, book.author]
+    [router, book.author],
   );
   const handleNavigateToQuotes = useCallback(() => {
     router.push(`/quotes/${book.title}/${book.id}`);
@@ -42,7 +42,11 @@ export function useBookCard({ book }: BookCardProps) {
   const statusMap = {
     not_started: {
       bookStatusClass: "bg-gray-500 text-white",
-      bookStatusText: "Vou iniciar a leitura",
+      bookStatusText: "Ainda não iniciei a leitura",
+    },
+    planned: {
+      bookStatusClass: "bg-gray-500 text-white",
+      bookStatusText: "Ainda não iniciei a leitura",
     },
     reading: {
       bookStatusClass: "bg-green-800 text-white",

@@ -10,7 +10,6 @@ export type FiltersProps = {
   searchQuery: string;
 };
 
-// Opções pré-definidas para melhor performance
 export const READER_OPTIONS = ["Matheus", "Fabi", "Barbara"].map((name) => ({
   label: name,
   value: name,
@@ -19,14 +18,15 @@ export const READER_OPTIONS = ["Matheus", "Fabi", "Barbara"].map((name) => ({
 export const STATUS_OPTIONS = [
   { label: "Já iniciei a leitura", value: "reading" },
   { label: "Terminei a Leitura", value: "finished" },
-  { label: "Vou iniciar a leitura", value: "not_started" },
+  { label: "Vou iniciar a leitura", value: "planned" }, // Mapeado para a nova lógica da service
+  { label: "Não iniciado", value: "not_started" },
 ];
 
 export const GENDER_OPTIONS = genders.map(
   (gender: { label: string; value: string }) => ({
     label: gender.label,
     value: gender.value,
-  })
+  }),
 );
 
 export const useLocalFilters = (initialFilters: FiltersOptions) => {
@@ -36,17 +36,14 @@ export const useLocalFilters = (initialFilters: FiltersOptions) => {
   const handleFilterChange = useCallback(
     (key: keyof FiltersOptions, value: string | string[]) => {
       setLocalFilters((prev) => {
-        if (key === "readers" || key === "status" || key === "gender") {
-          const values = Array.isArray(value) ? value : [value];
-          return {
-            ...prev,
-            [key]: values.filter(Boolean),
-          };
-        }
-        return prev;
+        const values = Array.isArray(value) ? value : [value];
+        return {
+          ...prev,
+          [key]: values.filter(Boolean),
+        };
       });
     },
-    []
+    [],
   );
 
   const resetLocalFilters = useCallback((newFilters: FiltersOptions) => {

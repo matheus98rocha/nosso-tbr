@@ -39,7 +39,16 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
     isShelf,
   });
 
+  console.log(book);
+
   const renderStatusSection = () => {
+    const formattedPlannedDate = book.planned_start_date
+      ? new Date(book.planned_start_date).toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "long",
+        })
+      : null;
+
     return (
       <div className="flex flex-col">
         <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
@@ -63,6 +72,15 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
               {book.chosen_by}
             </span>
           </span>
+
+          {book.planned_start_date && !book.start_date && (
+            <span className="leading-tight">
+              Previsão de início:{" "}
+              <span className="font-medium text-foreground">
+                {formattedPlannedDate}
+              </span>
+            </span>
+          )}
         </div>
 
         {/* Tags */}
@@ -150,7 +168,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
                 shareOnWhatsApp={() => shareOnWhatsApp()}
                 schedule={() => handleNavigateToSchedule()}
                 quotes={() => handleNavigateToQuotes()}
-                isEndReading={book.status === "finished"}
+                isFinishedReading={book.status === "finished"}
                 quotesDisabled={book.status !== "not_started"}
               />
             </CardAction>

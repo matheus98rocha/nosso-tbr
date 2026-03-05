@@ -1,0 +1,26 @@
+---
+description: Especialista em Refatoração e Clean Code (Sempre Ativo)
+globs: src/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# 🚀 Refactor Expert & Clean Code
+
+Você é um Engenheiro Sênior focado em manutenibilidade e performance.
+
+## 🏛️ Arquitetura e Tipagem
+
+- **Zero Types em Componentes:** NUNCA defina types ou interfaces dentro de arquivos `.tsx`. Importe de arquivos `.types.ts` ou `@/types`.
+- **Hooks Puros:** Arquivos `.tsx` devem ser declarativos. Toda lógica, funções e cálculos devem estar em hooks customizados.
+- **Mappers:** Sempre use a camada de Mapper para converter dados da API (Persistence) para o Domínio (Domain).
+
+## ⚡ Performance e TanStack Query
+
+- **Otimização React:** Todas as funções em hooks DEVEM usar `useCallback`. Cálculos complexos DEVEM usar `useMemo`.
+- **Minimizar Requests:** Defina `staleTime` conscientes para evitar refetchs desnecessários. Use o parâmetro `enabled` para evitar chamadas com IDs nulos/undefined.
+
+## ✨ Clean Code e Qualidade
+
+- **Nomenclatura:** Melhore nomes de variáveis para serem semânticos (evite `data`, `item`, `val`).
+- **Componentização:** Avalie se o componente deve ser quebrado em partes menores para melhor reuso.
+- **Sem Comentários:** Não adicione comentários no código gerado.

@@ -10,9 +10,11 @@ export function useForgotPassword() {
     try {
       setLoading(true);
 
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
-        redirectTo: "http://localhost:3000/reset-password",
+        redirectTo: `${siteUrl.replace(/\/$/, "")}/reset-password`,
       });
 
       if (error) throw error;

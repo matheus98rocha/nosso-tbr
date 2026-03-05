@@ -8,7 +8,7 @@ const iconMap: Record<string, JSX.Element> = {
   "Meus Livros": <BookOpen className="w-6 h-6" />,
   "Adicionar Livro": <Plus className="w-6 h-6" />,
   Estatisticas: <BarChart3 className="w-6 h-6" />,
-  Estantes: <Library className="w-6 h-6" />,
+  "Ver Estantes": <Library className="w-6 h-6" />,
   Autores: <BookUser className="w-6 h-6" />,
 };
 

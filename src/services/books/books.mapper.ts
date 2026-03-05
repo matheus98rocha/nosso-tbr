@@ -2,8 +2,17 @@ import { BookDomain, BookPersistence } from "@/types/books.types";
 
 export class BookMapper {
   static toDomain(persistence: BookPersistence): BookDomain {
-    const { id, title, author, chosen_by, pages, start_date, end_date } =
-      persistence;
+    const {
+      id,
+      title,
+      author,
+      author_id,
+      chosen_by,
+      pages,
+      start_date,
+      end_date,
+      planned_start_date,
+    } = persistence;
 
     let status: BookDomain["status"] = "not_started";
 
@@ -18,11 +27,13 @@ export class BookMapper {
       id: id ? id : "",
       title,
       author: author.name || "Autor desconhecido",
+      authorId: author_id || undefined,
       chosen_by,
       pages,
       status,
       end_date,
       start_date,
+      planned_start_date: planned_start_date ?? null,
       readers: Array.isArray(persistence.readers)
         ? (persistence.readers.join(" e ") as BookDomain["readers"])
         : (persistence.readers as BookDomain["readers"]),

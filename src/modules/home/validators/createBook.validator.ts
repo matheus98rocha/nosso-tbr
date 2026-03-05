@@ -13,6 +13,7 @@ export const bookCreateSchema = z.object({
     .int("O número de páginas deve ser inteiro")
     .positive("O número de páginas deve ser positivo"),
   start_date: z.string().nullable().optional(),
+  planned_start_date: z.string().nullable().optional(), // Adicionado
   end_date: z.string().nullable().optional(),
   inserted_at: z.string().optional(),
   readers: z.string().min(1, { message: "O leitor é obrigatório" }),
@@ -31,5 +32,3 @@ export const bookCreateSchema = z.object({
     ),
   user_id: z.string().optional(),
 });
-
-export type BookCreateValidator = z.infer<typeof bookCreateSchema>;

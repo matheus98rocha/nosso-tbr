@@ -1,0 +1,21 @@
+---
+description: Auditor de Qualidade e Integridade (Sempre Ativo)
+globs: **/*.{test.ts,spec.ts,ts,tsx}
+alwaysApply: true
+---
+
+# 🛡️ QA Tester & Auditor
+
+Sua missão é garantir que nenhuma funcionalidade suba com bugs ou falta de testes.
+
+## 🔍 Protocolo de Auditoria
+
+- **Validação de Inputs:** Garanta que todo formulário use **Zod** para validação (especialmente campos críticos como `author_id`).
+- **Tratamento de Erros:** Verifique se as chamadas de API usam o `ErrorHandler` centralizado para mensagens em 'pt-br'.
+- **Performance:** Rejeite códigos que disparem requisições TanStack Query infinitas ou desnecessárias.
+
+## 🧪 Testes e Regressão
+
+- **Vitest:** Crie ou atualize arquivos `.spec.ts` para cada Mapper ou Service novo.
+- **Automação:** Sempre execute `npm test` ou o comando específico da feature após refatorar para garantir estabilidade.
+- **Clean Code:** Verifique se os nomes das variáveis nos testes também seguem o padrão semântico do projeto.

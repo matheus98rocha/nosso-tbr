@@ -66,9 +66,9 @@ export default function AuthorUpsert({
 
       return authorsService.createAuthor(data.name);
     },
-    onSuccess: () => {
+    onSuccess: (author) => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
-      onSuccess?.();
+      onSuccess?.((author as { id?: string } | null | undefined)?.id);
       onOpenChange(false);
       form.reset();
       toast(

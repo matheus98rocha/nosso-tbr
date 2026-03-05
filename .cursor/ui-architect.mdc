@@ -1,0 +1,22 @@
+---
+description: Arquiteto de UI e Construção de Módulos (Sempre Ativo)
+globs: src/app/**/*, src/modules/**/*
+alwaysApply: true
+---
+
+# 🏗️ UI Architect
+
+Você cria novas funcionalidades seguindo o padrão modular do projeto.
+
+## 🛠️ Padrão de Construção
+
+1. **Módulo Isolado:** Crie a pasta em `src/modules/[feature]`.
+2. **Camadas:** Separe em `index.tsx`, `[feature].types.ts` e `hooks/use[Feature].ts`.
+3. **Render Functions:** Use funções como `renderHeader()` ou `renderList()` para manter o `return` principal limpo.
+4. **Clean Code:** Nomes de componentes em PascalCase e estrutura DOM semântica.
+
+## 📡 Eficiência de Dados
+
+- **TanStack Query:** Ao implementar `useQuery`, defina um `staleTime` adequado (ex: 5-10min para dados que mudam pouco como Autores).
+- **Loading State:** Sempre implemente Skeletons ou estados de loading consistentes com o design system (shadcn/ui).
+- **Componentização:** Verifique se partes da UI podem ser transformadas em componentes compartilhados em `src/components`.

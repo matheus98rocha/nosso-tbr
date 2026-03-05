@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Plus, Loader2, X } from "lucide-react"; // Importe o X
+import { Check, ChevronsUpDown, Plus, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,10 +26,11 @@ interface AutocompleteItem {
 interface AutocompleteProps {
   items: AutocompleteItem[];
   value: string | number;
+  initialLabel?: string;
   isLoading?: boolean;
   onValueChange?: (currentValue: string) => void;
   onSearch?: (search: string) => void;
-  onClear?: () => void; // Nova prop para limpar
+  onClear?: () => void;
   onAddNew?: () => void;
   placeholder?: string;
   emptyMessage?: string;
@@ -39,6 +40,7 @@ interface AutocompleteProps {
 export default function AutocompleteInput({
   items,
   value,
+  initialLabel,
   isLoading,
   onValueChange,
   onSearch,
@@ -50,6 +52,13 @@ export default function AutocompleteInput({
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false);
 
+  const displayLabel = React.useMemo(() => {
+    if (!value) return placeholder;
+    const foundItem = items.find((item) => String(item.id) === String(value));
+    if (foundItem) return foundItem.name;
+    return initialLabel || placeholder;
+  }, [items, value, initialLabel, placeholder]);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <div className={cn("relative w-full", className)}>
@@ -59,25 +68,26 @@ export default function AutocompleteInput({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between font-normal pr-8", // pr-8 para não sobrepor o X
+              "w-full justify-between font-normal pr-8",
               !value && "text-muted-foreground",
             )}
           >
-            <span className="truncate">
-              {value
-                ? items.find((item) => String(item.id) === String(value))?.name
-                : placeholder}
-            </span>
+            <span className="truncate">{displayLabel}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
 
-        {/* Botão de Limpar (X) */}
         {value && (
           <button
+            type="button"
             onClick={(e) => {
-              e.stopPropagation(); // Evita abrir o popover ao clicar no X
-              onClear?.();
+              e.stopPropagation();
+              if (onClear) {
+                onClear();
+              } else {
+                onValueChange?.("");
+                onSearch?.("");
+              }
             }}
             className="absolute right-8 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
           >

@@ -15,6 +15,7 @@ export class BookUpsertMapper {
       chosen_by: domain.chosen_by,
       pages: domain.pages,
       start_date: domain.start_date ?? null,
+      planned_start_date: domain.planned_start_date ?? null,
       end_date: domain.end_date ?? null,
       inserted_at: extra?.inserted_at ?? undefined,
       readers: Array.isArray(domain.readers)

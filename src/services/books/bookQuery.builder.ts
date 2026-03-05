@@ -26,13 +26,17 @@ export class BookQueryBuilder {
     return this;
   }
 
-  withStatus(statuses?: ("not_started" | "reading" | "finished")[]): this {
+  withStatus(
+    statuses?: ("not_started" | "reading" | "finished" | "planned")[],
+  ): this {
     if (!statuses || statuses.length === 0) return this;
 
     const filters = statuses
       .map((status) => {
         if (status === "not_started") {
-          return `start_date.is.null`;
+          return `and(start_date.is.null,planned_start_date.is.null)`;
+        } else if (status === "planned") {
+          return `and(start_date.is.null,planned_start_date.not.is.null)`;
         } else if (status === "reading") {
           return `and(start_date.not.is.null,end_date.is.null)`;
         } else if (status === "finished") {
@@ -43,63 +47,64 @@ export class BookQueryBuilder {
       .filter(Boolean);
 
     if (filters.length > 0) {
-      const rawFilter = filters.join(",");
-      this.query = this.query.or(rawFilter) as typeof this.query;
+      this.query = this.query.or(filters.join(","));
     }
 
     return this;
   }
 
+  withDefaultOrdering(isPlannedFilterActive: boolean): this {
+    this.query = this.query.order("end_date", {
+      ascending: false,
+      nullsFirst: true,
+    });
+
+    if (isPlannedFilterActive) {
+      this.query = this.query.order("planned_start_date", {
+        ascending: true,
+        nullsFirst: false,
+      });
+    } else {
+      this.query = this.query.order("inserted_at", {
+        ascending: false,
+      });
+    }
+
+    return this;
+  }
   withGender(genders?: string[]): this {
     if (!genders || genders.length === 0) return this;
-
     if (genders.length === 1) {
       this.query = this.query.eq("gender", genders[0]);
     } else {
       this.query = this.query.in("gender", genders);
     }
-
-    return this;
-  }
-
-  sortByCreatedAt(ascending = false): this {
-    this.query = this.query.order("inserted_at", {
-      ascending,
-    }) as typeof this.query;
     return this;
   }
 
   withSearchTerm(searchTerm?: string): this {
     if (!searchTerm?.trim()) return this;
-
     const cleanTerm = searchTerm.replace(/[^\w\sÀ-ÿ]/g, " ").trim();
-
-    const words = cleanTerm.split(/\s+/).filter((word) => word.length >= 1); // Mantém o "2"
+    const words = cleanTerm.split(/\s+/).filter((word) => word.length >= 1);
 
     if (words.length > 0) {
       const formattedSearch = words.map((word) => `${word}:*`).join(" & ");
-
       this.query = this.query.filter("search_vector", "fts", formattedSearch);
     }
-
     return this;
   }
 
   withUser(userId?: string): this {
-    if (userId) {
-      this.query = this.query.eq("user_id", userId);
-    }
+    if (userId) this.query = this.query.eq("user_id", userId);
     return this;
   }
 
   withId(bookId?: string): this {
-    if (bookId) {
-      this.query = this.query.eq("id", bookId);
-    }
+    if (bookId) this.query = this.query.eq("id", bookId);
     return this;
   }
 
-  withAuthor(authorId?: string) {
+  withAuthor(authorId?: string): this {
     if (authorId && authorId.trim() !== "") {
       this.query = this.query.eq("author_id", authorId);
     }

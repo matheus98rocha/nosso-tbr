@@ -52,7 +52,10 @@ export default function FiltersSheet({
 
   return (
     <Sheet open={open} onOpenChange={setIsOpen}>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+      <SheetContent
+        side="right"
+        className="w-[300px] sm:w-[400px] flex flex-col"
+      >
         <SheetHeader>
           <SheetTitle>Redefinir Resultado</SheetTitle>
           <SheetDescription>
@@ -61,7 +64,7 @@ export default function FiltersSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col gap-2 p-3">
+        <div className="flex flex-col gap-6 p-3 overflow-y-auto mt-4">
           {pathname === "/" && (
             <FilterSection
               title="Leitores"
@@ -71,6 +74,7 @@ export default function FiltersSheet({
               placeholder="Selecione os leitores"
             />
           )}
+
           <FilterSection
             title="Status"
             options={STATUS_OPTIONS}
@@ -88,14 +92,18 @@ export default function FiltersSheet({
           />
         </div>
 
-        <SheetFooter className="flex flex-col gap-2 mt-auto">
+        <SheetFooter className="flex flex-col gap-2 mt-auto pt-4 border-t">
           <Button onClick={applyFilters} className="w-full">
             Aplicar Filtros
           </Button>
           <Button onClick={handleClearAll} variant="outline" className="w-full">
             Limpar Tudo
           </Button>
-          <Button onClick={handleCancel} variant="ghost" className="w-full">
+          <Button
+            onClick={handleCancel}
+            variant="ghost"
+            className="w-full text-muted-foreground"
+          >
             Cancelar
           </Button>
         </SheetFooter>
@@ -118,7 +126,7 @@ const FilterSection = ({
   placeholder: string;
 }) => (
   <div className="flex flex-col gap-2">
-    <span className="text-sm font-medium">{title}</span>
+    <span className="text-sm font-semibold text-foreground/80">{title}</span>
     <MultiSelect
       options={options}
       selected={selected}
