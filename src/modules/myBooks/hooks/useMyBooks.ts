@@ -1,7 +1,7 @@
 import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiltersOptions } from "@/types/filters";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
@@ -9,12 +9,15 @@ import {
   formatReaders,
   formatStatus,
 } from "@/utils/formatters/formatters";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { QUERY_KEYS } from "@/constants/keys";
+
+const PAGE_SIZE = 8;
 
 export function useMyBooks() {
-  const PAGE_SIZE = 8;
-
-  const bookService = new BookService();
+  const bookService = useMemo(() => new BookService(), []);
   const { user } = useUserStore();
+  const isLoggedIn = useIsLoggedIn();
 
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -52,30 +55,70 @@ export function useMyBooks() {
     isFetched,
     isError,
   } = useQuery({
-    queryKey: ["books", filters, searchQuery, user?.id, currentPage],
-    queryFn: async () =>
-      bookService.getAll({
+    queryKey: QUERY_KEYS.books.myBooks(
+      filters,
+      searchQuery,
+      user?.id,
+      currentPage,
+    ),
+    queryFn: async () => {
+      const response = await bookService.getAll({
         bookId: filters.bookId,
         filters,
         search: searchQuery,
         userId: user?.id,
         page: currentPage,
         pageSize: PAGE_SIZE,
-      }),
+      });
+
+      const isAwaitingSpecificBook = filters.bookId || searchQuery;
+
+      if (
+        isLoggedIn &&
+        isAwaitingSpecificBook &&
+        (!response || response.data?.length === 0)
+      ) {
+        throw new Error("Sincronizando seus livros...");
+      }
+
+      return response;
+    },
+    retry: (failureCount) => {
+      const isAwaitingSpecificBook = filters.bookId || searchQuery;
+      if (isLoggedIn && isAwaitingSpecificBook && failureCount < 2) return true;
+      return false;
+    },
+    retryDelay: 1000,
+    refetchOnMount: "always",
+    staleTime: 0,
+    gcTime: 0,
   });
 
-  const formattedGenres = formatGenres(filters.gender);
-  const formattedReaders = formatReaders(filters.readers);
-  const formattedStatus = formatStatus(filters.status);
+  const formattedGenres = useMemo(
+    () => formatGenres(filters.gender),
+    [filters.gender],
+  );
+  const formattedReaders = useMemo(
+    () => formatReaders(filters.readers),
+    [filters.readers],
+  );
+  const formattedStatus = useMemo(
+    () => formatStatus(filters.status),
+    [filters.status],
+  );
 
   const totalPages = useMemo(
     () => Math.ceil((allBooks?.total || 0) / PAGE_SIZE),
     [allBooks?.total],
   );
 
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
   return {
     allBooks,
-    isLoadingAllBooks: isLoadingAllBooks,
+    isLoadingAllBooks,
     isFetched,
     isError,
     searchQuery,
@@ -91,7 +134,7 @@ export function useMyBooks() {
     filters,
     hasSearchParams,
     currentPage,
-    setCurrentPage,
+    setCurrentPage: handlePageChange,
     totalPages,
   };
 }
