@@ -13,6 +13,7 @@ import {
 import { UserDomain } from "@/services/users/types/users.types";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { QUERY_KEYS } from "@/constants/keys";
+import { useStatusFilters } from "./useStatusFilters";
 
 const PAGE_SIZE = 8;
 
@@ -125,6 +126,12 @@ export function useHome() {
     [filters.status],
   );
 
+  const { activeStatuses, handleToggleStatus } = useStatusFilters({
+    filters,
+    searchQuery,
+    updateUrlWithFilters,
+  });
+
   const isLoadingData = isLoadingUsers || isLoadingAllBooks;
 
   return {
@@ -148,5 +155,7 @@ export function useHome() {
     user,
     currentPage,
     setCurrentPage,
+    activeStatuses,
+    handleToggleStatus,
   };
 }

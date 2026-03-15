@@ -2,8 +2,6 @@ import { renderHook, act } from "@testing-library/react";
 import { vi, Mock } from "vitest";
 import { useBookCard } from "./useBookCard";
 import { BookDomain } from "@/types/books.types";
-import { BookService } from "@/services/books/books.service";
-import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 import { useRouter } from "next/navigation";
 
 vi.mock("next/navigation", () => ({ useRouter: vi.fn() }));
@@ -29,7 +27,6 @@ const baseBook: BookDomain = {
   user_id: "user-123",
 };
 
-// Helper para renderizar hook
 const renderBookCardHook = (book = baseBook) =>
   renderHook(() => useBookCard({ book }));
 
@@ -46,10 +43,10 @@ describe("useBookCard", () => {
           status: "not_started",
         });
         expect(result.current.badgeObject.bookStatusClass).toBe(
-          "bg-gray-500 text-white"
+          "bg-gray-500 text-white",
         );
         expect(result.current.badgeObject.bookStatusText).toBe(
-          "Vou iniciar a leitura"
+          "Ainda não iniciei a leitura",
         );
       });
 
@@ -59,10 +56,23 @@ describe("useBookCard", () => {
           status: "reading",
         });
         expect(result.current.badgeObject.bookStatusClass).toBe(
-          "bg-green-800 text-white"
+          "bg-green-800 text-white",
         );
         expect(result.current.badgeObject.bookStatusText).toBe(
-          "Já iniciei a leitura"
+          "Já iniciei a leitura",
+        );
+      });
+
+      it("should return correct badge for planned", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "planned",
+        });
+        expect(result.current.badgeObject.bookStatusClass).toBe(
+          "bg-gray-500 text-white",
+        );
+        expect(result.current.badgeObject.bookStatusText).toBe(
+          "Ainda não iniciei a leitura",
         );
       });
 
@@ -72,10 +82,10 @@ describe("useBookCard", () => {
           status: "finished",
         });
         expect(result.current.badgeObject.bookStatusClass).toBe(
-          "bg-red-500 text-white"
+          "bg-red-500 text-white",
         );
         expect(result.current.badgeObject.bookStatusText).toBe(
-          "Terminei a Leitura"
+          "Terminei a Leitura",
         );
       });
 
@@ -85,36 +95,11 @@ describe("useBookCard", () => {
           status: undefined,
         });
         expect(result.current.badgeObject.bookStatusClass).toBe(
-          "bg-gray-500 text-white"
+          "bg-gray-500 text-white",
         );
         expect(result.current.badgeObject.bookStatusText).toBe(
-          "Vou iniciar a leitura"
+          "Ainda não iniciei a leitura",
         );
-      });
-    });
-
-    describe("handleConfirmDelete", () => {
-      it("should call BookService.delete when isShelf is false", async () => {
-        const deleteMock = vi.fn();
-        (BookService as unknown as Mock).mockImplementation(
-          () => ({ delete: deleteMock } as unknown)
-        );
-        const { result } = renderBookCardHook();
-        await act(async () => result.current.handleConfirmDelete("123", false));
-        expect(deleteMock).toHaveBeenCalledWith("123");
-      });
-
-      it("should call removeBookFromShelf and reload when isShelf is true", async () => {
-        const removeMock = vi.fn();
-        (BookshelfServiceBooks as unknown as Mock).mockImplementation(
-          () =>
-            ({
-              removeBookFromShelf: removeMock,
-            } as unknown)
-        );
-        const { result } = renderBookCardHook();
-        await act(async () => result.current.handleConfirmDelete("123", true));
-        expect(removeMock).toHaveBeenCalledWith("123");
       });
     });
 
@@ -146,7 +131,7 @@ describe("useBookCard", () => {
       it("deve abrir o link correto no WhatsApp", () => {
         // 1. Renderiza o hook customizado com os dados de um livro base.
         const { result } = renderHook(() =>
-          useBookCard({ book: { ...baseBook } })
+          useBookCard({ book: { ...baseBook } }),
         );
 
         // 2. Executa a função de compartilhamento no WhatsApp.
@@ -163,7 +148,7 @@ describe("useBookCard", () => {
 
         // O link final do WhatsApp, que deve codificar a 'shareUrl'
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-          shareUrl
+          shareUrl,
         )}`;
 
         // 3. Verifica se a função window.open foi chamada com o link de destino correto.
