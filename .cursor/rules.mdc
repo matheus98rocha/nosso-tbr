@@ -1,0 +1,43 @@
+---
+description: Nosso TBR & Expo Expert Standards (Clean Architecture, Performance & Testing)
+globs: **/*.{ts,tsx}
+alwaysApply: true
+---
+
+# 1. Architecture & Folder Structure
+
+- **Colocation Pattern:** Use `_components` folders at the route/page level for local UI. Use the leading underscore to prevent routing conflicts (Expo/Next.js).
+- **Naming Conventions:** - **Folders & Components:** Always **PascalCase** (e.g., `UserCard/UserCard.tsx`).
+  - **Hooks & Functions:** Always **camelCase**.
+  - **Files:** No hyphens or underscores in filenames (except for `_components` or special framework files).
+- **Global Components:** Use `src/components` only for shared UI. Each must have an `index.ts` for clean exports.
+
+# 2. Strict Separation of Concerns (The "Hook-First" Rule)
+
+- **Pure Presentational UI:** Components must be 100% UI. No business logic, API calls, or state management inside `.tsx`.
+- **Custom Hooks:** Mandatory extraction of ALL logic, handlers, and rules to custom hooks (e.g., `useBookDetails.ts`).
+- **No Inline Types:** Never define `type` or `interface` inside a component/hook body. Move them to the top of the file or a dedicated `types.ts`.
+- **Styling:** Keep styles (Tailwind or makeStyles) outside the main render logic. Pass theme/colors as arguments if necessary.
+
+# 3. Data, State & Performance
+
+- **Tech Stack:** Use **Supabase** for DB, **Zustand** for global state, and **TanStack Query** for server state.
+- **Memoization:** Mandatory `useCallback` for all event handlers and `useMemo` for derived data or objects/arrays passed as props.
+- **Optimization:** Check for unnecessary re-renders. Modularize large components into smaller, focused pieces.
+- **Validation:** Use `zod` for all data schemas.
+
+# 4. Unit Testing Strategy (Token-Efficient)
+
+- **Pattern:** Follow the **AAA (Arrange, Act, Assert)** pattern.
+- **Focus:** Prioritize testing **Custom Hooks** and **Service Layers**.
+- **Mocking:** - Mock external providers (Supabase, Navigation, Auth) in a central `jest.setup.ts` to save tokens.
+  - Reference existing `types.ts` for mocks instead of defining inline objects.
+- **Goal:** Test behavior and outcomes, not internal state changes.
+
+# 5. Clean Code & Localization (Matheus' Standards)
+
+- **No Comments:** Strictly forbidden unless explicitly requested. Code must be self-explanatory.
+- **Naming:** Use highly descriptive English names (e.g., `isSubscriptionActive` instead of `checkSub`).
+- **Localization:** Default locale is **pt-br**.
+  - Explicitly override any third-party defaults (like 'pl' Polish) to 'pt-br' in components like Date Pickers.
+- **Accessibility:** Mandatory `accessibilityLabel` and `accessibilityRole` (React Native) or ARIA roles (Web).

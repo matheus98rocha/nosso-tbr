@@ -94,7 +94,7 @@ export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
       e: ChangeEvent<HTMLInputElement>,
     ) => {
       const val = e.target.value;
-      const parsed = val === "" ? null : Number(val);
+      const parsed = val === "" ? undefined : Number(val);
       field.onChange(parsed);
     },
     [],

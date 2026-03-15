@@ -2,7 +2,6 @@ import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiltersOptions } from "@/types/filters";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
   formatGenres,
@@ -10,7 +9,7 @@ import {
   formatStatus,
 } from "@/utils/formatters/formatters";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
-import { QUERY_KEYS } from "@/constants/keys";
+import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 
 const PAGE_SIZE = 8;
 
@@ -21,17 +20,7 @@ export function useMyBooks() {
 
   const [currentPage, setCurrentPage] = useState(0);
 
-  const defaultFactory = useMemo(
-    () => () =>
-      ({
-        readers: [],
-        status: [],
-        gender: [],
-        userId: "",
-        bookId: "",
-      }) as FiltersOptions,
-    [],
-  );
+  const defaultFactory = useCallback(() => ({ ...INITIAL_FILTERS }), []);
 
   const {
     filters,
@@ -71,7 +60,7 @@ export function useMyBooks() {
         pageSize: PAGE_SIZE,
       });
 
-      const isAwaitingSpecificBook = filters.bookId || searchQuery;
+      const isAwaitingSpecificBook = !!(filters.bookId || searchQuery);
 
       if (
         isLoggedIn &&
@@ -84,14 +73,13 @@ export function useMyBooks() {
       return response;
     },
     retry: (failureCount) => {
-      const isAwaitingSpecificBook = filters.bookId || searchQuery;
-      if (isLoggedIn && isAwaitingSpecificBook && failureCount < 2) return true;
-      return false;
+      const isAwaitingSpecificBook = !!(filters.bookId || searchQuery);
+      return isLoggedIn && isAwaitingSpecificBook && failureCount < 2;
     },
     retryDelay: 1000,
-    refetchOnMount: "always",
-    staleTime: 0,
-    gcTime: 0,
+    refetchOnMount: false,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   const formattedGenres = useMemo(

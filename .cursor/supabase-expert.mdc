@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+---
+
+description: Expert em Supabase, Zod e Camada de Dados
+globs: src/services/**/\*, src/hooks/queries/**/_, src/store/\*\*/_
+
+---
+
+# Data Management
+
+- **Mappers:** Always convert Snake Case (DB) to Camel Case (Frontend) in the service layer.
+- **Validation:** Use `zod` for all API responses and form schemas.
+- **Zustand:** Keep stores focused and use selectors for performance.
+- **TanStack Query:** Manage all server state, loading, and error handling within dedicated hooks.

@@ -35,6 +35,7 @@ export class ScheduleUpsertMapper {
       completed: domain.completed ?? false,
       created_at: extra?.created_at,
       owner: domain.owner,
+      // ⚠️ chaptersPerDay: domain.chaptersPerDay está faltando
     };
   }
 

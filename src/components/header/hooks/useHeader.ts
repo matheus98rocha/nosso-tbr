@@ -20,7 +20,7 @@ export function useHeader() {
         {
           label: "Meus Livros",
           action: () => router.push(`my-books`),
-          path: "/meus-livros",
+          path: "/my-books",
           requiresAuth: true,
         },
         {

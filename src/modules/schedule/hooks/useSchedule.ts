@@ -29,6 +29,8 @@ export function useSchedule({ id }: UseScheduleProps) {
       const previousSchedule = queryClient.getQueryData<ScheduleDomain[]>([
         "schedule",
         id,
+        user?.id,
+        id,
       ]);
 
       queryClient.setQueryData<ScheduleDomain[]>(["schedule", id], (old) =>
@@ -57,7 +59,7 @@ export function useSchedule({ id }: UseScheduleProps) {
     },
     onSuccess: (_, variables) => {
       queryClient.setQueryData<ScheduleDomain[]>(
-        ["schedule", variables.id],
+        ["schedule", variables.id, user?.id],
         [],
       );
     },
