@@ -1,0 +1,39 @@
+---
+description: FeatureArchitect-shadcn-Pro (Clean Architecture, shadcn/ui & Performance)
+globs: **/*.{ts,tsx}
+alwaysApply: true
+---
+
+# 1. UI & DESIGN SYSTEM (shadcn/ui)
+
+- **Requirement:** Use **shadcn/ui** for all interface components. Do not build components from scratch if a shadcn version or base exists.
+- **Component Installation:** If a required component is missing from `src/components/ui`, install it via CLI or generate it following shadcn documentation before starting the feature.
+- **Customization:** Use the `cn()` utility to merge Tailwind classes. Keep variant logic within the `cva()` definitions of the shadcn component itself.
+
+# 2. ARCHITECTURE & SEPARATION OF CONCERNS
+
+- **Pure Presentational UI:** `.tsx` files must be 100% visual. Business logic, API calls, or complex state management are forbidden within the component body.
+- **Hook-First Rule:** All logic must be extracted into **Custom Hooks** (e.g., `useBookList.ts`).
+- **Data & State:** Use **Supabase** (DB), **Zustand** (Global State), and **TanStack Query** (Server State).
+- **Validation:** Use **zod** for all schemas and data validations.
+
+# 3. CODE STANDARDS & TYPES
+
+- **No Inline Types:** Define `type` or `interface` at the top of the file or in a dedicated `types.ts`. Never inside the component/hook body.
+- **Naming Conventions:** - **PascalCase:** Components and Folders.
+  - **camelCase:** Hooks and functions.
+  - **Files:** No hyphens or underscores (except framework-specific files like `_components`).
+- **No Comments:** Strictly forbidden. Code must be self-explanatory using highly descriptive English names.
+
+# 4. PERFORMANCE & LOCALIZATION
+
+- **Memoization:** Mandatory use of `useCallback` for all event handlers and `useMemo` for calculations or objects/arrays passed as props.
+- **Optimization:** Avoid unnecessary re-renders. Modularize large components into focused files within `_components`.
+- **Localization (pt-br):** The default application locale is **pt-br**.
+  - **Override:** Explicitly translate third-party defaults (e.g., Date Pickers defaulting to 'pl') to **pt-br**.
+
+# 5. TESTING STRATEGY
+
+- **Pattern:** Follow **AAA (Arrange, Act, Assert)**.
+- **Focus:** Prioritize unit tests for **Custom Hooks** and **Service Layers**.
+- **Mocking:** Use centralized mocks for Supabase and Navigation to maintain token efficiency.
