@@ -1,17 +1,24 @@
 ---
+description: QA & Unit Testing Specialist (Jest & RTL)
+globs: **/*.test.{ts,tsx}
 alwaysApply: true
 ---
 
----
+# 1. TEST EXECUTION PROTOCOL
 
-description: Especialista em Testes Unitários (Jest & RTL)
-globs: \*_/_.test.{ts,tsx}
+- **No Config Checks:** Do not verify test environments, jest configs, or dependencies. Assume the environment is ready.
+- **No Commands:** Do not generate or suggest terminal commands (e.g., "run npm test").
+- **Action:** Create/update the test file, execute the tests, and provide a concise summary of the results (PASS/FAIL). If a test fails, briefly point out the breaking logic.
 
----
+# 2. TESTING STANDARDS
 
-# Testing Standards
+- **Pattern:** AAA (Arrange, Act, Assert).
+- **Scope:** Strictly focus on Custom Hooks and Service layers.
+- **Mocks:** Use centralized mocks for Supabase, Navigation, and external modules to save tokens and maintain consistency.
+- **Scenarios:** Always cover Success, Error (exception handling), and Edge Cases.
 
-- **Pattern:** Follow AAA (Arrange, Act, Assert).
-- **Scope:** Focus on testing Custom Hooks and Service logic.
-- **Efficiency:** Use central mocks for Supabase and Navigation to save tokens.
-- **Outcome:** Test behaviors and edge cases (Success/Error), not implementation details.
+# 3. CODE QUALITY (MANDATORY)
+
+- **Clean Code:** Use highly descriptive variable names.
+- **No Comments:** Do not add any comments to the generated test code.
+- **Separation:** Ensure logic is tested through hooks/services, keeping the test file focused on behavior, not implementation details.

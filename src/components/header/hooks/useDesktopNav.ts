@@ -1,5 +1,4 @@
-// hooks/useDesktopNav.ts
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
 import { BookService } from "@/services/books/books.service";
@@ -8,37 +7,32 @@ import { StatsService } from "@/modules/stats/services/stats.service";
 import { fetchBookShelves } from "@/modules/shelves/services/booksshelves.service";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 
+const bookService = new BookService();
+const authorsService = new AuthorsService();
+const statsService = new StatsService();
+
 export function useDesktopNav() {
   const queryClient = useQueryClient();
   const { user } = useUserStore();
 
-  const services = useMemo(
-    () => ({
-      book: new BookService(),
-      authors: new AuthorsService(),
-      stats: new StatsService(),
-    }),
-    [],
-  );
   const handlePrefetch = useCallback(
     async (label: string) => {
-      const commonOptions = { staleTime: 1000 * 60 * 5 };
-      const reader = user?.id || "Matheus";
+      const STALE_TIME = 1000 * 60 * 5;
+      const commonOptions = { staleTime: STALE_TIME };
 
       const prefetchMap: Record<string, () => Promise<void>> = {
         "Meus Livros": async () => {
           if (!user?.id) return;
-
           await queryClient.prefetchQuery({
             queryKey: QUERY_KEYS.books.myBooks(INITIAL_FILTERS, "", user.id, 0),
             queryFn: () =>
-              services.book.getAll({
+              bookService.getAll({
                 userId: user.id,
                 page: 0,
                 pageSize: 8,
                 filters: INITIAL_FILTERS,
               }),
-            staleTime: 1000 * 60 * 5,
+            ...commonOptions,
           });
         },
         "Ver Estantes": () =>
@@ -51,7 +45,7 @@ export function useDesktopNav() {
           queryClient.prefetchQuery({
             queryKey: QUERY_KEYS.authors.list(0, ""),
             queryFn: () =>
-              services.authors.getAuthors({
+              authorsService.getAuthors({
                 withCountBooks: true,
                 page: 0,
                 pageSize: 8,
@@ -60,24 +54,30 @@ export function useDesktopNav() {
             ...commonOptions,
           }),
         Estatisticas: async () => {
-          await Promise.all([
+          if (!user?.id) return;
+          const statsRequests = [
             queryClient.prefetchQuery({
-              queryKey: QUERY_KEYS.stats.byReader(reader),
-              queryFn: () => services.stats.getByReader(reader),
+              queryKey: QUERY_KEYS.stats.byReader(user.id),
+              queryFn: () => statsService.getByReader(user.id),
               ...commonOptions,
             }),
             queryClient.prefetchQuery({
-              queryKey: QUERY_KEYS.stats.collaboration(reader),
-              queryFn: () => services.stats.getCollaborationStats(reader),
+              queryKey: QUERY_KEYS.stats.collaboration(user.id),
+              queryFn: () => statsService.getCollaborationStats(user.id),
               ...commonOptions,
             }),
-          ]);
+          ];
+          await Promise.allSettled(statsRequests);
         },
       };
 
-      if (prefetchMap[label]) await prefetchMap[label]();
+      const action = prefetchMap[label];
+
+      if (action) {
+        await action();
+      }
     },
-    [queryClient, user, services],
+    [queryClient, user?.id],
   );
 
   return { handlePrefetch };
