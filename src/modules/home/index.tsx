@@ -98,6 +98,24 @@ export default function ClientHome() {
     );
   };
 
+  const renderStatusChips = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center gap-2 flex-wrap">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-28 rounded-full" />
+          ))}
+        </div>
+      );
+    }
+    return (
+      <StatusFilterChips
+        activeStatuses={activeStatuses}
+        onToggle={handleToggleStatus}
+      />
+    );
+  };
+
   return (
     <>
       <BookUpsert
@@ -112,10 +130,7 @@ export default function ClientHome() {
       <div className="w-full flex items-center justify-center flex-col gap-2 container">
         <div className="flex items-start justify-center flex-col container gap-3">
           <div className="leading-7">{renderResultsCount()}</div>
-          <StatusFilterChips
-            activeStatuses={activeStatuses}
-            onToggle={handleToggleStatus}
-          />
+          {renderStatusChips()}
           <div className="flex items-center justify-center gap-4 min-h-[40px]">
             {renderActiveFilters()}
             {renderClearButton()}
