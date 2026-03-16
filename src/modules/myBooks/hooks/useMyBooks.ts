@@ -1,7 +1,7 @@
 import { BookService } from "@/services/books/books.service";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
   formatGenres,
@@ -10,6 +10,7 @@ import {
 } from "@/utils/formatters/formatters";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
+import { useStatusFilters } from "@/modules/home/hooks/useStatusFilters";
 
 const PAGE_SIZE = 8;
 
@@ -100,9 +101,15 @@ export function useMyBooks() {
     [allBooks?.total],
   );
 
-  const handlePageChange = useCallback((page: number) => {
+  const handlePageChange = useCallback((page: SetStateAction<number>) => {
     setCurrentPage(page);
   }, []);
+
+  const { activeStatuses, handleToggleStatus } = useStatusFilters({
+    filters,
+    searchQuery,
+    updateUrlWithFilters,
+  });
 
   return {
     allBooks,
@@ -124,5 +131,7 @@ export function useMyBooks() {
     currentPage,
     setCurrentPage: handlePageChange,
     totalPages,
+    activeStatuses,
+    handleToggleStatus,
   };
 }
