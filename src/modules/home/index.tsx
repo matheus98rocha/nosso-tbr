@@ -12,6 +12,7 @@ import { CreateEditBookshelves } from "../shelves/components/createEditBookshelv
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import DefaultPagination from "@/components/pagintation/pagination";
+import { StatusFilterChips } from "./components/statusFilterChips/statusFilterChips";
 
 const PAGE_SIZE = 10;
 
@@ -32,6 +33,8 @@ export default function ClientHome() {
     handleGenerateReadersObj,
     currentPage,
     setCurrentPage,
+    activeStatuses,
+    handleToggleStatus,
   } = useHome();
 
   const dialogModal = useModal();
@@ -107,8 +110,12 @@ export default function ClientHome() {
       />
 
       <div className="w-full flex items-center justify-center flex-col gap-2 container">
-        <div className="flex items-start justify-center flex-col container">
+        <div className="flex items-start justify-center flex-col container gap-3">
           <div className="leading-7">{renderResultsCount()}</div>
+          <StatusFilterChips
+            activeStatuses={activeStatuses}
+            onToggle={handleToggleStatus}
+          />
           <div className="flex items-center justify-center gap-4 min-h-[40px]">
             {renderActiveFilters()}
             {renderClearButton()}

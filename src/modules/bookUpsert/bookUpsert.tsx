@@ -30,6 +30,7 @@ import { genders } from "@/constants/genders";
 import { AutocompleteInput } from "./components";
 import AuthorUpsert from "../authors/components/authorUpsert";
 import { useBookUpsert } from "./hooks/useBookUpsert";
+import { DateUtils } from "@/utils";
 
 export function BookUpsert(props: CreateBookProps) {
   const {
@@ -70,7 +71,6 @@ export function BookUpsert(props: CreateBookProps) {
   } = useBookUpsert(props);
 
   const showPlannedDate = !form.watch("start_date") && !form.watch("end_date");
-  console.log("->", bookData?.author);
   return (
     <>
       <AuthorUpsert
@@ -274,11 +274,11 @@ export function BookUpsert(props: CreateBookProps) {
                         <FormLabel>Previsão de Início da Leitura</FormLabel>
                         <FormControl>
                           <DatePicker
-                            value={
-                              field.value ? new Date(field.value) : undefined
-                            }
+                            value={DateUtils.toDate(field.value) ?? undefined}
                             onChange={(date) =>
-                              field.onChange(date?.toISOString() ?? null)
+                              field.onChange(
+                                DateUtils.toISOString(date) || null,
+                              )
                             }
                           />
                         </FormControl>
@@ -315,11 +315,11 @@ export function BookUpsert(props: CreateBookProps) {
                           <FormControl>
                             <DatePicker
                               isAfterTodayHidden
-                              value={
-                                field.value ? new Date(field.value) : undefined
-                              }
+                              value={DateUtils.toDate(field.value) ?? undefined}
                               onChange={(date) =>
-                                field.onChange(date?.toISOString() ?? null)
+                                field.onChange(
+                                  DateUtils.toISOString(date) || null,
+                                )
                               }
                             />
                           </FormControl>
@@ -339,12 +339,12 @@ export function BookUpsert(props: CreateBookProps) {
                               <DatePicker
                                 isAfterTodayHidden
                                 value={
-                                  field.value
-                                    ? new Date(field.value)
-                                    : undefined
+                                  DateUtils.toDate(field.value) ?? undefined
                                 }
                                 onChange={(date) =>
-                                  field.onChange(date?.toISOString() ?? null)
+                                  field.onChange(
+                                    DateUtils.toISOString(date) || null,
+                                  )
                                 }
                               />
                             </FormControl>

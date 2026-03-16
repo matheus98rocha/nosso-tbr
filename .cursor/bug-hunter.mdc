@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+---
+
+description: Investigação e Correção de Bugs (Hunter Mode)
+globs: \*_/_
+
+---
+
+# Debug Strategy
+
+1. **Root Cause Analysis:** List 3 possible causes before changing any code.
+2. **Data Trace:** Verify the chain: DB -> Service -> Hook -> UI.
+3. **Minimalism:** Fix only what is broken, maintaining architectural integrity.
+4. **Regression:** Suggest a test case to ensure the bug does not return.

@@ -11,6 +11,9 @@ import {
   formatStatus,
 } from "@/utils/formatters/formatters";
 import { UserDomain } from "@/services/users/types/users.types";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { QUERY_KEYS } from "@/constants/keys";
+import { useStatusFilters } from "./useStatusFilters";
 
 const PAGE_SIZE = 8;
 
@@ -18,6 +21,7 @@ export function useHome() {
   const bookService = useMemo(() => new BookService(), []);
   const { users, isLoadingUsers } = useUser();
   const user = useUserStore((state) => state.user);
+  const isLoggedIn = useIsLoggedIn();
 
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -56,13 +60,12 @@ export function useHome() {
         readers: filters.readers,
         readersDisplay: filters.readers,
       };
-    } else {
-      const allNames = users.map((u) => u.display_name);
-      return {
-        readers: allNames,
-        readersDisplay: allNames.join(", "),
-      };
     }
+    const allNames = users.map((u) => u.display_name);
+    return {
+      readers: allNames,
+      readersDisplay: allNames.join(", "),
+    };
   }, [filters.readers, users]);
 
   const {
@@ -71,21 +74,43 @@ export function useHome() {
     isFetched,
     isError,
   } = useQuery({
-    queryKey: ["books", filters, searchQuery, currentPage],
-    queryFn: () =>
-      bookService.getAll({
+    queryKey: QUERY_KEYS.books.list(filters, searchQuery, currentPage),
+    queryFn: async () => {
+      const response = await bookService.getAll({
         bookId: filters.bookId,
-        authorId: filters.authorId,
+        search: searchQuery,
         filters: {
           readers: handleGenerateReadersObj().readers,
           status: filters.status,
           gender: filters.gender,
         },
-        search: searchQuery,
-        userId: undefined,
         page: currentPage,
         pageSize: PAGE_SIZE,
-      }),
+      });
+
+      const isAwaitingSpecificBook = filters.bookId || searchQuery;
+
+      if (
+        isLoggedIn &&
+        isAwaitingSpecificBook &&
+        (!response || response.data?.length === 0)
+      ) {
+        throw new Error("Sincronizando novo livro...");
+      }
+
+      return response;
+    },
+    retry: (failureCount) => {
+      const isAwaitingSpecificBook = filters.bookId || searchQuery;
+      if (isLoggedIn && isAwaitingSpecificBook && failureCount < 2) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: 1000,
+    refetchOnMount: "always",
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const formattedGenres = useMemo(
@@ -100,6 +125,12 @@ export function useHome() {
     () => formatStatus(filters.status),
     [filters.status],
   );
+
+  const { activeStatuses, handleToggleStatus } = useStatusFilters({
+    filters,
+    searchQuery,
+    updateUrlWithFilters,
+  });
 
   const isLoadingData = isLoadingUsers || isLoadingAllBooks;
 
@@ -124,5 +155,7 @@ export function useHome() {
     user,
     currentPage,
     setCurrentPage,
+    activeStatuses,
+    handleToggleStatus,
   };
 }

@@ -1,21 +1,17 @@
 ---
-description: Auditor de Qualidade e Integridade (Sempre Ativo)
-globs: **/*.{test.ts,spec.ts,ts,tsx}
 alwaysApply: true
 ---
 
-# 🛡️ QA Tester & Auditor
+---
 
-Sua missão é garantir que nenhuma funcionalidade suba com bugs ou falta de testes.
+description: Especialista em Testes Unitários (Jest & RTL)
+globs: \*_/_.test.{ts,tsx}
 
-## 🔍 Protocolo de Auditoria
+---
 
-- **Validação de Inputs:** Garanta que todo formulário use **Zod** para validação (especialmente campos críticos como `author_id`).
-- **Tratamento de Erros:** Verifique se as chamadas de API usam o `ErrorHandler` centralizado para mensagens em 'pt-br'.
-- **Performance:** Rejeite códigos que disparem requisições TanStack Query infinitas ou desnecessárias.
+# Testing Standards
 
-## 🧪 Testes e Regressão
-
-- **Vitest:** Crie ou atualize arquivos `.spec.ts` para cada Mapper ou Service novo.
-- **Automação:** Sempre execute `npm test` ou o comando específico da feature após refatorar para garantir estabilidade.
-- **Clean Code:** Verifique se os nomes das variáveis nos testes também seguem o padrão semântico do projeto.
+- **Pattern:** Follow AAA (Arrange, Act, Assert).
+- **Scope:** Focus on testing Custom Hooks and Service logic.
+- **Efficiency:** Use central mocks for Supabase and Navigation to save tokens.
+- **Outcome:** Test behaviors and edge cases (Success/Error), not implementation details.

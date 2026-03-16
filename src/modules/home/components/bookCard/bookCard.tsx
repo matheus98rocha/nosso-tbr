@@ -39,8 +39,6 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
     isShelf,
   });
 
-  console.log(book);
-
   const renderStatusSection = () => {
     const formattedPlannedDate = book.planned_start_date
       ? new Date(book.planned_start_date).toLocaleDateString("pt-BR", {

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 import DefaultPagination from "@/components/pagintation/pagination";
+import { QUERY_KEYS } from "@/constants/keys";
 
 const PAGE_SIZE = 10;
 
@@ -40,7 +41,7 @@ export default function AuthorsScreen() {
   }, [searchName]);
 
   const { data, isLoading: isLoadingAuthors } = useQuery({
-    queryKey: ["authors", currentPage, filterName],
+    queryKey: QUERY_KEYS.authors.list(currentPage, filterName),
     queryFn: () =>
       authorsService.getAuthors({
         withCountBooks: true,

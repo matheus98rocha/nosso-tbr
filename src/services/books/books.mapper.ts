@@ -1,4 +1,5 @@
 import { BookDomain, BookPersistence } from "@/types/books.types";
+import { DateUtils } from "@/utils";
 
 export class BookMapper {
   static toDomain(persistence: BookPersistence): BookDomain {
@@ -23,6 +24,10 @@ export class BookMapper {
       status = "finished";
     }
 
+    const startDateObj = DateUtils.toDate(start_date);
+    const endDateObj = DateUtils.toDate(end_date);
+    const plannedDateObj = DateUtils.toDate(planned_start_date);
+
     return {
       id: id ? id : "",
       title,
@@ -31,9 +36,9 @@ export class BookMapper {
       chosen_by,
       pages,
       status,
-      end_date,
-      start_date,
-      planned_start_date: planned_start_date ?? null,
+      end_date: endDateObj ? endDateObj.toISOString() : null,
+      start_date: startDateObj ? startDateObj.toISOString() : null,
+      planned_start_date: plannedDateObj ? plannedDateObj.toISOString() : null,
       readers: Array.isArray(persistence.readers)
         ? (persistence.readers.join(" e ") as BookDomain["readers"])
         : (persistence.readers as BookDomain["readers"]),

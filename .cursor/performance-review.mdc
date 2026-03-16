@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+---
+
+description: Revisão de Performance e Otimização de Re-renders
+globs: \*_/_.tsx
+
+---
+
+# Performance Checklist
+
+- **Keys:** Ensure stable keys in lists (no array indexes).
+- **Dependencies:** Verify dependency arrays in `useEffect`, `useMemo`, and `useCallback`.
+- **Modularization:** Suggest breaking down large components to isolate state updates.
+- **React.memo:** Apply to heavy leaf components when necessary.

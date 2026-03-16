@@ -12,7 +12,6 @@ import { ControllerRenderProps, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
-import { BOOKS_QUERY_KEY } from "@/constants/keys";
 import { useRouter } from "next/navigation";
 
 export function useBookDialog({
@@ -88,62 +87,41 @@ export function useBookDialog({
   const createBook = useMutation({
     mutationFn: async (data: BookCreateValidator) => {
       if (isEdit) {
-        if (!bookData || !bookData.id) {
-          throw new Error("Erro inesperado.");
-        }
-        await bookUpsertService.edit(bookData.id, data);
+        if (!bookData || !bookData.id) throw new Error("Erro inesperado.");
+        return await bookUpsertService.edit(bookData.id, data);
       } else {
         const createdBook = await bookUpsertService.create(data);
-
-        if (isAddToShelfEnabled) {
-          if (!createdBook?.id) {
-            throw new Error("Algo deu errado ao adicionar o livro à estante.");
-          }
-
+        if (isAddToShelfEnabled && createdBook?.id) {
           await bookshelfService.addBookToShelf(
             selectedShelfId,
             createdBook.id,
           );
         }
-
-        return createdBook?.id;
+        return createdBook;
       }
     },
-    onSuccess: async (createdBookId) => {
+    onSuccess: async (result) => {
+      const createdBookId = isEdit ? bookData?.id : result?.id;
+
       handleResetForm();
       setIsDuplicateBookDialogOpen(false);
+      toast("Livro salvo com sucesso!");
 
-      toast("Livro salvo com sucesso!", {
-        description: bookData ? "Edição concluída" : "Novo livro adicionado",
-        className: "toast-success text-white",
+      await queryClient.invalidateQueries({
+        queryKey: ["books"],
+        exact: false,
       });
 
-      await queryClient.invalidateQueries({ queryKey: [BOOKS_QUERY_KEY] });
-
-      if (createdBookId && !isEdit) {
+      if (!isEdit && createdBookId) {
         router.replace(`/?bookId=${createdBookId}`);
       }
     },
     onError: (error) => {
       if (error instanceof Error) {
-        if (error.message === "Falha ao adicionar livro á estante") {
-          handleResetForm();
-
-          toast(
-            "O livro foi criado, porém houve um erro ao adicionar o livro a estante...",
-            {
-              description: error.message || "Ocorreu um erro inesperado.",
-              className: "toast-error",
-            },
-          );
-
-          queryClient.invalidateQueries({ queryKey: [BOOKS_QUERY_KEY] });
-        } else {
-          toast("Erro ao salvar livro", {
-            description: error.message || "Ocorreu um erro inesperado.",
-            className: "toast-error",
-          });
-        }
+        toast("Erro ao salvar livro", {
+          description: error.message || "Ocorreu um erro inesperado.",
+          className: "toast-error",
+        });
       }
     },
   });
