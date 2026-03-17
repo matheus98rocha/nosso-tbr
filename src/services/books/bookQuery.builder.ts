@@ -111,6 +111,14 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withYear(year?: number): this {
+    if (!year) return this;
+    this.query = this.query
+      .gte("end_date", `${year}-01-01`)
+      .lte("end_date", `${year}-12-31`);
+    return this;
+  }
+
   withPagination(page: number, pageSize: number): this {
     const from = page * pageSize;
     const to = from + pageSize - 1;

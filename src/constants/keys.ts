@@ -8,6 +8,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
   userId: "",
   bookId: "",
   authorId: "",
+  year: undefined,
 };
 
 /**

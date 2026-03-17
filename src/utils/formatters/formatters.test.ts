@@ -137,6 +137,34 @@ describe("formatters", () => {
     });
   });
 
+  describe("formatYear", () => {
+    it("returns null for undefined input", async () => {
+      const { formatYear } = await import("./formatters");
+      expect(formatYear(undefined)).toBeNull();
+    });
+
+    it("returns null for null input", async () => {
+      const { formatYear } = await import("./formatters");
+      expect(formatYear(null)).toBeNull();
+    });
+
+    it("returns null for zero", async () => {
+      const { formatYear } = await import("./formatters");
+      expect(formatYear(0)).toBeNull();
+    });
+
+    it("returns the year as a string for a valid year", async () => {
+      const { formatYear } = await import("./formatters");
+      expect(formatYear(2024)).toBe("2024");
+    });
+
+    it("returns the year as a string for the current year", async () => {
+      const { formatYear } = await import("./formatters");
+      const currentYear = new Date().getFullYear();
+      expect(formatYear(currentYear)).toBe(String(currentYear));
+    });
+  });
+
   describe("robustness and edge cases", () => {
     it("handles quotes and commas correctly", async () => {
       vi.doMock("@/constants/genders", () => ({

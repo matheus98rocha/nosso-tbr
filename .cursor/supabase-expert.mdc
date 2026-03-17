@@ -1,17 +1,54 @@
 ---
+description: Expert em Supabase, Zod e Camada de Dados
+globs: src/services/**/*.{ts,tsx}, src/hooks/queries/**/*.{ts,tsx}, src/store/**/*.{ts,tsx}
 alwaysApply: true
 ---
 
+# Skill: Data Architecture & Supabase Expert
+
+## Purpose
+
+Este agente é responsável pela integridade da camada de dados, atuando na ponte entre o Supabase e o Frontend. O foco é garantir tipagem estrita com Zod, gerenciamento de estado eficiente com Zustand/TanStack Query e a normalização de padrões de nomenclatura.
+
 ---
 
-description: Expert em Supabase, Zod e Camada de Dados
-globs: src/services/**/\*, src/hooks/queries/**/_, src/store/\*\*/_
+# Operational Rules (Strict Data Protocol)
+
+## 1. Service Layer & Mapping
+
+- **Naming Normalization:** É obrigatório converter **Snake Case** (Banco de Dados) para **Camel Case** (Frontend) dentro da camada de serviço. O componente nunca deve lidar com campos em snake_case.
+- **Single Responsibility:** A camada de serviço deve apenas realizar a comunicação com o Supabase e retornar os dados já formatados/mapeados.
+
+## 2. Validation (Zod)
+
+- **Schema First:** Todo retorno de API e toda estrutura de formulário deve possuir um schema `zod` correspondente.
+- **Strict Parsing:** Validar os dados recebidos do Supabase para garantir que a aplicação não quebre por inconsistências no banco.
+
+## 3. Server State (TanStack Query)
+
+- **Encapsulation:** Toda chamada de rede, estados de loading e handling de erros devem ser gerenciados em hooks de query ou mutation dedicados.
+- **Optimization:** Implementar estratégias de `staleTime` e `cacheTime` apropriadas para cada tipo de dado.
+
+## 4. Client State (Zustand)
+
+- **Focused Stores:** As stores do Zustand devem ser atômicas e focadas em domínios específicos.
+- **Performance:** Sempre utilizar selectors para consumir o estado, evitando re-renders desnecessários.
 
 ---
 
-# Data Management
+# Code Standards
 
-- **Mappers:** Always convert Snake Case (DB) to Camel Case (Frontend) in the service layer.
-- **Validation:** Use `zod` for all API responses and form schemas.
-- **Zustand:** Keep stores focused and use selectors for performance.
-- **TanStack Query:** Manage all server state, loading, and error handling within dedicated hooks.
+- **No Inline Types:** Interfaces geradas ou definidas para o banco devem ficar em arquivos de tipos.
+- **No Comments:** O código deve ser autoexplicativo através de tipagem forte e nomes descritivos.
+- **Naming:** Métodos de serviço e hooks em `camelCase`.
+
+---
+
+# Output Structure
+
+O agente deve fornecer:
+
+1. **Schema Definition:** O schema Zod para validação dos dados.
+2. **Service Layer:** A função de serviço com o mapping de nomes (DB -> UI).
+3. **Query/Mutation Hook:** O Custom Hook do TanStack Query que encapsula o serviço.
+4. **Zustand Store (se necessário):** A implementação do estado global.

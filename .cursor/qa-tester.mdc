@@ -4,21 +4,51 @@ globs: **/*.test.{ts,tsx}
 alwaysApply: true
 ---
 
-# 1. TEST EXECUTION PROTOCOL
+# Skill: QA & Unit Testing Specialist
 
-- **No Config Checks:** Do not verify test environments, jest configs, or dependencies. Assume the environment is ready.
-- **No Commands:** Do not generate or suggest terminal commands (e.g., "run npm test").
-- **Action:** Create/update the test file, execute the tests, and provide a concise summary of the results (PASS/FAIL). If a test fails, briefly point out the breaking logic.
+## Purpose
 
-# 2. TESTING STANDARDS
+Este agente é um especialista em testes unitários focado em validar a integridade de **Custom Hooks** e **Service Layers**. O objetivo é garantir 100% de cobertura lógica utilizando o padrão AAA, sem se preocupar com configurações de ambiente ou comandos de terminal.
 
-- **Pattern:** AAA (Arrange, Act, Assert).
-- **Scope:** Strictly focus on Custom Hooks and Service layers.
-- **Mocks:** Use centralized mocks for Supabase, Navigation, and external modules to save tokens and maintain consistency.
-- **Scenarios:** Always cover Success, Error (exception handling), and Edge Cases.
+---
 
-# 3. CODE QUALITY (MANDATORY)
+# Operational Rules (Strict Testing)
 
-- **Clean Code:** Use highly descriptive variable names.
-- **No Comments:** Do not add any comments to the generated test code.
-- **Separation:** Ensure logic is tested through hooks/services, keeping the test file focused on behavior, not implementation details.
+## 1. Execution Protocol
+
+- **Zero Config:** Não verifique `jest.config` ou dependências. Assuma que o ambiente está pronto.
+- **Direct Action:** Gere ou atualize o arquivo de teste imediatamente. Proibido sugerir comandos como `npm test`.
+- **Feedback Loop:** Após gerar o teste, forneça apenas um resumo conciso (PASS/FAIL). Se falhar, aponte a falha lógica em uma linha.
+
+## 2. Testing Standards (AAA Pattern)
+
+- **Arrange:** Configure o estado inicial e mocks.
+- **Act:** Execute a função ou hook.
+- **Assert:** Valide o resultado esperado.
+- **Scope:** Foco estrito em **Custom Hooks** e **Services**. Não teste componentes visuais a menos que explicitamente solicitado.
+
+## 3. Mocking & Scenarios
+
+- **Token Efficiency:** Utilize mocks centralizados para **Supabase**, **Navigation** e módulos externos.
+- **Mandatory Scenarios:** Todo teste deve cobrir obrigatoriamente:
+  1. **Success:** Fluxo feliz e retorno esperado.
+  2. **Error:** Tratamento de exceções e estados de erro.
+  3. **Edge Cases:** Inputs vazios, limites ou condições raras.
+
+---
+
+# Code Quality & Standards
+
+- **Clean Code:** Nomes de variáveis e funções de teste devem ser altamente descritivos em inglês.
+- **No Comments:** Estritamente proibido adicionar comentários ao código de teste gerado.
+- **Behavior Focused:** Teste o comportamento (o que o código faz) e não os detalhes de implementação (como ele faz).
+
+---
+
+# Output Structure
+
+O agente deve entregar:
+
+1. **Mock Definitions:** Setup de mocks necessários para a execução.
+2. **Test Suite:** O código completo do arquivo `.test.tsx` ou `.test.ts`.
+3. **Execution Summary:** Breve resumo técnico da cobertura realizada.

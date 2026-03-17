@@ -13,6 +13,7 @@ import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import DefaultPagination from "@/components/pagintation/pagination";
 import { StatusFilterChips } from "./components/statusFilterChips/statusFilterChips";
+import { YearFilterChips } from "./components/yearFilterChips/yearFilterChips";
 
 const PAGE_SIZE = 10;
 
@@ -27,14 +28,16 @@ export default function ClientHome() {
     formattedGenres,
     formattedReaders,
     formattedStatus,
+    formattedYear,
     handleClearAllFilters,
     filters,
     hasSearchParams,
-    handleGenerateReadersObj,
+    readersObj,
     currentPage,
     setCurrentPage,
     activeStatuses,
     handleToggleStatus,
+    handleSetYear,
   } = useHome();
 
   const dialogModal = useModal();
@@ -59,23 +62,27 @@ export default function ClientHome() {
     if (isLoading) return <Skeleton className="h-5 w-64 mt-2" />;
 
     const hasAnyFilter =
-      formattedGenres || formattedReaders || formattedStatus || searchQuery;
+      formattedGenres ||
+      formattedReaders ||
+      formattedStatus ||
+      formattedYear ||
+      searchQuery;
     if (!hasAnyFilter) return null;
 
     return (
-      <div className="leading-7 text-muted-foreground mt-2">
+      <div className="leading-7 text-muted-foreground ">
         {searchQuery && (
           <div>
             Buscando por: <strong>{searchQuery}</strong>
           </div>
         )}
-        {(formattedGenres || formattedReaders || formattedStatus) && (
+        {(formattedGenres || formattedReaders || formattedStatus || formattedYear) && (
           <div>
             Filtros aplicados:
             {formattedGenres && ` gênero ${formattedGenres}`}
-            {formattedReaders &&
-              `, leitor(s) ${handleGenerateReadersObj().readersDisplay}`}
+            {formattedReaders && `, leitor(s) ${readersObj.readersDisplay}`}
             {formattedStatus && ` e com status ${formattedStatus}`}
+            {formattedYear && `, ano ${formattedYear}`}
           </div>
         )}
       </div>
@@ -87,7 +94,8 @@ export default function ClientHome() {
       (searchQuery && hasSearchParams) ||
       filters.gender?.length > 0 ||
       (filters.readers?.length > 0 && hasSearchParams) ||
-      filters.status?.length > 0;
+      filters.status?.length > 0 ||
+      !!filters.year;
 
     if (isLoading || !canClear) return null;
 
@@ -116,6 +124,21 @@ export default function ClientHome() {
     );
   };
 
+  const renderYearChips = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center gap-2 flex-wrap">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-16 rounded-full" />
+          ))}
+        </div>
+      );
+    }
+    return (
+      <YearFilterChips activeYear={filters.year} onSelect={handleSetYear} />
+    );
+  };
+
   return (
     <>
       <BookUpsert
@@ -127,14 +150,15 @@ export default function ClientHome() {
         handleClose={createShelfDialog.setIsOpen}
       />
 
-      <div className="w-full flex items-center justify-center flex-col gap-2 container">
-        <div className="flex items-start justify-center flex-col container gap-3">
+      <div className="w-full flex items-center justify-center flex-col container">
+        <div className="flex items-start justify-center flex-col container gap-2 mb-4">
           <div className="leading-7">{renderResultsCount()}</div>
-          {renderStatusChips()}
-          <div className="flex items-center justify-center gap-4 min-h-[40px]">
+          <div className="flex items-center justify-center">
             {renderActiveFilters()}
             {renderClearButton()}
           </div>
+          {renderStatusChips()}
+          {renderYearChips()}
         </div>
 
         <ListGrid<BookDomain>
