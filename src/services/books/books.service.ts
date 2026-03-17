@@ -46,6 +46,7 @@ export class BookService {
           statuses as ("reading" | "finished" | "not_started" | "planned")[],
         )
         .withGender(filters?.gender)
+        .withYear(filters?.year)
         .withSearchTerm(search)
         .withId(bookId)
         .withAuthor(authorId)

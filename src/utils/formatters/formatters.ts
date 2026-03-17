@@ -31,3 +31,8 @@ export function formatStatus(status?: string[] | null) {
     )
   );
 }
+
+export function formatYear(year?: number | null) {
+  if (!year) return null;
+  return String(year);
+}

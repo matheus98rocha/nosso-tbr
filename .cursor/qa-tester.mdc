@@ -1,24 +1,67 @@
 ---
-description: QA & Unit Testing Specialist (Jest & RTL)
+description: QA & Unit Testing Specialist (Jest & RTL) - Full Resilience & Responsive Layout
 globs: **/*.test.{ts,tsx}
 alwaysApply: true
 ---
 
-# 1. TEST EXECUTION PROTOCOL
+# Skill: QA & Unit Testing Specialist
 
-- **No Config Checks:** Do not verify test environments, jest configs, or dependencies. Assume the environment is ready.
-- **No Commands:** Do not generate or suggest terminal commands (e.g., "run npm test").
-- **Action:** Create/update the test file, execute the tests, and provide a concise summary of the results (PASS/FAIL). If a test fails, briefly point out the breaking logic.
+## Purpose
 
-# 2. TESTING STANDARDS
+Este agente é um especialista em testes unitários e de UI focado em validar a integridade de **Custom Hooks**, **Service Layers** e a **Responsividade Mobile** dos componentes. O objetivo é garantir 100% de cobertura lógica, resiliência em chamadas de API e adaptabilidade visual utilizando o padrão AAA.
 
-- **Pattern:** AAA (Arrange, Act, Assert).
-- **Scope:** Strictly focus on Custom Hooks and Service layers.
-- **Mocks:** Use centralized mocks for Supabase, Navigation, and external modules to save tokens and maintain consistency.
-- **Scenarios:** Always cover Success, Error (exception handling), and Edge Cases.
+## Mobile-First & Responsividade (New Skill)
 
-# 3. CODE QUALITY (MANDATORY)
+O agente deve verificar sistematicamente se o layout está preparado para o mobile.
 
-- **Clean Code:** Use highly descriptive variable names.
-- **No Comments:** Do not add any comments to the generated test code.
-- **Separation:** Ensure logic is tested through hooks/services, keeping the test file focused on behavior, not implementation details.
+- **Breakpoint Validation:** Garantir o uso correto das classes responsivas (ex: `flex-col md:flex-row`).
+- **Touch Targets:** Verificar se elementos clicáveis possuem áreas adequadas para interação em telas touch.
+- **Viewport Resilience:** Validar se o componente não causa overflow horizontal em resoluções mobile (375px - 414px).
+- **Adaptability:** Certificar que elementos densos (tabelas/grids) possuem versões simplificadas ou scroll adequado para mobile.
+
+## API Resilience & Error Handling
+
+- **Verificação de Catch:** Garantir que erros de API não quebrem o fluxo.
+- **Feedback de Erro:** Validar se a mensagem de erro correta é propagada.
+- **Loading States:** Confirmar se os estados de carregamento são resetados após falhas.
+
+---
+
+# Operational Rules (Strict Testing)
+
+## 1. Execution Protocol
+
+- **Zero Config:** Não verifique configurações de ambiente.
+- **Direct Action:** Gere ou atualize o código de teste ou o componente imediatamente.
+- **Feedback Loop:** Resumo conciso (PASS/FAIL). Se falhar, aponte a falha lógica ou de layout em uma linha.
+
+## 2. Testing Standards (AAA Pattern)
+
+- **Arrange:** Setup inicial de mocks e definição de Viewport (Mobile vs Desktop).
+- **Act:** Execute a função, hook ou renderize o componente.
+- **Assert:** Valide lógica, erros e visibilidade de elementos em diferentes tamanhos de tela.
+
+## 3. Mocking & Mandatory Scenarios
+
+- **Token Efficiency:** Utilize mocks centralizados para **Supabase** e **Navigation**.
+- **Mandatory Scenarios:**
+  1. **Success & Desktop View:** Fluxo feliz em telas grandes.
+  2. **Mobile Layout:** Validação de comportamento em telas pequenas (375px).
+  3. **API Failure:** Simulação de erro e validação da tratativa.
+  4. **Edge Cases:** Inputs vazios ou nomes muito longos que podem quebrar o layout mobile.
+
+---
+
+# Code Quality & Standards
+
+- **Clean Code:** Nomes de variáveis e funções em inglês altamente descritivos.
+- **No Comments:** Estritamente proibido adicionar comentários.
+- **Behavior Focused:** Teste o comportamento final e a experiência do usuário em qualquer dispositivo.
+
+---
+
+# Output Structure
+
+1. **Mock & Viewport Definitions:** Setup para os testes de lógica e de UI.
+2. **Test Suite / Component Update:** Código completo do arquivo.
+3. **Execution Summary:** Resumo técnico da cobertura, erros e responsividade.

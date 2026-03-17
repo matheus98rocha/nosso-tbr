@@ -5,4 +5,5 @@ export type FiltersOptions = {
   userId?: string;
   bookId?: string;
   authorId?: string;
+  year?: number;
 };

@@ -9,6 +9,7 @@ import {
   formatGenres,
   formatReaders,
   formatStatus,
+  formatYear,
 } from "@/utils/formatters/formatters";
 import { UserDomain } from "@/services/users/types/users.types";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
@@ -16,9 +17,9 @@ import { QUERY_KEYS } from "@/constants/keys";
 import { useStatusFilters } from "./useStatusFilters";
 
 const PAGE_SIZE = 8;
+const bookService = new BookService();
 
 export function useHome() {
-  const bookService = useMemo(() => new BookService(), []);
   const { users, isLoadingUsers } = useUser();
   const user = useUserStore((state) => state.user);
   const isLoggedIn = useIsLoggedIn();
@@ -34,6 +35,7 @@ export function useHome() {
         userId: "",
         bookId: "",
         authorId: "",
+        year: undefined,
       }) as FiltersOptions,
     [users],
   );
@@ -54,7 +56,7 @@ export function useHome() {
     setCurrentPage(0);
   }, [filters, searchQuery]);
 
-  const handleGenerateReadersObj = useCallback(() => {
+  const readersObj = useMemo(() => {
     if (filters.readers.length > 0) {
       return {
         readers: filters.readers,
@@ -68,6 +70,11 @@ export function useHome() {
     };
   }, [filters.readers, users]);
 
+  const isAwaitingSpecificBook = useMemo(
+    () => !!(filters.bookId || searchQuery),
+    [filters.bookId, searchQuery],
+  );
+
   const {
     data: allBooks,
     isFetching: isLoadingAllBooks,
@@ -80,15 +87,14 @@ export function useHome() {
         bookId: filters.bookId,
         search: searchQuery,
         filters: {
-          readers: handleGenerateReadersObj().readers,
+          readers: readersObj.readers,
           status: filters.status,
           gender: filters.gender,
+          year: filters.year,
         },
         page: currentPage,
         pageSize: PAGE_SIZE,
       });
-
-      const isAwaitingSpecificBook = filters.bookId || searchQuery;
 
       if (
         isLoggedIn &&
@@ -101,7 +107,6 @@ export function useHome() {
       return response;
     },
     retry: (failureCount) => {
-      const isAwaitingSpecificBook = filters.bookId || searchQuery;
       if (isLoggedIn && isAwaitingSpecificBook && failureCount < 2) {
         return true;
       }
@@ -125,6 +130,17 @@ export function useHome() {
     () => formatStatus(filters.status),
     [filters.status],
   );
+  const formattedYear = useMemo(
+    () => formatYear(filters.year),
+    [filters.year],
+  );
+
+  const handleSetYear = useCallback(
+    (year: number | undefined) => {
+      updateUrlWithFilters({ ...filters, year });
+    },
+    [filters, updateUrlWithFilters],
+  );
 
   const { activeStatuses, handleToggleStatus } = useStatusFilters({
     filters,
@@ -144,6 +160,7 @@ export function useHome() {
     formattedStatus,
     formattedReaders,
     formattedGenres,
+    formattedYear,
     handleSearchButtonClick,
     handleInputBlur,
     inputRef,
@@ -151,11 +168,12 @@ export function useHome() {
     handleClearAllFilters,
     filters,
     hasSearchParams,
-    handleGenerateReadersObj,
+    readersObj,
     user,
     currentPage,
     setCurrentPage,
     activeStatuses,
     handleToggleStatus,
+    handleSetYear,
   };
 }

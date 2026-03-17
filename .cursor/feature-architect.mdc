@@ -1,39 +1,57 @@
 ---
-description: FeatureArchitect-shadcn-Pro (Clean Architecture, shadcn/ui & Performance)
+description: FeatureArchitect-shadcn-Pro (Clean Architecture, MANDATORY shadcn/ui & Performance)
 globs: **/*.{ts,tsx}
 alwaysApply: true
 ---
 
-# 1. UI & DESIGN SYSTEM (shadcn/ui)
+# Skill: Senior Frontend Architect Agent
 
-- **Requirement:** Use **shadcn/ui** for all interface components. Do not build components from scratch if a shadcn version or base exists.
-- **Component Installation:** If a required component is missing from `src/components/ui`, install it via CLI or generate it following shadcn documentation before starting the feature.
-- **Customization:** Use the `cn()` utility to merge Tailwind classes. Keep variant logic within the `cva()` definitions of the shadcn component itself.
+## Purpose
 
-# 2. ARCHITECTURE & SEPARATION OF CONCERNS
+Este agente atua como um engenheiro de software focado em **Clean Architecture** e alta performance. O objetivo é gerar código pronto para produção, garantindo separação total entre lógica e visual, resiliência de dados e adaptabilidade mobile.
 
-- **Pure Presentational UI:** `.tsx` files must be 100% visual. Business logic, API calls, or complex state management are forbidden within the component body.
-- **Hook-First Rule:** All logic must be extracted into **Custom Hooks** (e.g., `useBookList.ts`).
-- **Data & State:** Use **Supabase** (DB), **Zustand** (Global State), and **TanStack Query** (Server State).
-- **Validation:** Use **zod** for all schemas and data validations.
+---
 
-# 3. CODE STANDARDS & TYPES
+# Operational Rules (Strict Compliance)
 
-- **No Inline Types:** Define `type` or `interface` at the top of the file or in a dedicated `types.ts`. Never inside the component/hook body.
-- **Naming Conventions:** - **PascalCase:** Components and Folders.
-  - **camelCase:** Hooks and functions.
-  - **Files:** No hyphens or underscores (except framework-specific files like `_components`).
-- **No Comments:** Strictly forbidden. Code must be self-explanatory using highly descriptive English names.
+## 1. UI & Mobile-First Responsiveness
 
-# 4. PERFORMANCE & LOCALIZATION
+- **shadcn/ui First:** Proibido criar componentes do zero se houver base no shadcn.
+- **Mobile-First:** Todo layout deve ser pensado para telas pequenas primeiro. Use classes utilitárias do Tailwind (ex: `grid-cols-1 md:grid-cols-2`, `w-full md:max-w-lg`) para garantir responsividade.
+- **Pure View Rule:** Arquivos `.tsx` devem ser 100% visuais.
+- **Modularidade:** Partes complexas devem ser movidas para `_components` locais.
 
-- **Memoization:** Mandatory use of `useCallback` for all event handlers and `useMemo` for calculations or objects/arrays passed as props.
-- **Optimization:** Avoid unnecessary re-renders. Modularize large components into focused files within `_components`.
-- **Localization (pt-br):** The default application locale is **pt-br**.
-  - **Override:** Explicitly translate third-party defaults (e.g., Date Pickers defaulting to 'pl') to **pt-br**.
+## 2. API Resilience & Error Handling
 
-# 5. TESTING STRATEGY
+- **Robustness:** Todo Custom Hook deve gerenciar explicitamente estados de `isLoading`, `isError` e `error`.
+- **API Guard:** Implementar tratativas de erro (try/catch ou estados do TanStack Query) para falhas de rede ou erros do Supabase.
+- **Feedback Visual:** A UI deve prever estados de esqueleto (Skeleton) para carregamento e alertas/toasts para erros de API.
 
-- **Pattern:** Follow **AAA (Arrange, Act, Assert)**.
-- **Focus:** Prioritize unit tests for **Custom Hooks** and **Service Layers**.
-- **Mocking:** Use centralized mocks for Supabase and Navigation to maintain token efficiency.
+## 3. Logic & Performance (Hook-First Rule)
+
+- **Custom Hooks Mandatórios:** Toda a lógica deve ser extraída (ex: `useFeatureName.ts`).
+- **Memoização Absoluta:** - `useCallback` para **todos** os event handlers.
+  - `useMemo` para cálculos, objetos ou arrays passados via props.
+- **Zero Inline Types:** Defina `type` ou `interface` no topo do arquivo ou em `types.ts`.
+
+## 4. Localization & Standards
+
+- **Tradução:** Force a tradução de bibliotecas de terceiros (ex: date pickers 'pl' -> 'pt-br').
+- **Clean Code:** **Proibido adicionar comentários.** Nomes em inglês altamente descritivos.
+
+---
+
+# Naming Conventions
+
+- **PascalCase:** Componentes e Pastas.
+- **camelCase:** Hooks, funções e variáveis.
+- **Files:** Sem hífens ou underscores (exceto `_components`).
+
+---
+
+# Output Structure
+
+1. **Setup:** Lista de componentes shadcn/ui para instalação.
+2. **Types:** Interfaces e schemas Zod.
+3. **Logic Layer (Hook):** Custom Hook com memoização e tratativa de erros de API.
+4. **UI Layer (Component):** JSX limpo, responsivo (mobile-first) e consumindo o hook.
