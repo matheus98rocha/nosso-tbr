@@ -8,39 +8,36 @@ alwaysApply: true
 
 ## Purpose
 
-Este agente atua como um engenheiro de software focado em **Clean Architecture** e alta performance. O objetivo é gerar código pronto para produção, garantindo separação total entre lógica e visual, seguindo rigorosamente as regras de otimização de memória e padrões de clean code.
-
----
-
-# Systems & Stack Context
-
-- **UI & Design:** shadcn/ui (Obrigatório) + Tailwind CSS.
-- **State Management:** Zustand (Global) e TanStack Query (Server State).
-- **Backend/DB:** Supabase.
-- **Validation:** Zod schemas.
-- **Localization:** Padrão `pt-br`.
+Este agente atua como um engenheiro de software focado em **Clean Architecture** e alta performance. O objetivo é gerar código pronto para produção, garantindo separação total entre lógica e visual, resiliência de dados e adaptabilidade mobile.
 
 ---
 
 # Operational Rules (Strict Compliance)
 
-## 1. UI & Componentization
+## 1. UI & Mobile-First Responsiveness
 
-- **shadcn/ui First:** Proibido criar componentes do zero se houver base no shadcn. Instale via CLI antes de codar.
-- **Pure View Rule:** Arquivos `.tsx` devem ser 100% visuais. Proibida lógica de negócio, chamadas de API ou gerenciamento de estado complexo no corpo do componente.
-- **Modularidade:** Componentize partes grandes em arquivos focados dentro de uma pasta `_components` local ao módulo.
+- **shadcn/ui First:** Proibido criar componentes do zero se houver base no shadcn.
+- **Mobile-First:** Todo layout deve ser pensado para telas pequenas primeiro. Use classes utilitárias do Tailwind (ex: `grid-cols-1 md:grid-cols-2`, `w-full md:max-w-lg`) para garantir responsividade.
+- **Pure View Rule:** Arquivos `.tsx` devem ser 100% visuais.
+- **Modularidade:** Partes complexas devem ser movidas para `_components` locais.
 
-## 2. Logic & Performance (Hook-First Rule)
+## 2. API Resilience & Error Handling
 
-- **Custom Hooks Mandatórios:** Toda a lógica, handlers e estados devem ser extraídos para hooks personalizados (ex: `useFeatureName.ts`).
-- **Memoização Absoluta:** - Uso obrigatório de `useCallback` para **todos** os event handlers.
-  - Uso obrigatório de `useMemo` para cálculos, objetos ou arrays passados via props.
-- **Zero Inline Types:** Defina `type` ou `interface` sempre no topo do arquivo ou em um arquivo `types.ts` dedicado. Nunca dentro do componente ou hook.
+- **Robustness:** Todo Custom Hook deve gerenciar explicitamente estados de `isLoading`, `isError` e `error`.
+- **API Guard:** Implementar tratativas de erro (try/catch ou estados do TanStack Query) para falhas de rede ou erros do Supabase.
+- **Feedback Visual:** A UI deve prever estados de esqueleto (Skeleton) para carregamento e alertas/toasts para erros de API.
 
-## 3. Localization & Standards
+## 3. Logic & Performance (Hook-First Rule)
 
-- **Tradução:** Force a tradução de bibliotecas de terceiros (ex: calendários ou pickers que venham em 'pl' ou 'en') para `pt-br`.
-- **Clean Code:** **Proibido adicionar comentários.** O código deve ser autoexplicativo com nomes de variáveis e funções altamente descritivos em inglês.
+- **Custom Hooks Mandatórios:** Toda a lógica deve ser extraída (ex: `useFeatureName.ts`).
+- **Memoização Absoluta:** - `useCallback` para **todos** os event handlers.
+  - `useMemo` para cálculos, objetos ou arrays passados via props.
+- **Zero Inline Types:** Defina `type` ou `interface` no topo do arquivo ou em `types.ts`.
+
+## 4. Localization & Standards
+
+- **Tradução:** Force a tradução de bibliotecas de terceiros (ex: date pickers 'pl' -> 'pt-br').
+- **Clean Code:** **Proibido adicionar comentários.** Nomes em inglês altamente descritivos.
 
 ---
 
@@ -48,23 +45,13 @@ Este agente atua como um engenheiro de software focado em **Clean Architecture**
 
 - **PascalCase:** Componentes e Pastas.
 - **camelCase:** Hooks, funções e variáveis.
-- **Files:** Sem hífens ou underscores (exceto arquivos de framework como `_components`).
-
----
-
-# Testing Strategy
-
-- **Pattern:** AAA (Arrange, Act, Assert).
-- **Focus:** Priorize testes unitários para Custom Hooks e Camadas de Serviço.
-- **Efficiency:** Use mocks centralizados para Supabase e Navigation para economizar tokens.
+- **Files:** Sem hífens ou underscores (exceto `_components`).
 
 ---
 
 # Output Structure
 
-O agente deve entregar a resposta seguindo esta ordem:
-
-1. **Setup:** Lista de componentes shadcn/ui necessários para instalação.
-2. **Types:** Definição de interfaces e schemas (Zod).
-3. **Logic Layer:** O código do Custom Hook com todas as otimizações (memoização).
-4. **UI Layer:** O componente visual limpo consumindo o hook.
+1. **Setup:** Lista de componentes shadcn/ui para instalação.
+2. **Types:** Interfaces e schemas Zod.
+3. **Logic Layer (Hook):** Custom Hook com memoização e tratativa de erros de API.
+4. **UI Layer (Component):** JSX limpo, responsivo (mobile-first) e consumindo o hook.
