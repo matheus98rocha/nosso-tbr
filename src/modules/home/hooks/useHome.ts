@@ -14,7 +14,7 @@ import {
 import { UserDomain } from "@/services/users/types/users.types";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { QUERY_KEYS } from "@/constants/keys";
-import { useStatusFilters } from "./useStatusFilters";
+import { useStatusFilters } from "@/hooks/useStatusFilters";
 
 const PAGE_SIZE = 8;
 const bookService = new BookService();
@@ -135,6 +135,33 @@ export function useHome() {
     [filters.year],
   );
 
+  const canClear = useMemo(
+    () =>
+      (!!searchQuery && hasSearchParams) ||
+      filters.gender?.length > 0 ||
+      (filters.readers?.length > 0 && hasSearchParams) ||
+      filters.status?.length > 0 ||
+      !!filters.year,
+    [searchQuery, hasSearchParams, filters],
+  );
+
+  const activeFilterLabels = useMemo(() => {
+    const labels: string[] = [];
+    if (searchQuery) labels.push(`"${searchQuery}"`);
+    if (formattedGenres) labels.push(formattedGenres);
+    if (formattedReaders) labels.push(`Leitores: ${readersObj.readersDisplay}`);
+    if (formattedStatus) labels.push(formattedStatus);
+    if (formattedYear) labels.push(`Ano: ${formattedYear}`);
+    return labels;
+  }, [
+    searchQuery,
+    formattedGenres,
+    formattedReaders,
+    formattedStatus,
+    formattedYear,
+    readersObj.readersDisplay,
+  ]);
+
   const handleSetYear = useCallback(
     (year: number | undefined) => {
       updateUrlWithFilters({ ...filters, year });
@@ -175,5 +202,7 @@ export function useHome() {
     activeStatuses,
     handleToggleStatus,
     handleSetYear,
+    canClear,
+    activeFilterLabels,
   };
 }

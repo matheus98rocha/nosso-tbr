@@ -1,9 +1,9 @@
 import { useModal } from "@/hooks/useModal";
-import { BookCardProps } from "../types/bookCard.types";
+import { BookCardProps, StatusDisplay } from "../types/bookCard.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useSafeTap } from "@/hooks/useSafeTap";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { BookService } from "@/services/books/books.service";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 
@@ -14,9 +14,7 @@ export function useBookCard({ book }: BookCardProps) {
   const dialogAddShelfModal = useModal();
 
   const router = useRouter();
-
   const isLogged = useIsLoggedIn();
-
   const dropdownTap = useSafeTap(() => dropdownModal.setIsOpen(true));
 
   const shareOnWhatsApp = useCallback(() => {
@@ -35,6 +33,7 @@ export function useBookCard({ book }: BookCardProps) {
     () => router.push(`?search=${book.author}`),
     [router, book.author],
   );
+
   const handleNavigateToQuotes = useCallback(() => {
     router.push(`/quotes/${book.title}/${book.id}`);
   }, [router, book.title, book.id]);
@@ -59,6 +58,67 @@ export function useBookCard({ book }: BookCardProps) {
   } as const;
 
   const badgeObject = statusMap[book.status ?? "not_started"];
+
+  const formattedPlannedDate = useMemo(
+    () =>
+      book.planned_start_date
+        ? new Date(book.planned_start_date).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+          })
+        : null,
+    [book.planned_start_date],
+  );
+  const formattedEndDate = useMemo(
+    () =>
+      book.end_date
+        ? new Date(book.end_date).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+          })
+        : null,
+    [book.end_date],
+  );
+
+  const statusDisplay = useMemo((): StatusDisplay => {
+    const configs: Record<string, StatusDisplay> = {
+      finished: {
+        label: `Finalizado em ${formattedEndDate}`,
+        colorClass:
+          "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+        dotClass: "bg-emerald-500",
+      },
+      reading: {
+        label: "Lendo agora",
+        colorClass:
+          "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400",
+        dotClass: "bg-amber-500",
+      },
+      planned: {
+        label: formattedPlannedDate
+          ? `Início em: ${formattedPlannedDate}`
+          : "Vou ler",
+        colorClass:
+          "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+        dotClass: "bg-blue-500",
+      },
+      not_started: {
+        label: formattedPlannedDate
+          ? `Início em: ${formattedPlannedDate}`
+          : "Vou ler",
+        colorClass:
+          "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+        dotClass: "bg-blue-500",
+      },
+    };
+    return configs[book.status ?? "not_started"] ?? null;
+  }, [book.status, formattedEndDate, formattedPlannedDate]);
+  console.log({
+    bookStatus: book.status,
+    statusDisplay,
+  });
 
   const handleConfirmDelete = async (id: string, isShelf?: boolean) => {
     if (!isShelf) {
@@ -85,5 +145,6 @@ export function useBookCard({ book }: BookCardProps) {
     handleNavigateToQuotes,
     badgeObject,
     handleConfirmDelete,
+    statusDisplay,
   };
 }

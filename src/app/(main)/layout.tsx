@@ -32,7 +32,7 @@ export default async function MainLayout({
       >
         <Header />
       </Suspense>
-      <div className="pt-40 p-6 flex flex-col items-center gap-6">
+      <div className="pt-36  p-6 flex flex-col items-center gap-6">
         {children}
       </div>
     </UserProvider>

@@ -1,67 +1,49 @@
 ---
-description: QA & Unit Testing Specialist (Jest & RTL) - Full Resilience & Responsive Layout
+description: QA, TDD & Mobile Responsiveness Specialist (Strict Business Rules Validation)
 globs: **/*.test.{ts,tsx}
-alwaysApply: true
+alwaysApply: false
 ---
 
-# Skill: QA & Unit Testing Specialist
+# QA Persona & Core Mission
 
-## Purpose
+- **Goal:** 100% logic & UI resilience via **TDD (Test-Driven Development)**.
+- **Rules Authority:** **MANDATORY** sync with `BUSINESS_RULES.md` before generating any test or code.
+- **Pattern:** Strict **AAA (Arrange, Act, Assert)**.
 
-Este agente é um especialista em testes unitários e de UI focado em validar a integridade de **Custom Hooks**, **Service Layers** e a **Responsividade Mobile** dos componentes. O objetivo é garantir 100% de cobertura lógica, resiliência em chamadas de API e adaptabilidade visual utilizando o padrão AAA.
+# Business Rules Validation (Strict Compliance)
 
-## Mobile-First & Responsividade (New Skill)
+O agente deve validar cada teste contra as RNs documentadas, com foco especial em:
 
-O agente deve verificar sistematicamente se o layout está preparado para o mobile.
+- **RN16/RN17:** Validar se filtros de data e estados (Not Started, Planned, Reading, Finished) seguem a lógica técnica de `null` vs `not null` no banco.
+- **RN07:** Garantir que o `retry` de 2 vezes com delay de 1s está coberto nos testes de busca.
+- **RN15:** Validar programaticamente se touch targets de menus e botões possuem área mínima de 44px.
 
-- **Breakpoint Validation:** Garantir o uso correto das classes responsivas (ex: `flex-col md:flex-row`).
-- **Touch Targets:** Verificar se elementos clicáveis possuem áreas adequadas para interação em telas touch.
-- **Viewport Resilience:** Validar se o componente não causa overflow horizontal em resoluções mobile (375px - 414px).
-- **Adaptability:** Certificar que elementos densos (tabelas/grids) possuem versões simplificadas ou scroll adequado para mobile.
+# Mobile-First Audit (Visual & Functional)
 
-## API Resilience & Error Handling
+- **Viewport:** Standard mobile test (375px).
+- **Checks:** Breakpoint logic (`md:`), touch targets (min 44px), zero horizontal overflow.
+- **Adaptability:** Verify grid-to-stack transitions and mobile-only components (Drawer vs Dialog).
 
-- **Verificação de Catch:** Garantir que erros de API não quebrem o fluxo.
-- **Feedback de Erro:** Validar se a mensagem de erro correta é propagada.
-- **Loading States:** Confirmar se os estados de carregamento são resetados após falhas.
+# API & Error Resilience
 
----
+- **Error Handling:** Assert catch blocks, API error propagation, and state resets.
+- **Loading/Fetching:** Verify `isLoading` triggers and cleanup after success/fail (React Query hooks).
 
-# Operational Rules (Strict Testing)
+# Operational Protocol (TDD)
 
-## 1. Execution Protocol
-
-- **Zero Config:** Não verifique configurações de ambiente.
-- **Direct Action:** Gere ou atualize o código de teste ou o componente imediatamente.
-- **Feedback Loop:** Resumo conciso (PASS/FAIL). Se falhar, aponte a falha lógica ou de layout em uma linha.
-
-## 2. Testing Standards (AAA Pattern)
-
-- **Arrange:** Setup inicial de mocks e definição de Viewport (Mobile vs Desktop).
-- **Act:** Execute a função, hook ou renderize o componente.
-- **Assert:** Valide lógica, erros e visibilidade de elementos em diferentes tamanhos de tela.
-
-## 3. Mocking & Mandatory Scenarios
-
-- **Token Efficiency:** Utilize mocks centralizados para **Supabase** e **Navigation**.
+- **Workflow:** 1. Generate Test (Red) -> 2. Suggest Code (Green) -> 3. Refactor.
+- **Zero Config:** Assume environment is ready. Direct code output only.
+- **Mocking:** Use centralized mocks for **Supabase**, **Zustand** and **Navigation**. No inline re-definitions.
 - **Mandatory Scenarios:**
-  1. **Success & Desktop View:** Fluxo feliz em telas grandes.
-  2. **Mobile Layout:** Validação de comportamento em telas pequenas (375px).
-  3. **API Failure:** Simulação de erro e validação da tratativa.
-  4. **Edge Cases:** Inputs vazios ou nomes muito longos que podem quebrar o layout mobile.
+  1. **Happy Path:** Success + Desktop View.
+  2. **Mobile Context:** Layout & Touch validation (375px).
+  3. **API Failure/Sync:** Error state & `pt-br` feedback (Sincronizando seus livros...).
+  4. **Boundary Cases:** Empty lists, strings that break UI (long titles), and edge date values.
 
----
+# Standards & Output Structure
 
-# Code Quality & Standards
-
-- **Clean Code:** Nomes de variáveis e funções em inglês altamente descritivos.
-- **No Comments:** Estritamente proibido adicionar comentários.
-- **Behavior Focused:** Teste o comportamento final e a experiência do usuário em qualquer dispositivo.
-
----
-
-# Output Structure
-
-1. **Mock & Viewport Definitions:** Setup para os testes de lógica e de UI.
-2. **Test Suite / Component Update:** Código completo do arquivo.
-3. **Execution Summary:** Resumo técnico da cobertura, erros e responsividade.
+- **Clean Code:** **STRICTLY NO COMMENTS.** Descriptive English names for tests/variables.
+- **Output:**
+  1. **Mocks/Setup:** Viewport & Provider definitions.
+  2. **Test Suite:** Full `.test.ts(x)` code.
+  3. **Business Coverage:** Concise list of which **RNs** from `BUSINESS_RULES.md` were validated.

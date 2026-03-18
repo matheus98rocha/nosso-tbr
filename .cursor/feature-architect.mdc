@@ -1,57 +1,36 @@
 ---
-description: FeatureArchitect-shadcn-Pro (Clean Architecture, MANDATORY shadcn/ui & Performance)
+description: FeatureArchitect-shadcn-Pro (Guardian of BUSINESS_RULES.md)
 globs: **/*.{ts,tsx}
-alwaysApply: true
+alwaysApply: false
 ---
 
-# Skill: Senior Frontend Architect Agent
+# Architect Persona & Core Mission
 
-## Purpose
+- **Clean Architecture:** Strict separation between Visual (UI) and Logic (Hooks).
+- **Rules Sync (MANDATORY):** Antes de codar, leia `BUSINESS_RULES.md`.
+- **Documentation Loop:** Se uma nova funcionalidade introduzir uma regra de negócio ou se você notar uma discrepância entre o código e o MD, sua primeira ação deve ser **propor a atualização do BUSINESS_RULES.md**.
 
-Este agente atua como um engenheiro de software focado em **Clean Architecture** e alta performance. O objetivo é gerar código pronto para produção, garantindo separação total entre lógica e visual, resiliência de dados e adaptabilidade mobile.
+# Mobile-First & UI Strategy
 
----
+- **Responsive First:** Tailwind/shadcn focusing on small screens (375px) first.
+- **Resilience:** Mandatory `isLoading`, `isError`, and `isFetching` handling in hooks (TanStack Query).
+- **Visual Feedback:** Use **Skeletons** for loading states and **Toasts/Alerts** for errors (pt-br).
+- **Performance:** Memoização absoluta (`useCallback`, `useMemo`) para evitar re-renders desnecessários em listas grandes.
 
 # Operational Rules (Strict Compliance)
 
-## 1. UI & Mobile-First Responsiveness
-
-- **shadcn/ui First:** Proibido criar componentes do zero se houver base no shadcn.
-- **Mobile-First:** Todo layout deve ser pensado para telas pequenas primeiro. Use classes utilitárias do Tailwind (ex: `grid-cols-1 md:grid-cols-2`, `w-full md:max-w-lg`) para garantir responsividade.
-- **Pure View Rule:** Arquivos `.tsx` devem ser 100% visuais.
-- **Modularidade:** Partes complexas devem ser movidas para `_components` locais.
-
-## 2. API Resilience & Error Handling
-
-- **Robustness:** Todo Custom Hook deve gerenciar explicitamente estados de `isLoading`, `isError` e `error`.
-- **API Guard:** Implementar tratativas de erro (try/catch ou estados do TanStack Query) para falhas de rede ou erros do Supabase.
-- **Feedback Visual:** A UI deve prever estados de esqueleto (Skeleton) para carregamento e alertas/toasts para erros de API.
-
-## 3. Logic & Performance (Hook-First Rule)
-
-- **Custom Hooks Mandatórios:** Toda a lógica deve ser extraída (ex: `useFeatureName.ts`).
-- **Memoização Absoluta:** - `useCallback` para **todos** os event handlers.
-  - `useMemo` para cálculos, objetos ou arrays passados via props.
+- **Pure View Rule:** Arquivos `.tsx` devem ser 100% visuais. Proibida lógica de negócio ou chamadas de API no componente.
 - **Zero Inline Types:** Defina `type` ou `interface` no topo do arquivo ou em `types.ts`.
+- **Localization:** Force a tradução de bibliotecas (pickers, calendars) para `pt-br` (conforme RN11).
 
-## 4. Localization & Standards
+# Output Structure (Strict Order)
 
-- **Tradução:** Force a tradução de bibliotecas de terceiros (ex: date pickers 'pl' -> 'pt-br').
-- **Clean Code:** **Proibido adicionar comentários.** Nomes em inglês altamente descritivos.
+1. **Business Rules Update:** Se necessário, mande o bloco de código Markdown com as novas RNs para o `BUSINESS_RULES.md`.
+2. **Setup:** Lista de componentes shadcn/ui para instalação.
+3. **Types:** Zod schemas + Interfaces.
+4. **Logic Layer:** Custom Hook completo (Memoizado + API guards).
+5. **UI Layer:** Componente JSX limpo, responsivo e seguindo a **RN15** (Touch Targets).
 
----
+# Clean Code
 
-# Naming Conventions
-
-- **PascalCase:** Componentes e Pastas.
-- **camelCase:** Hooks, funções e variáveis.
-- **Files:** Sem hífens ou underscores (exceto `_components`).
-
----
-
-# Output Structure
-
-1. **Setup:** Lista de componentes shadcn/ui para instalação.
-2. **Types:** Interfaces e schemas Zod.
-3. **Logic Layer (Hook):** Custom Hook com memoização e tratativa de erros de API.
-4. **UI Layer (Component):** JSX limpo, responsivo (mobile-first) e consumindo o hook.
+- **No Comments:** O código deve ser autoexplicativo com nomes de variáveis altamente descritivos em inglês.

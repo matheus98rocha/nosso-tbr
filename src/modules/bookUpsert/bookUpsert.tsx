@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SelectField } from "../home/components/select/select.";
+import { SelectField } from "@/components/selectField/selectField";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "../home/components/datePicker/datePicker";
+import { DatePicker } from "@/components/datePicker/datePicker";
 
 import {
   Form,
@@ -218,13 +218,25 @@ export function BookUpsert(props: CreateBookProps) {
                             Carregando perfis...
                           </p>
                         ) : (
-                          <SelectField
-                            value={field.value}
-                            onChange={(selectedUserId) =>
-                              handleChosenByFieldChange(field, selectedUserId)
-                            }
-                            items={chosenByOptions}
-                          />
+                          <div className="flex items-start flex-col gap-3">
+                            {chosenByOptions.map(({ label, value }) => (
+                              <div
+                                key={value}
+                                className="flex items-center gap-2"
+                              >
+                                <Checkbox
+                                  id={`chosen-by-${value}`}
+                                  checked={field.value === value}
+                                  onCheckedChange={() =>
+                                    handleChosenByFieldChange(field, value)
+                                  }
+                                />
+                                <FormLabel htmlFor={`chosen-by-${value}`}>
+                                  {label}
+                                </FormLabel>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </FormControl>
                       <FormMessage />

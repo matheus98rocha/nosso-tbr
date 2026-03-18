@@ -110,12 +110,17 @@ export class BookQueryBuilder {
     }
     return this;
   }
-
   withYear(year?: number): this {
     if (!year) return this;
-    this.query = this.query
-      .gte("end_date", `${year}-01-01`)
-      .lte("end_date", `${year}-12-31`);
+
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
+
+    this.query = this.query.or(
+      `and(planned_start_date.gte.${startDate},planned_start_date.lte.${endDate}),` +
+        `and(end_date.gte.${startDate},end_date.lte.${endDate})`,
+    );
+
     return this;
   }
 

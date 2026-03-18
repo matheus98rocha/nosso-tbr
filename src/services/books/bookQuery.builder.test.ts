@@ -31,13 +31,17 @@ describe("BookQueryBuilder", () => {
       supabase = buildMockSupabase(mockQuery);
     });
 
-    it("applies gte and lte on end_date when a valid year is provided", () => {
-      new BookQueryBuilder(supabase, mockQuery as never)
-        .withYear(2024)
-        .build();
+    it("applies complex OR filter for planned_start_date and end_date when year is provided", () => {
+      const year = 2024;
+      const expectedQuery =
+        `and(planned_start_date.gte.2024-01-01,planned_start_date.lte.2024-12-31),` +
+        `and(end_date.gte.2024-01-01,end_date.lte.2024-12-31)`;
 
-      expect(mockQuery.gte).toHaveBeenCalledWith("end_date", "2024-01-01");
-      expect(mockQuery.lte).toHaveBeenCalledWith("end_date", "2024-12-31");
+      new BookQueryBuilder(supabase, mockQuery as never).withYear(year).build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(expectedQuery);
+      expect(mockQuery.gte).not.toHaveBeenCalled();
+      expect(mockQuery.lte).not.toHaveBeenCalled();
     });
 
     it("does not apply any date filter when year is undefined", () => {
@@ -45,55 +49,43 @@ describe("BookQueryBuilder", () => {
         .withYear(undefined)
         .build();
 
-      expect(mockQuery.gte).not.toHaveBeenCalled();
-      expect(mockQuery.lte).not.toHaveBeenCalled();
+      expect(mockQuery.or).not.toHaveBeenCalled();
     });
 
     it("does not apply any date filter when year is 0", () => {
-      new BookQueryBuilder(supabase, mockQuery as never)
-        .withYear(0)
-        .build();
+      new BookQueryBuilder(supabase, mockQuery as never).withYear(0).build();
 
-      expect(mockQuery.gte).not.toHaveBeenCalled();
-      expect(mockQuery.lte).not.toHaveBeenCalled();
-    });
-
-    it("generates correct ISO boundaries for the start of the century", () => {
-      new BookQueryBuilder(supabase, mockQuery as never)
-        .withYear(2000)
-        .build();
-
-      expect(mockQuery.gte).toHaveBeenCalledWith("end_date", "2000-01-01");
-      expect(mockQuery.lte).toHaveBeenCalledWith("end_date", "2000-12-31");
-    });
-
-    it("calls gte before lte to preserve filter order", () => {
-      const callOrder: string[] = [];
-      mockQuery.gte.mockImplementation(() => { callOrder.push("gte"); return mockQuery; });
-      mockQuery.lte.mockImplementation(() => { callOrder.push("lte"); return mockQuery; });
-
-      new BookQueryBuilder(supabase, mockQuery as never)
-        .withYear(2025)
-        .build();
-
-      expect(callOrder).toEqual(["gte", "lte"]);
+      expect(mockQuery.or).not.toHaveBeenCalled();
     });
 
     it("returns the builder instance to support method chaining", () => {
       const builder = new BookQueryBuilder(supabase, mockQuery as never);
       const returned = builder.withYear(2024);
+
       expect(returned).toBe(builder);
     });
 
-    it("chains correctly with other builder methods", () => {
+    it("chains correctly with pagination after applying the year filter", () => {
+      const year = 2026;
+
       new BookQueryBuilder(supabase, mockQuery as never)
-        .withYear(2024)
-        .withPagination(0, 10)
+        .withYear(year)
+        .withPagination(0, 8)
         .build();
 
-      expect(mockQuery.gte).toHaveBeenCalled();
-      expect(mockQuery.lte).toHaveBeenCalled();
-      expect(mockQuery.range).toHaveBeenCalledWith(0, 9);
+      expect(mockQuery.or).toHaveBeenCalled();
+      expect(mockQuery.range).toHaveBeenCalledWith(0, 7);
+    });
+
+    it("handles different years correctly in the query string", () => {
+      const year = 2021;
+      const expectedQuery =
+        `and(planned_start_date.gte.2021-01-01,planned_start_date.lte.2021-12-31),` +
+        `and(end_date.gte.2021-01-01,end_date.lte.2021-12-31)`;
+
+      new BookQueryBuilder(supabase, mockQuery as never).withYear(year).build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(expectedQuery);
     });
   });
 });

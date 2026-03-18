@@ -14,6 +14,12 @@ import { bookCreateSchema } from "@/modules/home/validators/createBook.validator
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
 
+const checkboxes: { id: Status; label: string }[] = [
+  { id: "not_started", label: "Vou iniciar a leitura" },
+  { id: "reading", label: "Já iniciei a leitura" },
+  { id: "finished", label: "Terminei a Leitura" },
+];
+
 export function useBookDialog({
   bookData,
   setIsBookFormOpen,
@@ -59,12 +65,6 @@ export function useBookDialog({
     setSelectedShelfId("");
   }, [setIsBookFormOpen, reset]);
 
-  const checkboxes: { id: Status; label: string }[] = [
-    { id: "not_started", label: "Vou iniciar a leitura" },
-    { id: "reading", label: "Já iniciei a leitura" },
-    { id: "finished", label: "Terminei a Leitura" },
-  ];
-
   useEffect(() => {
     if (bookData) {
       setSelected(bookData.status ?? null);
@@ -78,11 +78,14 @@ export function useBookDialog({
     queryFn: fetchBookShelves,
   });
 
-  const bookshelfOptions =
-    bookshelves?.map((shelf: SelectedBookshelf) => ({
-      label: shelf.name,
-      value: shelf.id,
-    })) ?? [];
+  const bookshelfOptions = useMemo(
+    () =>
+      bookshelves?.map((shelf: SelectedBookshelf) => ({
+        label: shelf.name,
+        value: shelf.id,
+      })) ?? [],
+    [bookshelves],
+  );
 
   const createBook = useMutation({
     mutationFn: async (data: BookCreateValidator) => {
@@ -172,6 +175,16 @@ export function useBookDialog({
       field: ControllerRenderProps<BookCreateValidator, "user_id">,
       selectedUserId: string,
     ) => {
+      const isDeselecting = field.value === selectedUserId;
+
+      if (isDeselecting) {
+        field.onChange("");
+        form.setValue("chosen_by", "" as "Matheus" | "Fabi" | "Barbara", {
+          shouldValidate: true,
+        });
+        return;
+      }
+
       field.onChange(selectedUserId);
 
       const selectedOption = chosenByOptions.find(
@@ -187,11 +200,11 @@ export function useBookDialog({
     [chosenByOptions, form],
   );
 
-  const handleConfirmCreateBook = async () => {
+  const handleConfirmCreateBook = useCallback(async () => {
     setIsDuplicateBookDialogOpen(false);
     const formData = form.getValues();
     createBook.mutate(formData);
-  };
+  }, [form, createBook]);
 
   return {
     onSubmit,

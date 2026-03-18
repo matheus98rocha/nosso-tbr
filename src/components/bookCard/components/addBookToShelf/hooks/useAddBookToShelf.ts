@@ -8,10 +8,7 @@ import {
 import { SelectedBookshelf } from "@/modules/shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
 
-export function useAddBookToShelf({
-  bookId,
-  handleClose,
-}: AddBookToShelfProps) {
+export function useAddBookToShelf({ bookId, handleClose }: AddBookToShelfProps) {
   const [selectedShelfId, setSelectedShelfId] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();

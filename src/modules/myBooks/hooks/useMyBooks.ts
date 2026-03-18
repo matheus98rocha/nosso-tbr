@@ -7,10 +7,11 @@ import {
   formatGenres,
   formatReaders,
   formatStatus,
+  formatYear,
 } from "@/utils/formatters/formatters";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
-import { useStatusFilters } from "@/modules/home/hooks/useStatusFilters";
+import { useStatusFilters } from "@/hooks/useStatusFilters";
 
 const PAGE_SIZE = 8;
 
@@ -95,6 +96,10 @@ export function useMyBooks() {
     () => formatStatus(filters.status),
     [filters.status],
   );
+  const formattedYear = useMemo(
+    () => formatYear(filters.year),
+    [filters.year],
+  );
 
   const totalPages = useMemo(
     () => Math.ceil((allBooks?.total || 0) / PAGE_SIZE),
@@ -104,6 +109,33 @@ export function useMyBooks() {
   const handlePageChange = useCallback((page: SetStateAction<number>) => {
     setCurrentPage(page);
   }, []);
+
+  const handleSetYear = useCallback(
+    (year: number | undefined) => {
+      updateUrlWithFilters({ ...filters, year });
+    },
+    [filters, updateUrlWithFilters],
+  );
+
+  const canClear = useMemo(
+    () =>
+      (!!searchQuery && hasSearchParams) ||
+      filters.gender?.length > 0 ||
+      (filters.readers?.length > 0 && hasSearchParams) ||
+      filters.status?.length > 0 ||
+      !!filters.year,
+    [searchQuery, hasSearchParams, filters],
+  );
+
+  const activeFilterLabels = useMemo(() => {
+    const labels: string[] = [];
+    if (searchQuery) labels.push(`"${searchQuery}"`);
+    if (formattedGenres) labels.push(formattedGenres);
+    if (formattedReaders) labels.push(`Leitores: ${formattedReaders}`);
+    if (formattedStatus) labels.push(formattedStatus);
+    if (formattedYear) labels.push(`Ano: ${formattedYear}`);
+    return labels;
+  }, [searchQuery, formattedGenres, formattedReaders, formattedStatus, formattedYear]);
 
   const { activeStatuses, handleToggleStatus } = useStatusFilters({
     filters,
@@ -133,5 +165,8 @@ export function useMyBooks() {
     totalPages,
     activeStatuses,
     handleToggleStatus,
+    handleSetYear,
+    canClear,
+    activeFilterLabels,
   };
 }
