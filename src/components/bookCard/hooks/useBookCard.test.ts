@@ -129,29 +129,19 @@ describe("useBookCard", () => {
         vi.restoreAllMocks();
       });
       it("deve abrir o link correto no WhatsApp", () => {
-        // 1. Renderiza o hook customizado com os dados de um livro base.
         const { result } = renderHook(() =>
           useBookCard({ book: { ...baseBook } }),
         );
 
-        // 2. Executa a função de compartilhamento no WhatsApp.
         act(() => {
           result.current.shareOnWhatsApp();
         });
 
-        // Variáveis para construir o link
         const baseUrl = "https://nosso-tbr.vercel.app/";
         const encodedTitle = encodeURIComponent(baseBook.title);
-
-        // O link da página que será compartilhado (com o título codificado)
         const shareUrl = `${baseUrl}?search=${encodedTitle}`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareUrl)}`;
 
-        // O link final do WhatsApp, que deve codificar a 'shareUrl'
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-          shareUrl,
-        )}`;
-
-        // 3. Verifica se a função window.open foi chamada com o link de destino correto.
         expect(window.open).toHaveBeenCalledWith(whatsappUrl, "_blank");
       });
     });

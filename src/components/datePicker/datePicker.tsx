@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { ChevronDownIcon } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -18,11 +17,7 @@ type DatePickerProps = {
   isAfterTodayHidden?: boolean;
 };
 
-export function DatePicker({
-  value,
-  onChange,
-  isAfterTodayHidden,
-}: DatePickerProps) {
+export function DatePicker({ value, onChange, isAfterTodayHidden }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
   return (

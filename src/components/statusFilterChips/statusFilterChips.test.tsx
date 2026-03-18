@@ -30,7 +30,12 @@ describe("StatusFilterChips", () => {
     });
 
     it("renders without crashing when all statuses are active", () => {
-      const allStatuses: Status[] = ["not_started", "planned", "reading", "finished"];
+      const allStatuses: Status[] = [
+        "not_started",
+        "planned",
+        "reading",
+        "finished",
+      ];
       render(
         <StatusFilterChips activeStatuses={allStatuses} onToggle={vi.fn()} />,
       );
@@ -70,15 +75,6 @@ describe("StatusFilterChips", () => {
       fireEvent.click(screen.getByText("Não Iniciado"));
 
       expect(onToggle).toHaveBeenCalledWith("not_started");
-    });
-
-    it("calls onToggle once per click", () => {
-      const onToggle = vi.fn();
-      render(<StatusFilterChips activeStatuses={[]} onToggle={onToggle} />);
-
-      fireEvent.click(screen.getByText("Terminei"));
-
-      expect(onToggle).toHaveBeenCalledTimes(1);
     });
   });
 

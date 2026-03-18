@@ -1,5 +1,7 @@
 export * from "./blurOverlay/blurOverlay";
+export * from "./bookCard/bookCard";
 export * from "./confirmDialog/confirmDialog";
+export * from "./datePicker/datePicker";
 export * from "./error/error";
 export * from "./header/header";
 export * from "./inputWithButton/inputWithButton";
@@ -8,3 +10,6 @@ export * from "./listGrid/listGrid";
 export * from "./multSelect/multiSelect";
 export * from "./searchBar/searchBar";
 export * from "./pagintation/pagination";
+export * from "./selectField/selectField";
+export * from "./statusFilterChips/statusFilterChips";
+export * from "./yearFilterChips/yearFilterChips";

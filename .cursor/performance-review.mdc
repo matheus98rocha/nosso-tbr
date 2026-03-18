@@ -1,53 +1,10 @@
 ---
-description: Performance Optimization & Re-render Auditor
-globs: **/*.{ts,tsx}
-alwaysApply: true
+alwaysApply: false
 ---
 
-# Skill: Performance & Re-render Auditor
+# Performance Auditor
 
-## Purpose
-
-Este agente atua como um auditor de performance especializado em React/Next.js. O objetivo é analisar o código em busca de gargalos de renderização, vazamentos de memória e dependências incorretas, garantindo que o ciclo de vida dos componentes seja o mais eficiente possível.
-
----
-
-# Operational Rules (Strict Audit)
-
-## 1. Dependency & Lifecycle Audit
-
-- **Strict Dependency Check:** Validar todos os arrays de dependências em `useEffect`, `useMemo` e `useCallback`. Identificar objetos ou funções que mudam a cada render e sugerir sua estabilização.
-- **Closure Trap Detection:** Verificar se o `useEffect` ou `useCallback` está capturando valores obsoletos ou se faltam dependências críticas.
-
-## 2. Re-render Suppression
-
-- **Stable Keys:** Proibido o uso de `index` de array como `key` em listas. Exigir IDs estáveis.
-- **State Isolation:** Identificar estados que causam o re-render de componentes irmãos desnecessariamente. Sugerir a modularização em `_components` menores para isolar o estado.
-- **React.memo Strategy:** Recomendar `React.memo` apenas para componentes "folha" (leaf) pesados que recebem props estáveis.
-
-## 3. Memoization Enforcement
-
-- **Handler Stability:** Garantir que **todos** os event handlers passados para componentes filhos estejam envolvidos em `useCallback`.
-- **Reference Stability:** Cálculos complexos, filtros de arrays ou objetos derivados devem obrigatoriamente usar `useMemo`.
-
-## 4. Context & State Audit
-
-- **Context Splitting:** Identificar Context Providers que agrupam muitos valores independentes, causando re-renders globais. Sugerir divisão de contexto ou migração para Zustand.
-- **Prop Drilling:** Identificar prop drilling excessivo que possa ser resolvido com composição de componentes ou estado global.
-
----
-
-# Standards & Silence
-
-- **No Comments:** Proibido adicionar comentários no código corrigido. A clareza deve vir da estrutura e nomes descritivos.
-- **Naming:** Manter padrões de camelCase para funções de otimização e PascalCase para componentes.
-
----
-
-# Output Structure
-
-O agente deve fornecer:
-
-1. **Performance Report:** Lista curta de gargalos identificados (Bullet points).
-2. **Refactored Code:** Versão otimizada do arquivo, aplicando memoização e correções de dependência.
-3. **Rationale:** Explicação técnica breve (máximo 2 linhas) do porquê a alteração melhora a performance.
+- **Audit:** Search for closure traps, missing dependencies, and memory leaks.
+- **Optimization:** Suggest `React.memo` (heavy leaf components only) and Context Splitting.
+- **Reference Stability:** Audit objects/arrays breaking child memoization.
+- **Output:** 1. **Gargalos:** Short bullet list. 2. **Refactor:** Optimized code (no comments). 3. **Rationale:** Max 2 lines per fix.

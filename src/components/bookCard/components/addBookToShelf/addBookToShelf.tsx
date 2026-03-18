@@ -7,15 +7,11 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { SelectField } from "@/modules/home/components/select/select.";
+import { SelectField } from "@/components/selectField/selectField";
 import { AddBookToShelfProps } from "./types/addBookToShelf.types";
 import { useAddBookToShelf } from "./hooks/useAddBookToShelf";
 
-export function AddBookToShelf({
-  isOpen,
-  handleClose,
-  bookId,
-}: AddBookToShelfProps) {
+export function AddBookToShelf({ isOpen, handleClose, bookId }: AddBookToShelfProps) {
   const {
     bookshelfOptions,
     handleSubmit,
@@ -23,11 +19,7 @@ export function AddBookToShelf({
     isPending,
     selectedShelfId,
     setSelectedShelfId,
-  } = useAddBookToShelf({
-    isOpen,
-    handleClose,
-    bookId,
-  });
+  } = useAddBookToShelf({ isOpen, handleClose, bookId });
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -37,9 +29,7 @@ export function AddBookToShelf({
         </DialogHeader>
 
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">
-            Carregando estantes...
-          </p>
+          <p className="text-sm text-muted-foreground">Carregando estantes...</p>
         ) : (
           <SelectField
             items={bookshelfOptions}
