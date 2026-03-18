@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -27,6 +28,7 @@ import { useBookshelves } from "../../hooks/useBookshelves";
 import { BookshelfDomain } from "../../types/bookshelves.types";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { FolderPlus, Pencil } from "lucide-react";
 import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
@@ -82,9 +84,21 @@ export function CreateEditBookshelves({
       <DialogContent className="max-w-[425px]">
         <BlurOverlay showOverlay={!isLoggedIn}>
           <DialogHeader>
-            <DialogTitle>
-              {editShelf ? "Editar Estante" : "Criar Nova Estante"}
-            </DialogTitle>
+            <div className="flex items-center gap-2">
+              {editShelf ? (
+                <Pencil className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+              ) : (
+                <FolderPlus className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+              )}
+              <DialogTitle>
+                {editShelf ? "Editar Estante" : "Criar Nova Estante"}
+              </DialogTitle>
+            </div>
+            <DialogDescription>
+              {editShelf
+                ? "Altere o nome da sua coleção."
+                : "Dê um nome para sua nova coleção de livros."}
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>

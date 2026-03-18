@@ -1,24 +1,34 @@
 import ClienteShelves from "@/modules/shelves";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookMarked } from "lucide-react";
 import Link from "next/link";
 
 export default function ShelvesPage() {
   return (
-    <div className="p-6">
-      <div className="flex items-start justify-between mb-4">
-        {/* Go back */}
-        <Link href="/" className="flex items-center justify-start gap-2">
-          <ArrowLeft /> Voltar
-        </Link>
+    <section className="w-full max-w-7xl">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer mb-8 group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+        Voltar
+      </Link>
+
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <BookMarked className="w-4 h-4 text-primary" strokeWidth={1.5} />
+          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Biblioteca pessoal
+          </span>
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Minhas Estantes
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1.5">
+          Organize seus livros em coleções personalizadas
+        </p>
       </div>
 
-      {/* title page */}
-      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance mb-4">
-        Minhas Estantes
-      </h1>
-
-      {/* Client code */}
       <ClienteShelves />
-    </div>
+    </section>
   );
 }

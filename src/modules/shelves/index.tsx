@@ -1,7 +1,8 @@
 "use client";
-import { Button } from "@/components/ui/button";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { CreateEditBookshelves } from "./components/createEditBookshelves/createEditBookshelves";
 import { useBookshelves } from "./hooks/useBookshelves";
 import { ListGrid } from "../../components/listGrid/listGrid";
@@ -14,20 +15,20 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 function ClienteShelves() {
   const createEdit = useModal();
   const dialog = useModal();
-
   const isLogged = useIsLoggedIn();
 
-  const [selectedBookshelf, setSelectedBookshelf] = useState<SelectedBookshelf>(
-    {
-      id: "",
-      name: "",
-    }
-  );
+  const [selectedBookshelf, setSelectedBookshelf] = useState<SelectedBookshelf>({
+    id: "",
+    name: "",
+  });
 
-  const handleOpenDialog = (shelf: SelectedBookshelf) => {
-    setSelectedBookshelf(shelf);
-    dialog.setIsOpen(true);
-  };
+  const handleOpenDialog = useCallback(
+    (shelf: SelectedBookshelf) => {
+      setSelectedBookshelf(shelf);
+      dialog.setIsOpen(true);
+    },
+    [dialog.setIsOpen]
+  );
 
   const { bookshelves, isFetching, isFetched } = useBookshelves({});
 
@@ -42,12 +43,20 @@ function ClienteShelves() {
         isOpen={createEdit.isOpen}
         handleClose={createEdit.setIsOpen}
       />
-      <div className="p-6 flex flex-col items-start gap-6">
+
+      <div className="w-full flex flex-col gap-6">
         {isLogged && (
-          <Button onClick={() => createEdit.setIsOpen(true)}>
-            Criar Estante
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => createEdit.setIsOpen(true)}
+              className="min-h-[44px] gap-2 cursor-pointer transition-colors duration-200"
+            >
+              <Plus className="w-4 h-4" />
+              Criar Estante
+            </Button>
+          </div>
         )}
+
         <ListGrid<BookshelfDomain>
           items={bookshelves ?? []}
           isLoading={isFetching}
@@ -57,10 +66,7 @@ function ClienteShelves() {
               key={shelf.id}
               shelf={shelf}
               openAddBookDialog={() =>
-                handleOpenDialog({
-                  id: shelf.id,
-                  name: shelf.name,
-                })
+                handleOpenDialog({ id: shelf.id, name: shelf.name })
               }
             />
           )}

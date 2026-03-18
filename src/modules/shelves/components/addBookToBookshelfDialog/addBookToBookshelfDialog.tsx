@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BookPlus } from "lucide-react";
 import { BookService } from "@/services/books/books.service";
 import { BookCombobox } from "../bookCombobox/bookCombobox";
 import { BookshelfService } from "../../services/booksshelves.service";
@@ -46,40 +49,58 @@ export function AddBookToBookshelfDialog({
     },
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (selectedBookId) mutate();
-  };
+  }, [selectedBookId, mutate]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>
-            Adicionar livro à estante - {bookshelfe.name ?? ""}
-          </DialogTitle>
+          <div className="flex items-center gap-2">
+            <BookPlus className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+            <DialogTitle className="text-base">Adicionar livro</DialogTitle>
+          </div>
+          {bookshelfe.name && (
+            <DialogDescription className="text-sm">
+              Estante:{" "}
+              <span className="font-medium text-foreground">
+                {bookshelfe.name}
+              </span>
+            </DialogDescription>
+          )}
         </DialogHeader>
 
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando livros...</p>
-        ) : (
-          <BookCombobox
-            books={books}
-            value={selectedBookId}
-            onChange={setSelectedBookId}
-          />
-        )}
+        <div className="py-2">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground py-3 text-center">
+              Carregando livros...
+            </p>
+          ) : (
+            <BookCombobox
+              books={books}
+              value={selectedBookId}
+              onChange={setSelectedBookId}
+            />
+          )}
+        </div>
 
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="min-h-[44px] cursor-pointer"
+          >
             Cancelar
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!selectedBookId || isPending}
+            className="min-h-[44px] cursor-pointer"
           >
             {isPending ? "Adicionando..." : "Adicionar"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
