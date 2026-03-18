@@ -81,7 +81,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
                     isOpen={dropdownModal.isOpen}
                     onOpenChange={dropdownModal.setIsOpen}
                     trigger={
-                      <button className="p-1 -mr-1 shrink-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                      <button className="flex items-center justify-center w-11 h-11 -mr-2 shrink-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 rounded-full transition-all duration-200 cursor-pointer">
                         <EllipsisVerticalIcon
                           className="w-4 h-4 text-zinc-400"
                           onTouchStart={dropdownTap.handleTouchStart}
@@ -104,7 +104,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
 
               <button
                 onClick={handleNavigateToAuthor}
-                className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate text-left mb-2"
+                className="text-xs text-blue-600 dark:text-blue-400 hover:underline active:scale-95 truncate text-left mb-2 cursor-pointer transition-all duration-200"
               >
                 {book.author}
               </button>

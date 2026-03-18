@@ -35,15 +35,17 @@ export function BookCombobox({ books, value, onChange }: BookComboboxProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between truncate"
+          className="w-full justify-between min-h-[44px] cursor-pointer"
         >
-          {selectedBook ? selectedBook.title : "Selecione um livro"}
-          <ChevronsUpDown className="opacity-50 h-4 w-4" />
+          <span className="truncate text-sm">
+            {selectedBook ? selectedBook.title : "Selecione um livro..."}
+          </span>
+          <ChevronsUpDown className="opacity-50 h-4 w-4 shrink-0 ml-2" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Buscar livro..." className="h-9" />
+          <CommandInput placeholder="Buscar livro..." className="h-10" />
           <CommandList>
             <CommandEmpty>Nenhum livro encontrado.</CommandEmpty>
             <CommandGroup>
@@ -55,13 +57,12 @@ export function BookCombobox({ books, value, onChange }: BookComboboxProps) {
                     onChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
                   }}
+                  className="cursor-pointer min-h-[40px]"
                 >
-                  <span className="truncate max-w-[150px] overflow-hidden whitespace-nowrap">
-                    {book.title}
-                  </span>
+                  <span className="truncate flex-1">{book.title}</span>
                   <Check
                     className={cn(
-                      "ml-auto h-4 w-4",
+                      "h-4 w-4 shrink-0",
                       value === book.id ? "opacity-100" : "opacity-0"
                     )}
                   />

@@ -3,8 +3,10 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Pencil, Trash2 } from "lucide-react";
 import { ReactNode } from "react";
 
 type DropdownMenuWrapperProps = {
@@ -26,17 +28,26 @@ export function DropdownShelf({
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-56 z-50"
+        className="w-44 z-50"
         align="end"
         side="bottom"
         sideOffset={8}
       >
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={editShelve}>
-            <p>Editar estante</p>
+          <DropdownMenuItem
+            onClick={editShelve}
+            className="gap-2 cursor-pointer"
+          >
+            <Pencil className="w-4 h-4 text-muted-foreground" />
+            Editar estante
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={removeShelve}>
-            <p>Remover estante</p>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={removeShelve}
+            className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+          >
+            <Trash2 className="w-4 h-4" />
+            Remover estante
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

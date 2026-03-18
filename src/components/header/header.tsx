@@ -141,14 +141,14 @@ function Header() {
             className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-60 h-60"}`}
           />
           <h1
-            className={`font-bold transition-all duration-300 whitespace-nowrap ${scrolled ? "text-md" : "text-2xl"}`}
+            className={`font-bold transition-all duration-300 whitespace-nowrap ${scrolled ? "text-base" : "text-2xl"}`}
           >
             Nosso TBR
           </h1>
         </button>
       </div>
 
-      <div className="flex-col items-center justify-center w-full gap-2">
+      <div className="flex flex-col items-center justify-center w-full gap-2">
         {(!scrolled || isLogged) && (
           <DesktopNavMenu
             bookUpsertModal={bookUpsertModal}
@@ -169,10 +169,17 @@ function Header() {
             </small>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <CircleUser
-                  className="w-6 h-6 text-primary cursor-pointer"
-                  strokeWidth={1.5}
-                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-11 h-11 rounded-full"
+                  aria-label="Menu da conta"
+                >
+                  <CircleUser
+                    className="w-5 h-5 text-primary"
+                    strokeWidth={1.5}
+                  />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Conta</DropdownMenuLabel>
@@ -202,7 +209,6 @@ function Header() {
 
   return (
     <>
-      {/* O BookUpsert agora é gerenciado APENAS via DesktopNavMenu ou aqui se necessário para mobile */}
       {pathname !== "/" && !isLogged && (
         <BookUpsert
           isBookFormOpen={bookUpsertModal.isOpen}
@@ -216,8 +222,10 @@ function Header() {
       />
 
       <header
-        className={`bg-white shadow-sm fixed top-0 left-0 w-full z-50 transition-all duration-300 px-6 ${
-          scrolled ? "py-2 shadow-md" : "py-6"
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 px-6 border-b ${
+          scrolled
+            ? "py-2 shadow-md bg-white/80 backdrop-blur-md border-white/20"
+            : "py-6 bg-white shadow-sm border-transparent"
         }`}
       >
         <div className="container mx-auto flex flex-col gap-2">

@@ -1,15 +1,14 @@
+import { useCallback } from "react";
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LinkButton } from "@/components/linkButton/linkButton";
-import { EllipsisVerticalIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { EllipsisVerticalIcon, BookOpen, Plus } from "lucide-react";
 import { useModal } from "@/hooks/useModal";
 import {
   BookshelfDomain,
@@ -26,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import Link from "next/link";
 
 type Props = {
   shelf: BookshelfDomain;
@@ -37,6 +37,14 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
   const editShelve = useModal();
   const deleteShelf = useModal();
   const isLogged = useIsLoggedIn();
+
+  const handleOpenAddBook = useCallback(() => {
+    openAddBookDialog({ id: shelf.id, name: shelf.name });
+  }, [openAddBookDialog, shelf.id, shelf.name]);
+
+  const bookCount = shelf.books.length;
+  const previewBooks = shelf.books.slice(0, 3);
+  const hasBooks = bookCount > 0;
 
   return (
     <>
@@ -60,91 +68,95 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
         }}
       />
 
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <CardTitle className="truncate">{shelf.name}</CardTitle>
-            </TooltipTrigger>
-            <TooltipContent>{shelf.name}</TooltipContent>
-          </Tooltip>
-          <CardDescription>
-            <div className="flex items-center gap-1">
-              <span className="font-medium text-gray-900">
-                Livros na estante:
-              </span>
-              <span className="text-gray-600">
-                {shelf.books.length === 0
-                  ? " Nenhum livro"
-                  : ` ${shelf.books.length} livro${
-                      shelf.books.length !== 1 ? "s" : ""
-                    }`}
-              </span>
-            </div>
-          </CardDescription>
-          {isLogged && (
-            <CardAction>
-              <DropdownShelf
-                isOpen={dropdownModal.isOpen}
-                onOpenChange={dropdownModal.setIsOpen}
-                trigger={
-                  <EllipsisVerticalIcon
-                    className="w-5 h-5 cursor-pointer"
-                    onClick={() => dropdownModal.setIsOpen(true)}
-                  />
-                }
-                editShelve={() => {
-                  editShelve.setIsOpen(true);
-                }}
-                removeShelve={() => {
-                  deleteShelf.setIsOpen(true);
-                }}
-              />
-            </CardAction>
-          )}
-        </CardHeader>
-        <CardContent className="relative flex items-center justify-center flex-col">
-          <div className="relative h-40 w-[180px] mb-4">
-            {shelf.books.slice(0, 3).map((book, index) => (
-              <div
-                key={book.id}
-                className="absolute w-24 h-40 rounded overflow-hidden"
-                style={{
-                  left: `${index * 40}px`,
-                  zIndex: index,
-                }}
-              >
-                <Image
-                  src={book.imageUrl as string}
-                  alt={`Book ${index}`}
-                  width={96}
-                  height={160}
-                  className="object-cover"
-                  loading="lazy"
+      <Card className="w-full group transition-shadow duration-200 hover:shadow-md overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CardTitle className="block w-full wrap-break-word text-base font-semibold leading-normal">
+                  {shelf.name}
+                </CardTitle>
+              </TooltipTrigger>
+              <TooltipContent>{shelf.name}</TooltipContent>
+            </Tooltip>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Badge variant="secondary" className="text-xs font-medium">
+                {bookCount === 0
+                  ? "0 livros"
+                  : `${bookCount} livro${bookCount !== 1 ? "s" : ""}`}
+              </Badge>
+              {isLogged && (
+                <DropdownShelf
+                  isOpen={dropdownModal.isOpen}
+                  onOpenChange={dropdownModal.setIsOpen}
+                  trigger={
+                    <button
+                      className="min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md hover:bg-muted transition-colors duration-150 cursor-pointer"
+                      onClick={() => dropdownModal.setIsOpen(true)}
+                      aria-label="Opções da estante"
+                    >
+                      <EllipsisVerticalIcon className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  }
+                  editShelve={() => editShelve.setIsOpen(true)}
+                  removeShelve={() => deleteShelf.setIsOpen(true)}
                 />
-              </div>
-            ))}
+              )}
+            </div>
           </div>
-          {isLogged && (
-            <Button
-              variant={"outline"}
-              onClick={() =>
-                openAddBookDialog({
-                  id: shelf.id,
-                  name: shelf.name,
-                })
-              }
-            >
-              Adicionar Livro a essa Estante
-            </Button>
-          )}
+        </CardHeader>
+
+        <CardContent className="pb-4">
+          <div className="relative h-36 w-full bg-muted/40 rounded-lg flex items-center justify-center overflow-hidden">
+            {hasBooks ? (
+              <div className="relative w-full h-full flex items-end justify-center pb-2">
+                {previewBooks.map((book, index) => (
+                  <div
+                    key={book.id}
+                    className="absolute bottom-2 w-20 h-32 rounded-md overflow-hidden shadow-sm"
+                    style={{
+                      left: `calc(50% - 40px + ${(index - 1) * 36}px)`,
+                      zIndex: index + 1,
+                      transform: `rotate(${(index - 1) * 4}deg)`,
+                    }}
+                  >
+                    <Image
+                      src={book.imageUrl as string}
+                      alt={`Livro ${index + 1} da estante ${shelf.name}`}
+                      width={80}
+                      height={128}
+                      className="object-cover w-full h-full"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-muted-foreground/50 select-none pointer-events-none">
+                <BookOpen className="w-8 h-8" strokeWidth={1} />
+                <span className="text-xs">Nenhum livro ainda</span>
+              </div>
+            )}
+          </div>
         </CardContent>
 
-        <CardFooter>
-          <LinkButton
-            href={`/bookshelves/${shelf.id}`}
-            label="Acessar Estante"
-          />
+        <CardFooter className="flex flex-col gap-2 pt-0">
+          <Link href={`/bookshelves/${shelf.id}`} className="w-full">
+            <Button className="w-full min-h-[44px] cursor-pointer transition-colors duration-200">
+              Acessar Estante
+            </Button>
+          </Link>
+          {isLogged && (
+            <Button
+              variant="outline"
+              className="w-full min-h-[44px] gap-2 cursor-pointer transition-colors duration-200"
+              onClick={handleOpenAddBook}
+            >
+              <Plus className="w-4 h-4" />
+              Adicionar Livro
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </>
