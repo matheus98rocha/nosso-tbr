@@ -25,7 +25,7 @@ const STATUS_CHIP_CONFIG: StatusChipConfig[] = [
   },
   {
     status: "reading",
-    label: "Já Iniciei",
+    label: "Estou Lendo",
     Icon: BookOpen,
     activeClass: "bg-amber-500 border-amber-500 text-white hover:bg-amber-600",
     hoverClass:
@@ -48,31 +48,35 @@ export function StatusFilterChips({
 }: StatusFilterChipsProps) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {STATUS_CHIP_CONFIG.map(({ status, label, Icon, activeClass, hoverClass }) => {
-        const isActive = activeStatuses.includes(status);
+      {STATUS_CHIP_CONFIG.map(
+        ({ status, label, Icon, activeClass, hoverClass }) => {
+          const isActive = activeStatuses.includes(status);
 
-        return (
-          <Button
-            key={status}
-            size="sm"
-            variant="outline"
-            onClick={() => onToggle(status)}
-            className={cn(
-              "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
-              isActive ? activeClass : hoverClass,
-            )}
-          >
-            <Icon
-              size={13}
+          return (
+            <Button
+              key={status}
+              size="sm"
+              variant="outline"
+              onClick={() => onToggle(status)}
               className={cn(
-                "mr-1.5 transition-colors",
-                isActive ? "text-white" : "text-zinc-400 group-hover:text-inherit",
+                "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                isActive ? activeClass : hoverClass,
               )}
-            />
-            {label}
-          </Button>
-        );
-      })}
+            >
+              <Icon
+                size={13}
+                className={cn(
+                  "mr-1.5 transition-colors",
+                  isActive
+                    ? "text-white"
+                    : "text-zinc-400 group-hover:text-inherit",
+                )}
+              />
+              {label}
+            </Button>
+          );
+        },
+      )}
     </div>
   );
 }
