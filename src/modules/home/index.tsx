@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
@@ -14,8 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import DefaultPagination from "@/components/pagintation/pagination";
 import { StatusFilterChips } from "@/components/statusFilterChips/statusFilterChips";
 import { YearFilterChips } from "@/components/yearFilterChips/yearFilterChips";
-
-const PAGE_SIZE = 10;
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -33,16 +30,12 @@ export default function ClientHome() {
     handleSetYear,
     canClear,
     activeFilterLabels,
+    totalPages,
   } = useHome();
 
   const dialogModal = useModal();
   const createShelfDialog = useModal();
   const isLoading = isLoadingAllBooks || isLoggingOut;
-
-  const totalPages = useMemo(
-    () => Math.ceil((allBooks?.total || 0) / PAGE_SIZE),
-    [allBooks?.total],
-  );
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">

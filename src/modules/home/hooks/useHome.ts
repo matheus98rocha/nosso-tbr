@@ -177,9 +177,12 @@ export function useHome() {
 
   const isLoadingData = isLoadingUsers || isLoadingAllBooks;
 
+  const totalPages = Math.ceil((allBooks?.total || 0) / PAGE_SIZE);
+
   return {
     allBooks,
     isLoadingAllBooks: isLoadingData,
+    totalPages,
     isFetched,
     isError,
     searchQuery,
