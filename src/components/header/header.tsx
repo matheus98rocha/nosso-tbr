@@ -52,6 +52,7 @@ function Header() {
 
   const handlePrefetchHome = useCallback(() => {
     const bookService = new BookService();
+    const myBooksFilters = { ...INITIAL_FILTERS, myBooks: true };
     const commonOptions = {
       staleTime: 1000 * 60 * 5,
     };
@@ -72,13 +73,13 @@ function Header() {
     if (isLogged && user?.id) {
       prefetchRequests.push(
         queryClient.prefetchQuery({
-          queryKey: QUERY_KEYS.books.list(INITIAL_FILTERS, "", 0, user.id),
+          queryKey: QUERY_KEYS.books.list(myBooksFilters, "", 0, user.id),
           queryFn: () =>
             bookService.getAll({
               page: 0,
               pageSize: 8,
               userId: user.id,
-              filters: { ...INITIAL_FILTERS, myBooks: true },
+              filters: myBooksFilters,
             }),
           ...commonOptions,
         }),
