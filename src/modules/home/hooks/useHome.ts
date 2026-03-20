@@ -1,5 +1,5 @@
 import { BookService } from "@/services/books/books.service";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
 import { useCallback, useMemo, useState, useEffect } from "react";
@@ -20,6 +20,7 @@ const PAGE_SIZE = 8;
 const bookService = new BookService();
 
 export function useHome() {
+  const queryClient = useQueryClient();
   const { users, isLoadingUsers } = useUser();
   const user = useUserStore((state) => state.user);
   const isLoggedIn = useIsLoggedIn();
@@ -82,6 +83,8 @@ export function useHome() {
   );
 
   const effectiveUserId = isMyBooksActive ? user!.id : undefined;
+  const shouldWaitForUsers =
+    !isMyBooksActive && filters.readers.length === 0 && isLoadingUsers;
 
   const {
     data: allBooks,
@@ -130,6 +133,7 @@ export function useHome() {
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     refetchOnMount: false,
+    enabled: !shouldWaitForUsers,
   });
 
   const formattedGenres = useMemo(
@@ -205,6 +209,48 @@ export function useHome() {
   const isLoadingData = isLoadingUsers || isLoadingAllBooks;
 
   const totalPages = Math.ceil((allBooks?.total || 0) / PAGE_SIZE);
+
+  useEffect(() => {
+    if (!allBooks?.total) return;
+
+    const nextPage = currentPage + 1;
+    const hasNextPage = nextPage < totalPages;
+    if (!hasNextPage) return;
+
+    queryClient.prefetchQuery({
+      queryKey: QUERY_KEYS.books.list(
+        filters,
+        searchQuery,
+        nextPage,
+        effectiveUserId,
+      ),
+      queryFn: () =>
+        bookService.getAll({
+          bookId: filters.bookId,
+          search: searchQuery,
+          userId: effectiveUserId,
+          filters: {
+            readers: isMyBooksActive ? [] : readersObj.readers,
+            status: filters.status,
+            gender: filters.gender,
+            year: filters.year,
+          },
+          page: nextPage,
+          pageSize: PAGE_SIZE,
+        }),
+      staleTime: 1000 * 60 * 5,
+    });
+  }, [
+    allBooks?.total,
+    currentPage,
+    effectiveUserId,
+    filters,
+    isMyBooksActive,
+    queryClient,
+    readersObj.readers,
+    searchQuery,
+    totalPages,
+  ]);
 
   return {
     allBooks,

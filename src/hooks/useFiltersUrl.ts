@@ -32,10 +32,14 @@ export function useFiltersUrl(defaultFiltersFactory: () => FiltersOptions) {
   const updateUrlWithFilters = useCallback(
     (newFilters: FiltersOptions, search?: string, bookId?: string) => {
       const qs = buildQueryStringFromFilters(newFilters, search, bookId);
+      const currentQs = searchParams.toString();
+
+      if (currentQs === qs) return;
+
       const target = qs ? `?${qs}` : window.location.pathname;
       router.replace(target);
     },
-    [router]
+    [router, searchParams]
   );
 
   const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {

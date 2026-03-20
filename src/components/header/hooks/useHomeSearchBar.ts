@@ -65,10 +65,12 @@ export function useHomeSearchBar() {
       }
 
       const qs = params.toString();
+      if (qs === searchParams.toString()) return;
+
       const target = qs ? `?${qs}` : window.location.pathname;
       router.replace(target);
     },
-    [router]
+    [router, searchParams]
   );
 
   const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
