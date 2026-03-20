@@ -242,3 +242,67 @@ describe("BookUpsert - campo author", () => {
     }
   });
 });
+
+describe("BookUpsert - regras de negócio do schema", () => {
+  it("deve falhar quando title estiver vazio (RN01)", () => {
+    const result = bookCreateSchema.safeParse(createValidBook({ title: "" }));
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => issue.path[0] === "title"),
+      ).toBe(true);
+    }
+  });
+
+  it("deve falhar quando readers estiver vazio (RN01)", () => {
+    const result = bookCreateSchema.safeParse(createValidBook({ readers: "" }));
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => issue.path[0] === "readers"),
+      ).toBe(true);
+    }
+  });
+
+  it("deve falhar quando pages não for inteiro positivo (RN03)", () => {
+    const withZeroPages = bookCreateSchema.safeParse(
+      createValidBook({ pages: 0 }),
+    );
+    const withDecimalPages = bookCreateSchema.safeParse(
+      createValidBook({ pages: 10.5 }),
+    );
+
+    expect(withZeroPages.success).toBe(false);
+    expect(withDecimalPages.success).toBe(false);
+  });
+
+  it("deve aceitar image_url apenas de domínios Amazon permitidos (RN04)", () => {
+    const allowedUrls = [
+      "https://amazon.com/image.jpg",
+      "https://amazon.com.br/image.jpg",
+      "https://media-amazon.com/image.jpg",
+      "https://m.media-amazon.com/image.jpg",
+      "https://ssl-images-amazon.com/image.jpg",
+    ];
+
+    for (const image_url of allowedUrls) {
+      const result = bookCreateSchema.safeParse(createValidBook({ image_url }));
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("deve falhar quando image_url não for de domínio Amazon permitido (RN04)", () => {
+    const result = bookCreateSchema.safeParse(
+      createValidBook({ image_url: "https://example.com/image.jpg" }),
+    );
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => issue.path[0] === "image_url"),
+      ).toBe(true);
+    }
+  });
+});

@@ -36,6 +36,9 @@ export async function GET() {
   const shelves = data.map(BookshelfMapper.toDomain);
 
   return NextResponse.json(shelves, {
-    headers: { "x-nextjs-cache-tags": SHELFES_TAG },
+    headers: {
+      "x-nextjs-cache-tags": SHELFES_TAG,
+      "Cache-Control": "no-store",
+    },
   });
 }
