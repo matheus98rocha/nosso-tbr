@@ -49,6 +49,40 @@ describe("buildQueryStringFromFilters", () => {
     });
   });
 
+  describe("myBooks serialization", () => {
+    it("appends myBooks param when myBooks is true", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters, myBooks: true });
+      const params = new URLSearchParams(result);
+      expect(params.get("myBooks")).toBe("true");
+    });
+
+    it("does not append myBooks param when myBooks is false", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters, myBooks: false });
+      const params = new URLSearchParams(result);
+      expect(params.get("myBooks")).toBeNull();
+    });
+
+    it("does not append myBooks param when myBooks is undefined", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters });
+      const params = new URLSearchParams(result);
+      expect(params.get("myBooks")).toBeNull();
+    });
+
+    it("preserves other filters alongside myBooks", () => {
+      const filters: FiltersOptions = {
+        ...baseFilters,
+        status: ["finished"],
+        myBooks: true,
+        year: 2024,
+      };
+      const result = buildQueryStringFromFilters(filters);
+      const params = new URLSearchParams(result);
+      expect(params.get("myBooks")).toBe("true");
+      expect(params.get("status")).toBe("finished");
+      expect(params.get("year")).toBe("2024");
+    });
+  });
+
   describe("existing filters without year", () => {
     it("returns empty string when all inputs are empty", () => {
       expect(buildQueryStringFromFilters(baseFilters)).toBe("");

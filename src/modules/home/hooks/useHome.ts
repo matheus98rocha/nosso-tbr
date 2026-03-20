@@ -36,6 +36,7 @@ export function useHome() {
         bookId: "",
         authorId: "",
         year: undefined,
+        myBooks: false,
       }) as FiltersOptions,
     [users],
   );
@@ -56,11 +57,16 @@ export function useHome() {
     setCurrentPage(0);
   }, [filters, searchQuery]);
 
+  const isMyBooksActive = !!(filters.myBooks && isLoggedIn && user?.id);
+
   const readersObj = useMemo(() => {
+    if (isMyBooksActive) {
+      return { readers: [], readersDisplay: "" };
+    }
     if (filters.readers.length > 0) {
       return {
         readers: filters.readers,
-        readersDisplay: filters.readers,
+        readersDisplay: filters.readers.join(", "),
       };
     }
     const allNames = users.map((u) => u.display_name);
@@ -68,12 +74,14 @@ export function useHome() {
       readers: allNames,
       readersDisplay: allNames.join(", "),
     };
-  }, [filters.readers, users]);
+  }, [filters.readers, users, isMyBooksActive]);
 
   const isAwaitingSpecificBook = useMemo(
     () => !!(filters.bookId || searchQuery),
     [filters.bookId, searchQuery],
   );
+
+  const effectiveUserId = isMyBooksActive ? user!.id : undefined;
 
   const {
     data: allBooks,
@@ -81,13 +89,19 @@ export function useHome() {
     isFetched,
     isError,
   } = useQuery({
-    queryKey: QUERY_KEYS.books.list(filters, searchQuery, currentPage),
+    queryKey: QUERY_KEYS.books.list(
+      filters,
+      searchQuery,
+      currentPage,
+      effectiveUserId,
+    ),
     queryFn: async () => {
       const response = await bookService.getAll({
         bookId: filters.bookId,
         search: searchQuery,
+        userId: effectiveUserId,
         filters: {
-          readers: readersObj.readers,
+          readers: isMyBooksActive ? [] : readersObj.readers,
           status: filters.status,
           gender: filters.gender,
           year: filters.year,
@@ -113,9 +127,9 @@ export function useHome() {
       return false;
     },
     retryDelay: 1000,
-    refetchOnMount: "always",
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    refetchOnMount: false,
   });
 
   const formattedGenres = useMemo(
@@ -141,15 +155,18 @@ export function useHome() {
       filters.gender?.length > 0 ||
       (filters.readers?.length > 0 && hasSearchParams) ||
       filters.status?.length > 0 ||
-      !!filters.year,
+      !!filters.year ||
+      !!filters.myBooks,
     [searchQuery, hasSearchParams, filters],
   );
 
   const activeFilterLabels = useMemo(() => {
     const labels: string[] = [];
+    if (filters.myBooks) labels.push("Meus Livros");
     if (searchQuery) labels.push(`"${searchQuery}"`);
     if (formattedGenres) labels.push(formattedGenres);
-    if (formattedReaders) labels.push(`Leitores: ${readersObj.readersDisplay}`);
+    if (!isMyBooksActive && formattedReaders)
+      labels.push(`Leitores: ${readersObj.readersDisplay}`);
     if (formattedStatus) labels.push(formattedStatus);
     if (formattedYear) labels.push(`Ano: ${formattedYear}`);
     return labels;
@@ -160,6 +177,8 @@ export function useHome() {
     formattedStatus,
     formattedYear,
     readersObj.readersDisplay,
+    filters.myBooks,
+    isMyBooksActive,
   ]);
 
   const handleSetYear = useCallback(
@@ -168,6 +187,14 @@ export function useHome() {
     },
     [filters, updateUrlWithFilters],
   );
+
+  const handleToggleMyBooks = useCallback(() => {
+    updateUrlWithFilters({ ...filters, myBooks: !filters.myBooks });
+  }, [filters, updateUrlWithFilters]);
+
+  const handleSetJointReading = useCallback(() => {
+    updateUrlWithFilters({ ...filters, myBooks: false });
+  }, [filters, updateUrlWithFilters]);
 
   const { activeStatuses, handleToggleStatus } = useStatusFilters({
     filters,
@@ -207,5 +234,9 @@ export function useHome() {
     handleSetYear,
     canClear,
     activeFilterLabels,
+    handleToggleMyBooks,
+    handleSetJointReading,
+    isMyBooksActive,
+    isLoggedIn,
   };
 }

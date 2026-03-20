@@ -31,7 +31,6 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { DesktopNavMenu } from "./components/navMenu/navMenu";
 import { Skeleton } from "../ui/skeleton";
 import LogoIcon from "@/assets/icons/logo";
-import { MyBooksSearchBar } from "./components/mySearchBar/myBooksSearchBar";
 import { BookService } from "@/services/books/books.service";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 
@@ -156,7 +155,6 @@ function Header() {
           />
         )}
         {pathname === "/" && <HomeSearchBar />}
-        {pathname === "/my-books" && <MyBooksSearchBar />}
       </div>
 
       <div className="md:flex items-center gap-2">
