@@ -25,6 +25,7 @@ export function buildQueryStringFromFilters(
   if (idToSet) params.set("bookId", idToSet);
 
   if (newFilters.year) params.set("year", String(newFilters.year));
+  if (newFilters.myBooks) params.set("myBooks", "true");
 
   return params.toString();
 }

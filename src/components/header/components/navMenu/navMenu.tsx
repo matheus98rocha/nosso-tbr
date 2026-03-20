@@ -8,7 +8,6 @@ import { NavSkeleton } from "../navSkeleton/navSkeleton";
 import { NavItem } from "../navItem/navItem";
 
 const ALLOWED_LABELS = [
-  "Meus Livros",
   "Adicionar Livro",
   "Estatisticas",
   "Ver Estantes",

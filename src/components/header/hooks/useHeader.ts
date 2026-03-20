@@ -18,12 +18,6 @@ export function useHeader() {
       label: "Livros",
       items: [
         {
-          label: "Meus Livros",
-          action: () => router.push(`my-books`),
-          path: "/my-books",
-          requiresAuth: true,
-        },
-        {
           label: "Adicionar Livro",
           action: () => bookUpsertModal.setIsOpen(true),
           requiresAuth: false,

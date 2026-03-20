@@ -1,10 +1,9 @@
 import { useMemo } from "react";
 import Link from "next/link";
-import { BookOpen, BarChart3, Library, Plus, BookUser } from "lucide-react";
+import { BarChart3, Library, Plus, BookUser } from "lucide-react";
 import { IconMap, NavItemProps } from "../../types/desktopNavMenu.types";
 
 const iconMap: IconMap = {
-  "Meus Livros": <BookOpen className="w-6 h-6" />,
   "Adicionar Livro": <Plus className="w-6 h-6" />,
   Estatisticas: <BarChart3 className="w-6 h-6" />,
   "Ver Estantes": <Library className="w-6 h-6" />,

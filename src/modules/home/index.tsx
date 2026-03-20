@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
@@ -14,8 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import DefaultPagination from "@/components/pagintation/pagination";
 import { StatusFilterChips } from "@/components/statusFilterChips/statusFilterChips";
 import { YearFilterChips } from "@/components/yearFilterChips/yearFilterChips";
-
-const PAGE_SIZE = 10;
+import { BookOpen, Tag, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -33,16 +32,16 @@ export default function ClientHome() {
     handleSetYear,
     canClear,
     activeFilterLabels,
+    totalPages,
+    handleToggleMyBooks,
+    handleSetJointReading,
+    isMyBooksActive,
+    isLoggedIn,
   } = useHome();
 
   const dialogModal = useModal();
   const createShelfDialog = useModal();
   const isLoading = isLoadingAllBooks || isLoggingOut;
-
-  const totalPages = useMemo(
-    () => Math.ceil((allBooks?.total || 0) / PAGE_SIZE),
-    [allBooks?.total],
-  );
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">
@@ -89,38 +88,115 @@ export default function ClientHome() {
               size="sm"
               onClick={handleClearAllFilters}
               className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 self-start sm:self-auto"
+              aria-label="Limpar todos os filtros"
             >
               Limpar tudo
             </Button>
           )}
         </div>
 
-        <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          {isLoading ? (
-            <div className="flex gap-2 flex-wrap">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-8 w-28 rounded-full" />
-              ))}
+        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+          <div className="p-4 space-y-2.5">
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+              <Users size={11} />
+              Visão
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {isLoading ? (
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-40 rounded-full" />
+                  {isLoggedIn && <Skeleton className="h-8 w-28 rounded-full" />}
+                </div>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={isMyBooksActive ? handleSetJointReading : undefined}
+                    className={cn(
+                      "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                      !isMyBooksActive
+                        ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                        : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
+                    )}
+                    aria-label="Ver leituras conjuntas"
+                    aria-pressed={!isMyBooksActive}
+                  >
+                    <Users
+                      size={13}
+                      className={cn(
+                        "mr-1.5 transition-colors",
+                        !isMyBooksActive
+                          ? "text-white"
+                          : "text-zinc-400 group-hover:text-inherit",
+                      )}
+                    />
+                    Leituras Conjuntas
+                  </Button>
+                  {isLoggedIn && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleToggleMyBooks}
+                      className={cn(
+                        "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                        isMyBooksActive
+                          ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                          : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
+                      )}
+                      aria-label="Filtrar meus livros"
+                      aria-pressed={isMyBooksActive}
+                    >
+                      <BookOpen
+                        size={13}
+                        className={cn(
+                          "mr-1.5 transition-colors",
+                          isMyBooksActive
+                            ? "text-white"
+                            : "text-zinc-400 group-hover:text-inherit",
+                        )}
+                      />
+                      Meus Livros
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
-          ) : (
-            <StatusFilterChips
-              activeStatuses={activeStatuses}
-              onToggle={handleToggleStatus}
-            />
-          )}
+          </div>
 
-          {isLoading ? (
-            <div className="flex gap-2 flex-wrap border-t border-zinc-200 dark:border-zinc-800 pt-3 mt-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-8 w-16 rounded-full" />
-              ))}
-            </div>
-          ) : (
-            <YearFilterChips
-              activeYear={filters.year}
-              onSelect={handleSetYear}
-            />
-          )}
+          <div className="p-4 space-y-2.5">
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+              <Tag size={11} />
+              Status de leitura
+            </p>
+            {isLoading ? (
+              <div className="flex gap-2 flex-wrap">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={`status-sk-${i}`} className="h-8 w-28 rounded-full" />
+                ))}
+              </div>
+            ) : (
+              <StatusFilterChips
+                activeStatuses={activeStatuses}
+                onToggle={handleToggleStatus}
+              />
+            )}
+          </div>
+
+          <div className="p-4">
+            {isLoading ? (
+              <div className="flex gap-2 flex-wrap">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={`year-sk-${i}`} className="h-8 w-16 rounded-full" />
+                ))}
+              </div>
+            ) : (
+              <YearFilterChips
+                activeYear={filters.year}
+                onSelect={handleSetYear}
+              />
+            )}
+          </div>
         </div>
       </header>
 

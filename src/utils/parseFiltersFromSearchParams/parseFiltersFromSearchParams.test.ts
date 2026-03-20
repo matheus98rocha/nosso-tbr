@@ -32,6 +32,26 @@ describe("parseFiltersFromSearchParams", () => {
     });
   });
 
+  describe("myBooks parsing", () => {
+    it("parses myBooks=true as boolean true", () => {
+      const params = buildParams({ myBooks: "true" });
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.myBooks).toBe(true);
+    });
+
+    it("returns false when myBooks param is absent", () => {
+      const params = buildParams({});
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.myBooks).toBe(false);
+    });
+
+    it("returns false for non-true myBooks value", () => {
+      const params = buildParams({ myBooks: "false" });
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.myBooks).toBe(false);
+    });
+  });
+
   describe("existing fields are preserved when year is present", () => {
     it("parses status, gender and year together", () => {
       const params = buildParams({

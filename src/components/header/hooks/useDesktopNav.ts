@@ -1,13 +1,11 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";
-import { BookService } from "@/services/books/books.service";
 import { AuthorsService } from "@/modules/authors/services/authors.service";
 import { StatsService } from "@/modules/stats/services/stats.service";
 import { fetchBookShelves } from "@/modules/shelves/services/booksshelves.service";
-import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
+import { QUERY_KEYS } from "@/constants/keys";
 
-const bookService = new BookService();
 const authorsService = new AuthorsService();
 const statsService = new StatsService();
 
@@ -21,20 +19,6 @@ export function useDesktopNav() {
       const commonOptions = { staleTime: STALE_TIME };
 
       const prefetchMap: Record<string, () => Promise<void>> = {
-        "Meus Livros": async () => {
-          if (!user?.id) return;
-          await queryClient.prefetchQuery({
-            queryKey: QUERY_KEYS.books.myBooks(INITIAL_FILTERS, "", user.id, 0),
-            queryFn: () =>
-              bookService.getAll({
-                userId: user.id,
-                page: 0,
-                pageSize: 8,
-                filters: INITIAL_FILTERS,
-              }),
-            ...commonOptions,
-          });
-        },
         "Ver Estantes": () =>
           queryClient.prefetchQuery({
             queryKey: QUERY_KEYS.shelves.all,

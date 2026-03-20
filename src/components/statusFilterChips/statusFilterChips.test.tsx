@@ -6,7 +6,7 @@ import { Status } from "@/types/books.types";
 const LABEL_TO_STATUS: Record<string, Status> = {
   "Não Iniciado": "not_started",
   "Vou Iniciar": "planned",
-  "Já Iniciei": "reading",
+  "Estou Lendo": "reading",
   Terminei: "finished",
 };
 
@@ -36,6 +36,7 @@ describe("StatusFilterChips", () => {
         "reading",
         "finished",
       ];
+
       render(
         <StatusFilterChips activeStatuses={allStatuses} onToggle={vi.fn()} />,
       );
@@ -59,11 +60,11 @@ describe("StatusFilterChips", () => {
       expect(onToggle).toHaveBeenCalledTimes(ALL_LABELS.length);
     });
 
-    it("calls onToggle with 'reading' when 'Já Iniciei' is clicked", () => {
+    it("calls onToggle with 'reading' when 'Estou Lendo' is clicked", () => {
       const onToggle = vi.fn();
       render(<StatusFilterChips activeStatuses={[]} onToggle={onToggle} />);
 
-      fireEvent.click(screen.getByText("Já Iniciei"));
+      fireEvent.click(screen.getByText("Estou Lendo"));
 
       expect(onToggle).toHaveBeenCalledWith("reading");
     });
@@ -85,7 +86,7 @@ describe("StatusFilterChips", () => {
         <StatusFilterChips activeStatuses={["reading"]} onToggle={onToggle} />,
       );
 
-      const activeChip = screen.getByText("Já Iniciei");
+      const activeChip = screen.getByText("Estou Lendo");
       expect(activeChip).toBeInTheDocument();
 
       fireEvent.click(activeChip);

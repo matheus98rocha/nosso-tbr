@@ -9,6 +9,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
   bookId: "",
   authorId: "",
   year: undefined,
+  myBooks: false,
 };
 
 /**
@@ -32,27 +33,19 @@ function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
 export const QUERY_KEYS = {
   books: {
     all: ["books"] as const,
-    list: (filters: FiltersOptions, search: string, page: number) =>
+    list: (
+      filters: FiltersOptions,
+      search: string,
+      page: number,
+      userId?: string,
+    ) =>
       [
         ...QUERY_KEYS.books.all,
         "list",
         sortObjectKeys(filters),
         search,
         page,
-      ] as const,
-    myBooks: (
-      filters: FiltersOptions,
-      search: string,
-      userId: string | undefined,
-      page: number,
-    ) =>
-      [
-        ...QUERY_KEYS.books.all,
-        "my-books",
-        sortObjectKeys(filters),
-        search,
         userId,
-        page,
       ] as const,
   },
   shelves: {

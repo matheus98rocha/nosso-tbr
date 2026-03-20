@@ -1,13 +1,17 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi, Mock } from "vitest";
-import { useMyBooks } from "./useMyBooks";
+import { useHome } from "./useHome";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
+import { useQuery } from "@tanstack/react-query";
 import { INITIAL_FILTERS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
 
 vi.mock("@/services/books/books.service");
+vi.mock("@/services/users/hooks/useUsers", () => ({
+  useUser: vi.fn(() => ({ users: [], isLoadingUsers: false })),
+}));
 vi.mock("@/stores/userStore", () => ({
-  useUserStore: vi.fn(() => ({ user: null })),
+  useUserStore: vi.fn(() => null),
 }));
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(() => false),
@@ -29,7 +33,6 @@ vi.mock("@/hooks/useStatusFilters", () => ({
 vi.mock("@/hooks/useFiltersUrl");
 
 const mockUpdateUrlWithFilters = vi.fn();
-const mockHandleClearAllFilters = vi.fn();
 
 function buildFiltersUrlReturn(
   filtersOverride: Partial<FiltersOptions> = {},
@@ -43,10 +46,19 @@ function buildFiltersUrlReturn(
     inputRef: { current: null } as React.RefObject<HTMLInputElement | null>,
     updateUrlWithFilters: mockUpdateUrlWithFilters,
     handleOnPressEnter: vi.fn(),
-    handleClearAllFilters: mockHandleClearAllFilters,
+    handleClearAllFilters: vi.fn(),
     handleInputBlur: vi.fn(),
     handleSearchButtonClick: vi.fn(),
   };
+}
+
+function mockQueryData(total: number) {
+  (useQuery as Mock).mockReturnValue({
+    data: { data: [], total },
+    isFetching: false,
+    isFetched: true,
+    isError: false,
+  });
 }
 
 function setupHook(
@@ -57,12 +69,114 @@ function setupHook(
   (useFiltersUrl as Mock).mockReturnValue(
     buildFiltersUrlReturn(filtersOverride, searchQuery, hasSearchParams),
   );
-  return renderHook(() => useMyBooks());
+  return renderHook(() => useHome());
 }
 
-describe("useMyBooks", () => {
+describe("useHome", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe("totalPages — PAGE_SIZE = 8", () => {
+    it("returns 0 when allBooks is undefined", () => {
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(0);
+    });
+
+    it("returns 0 when total is 0", () => {
+      mockQueryData(0);
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(0);
+    });
+
+    it("returns 1 page for exactly 8 books (full first page)", () => {
+      mockQueryData(8);
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(1);
+    });
+
+    it("returns 2 pages for 9 books — reproduces the pagination bug", () => {
+      mockQueryData(9);
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(2);
+    });
+
+    it("returns 2 pages for 16 books (two full pages)", () => {
+      mockQueryData(16);
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(2);
+    });
+
+    it("returns 3 pages for 17 books", () => {
+      mockQueryData(17);
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(3);
+    });
+
+    it("returns 3 pages for 24 books (three full pages)", () => {
+      mockQueryData(24);
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(3);
+    });
+
+    it("returns 4 pages for 25 books", () => {
+      mockQueryData(25);
+      const { result } = setupHook();
+      expect(result.current.totalPages).toBe(4);
+    });
+
+    it("never uses a PAGE_SIZE of 10 — 9 books must not return 1 page", () => {
+      mockQueryData(9);
+      const { result } = setupHook();
+      expect(result.current.totalPages).not.toBe(1);
+    });
+  });
+
+  describe("currentPage", () => {
+    it("starts at page 0", () => {
+      const { result } = setupHook();
+      expect(result.current.currentPage).toBe(0);
+    });
+
+    it("advances to the next page when setCurrentPage is called", () => {
+      const { result } = setupHook();
+      act(() => result.current.setCurrentPage(1));
+      expect(result.current.currentPage).toBe(1);
+    });
+
+    it("resets to page 0 when filters change", () => {
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ status: [] }),
+      );
+      const { result, rerender } = renderHook(() => useHome());
+
+      act(() => result.current.setCurrentPage(2));
+      expect(result.current.currentPage).toBe(2);
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ status: ["reading"] }),
+      );
+      rerender();
+
+      expect(result.current.currentPage).toBe(0);
+    });
+
+    it("resets to page 0 when searchQuery changes", () => {
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({}, ""),
+      );
+      const { result, rerender } = renderHook(() => useHome());
+
+      act(() => result.current.setCurrentPage(3));
+      expect(result.current.currentPage).toBe(3);
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({}, "tolkien"),
+      );
+      rerender();
+
+      expect(result.current.currentPage).toBe(0);
+    });
   });
 
   describe("handleSetYear", () => {
@@ -75,7 +189,7 @@ describe("useMyBooks", () => {
       });
     });
 
-    it("calls updateUrlWithFilters with undefined year to clear the year filter", () => {
+    it("calls updateUrlWithFilters with undefined to clear the year filter", () => {
       const { result } = setupHook({ year: 2024 });
       act(() => result.current.handleSetYear(undefined));
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
@@ -85,23 +199,47 @@ describe("useMyBooks", () => {
     });
 
     it("preserves all existing filters when setting year", () => {
-      const existingFilters: Partial<FiltersOptions> = {
+      const existing: Partial<FiltersOptions> = {
         status: ["reading"],
         gender: ["fiction"],
       };
-      const { result } = setupHook(existingFilters);
+      const { result } = setupHook(existing);
       act(() => result.current.handleSetYear(2023));
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
         ...INITIAL_FILTERS,
-        ...existingFilters,
+        ...existing,
         year: 2023,
       });
     });
+  });
 
-    it("calls updateUrlWithFilters exactly once per call", () => {
-      const { result } = setupHook();
-      act(() => result.current.handleSetYear(2025));
-      expect(mockUpdateUrlWithFilters).toHaveBeenCalledTimes(1);
+  describe("handleToggleMyBooks", () => {
+    it("calls updateUrlWithFilters toggling myBooks to true", () => {
+      const { result } = setupHook({ myBooks: false });
+      act(() => result.current.handleToggleMyBooks());
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ myBooks: true }),
+      );
+    });
+
+    it("calls updateUrlWithFilters toggling myBooks to false", () => {
+      const { result } = setupHook({ myBooks: true });
+      act(() => result.current.handleToggleMyBooks());
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ myBooks: false }),
+      );
+    });
+
+    it("preserves existing filters when toggling myBooks", () => {
+      const existing: Partial<FiltersOptions> = {
+        status: ["reading"],
+        year: 2024,
+      };
+      const { result } = setupHook({ ...existing, myBooks: false });
+      act(() => result.current.handleToggleMyBooks());
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ ...existing, myBooks: true }),
+      );
     });
   });
 
@@ -136,14 +274,9 @@ describe("useMyBooks", () => {
       expect(result.current.canClear).toBe(false);
     });
 
-    it("returns true when readers filter has entries AND hasSearchParams is true", () => {
-      const { result } = setupHook({ readers: ["Matheus"] }, "", true);
+    it("returns true when myBooks is active", () => {
+      const { result } = setupHook({ myBooks: true });
       expect(result.current.canClear).toBe(true);
-    });
-
-    it("returns false when readers filter has entries BUT hasSearchParams is false", () => {
-      const { result } = setupHook({ readers: ["Matheus"] }, "", false);
-      expect(result.current.canClear).toBe(false);
     });
 
     it("returns true when multiple filters are active simultaneously", () => {
@@ -168,12 +301,9 @@ describe("useMyBooks", () => {
       expect(result.current.activeFilterLabels).toContain("Ano: 2024");
     });
 
-    it("includes status label when status filter is set", () => {
-      const { result } = setupHook({ status: ["finished"] });
-      const hasStatusLabel = result.current.activeFilterLabels.some((label) =>
-        label.toLowerCase().includes("terminei") || label.length > 0,
-      );
-      expect(hasStatusLabel).toBe(true);
+    it('includes "Meus Livros" when myBooks is active', () => {
+      const { result } = setupHook({ myBooks: true });
+      expect(result.current.activeFilterLabels).toContain("Meus Livros");
     });
 
     it("accumulates multiple labels when multiple filters are active", () => {
@@ -195,27 +325,17 @@ describe("useMyBooks", () => {
       const { result: resultClear } = setupHook();
       expect(resultClear.current.activeFilterLabels).toHaveLength(0);
     });
-
-    it("does not include year label when year is undefined", () => {
-      const { result } = setupHook({ year: undefined });
-      const hasYearLabel = result.current.activeFilterLabels.some((l) =>
-        l.startsWith("Ano:"),
-      );
-      expect(hasYearLabel).toBe(false);
-    });
-  });
-
-  describe("totalPages", () => {
-    it("returns 0 when allBooks is undefined", () => {
-      const { result } = setupHook();
-      expect(result.current.totalPages).toBe(0);
-    });
   });
 
   describe("returned shape", () => {
     it("exposes handleSetYear as a function", () => {
       const { result } = setupHook();
       expect(typeof result.current.handleSetYear).toBe("function");
+    });
+
+    it("exposes handleToggleMyBooks as a function", () => {
+      const { result } = setupHook();
+      expect(typeof result.current.handleToggleMyBooks).toBe("function");
     });
 
     it("exposes canClear as a boolean", () => {
@@ -231,6 +351,16 @@ describe("useMyBooks", () => {
     it("exposes activeStatuses from useStatusFilters", () => {
       const { result } = setupHook();
       expect(Array.isArray(result.current.activeStatuses)).toBe(true);
+    });
+
+    it("exposes isMyBooksActive as a boolean", () => {
+      const { result } = setupHook();
+      expect(typeof result.current.isMyBooksActive).toBe("boolean");
+    });
+
+    it("exposes isLoggedIn as a boolean", () => {
+      const { result } = setupHook();
+      expect(typeof result.current.isLoggedIn).toBe("boolean");
     });
   });
 });
