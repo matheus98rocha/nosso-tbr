@@ -52,13 +52,41 @@ function Header() {
 
   const handlePrefetchHome = useCallback(() => {
     const bookService = new BookService();
-    queryClient.prefetchQuery({
-      queryKey: QUERY_KEYS.books.list(INITIAL_FILTERS, "", 0),
-      queryFn: () =>
-        bookService.getAll({ page: 0, pageSize: 8, filters: INITIAL_FILTERS }),
+    const commonOptions = {
       staleTime: 1000 * 60 * 5,
-    });
-  }, [queryClient]);
+    };
+
+    const prefetchRequests = [
+      queryClient.prefetchQuery({
+        queryKey: QUERY_KEYS.books.list(INITIAL_FILTERS, "", 0),
+        queryFn: () =>
+          bookService.getAll({
+            page: 0,
+            pageSize: 8,
+            filters: INITIAL_FILTERS,
+          }),
+        ...commonOptions,
+      }),
+    ];
+
+    if (isLogged && user?.id) {
+      prefetchRequests.push(
+        queryClient.prefetchQuery({
+          queryKey: QUERY_KEYS.books.list(INITIAL_FILTERS, "", 0, user.id),
+          queryFn: () =>
+            bookService.getAll({
+              page: 0,
+              pageSize: 8,
+              userId: user.id,
+              filters: { ...INITIAL_FILTERS, myBooks: true },
+            }),
+          ...commonOptions,
+        }),
+      );
+    }
+
+    Promise.allSettled(prefetchRequests);
+  }, [isLogged, queryClient, user?.id]);
 
   const renderMobileMenu = (): JSX.Element => (
     <div className="md:hidden flex items-center justify-center gap-4 flex-col">

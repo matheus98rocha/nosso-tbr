@@ -2,7 +2,7 @@ import { renderHook, act } from "@testing-library/react";
 import { vi, Mock } from "vitest";
 import { useHome } from "./useHome";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { INITIAL_FILTERS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
 
@@ -22,6 +22,9 @@ vi.mock("@tanstack/react-query", () => ({
     isFetching: false,
     isFetched: true,
     isError: false,
+  })),
+  useQueryClient: vi.fn(() => ({
+    prefetchQuery: vi.fn(),
   })),
 }));
 vi.mock("@/hooks/useStatusFilters", () => ({
@@ -75,6 +78,9 @@ function setupHook(
 describe("useHome", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (useQueryClient as Mock).mockReturnValue({
+      prefetchQuery: vi.fn(),
+    });
   });
 
   describe("totalPages — PAGE_SIZE = 8", () => {
