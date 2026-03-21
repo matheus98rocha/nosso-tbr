@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { getUsers } from "../service/getUsers.service";
 import { UserDomain } from "../types/users.types";
 
 export function useUser(): {
@@ -8,13 +9,7 @@ export function useUser(): {
 } {
   const { data: users = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
-    queryFn: async () => {
-      const res = await fetch("/api/users", {
-        next: { tags: ["users"] },
-      });
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return res.json();
-    },
+    queryFn: getUsers,
   });
 
   const chosenByOptions = (users ?? []).map((user: UserDomain) => ({
