@@ -14,6 +14,7 @@
   - Sem seleção explícita de leitores (`filters.readers` vazio), a UI deve considerar **todos os leitores como ativos**.
   - Nesse estado "todos selecionados", a query **não deve aplicar filtro de `readers`** (envio de array vazio) para evitar restrição indevida por combinação exata.
   - Com seleção parcial, a query deve enviar apenas os leitores selecionados.
+  - A listagem de **Leituras Conjuntas** deve exibir somente livros com `readers.length > 1`.
 - **RN07 - Sincronização em Busca (Retry Logic):** Ao buscar um livro específico (`bookId` ou `searchQuery`) estando logado: se a API retornar vazio, disparar erro "Sincronizando novo livro..." e realizar 2 retries (delay de 1s).
 - **RN08 - Reset de Estado:** Qualquer alteração em filtros ou na `searchQuery` deve resetar obrigatoriamente a `currentPage` para 0.
 - **RN09 - Limpeza de Filtros:** O botão "Limpar" deve ficar ativo apenas se houver busca ativa, filtros de gênero/status/ano selecionados ou se o filtro de leitores for diferente do padrão.
