@@ -183,9 +183,7 @@ describe("useHome", () => {
     });
 
     it("resets to page 0 when searchQuery changes", () => {
-      (useFiltersUrl as Mock).mockReturnValue(
-        buildFiltersUrlReturn({}, ""),
-      );
+      (useFiltersUrl as Mock).mockReturnValue(buildFiltersUrlReturn({}, ""));
       const { result, rerender } = renderHook(() => useHome());
 
       act(() => result.current.setCurrentPage(3));
@@ -301,7 +299,11 @@ describe("useHome", () => {
     });
 
     it("returns true when multiple filters are active simultaneously", () => {
-      const { result } = setupHook({ year: 2023, status: ["finished"], gender: ["fiction"] });
+      const { result } = setupHook({
+        year: 2023,
+        status: ["finished"],
+        gender: ["fiction"],
+      });
       expect(result.current.canClear).toBe(true);
     });
   });
@@ -328,8 +330,13 @@ describe("useHome", () => {
     });
 
     it("accumulates multiple labels when multiple filters are active", () => {
-      const { result } = setupHook({ year: 2023, status: ["reading"] }, "tolkien");
-      expect(result.current.activeFilterLabels.length).toBeGreaterThanOrEqual(2);
+      const { result } = setupHook(
+        { year: 2023, status: ["reading"] },
+        "tolkien",
+      );
+      expect(result.current.activeFilterLabels.length).toBeGreaterThanOrEqual(
+        2,
+      );
       expect(result.current.activeFilterLabels).toContain('"tolkien"');
       expect(result.current.activeFilterLabels).toContain("Ano: 2023");
     });
