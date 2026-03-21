@@ -98,6 +98,13 @@ export function useHome() {
   const shouldWaitForUsers =
     !isMyBooksActive && filters.readers.length === 0 && isLoadingUsers;
 
+  const serverFilters = useMemo(
+    () => ({ ...filters, readers: [] as string[] }),
+    [filters],
+  );
+  const serverPage = isMyBooksActive ? currentPage : 0;
+  const serverPageSize = isMyBooksActive ? PAGE_SIZE : JOINT_READINGS_FETCH_SIZE;
+
   const {
     data: rawBooks,
     isFetching: isLoadingAllBooks,
@@ -105,9 +112,9 @@ export function useHome() {
     isError,
   } = useQuery({
     queryKey: QUERY_KEYS.books.list(
-      filters,
+      serverFilters,
       searchQuery,
-      currentPage,
+      serverPage,
       effectiveUserId,
     ),
     queryFn: async () => {
@@ -121,8 +128,8 @@ export function useHome() {
           gender: filters.gender,
           year: filters.year,
         },
-        page: isMyBooksActive ? currentPage : 0,
-        pageSize: isMyBooksActive ? PAGE_SIZE : JOINT_READINGS_FETCH_SIZE,
+        page: serverPage,
+        pageSize: serverPageSize,
       });
 
       if (
@@ -182,7 +189,8 @@ export function useHome() {
 
     const selectedReadersSet = new Set(effectiveSelectedReaders);
     const filteredJointBooks = rawBooks.data.filter((book) => {
-      if (!Array.isArray(book.readers) || book.readers.length <= 1) {
+      const readersStr = book.readers as string;
+      if (!readersStr?.includes(" e ")) {
         return false;
       }
 
@@ -190,7 +198,7 @@ export function useHome() {
         return true;
       }
 
-      return book.readers.some((reader) => selectedReadersSet.has(reader));
+      return [...selectedReadersSet].some((reader) => readersStr.includes(reader));
     });
 
     const from = currentPage * PAGE_SIZE;
@@ -297,21 +305,21 @@ export function useHome() {
 
     queryClient.prefetchQuery({
       queryKey: QUERY_KEYS.books.list(
-        filters,
+        serverFilters,
         searchQuery,
         nextPage,
         effectiveUserId,
       ),
       queryFn: () =>
         bookService.getAll({
-          bookId: filters.bookId,
+          bookId: serverFilters.bookId,
           search: searchQuery,
           userId: effectiveUserId,
           filters: {
             readers: [],
-            status: filters.status,
-            gender: filters.gender,
-            year: filters.year,
+            status: serverFilters.status,
+            gender: serverFilters.gender,
+            year: serverFilters.year,
           },
           page: nextPage,
           pageSize: PAGE_SIZE,
@@ -322,7 +330,7 @@ export function useHome() {
     allBooks?.total,
     currentPage,
     effectiveUserId,
-    filters,
+    serverFilters,
     isMyBooksActive,
     queryClient,
     searchQuery,
