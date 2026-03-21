@@ -5,6 +5,7 @@ import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { INITIAL_FILTERS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
+import { useUser } from "@/services/users/hooks/useUsers";
 
 vi.mock("@/services/books/books.service");
 vi.mock("@/services/users/hooks/useUsers", () => ({
@@ -36,6 +37,10 @@ vi.mock("@/hooks/useStatusFilters", () => ({
 vi.mock("@/hooks/useFiltersUrl");
 
 const mockUpdateUrlWithFilters = vi.fn();
+const mockUsers = [
+  { id: "1", display_name: "Matheus" },
+  { id: "2", display_name: "Barbara" },
+];
 
 function buildFiltersUrlReturn(
   filtersOverride: Partial<FiltersOptions> = {},
@@ -57,7 +62,13 @@ function buildFiltersUrlReturn(
 
 function mockQueryData(total: number) {
   (useQuery as Mock).mockReturnValue({
-    data: { data: [], total },
+    data: {
+      data: Array.from({ length: total }, (_, index) => ({
+        id: String(index + 1),
+        readers: ["Matheus", "Barbara"],
+      })),
+      total,
+    },
     isFetching: false,
     isFetched: true,
     isError: false,
@@ -78,6 +89,10 @@ function setupHook(
 describe("useHome", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (useUser as Mock).mockReturnValue({
+      users: [],
+      isLoadingUsers: false,
+    });
     (useQueryClient as Mock).mockReturnValue({
       prefetchQuery: vi.fn(),
     });
@@ -168,9 +183,7 @@ describe("useHome", () => {
     });
 
     it("resets to page 0 when searchQuery changes", () => {
-      (useFiltersUrl as Mock).mockReturnValue(
-        buildFiltersUrlReturn({}, ""),
-      );
+      (useFiltersUrl as Mock).mockReturnValue(buildFiltersUrlReturn({}, ""));
       const { result, rerender } = renderHook(() => useHome());
 
       act(() => result.current.setCurrentPage(3));
@@ -286,7 +299,11 @@ describe("useHome", () => {
     });
 
     it("returns true when multiple filters are active simultaneously", () => {
-      const { result } = setupHook({ year: 2023, status: ["finished"], gender: ["fiction"] });
+      const { result } = setupHook({
+        year: 2023,
+        status: ["finished"],
+        gender: ["fiction"],
+      });
       expect(result.current.canClear).toBe(true);
     });
   });
@@ -313,8 +330,13 @@ describe("useHome", () => {
     });
 
     it("accumulates multiple labels when multiple filters are active", () => {
-      const { result } = setupHook({ year: 2023, status: ["reading"] }, "tolkien");
-      expect(result.current.activeFilterLabels.length).toBeGreaterThanOrEqual(2);
+      const { result } = setupHook(
+        { year: 2023, status: ["reading"] },
+        "tolkien",
+      );
+      expect(result.current.activeFilterLabels.length).toBeGreaterThanOrEqual(
+        2,
+      );
       expect(result.current.activeFilterLabels).toContain('"tolkien"');
       expect(result.current.activeFilterLabels).toContain("Ano: 2023");
     });
@@ -367,6 +389,114 @@ describe("useHome", () => {
     it("exposes isLoggedIn as a boolean", () => {
       const { result } = setupHook();
       expect(typeof result.current.isLoggedIn).toBe("boolean");
+    });
+
+    it("exposes handleToggleReader as a function", () => {
+      const { result } = setupHook();
+      expect(typeof result.current.handleToggleReader).toBe("function");
+    });
+
+    it("exposes checkIsUserActive as a function", () => {
+      const { result } = setupHook();
+      expect(typeof result.current.checkIsUserActive).toBe("function");
+    });
+  });
+
+  describe("joint reading readers filters", () => {
+    it("keeps readers filter empty when all readers are selected by default", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: [] });
+      expect(result.current.readersObj.readers).toEqual([]);
+    });
+
+    it("marks all readers as active when filters.readers is empty", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: [] });
+      expect(result.current.checkIsUserActive("Matheus")).toBe(true);
+      expect(result.current.checkIsUserActive("Barbara")).toBe(true);
+    });
+
+    it("toggles reader selection from default-all state", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: [] });
+
+      act(() => result.current.handleToggleReader("Matheus"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
+        ...INITIAL_FILTERS,
+        readers: ["Barbara"],
+      });
+    });
+
+    it("adds a reader back when it is currently not selected", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: ["Barbara"] });
+
+      act(() => result.current.handleToggleReader("Matheus"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
+        ...INITIAL_FILTERS,
+        readers: ["Barbara", "Matheus"],
+      });
+    });
+
+    it("does not treat stale reader list with same length as 'all selected'", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: ["Matheus", "Leitor Removido"] });
+
+      expect(result.current.readersObj.readers).toEqual([
+        "Matheus",
+        "Leitor Removido",
+      ]);
+    });
+
+    it("in joint-reading mode only keeps books with more than one reader", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      (useQuery as Mock).mockReturnValue({
+        data: {
+          data: [
+            { id: "1", readers: ["Matheus", "Barbara"] },
+            { id: "2", readers: ["Matheus"] },
+            { id: "3", readers: ["Barbara", "Carol"] },
+          ],
+          total: 3,
+        },
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      });
+
+      const { result } = setupHook({ readers: [] });
+
+      expect(result.current.allBooks?.total).toBe(2);
+      expect(result.current.allBooks?.data.map((book) => book.id)).toEqual([
+        "1",
+        "3",
+      ]);
     });
   });
 });

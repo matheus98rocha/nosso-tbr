@@ -1,8 +1,3 @@
-import { Button } from "@/components/ui/button";
-import {
-  //  ArrowUpDown,
-  Sliders,
-} from "lucide-react";
 import {
   InputWithButton,
   InputWithButtonRef,
@@ -14,7 +9,6 @@ type SearchBarProps = {
   onButtonClick?: (value: string) => void;
   onBlur?: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
-  onOpenFilters: () => void;
 };
 
 export function SearchBar({
@@ -23,7 +17,7 @@ export function SearchBar({
   onBlur,
   onButtonClick,
   onKeyDown,
-  onOpenFilters,
+  // onOpenFilters,
 }: SearchBarProps) {
   return (
     <div className="grid w-full md:w-[70%] mx-auto grid-cols-[1fr_auto] gap-2 items-center bg-white">
@@ -36,7 +30,7 @@ export function SearchBar({
         placeholder="Pesquise por título do livro ou nome do autor"
       />
       <div className="flex items-center justify-center gap-2">
-        <Button
+        {/* <Button
           variant="ghost"
           onClick={onOpenFilters}
           className="border border-gray-300 hover:bg-gray-100 flex items-center gap-1"
@@ -44,7 +38,7 @@ export function SearchBar({
         >
           <Sliders size={16} />
           Filtros
-        </Button>
+        </Button> */}
 
         {/* <Button
           variant="ghost"

@@ -33,9 +33,6 @@ export function HomeSearchBar() {
         onBlur={handleInputBlur}
         onButtonClick={handleSearchButtonClick}
         onKeyDown={handleOnPressEnter}
-        onOpenFilters={() => {
-          filtersSheet.setIsOpen(true);
-        }}
       />
     </>
   );

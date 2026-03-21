@@ -35,8 +35,11 @@ export default function ClientHome() {
     totalPages,
     handleToggleMyBooks,
     handleSetJointReading,
+    handleToggleReader,
     isMyBooksActive,
     isLoggedIn,
+    users,
+    checkIsUserActive,
   } = useHome();
 
   const dialogModal = useModal();
@@ -95,71 +98,100 @@ export default function ClientHome() {
           )}
         </div>
 
-        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+        <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden divide-y divide-zinc-200 dark:divide-zinc-800">
           <div className="p-4 space-y-2.5">
             <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
               <Users size={11} />
               Visão
             </p>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-start justify-start gap-2 ">
               {isLoading ? (
                 <div className="flex gap-2">
                   <Skeleton className="h-8 w-40 rounded-full" />
                   {isLoggedIn && <Skeleton className="h-8 w-28 rounded-full" />}
                 </div>
               ) : (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={isMyBooksActive ? handleSetJointReading : undefined}
-                    className={cn(
-                      "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
-                      !isMyBooksActive
-                        ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
-                        : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
-                    )}
-                    aria-label="Ver leituras conjuntas"
-                    aria-pressed={!isMyBooksActive}
-                  >
-                    <Users
-                      size={13}
-                      className={cn(
-                        "mr-1.5 transition-colors",
-                        !isMyBooksActive
-                          ? "text-white"
-                          : "text-zinc-400 group-hover:text-inherit",
-                      )}
-                    />
-                    Leituras Conjuntas
-                  </Button>
-                  {isLoggedIn && (
+                <div className="flex items-center flex-col gap-2">
+                  <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={handleToggleMyBooks}
+                      onClick={
+                        isMyBooksActive ? handleSetJointReading : undefined
+                      }
                       className={cn(
                         "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
-                        isMyBooksActive
+                        !isMyBooksActive
                           ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
                           : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
                       )}
-                      aria-label="Filtrar meus livros"
-                      aria-pressed={isMyBooksActive}
+                      aria-label="Ver leituras conjuntas"
+                      aria-pressed={!isMyBooksActive}
                     >
-                      <BookOpen
+                      <Users
                         size={13}
                         className={cn(
                           "mr-1.5 transition-colors",
-                          isMyBooksActive
+                          !isMyBooksActive
                             ? "text-white"
                             : "text-zinc-400 group-hover:text-inherit",
                         )}
                       />
-                      Meus Livros
+                      Leituras Conjuntas
                     </Button>
-                  )}
-                </>
+
+                    {isLoggedIn && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleToggleMyBooks}
+                        className={cn(
+                          "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                          isMyBooksActive
+                            ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                            : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
+                        )}
+                        aria-label="Filtrar meus livros"
+                        aria-pressed={isMyBooksActive}
+                      >
+                        <BookOpen
+                          size={13}
+                          className={cn(
+                            "mr-1.5 transition-colors",
+                            isMyBooksActive
+                              ? "text-white"
+                              : "text-zinc-400 group-hover:text-inherit",
+                          )}
+                        />
+                        Meus Livros
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex gap-2 items-start justify-start w-full">
+                    {!isMyBooksActive && (
+                      <div className="flex gap-2">
+                        {users.map((user) => (
+                          <Button
+                            key={user.id}
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              handleToggleReader(user.display_name)
+                            }
+                            className={cn(
+                              "rounded-full h-8 px-3 text-xs font-medium transition-all",
+                              checkIsUserActive(user.display_name)
+                                ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                                : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
+                            )}
+                          >
+                            {user.display_name}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -172,7 +204,10 @@ export default function ClientHome() {
             {isLoading ? (
               <div className="flex gap-2 flex-wrap">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={`status-sk-${i}`} className="h-8 w-28 rounded-full" />
+                  <Skeleton
+                    key={`status-sk-${i}`}
+                    className="h-8 w-28 rounded-full"
+                  />
                 ))}
               </div>
             ) : (
@@ -187,7 +222,10 @@ export default function ClientHome() {
             {isLoading ? (
               <div className="flex gap-2 flex-wrap">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={`year-sk-${i}`} className="h-8 w-16 rounded-full" />
+                  <Skeleton
+                    key={`year-sk-${i}`}
+                    className="h-8 w-16 rounded-full"
+                  />
                 ))}
               </div>
             ) : (

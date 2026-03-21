@@ -33,7 +33,7 @@ export function DesktopNavMenu({
 
   return (
     <>
-      <nav className="flex items-center justify-center gap-8 mb-4">
+      <nav className="flex items-center justify-center gap-1 mb-2">
         {filteredItems.map((item) => (
           <NavItem
             key={item.label}

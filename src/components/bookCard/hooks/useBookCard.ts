@@ -115,10 +115,6 @@ export function useBookCard({ book }: BookCardProps) {
     };
     return configs[book.status ?? "not_started"] ?? null;
   }, [book.status, formattedEndDate, formattedPlannedDate]);
-  console.log({
-    bookStatus: book.status,
-    statusDisplay,
-  });
 
   const handleConfirmDelete = async (id: string, isShelf?: boolean) => {
     if (!isShelf) {

@@ -22,6 +22,82 @@ const buildMockSupabase = (mockQuery: ReturnType<typeof buildMockQuery>) => {
 };
 
 describe("BookQueryBuilder", () => {
+  describe("withReaders", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("applies contains filter with the provided readers", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReaders(["Matheus", "Fabi"])
+        .build();
+
+      expect(mockQuery.contains).toHaveBeenCalledWith(
+        "readers",
+        ["Fabi", "Matheus"],
+      );
+    });
+
+    it("normalizes reader order so ['Matheus','Fabi'] and ['Fabi','Matheus'] produce the same query", () => {
+      const mockQueryA = buildMockQuery();
+      const mockQueryB = buildMockQuery();
+      const supabaseA = buildMockSupabase(mockQueryA);
+      const supabaseB = buildMockSupabase(mockQueryB);
+
+      new BookQueryBuilder(supabaseA, mockQueryA as never)
+        .withReaders(["Matheus", "Fabi"])
+        .build();
+
+      new BookQueryBuilder(supabaseB, mockQueryB as never)
+        .withReaders(["Fabi", "Matheus"])
+        .build();
+
+      expect(mockQueryA.contains).toHaveBeenCalledWith("readers", [
+        "Fabi",
+        "Matheus",
+      ]);
+      expect(mockQueryB.contains).toHaveBeenCalledWith("readers", [
+        "Fabi",
+        "Matheus",
+      ]);
+    });
+
+    it("does not apply filter when readers is undefined", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReaders(undefined)
+        .build();
+
+      expect(mockQuery.contains).not.toHaveBeenCalled();
+    });
+
+    it("does not apply filter when readers is an empty array", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReaders([])
+        .build();
+
+      expect(mockQuery.contains).not.toHaveBeenCalled();
+    });
+
+    it("applies filter with a single reader", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReaders(["Matheus"])
+        .build();
+
+      expect(mockQuery.contains).toHaveBeenCalledWith("readers", ["Matheus"]);
+    });
+
+    it("returns the builder instance to support method chaining", () => {
+      const builder = new BookQueryBuilder(supabase, mockQuery as never);
+      const returned = builder.withReaders(["Fabi"]);
+
+      expect(returned).toBe(builder);
+    });
+  });
+
   describe("withYear", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;
