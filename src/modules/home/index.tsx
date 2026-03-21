@@ -15,7 +15,6 @@ import { StatusFilterChips } from "@/components/statusFilterChips/statusFilterCh
 import { YearFilterChips } from "@/components/yearFilterChips/yearFilterChips";
 import { BookOpen, Tag, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCallback } from "react";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -36,22 +35,16 @@ export default function ClientHome() {
     totalPages,
     handleToggleMyBooks,
     handleSetJointReading,
+    handleToggleReader,
     isMyBooksActive,
     isLoggedIn,
     users,
+    checkIsUserActive,
   } = useHome();
 
   const dialogModal = useModal();
   const createShelfDialog = useModal();
   const isLoading = isLoadingAllBooks || isLoggingOut;
-
-  const handleUserClick = useCallback((userId: string) => {
-    console.log("clicked", userId);
-  }, []);
-
-  const checkIsUserActive = useCallback(() => {
-    return false;
-  }, []);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">
@@ -182,10 +175,12 @@ export default function ClientHome() {
                             key={user.id}
                             size="sm"
                             variant="outline"
-                            onClick={() => handleUserClick(user.id)}
+                            onClick={() =>
+                              handleToggleReader(user.display_name)
+                            }
                             className={cn(
                               "rounded-full h-8 px-3 text-xs font-medium transition-all",
-                              checkIsUserActive()
+                              checkIsUserActive(user.display_name)
                                 ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
                                 : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
                             )}
