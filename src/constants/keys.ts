@@ -42,7 +42,12 @@ export const QUERY_KEYS = {
       [
         ...QUERY_KEYS.books.all,
         "list",
-        sortObjectKeys(filters),
+        sortObjectKeys({
+          ...filters,
+          readers: [...filters.readers].sort(),
+          status: [...filters.status].sort(),
+          gender: [...filters.gender].sort(),
+        }),
         search,
         page,
         userId,

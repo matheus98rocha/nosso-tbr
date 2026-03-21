@@ -21,7 +21,7 @@ export class BookQueryBuilder {
 
   withReaders(readers?: string[]): this {
     if (readers?.length) {
-      this.query = this.query.contains("readers", readers);
+      this.query = this.query.contains("readers", [...readers].sort());
     }
     return this;
   }
