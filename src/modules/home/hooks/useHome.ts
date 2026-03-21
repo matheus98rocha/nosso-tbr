@@ -64,15 +64,22 @@ export function useHome() {
     if (isMyBooksActive) {
       return { readers: [], readersDisplay: "" };
     }
-    if (filters.readers.length > 0) {
+
+    const allNames = users.map((u) => u.display_name);
+    const selectedReaders =
+      filters.readers.length > 0 ? filters.readers : allNames;
+    const isAllReadersSelected =
+      selectedReaders.length > 0 && selectedReaders.length === allNames.length;
+
+    if (!isAllReadersSelected) {
       return {
-        readers: filters.readers,
-        readersDisplay: filters.readers.join(", "),
+        readers: selectedReaders,
+        readersDisplay: selectedReaders.join(", "),
       };
     }
-    const allNames = users.map((u) => u.display_name);
+
     return {
-      readers: allNames,
+      readers: [],
       readersDisplay: allNames.join(", "),
     };
   }, [filters.readers, users, isMyBooksActive]);
@@ -197,6 +204,34 @@ export function useHome() {
     updateUrlWithFilters({ ...filters, myBooks: false });
   }, [filters, updateUrlWithFilters]);
 
+  const handleToggleReader = useCallback(
+    (readerName: string) => {
+      const allReaders = users.map((u) => u.display_name);
+      const currentReaders =
+        filters.readers.length > 0 ? filters.readers : allReaders;
+
+      const nextReaders = currentReaders.includes(readerName)
+        ? currentReaders.filter((reader) => reader !== readerName)
+        : [...currentReaders, readerName];
+
+      updateUrlWithFilters({ ...filters, readers: nextReaders });
+    },
+    [filters, updateUrlWithFilters, users],
+  );
+
+  const checkIsUserActive = useCallback(
+    (readerName: string) => {
+      if (isMyBooksActive) return false;
+
+      if (filters.readers.length === 0) {
+        return true;
+      }
+
+      return filters.readers.includes(readerName);
+    },
+    [filters.readers, isMyBooksActive],
+  );
+
   const { activeStatuses, handleToggleStatus } = useStatusFilters({
     filters,
     searchQuery,
@@ -279,6 +314,8 @@ export function useHome() {
     activeFilterLabels,
     handleToggleMyBooks,
     handleSetJointReading,
+    handleToggleReader,
+    checkIsUserActive,
     isMyBooksActive,
     isLoggedIn,
     users,
