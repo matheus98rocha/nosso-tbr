@@ -17,6 +17,7 @@ import { QUERY_KEYS } from "@/constants/keys";
 import { useStatusFilters } from "@/hooks/useStatusFilters";
 
 const PAGE_SIZE = 8;
+const JOINT_READINGS_FETCH_SIZE = 2000;
 const bookService = new BookService();
 
 export function useHome() {
@@ -68,8 +69,12 @@ export function useHome() {
     const allNames = users.map((u) => u.display_name);
     const selectedReaders =
       filters.readers.length > 0 ? filters.readers : allNames;
+    const selectedSet = new Set(selectedReaders);
+    const availableSet = new Set(allNames);
     const isAllReadersSelected =
-      selectedReaders.length > 0 && selectedReaders.length === allNames.length;
+      selectedSet.size > 0 &&
+      selectedSet.size === availableSet.size &&
+      [...selectedSet].every((reader) => availableSet.has(reader));
 
     if (!isAllReadersSelected) {
       return {
@@ -94,7 +99,7 @@ export function useHome() {
     !isMyBooksActive && filters.readers.length === 0 && isLoadingUsers;
 
   const {
-    data: allBooks,
+    data: rawBooks,
     isFetching: isLoadingAllBooks,
     isFetched,
     isError,
@@ -111,13 +116,13 @@ export function useHome() {
         search: searchQuery,
         userId: effectiveUserId,
         filters: {
-          readers: isMyBooksActive ? [] : readersObj.readers,
+          readers: [],
           status: filters.status,
           gender: filters.gender,
           year: filters.year,
         },
-        page: currentPage,
-        pageSize: PAGE_SIZE,
+        page: isMyBooksActive ? currentPage : 0,
+        pageSize: isMyBooksActive ? PAGE_SIZE : JOINT_READINGS_FETCH_SIZE,
       });
 
       if (
@@ -156,6 +161,46 @@ export function useHome() {
     [filters.status],
   );
   const formattedYear = useMemo(() => formatYear(filters.year), [filters.year]);
+
+  const allReaders = useMemo(
+    () => users.map((userData) => userData.display_name),
+    [users],
+  );
+  const effectiveSelectedReaders = useMemo(
+    () => (filters.readers.length > 0 ? filters.readers : allReaders),
+    [filters.readers, allReaders],
+  );
+
+  const allBooks = useMemo(() => {
+    if (!rawBooks) {
+      return rawBooks;
+    }
+
+    if (isMyBooksActive) {
+      return rawBooks;
+    }
+
+    const selectedReadersSet = new Set(effectiveSelectedReaders);
+    const filteredJointBooks = rawBooks.data.filter((book) => {
+      if (!Array.isArray(book.readers) || book.readers.length <= 1) {
+        return false;
+      }
+
+      if (selectedReadersSet.size === 0) {
+        return true;
+      }
+
+      return book.readers.some((reader) => selectedReadersSet.has(reader));
+    });
+
+    const from = currentPage * PAGE_SIZE;
+    const to = from + PAGE_SIZE;
+
+    return {
+      data: filteredJointBooks.slice(from, to),
+      total: filteredJointBooks.length,
+    };
+  }, [rawBooks, isMyBooksActive, effectiveSelectedReaders, currentPage]);
 
   const canClear = useMemo(
     () =>
@@ -248,6 +293,7 @@ export function useHome() {
     const nextPage = currentPage + 1;
     const hasNextPage = nextPage < totalPages;
     if (!hasNextPage) return;
+    if (!isMyBooksActive) return;
 
     queryClient.prefetchQuery({
       queryKey: QUERY_KEYS.books.list(
@@ -262,7 +308,7 @@ export function useHome() {
           search: searchQuery,
           userId: effectiveUserId,
           filters: {
-            readers: isMyBooksActive ? [] : readersObj.readers,
+            readers: [],
             status: filters.status,
             gender: filters.gender,
             year: filters.year,
@@ -279,7 +325,6 @@ export function useHome() {
     filters,
     isMyBooksActive,
     queryClient,
-    readersObj.readers,
     searchQuery,
     totalPages,
   ]);
