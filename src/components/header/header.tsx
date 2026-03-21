@@ -128,38 +128,39 @@ function Header() {
                 Menu
               </SheetTitle>
             </SheetHeader>
-
-            <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-4">
-              {menuItems.map((menu) => (
-                <div key={menu.label}>
-                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest px-3 mb-1">
-                    {menu.label}
-                  </p>
-                  <div className="flex flex-col gap-0.5">
-                    {menu.items.map((item) => {
-                      const isActive = item.path && pathname === item.path;
-                      return (
-                        <SheetClose asChild key={item.label}>
-                          <Button
-                            variant="ghost"
-                            className={cn(
-                              "justify-start h-11 px-3 rounded-xl text-sm font-medium transition-colors",
-                              isActive
-                                ? "bg-zinc-100 text-zinc-400 cursor-default"
-                                : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900",
-                            )}
-                            onClick={!isActive ? item.action : undefined}
-                            disabled={!!isActive}
-                          >
-                            {item.label}
-                          </Button>
-                        </SheetClose>
-                      );
-                    })}
+            {isLogged && (
+              <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-4">
+                {menuItems.map((menu) => (
+                  <div key={menu.label}>
+                    <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest px-3 mb-1">
+                      {menu.label}
+                    </p>
+                    <div className="flex flex-col gap-0.5">
+                      {menu.items.map((item) => {
+                        const isActive = item.path && pathname === item.path;
+                        return (
+                          <SheetClose asChild key={item.label}>
+                            <Button
+                              variant="ghost"
+                              className={cn(
+                                "justify-start h-11 px-3 rounded-xl text-sm font-medium transition-colors",
+                                isActive
+                                  ? "bg-zinc-100 text-zinc-400 cursor-default"
+                                  : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900",
+                              )}
+                              onClick={!isActive ? item.action : undefined}
+                              disabled={!!isActive}
+                            >
+                              {item.label}
+                            </Button>
+                          </SheetClose>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <SheetFooter className="px-4 py-4 border-t">
               <SheetClose asChild>
@@ -195,17 +196,17 @@ function Header() {
           Nosso TBR
         </h1>
       </button>
-
-      <div className="flex flex-col items-center justify-center flex-1 min-w-0 gap-2">
-        {(!scrolled || isLogged) && (
-          <DesktopNavMenu
-            bookUpsertModal={bookUpsertModal}
-            isLoading={isLoadingUser}
-          />
-        )}
-        {pathname === "/" && <HomeSearchBar />}
-      </div>
-
+      {isLogged && (
+        <div className="flex flex-col items-center justify-center flex-1 min-w-0 gap-2">
+          {(!scrolled || isLogged) && (
+            <DesktopNavMenu
+              bookUpsertModal={bookUpsertModal}
+              isLoading={isLoadingUser}
+            />
+          )}
+          {pathname === "/" && <HomeSearchBar />}
+        </div>
+      )}
       <div className="flex items-center gap-2 shrink-0">
         {isLoadingUser ? (
           <Skeleton className="h-4 w-36 rounded-md" />

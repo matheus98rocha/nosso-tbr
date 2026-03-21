@@ -17,17 +17,19 @@ function ClienteShelves() {
   const dialog = useModal();
   const isLogged = useIsLoggedIn();
 
-  const [selectedBookshelf, setSelectedBookshelf] = useState<SelectedBookshelf>({
-    id: "",
-    name: "",
-  });
+  const [selectedBookshelf, setSelectedBookshelf] = useState<SelectedBookshelf>(
+    {
+      id: "",
+      name: "",
+    },
+  );
 
   const handleOpenDialog = useCallback(
     (shelf: SelectedBookshelf) => {
       setSelectedBookshelf(shelf);
       dialog.setIsOpen(true);
     },
-    [dialog.setIsOpen]
+    [dialog],
   );
 
   const { bookshelves, isFetching, isFetched } = useBookshelves({});

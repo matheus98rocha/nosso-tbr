@@ -20,6 +20,12 @@
 - **RN09 - Limpeza de Filtros:** O botão "Limpar" deve ficar ativo apenas se houver busca ativa, filtros de gênero/status/ano selecionados ou se o filtro de leitores for diferente do padrão.
 - **RN16 - Filtro de Ano Híbrido (Query):** O filtro por ano deve retornar livros que foram **finalizados** naquele ano (`end_date`) OU que foram **planejados** para iniciar naquele ano (`planned_start_date`).
 
+- **RN17 - Exibição de Livros (Query):** Caso usuário logado, exiba os filtros conforme regras, caso contrário exiba todos os livros.
+
+- **RN18 - Guard de Autenticação em Queries:** Todo `useQuery` que acessa uma rota autenticada (`/api/users`, `/api/shelves`) DEVE declarar `enabled: isLoggedIn`. Queries sem esse guard disparam a requisição mesmo para sessões não autenticadas, resultando em 401 e erro em cascata.
+
+- **RN19 - staleTime em Queries Compartilhadas:** Queries com o mesmo `queryKey` usadas em múltiplos hooks/componentes DEVEM declarar `staleTime` consistente (padrão: `1000 * 60 * 5`). Sem `staleTime`, mounts sequenciais de componentes distintos disparam refetches redundantes mesmo com o cache populado, pois `staleTime` padrão é 0.
+
 ## 3. Book Status & Lifecycle
 
 - **RN10 - Estados Permitidos:** `not_started`, `planned`, `reading` e `finished`.

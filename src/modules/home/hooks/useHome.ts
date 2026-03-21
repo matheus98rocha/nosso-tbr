@@ -15,6 +15,7 @@ import { UserDomain } from "@/services/users/types/users.types";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { QUERY_KEYS } from "@/constants/keys";
 import { useStatusFilters } from "@/hooks/useStatusFilters";
+import { sortWithPriority } from "../utils";
 
 const PAGE_SIZE = 8;
 const JOINT_READINGS_FETCH_SIZE = 2000;
@@ -27,11 +28,20 @@ export function useHome() {
   const isLoggedIn = useIsLoggedIn();
 
   const [currentPage, setCurrentPage] = useState(0);
+  const readers: UserDomain[] = useMemo(() => {
+    if (isLoggedIn) {
+      return sortWithPriority(
+        users,
+        users.find((u: UserDomain) => u.id === user?.id)?.display_name ?? "",
+      );
+    }
+    return users.map((u: UserDomain) => u);
+  }, [users, user?.id, isLoggedIn]);
 
   const defaultFactory = useMemo(
     () => () =>
       ({
-        readers: users.map((u: UserDomain) => u.display_name),
+        readers: readers.map((r) => r.display_name),
         status: [],
         gender: [],
         userId: "",
@@ -40,7 +50,7 @@ export function useHome() {
         year: undefined,
         myBooks: false,
       }) as FiltersOptions,
-    [users],
+    [readers],
   );
 
   const {
@@ -103,7 +113,9 @@ export function useHome() {
     [filters],
   );
   const serverPage = isMyBooksActive ? currentPage : 0;
-  const serverPageSize = isMyBooksActive ? PAGE_SIZE : JOINT_READINGS_FETCH_SIZE;
+  const serverPageSize = isMyBooksActive
+    ? PAGE_SIZE
+    : JOINT_READINGS_FETCH_SIZE;
 
   const {
     data: rawBooks,
@@ -118,6 +130,13 @@ export function useHome() {
       effectiveUserId,
     ),
     queryFn: async () => {
+      if (isLoadingUsers) {
+        const response = await bookService.getAll({
+          page: serverPage,
+          pageSize: serverPageSize,
+        });
+        return response;
+      }
       const response = await bookService.getAll({
         bookId: filters.bookId,
         search: searchQuery,
@@ -198,7 +217,9 @@ export function useHome() {
         return true;
       }
 
-      return [...selectedReadersSet].some((reader) => readersStr.includes(reader));
+      return [...selectedReadersSet].some((reader) =>
+        readersStr.includes(reader),
+      );
     });
 
     const from = currentPage * PAGE_SIZE;
@@ -372,5 +393,6 @@ export function useHome() {
     isMyBooksActive,
     isLoggedIn,
     users,
+    readers,
   };
 }

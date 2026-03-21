@@ -8,6 +8,7 @@ import {
   BookshelfDomain,
 } from "../types/bookshelves.types";
 import { useUserStore } from "@/stores/userStore";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 export function useBookshelves({
   handleClose,
@@ -19,6 +20,7 @@ export function useBookshelves({
   const queryClient = useQueryClient();
   const service = new BookshelfService();
   const user = useUserStore((state) => state.user);
+  const isLoggedIn = useIsLoggedIn();
 
   const {
     data: bookshelves,
@@ -28,6 +30,8 @@ export function useBookshelves({
   } = useQuery({
     queryKey: ["bookshelves"],
     queryFn: fetchBookShelves,
+    enabled: isLoggedIn,
+    staleTime: 1000 * 60 * 5,
   });
 
   const { mutate, isPending: isCreating } = useMutation({

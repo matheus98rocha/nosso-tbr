@@ -3,6 +3,7 @@ import { vi, Mock } from "vitest";
 import { useAddBookToShelf } from "./useAddBookToShelf";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn(),
@@ -21,6 +22,10 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
+vi.mock("@/stores/hooks/useAuth", () => ({
+  useIsLoggedIn: vi.fn(() => true),
+}));
+
 const mockPush = vi.fn();
 const mockInvalidateQueries = vi.fn();
 const mockMutate = vi.fn();
@@ -30,12 +35,15 @@ function setupMocks({
   isLoading = false,
   isPending = false,
   mutateImpl = mockMutate,
+  isLoggedIn = true,
 }: {
   bookshelves?: { id: string; name: string }[];
   isLoading?: boolean;
   isPending?: boolean;
   mutateImpl?: Mock;
+  isLoggedIn?: boolean;
 } = {}) {
+  (useIsLoggedIn as Mock).mockReturnValue(isLoggedIn);
   (useRouter as Mock).mockReturnValue({ push: mockPush });
   (useQueryClient as Mock).mockReturnValue({
     invalidateQueries: mockInvalidateQueries,
@@ -175,6 +183,56 @@ describe("useAddBookToShelf", () => {
     it("does not throw when called with empty selectedShelfId", () => {
       const { result } = renderHook(() => useAddBookToShelf(defaultProps));
       expect(() => act(() => result.current.handleSubmit())).not.toThrow();
+    });
+  });
+
+  describe("RN18 — guard de autenticação", () => {
+    it("passa enabled: false para useQuery quando não está logado", () => {
+      setupMocks({ isLoggedIn: false });
+      renderHook(() => useAddBookToShelf(defaultProps));
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it("passa enabled: true para useQuery quando está logado", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() => useAddBookToShelf(defaultProps));
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it("retorna bookshelfOptions vazio quando não está logado", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(false);
+      (useQuery as Mock).mockReturnValue({ data: undefined, isLoading: false });
+      (useMutation as Mock).mockImplementation(() => ({
+        mutate: mockMutate,
+        isPending: false,
+      }));
+      (useRouter as Mock).mockReturnValue({ push: mockPush });
+      (useQueryClient as Mock).mockReturnValue({ invalidateQueries: mockInvalidateQueries });
+
+      const { result } = renderHook(() => useAddBookToShelf(defaultProps));
+      expect(result.current.bookshelfOptions).toEqual([]);
+    });
+  });
+
+  describe("RN19 — staleTime em queries compartilhadas", () => {
+    it("declara staleTime de 5 minutos (300000ms)", () => {
+      setupMocks();
+      renderHook(() => useAddBookToShelf(defaultProps));
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ staleTime: 1000 * 60 * 5 }),
+      );
+    });
+
+    it("usa queryKey [\"bookshelves\"] para compartilhar cache", () => {
+      setupMocks();
+      renderHook(() => useAddBookToShelf(defaultProps));
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ queryKey: ["bookshelves"] }),
+      );
     });
   });
 

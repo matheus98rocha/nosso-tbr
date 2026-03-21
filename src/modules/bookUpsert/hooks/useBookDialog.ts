@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -27,6 +28,7 @@ export function useBookDialog({
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const isLoggedIn = useIsLoggedIn();
 
   const [selected, setSelected] = useState<Status | null>(null);
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
@@ -76,6 +78,8 @@ export function useBookDialog({
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
     queryKey: ["bookshelves"],
     queryFn: fetchBookShelves,
+    enabled: isLoggedIn,
+    staleTime: 1000 * 60 * 5,
   });
 
   const bookshelfOptions = useMemo(
