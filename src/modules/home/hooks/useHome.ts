@@ -148,10 +148,7 @@ export function useHome() {
     () => formatStatus(filters.status),
     [filters.status],
   );
-  const formattedYear = useMemo(
-    () => formatYear(filters.year),
-    [filters.year],
-  );
+  const formattedYear = useMemo(() => formatYear(filters.year), [filters.year]);
 
   const canClear = useMemo(
     () =>
@@ -284,5 +281,6 @@ export function useHome() {
     handleSetJointReading,
     isMyBooksActive,
     isLoggedIn,
+    users,
   };
 }

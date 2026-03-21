@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { CircleUser, Menu as MenuIcon } from "lucide-react";
-import { Separator } from "../ui/separator";
 import { useHeader } from "./hooks/useHeader";
 import { HomeSearchBar } from "./components/homeSearchBar/homeSearchBar";
 import { useUserStore } from "@/stores/userStore";
@@ -33,6 +32,7 @@ import { Skeleton } from "../ui/skeleton";
 import LogoIcon from "@/assets/icons/logo";
 import { BookService } from "@/services/books/books.service";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
+import { cn } from "@/lib/utils";
 
 function Header() {
   const queryClient = useQueryClient();
@@ -90,45 +90,64 @@ function Header() {
   }, [isLogged, queryClient, user?.id]);
 
   const renderMobileMenu = (): JSX.Element => (
-    <div className="md:hidden flex items-center justify-center gap-4 flex-col">
-      <div className="flex items-center justify-between w-full">
+    <div className="md:hidden flex flex-col gap-3">
+      <div className="flex items-center justify-between">
         <button
-          className="flex items-center justify-center gap-0.5"
+          className="flex items-center gap-2 cursor-pointer transition-opacity duration-200 hover:opacity-70"
           onClick={() => router.push("/")}
           onMouseEnter={handlePrefetchHome}
+          aria-label="Ir para a página inicial"
         >
+          <LogoIcon
+            className={`transition-all duration-300 ${scrolled ? "w-5 h-5" : "w-6 h-6"}`}
+          />
           <h1
-            className={`font-bold transition-all duration-300 ${scrolled ? "text-xl" : "text-2xl"}`}
+            className={`font-bold tracking-tight transition-all duration-300 ${scrolled ? "text-lg" : "text-xl"}`}
           >
             Nosso TBR
           </h1>
         </button>
+
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MenuIcon size={64} />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-11 h-11 rounded-full hover:bg-zinc-100 transition-colors"
+              aria-label="Abrir menu de navegação"
+            >
+              <MenuIcon className="w-5 h-5" />
             </Button>
           </SheetTrigger>
           <SheetContent
             side="right"
             className="w-full sm:max-w-sm flex flex-col p-0"
           >
-            <SheetHeader className="p-8 pb-4 border-b">
-              <SheetTitle>Menu</SheetTitle>
+            <SheetHeader className="px-6 py-5 border-b">
+              <SheetTitle className="text-base font-semibold tracking-tight">
+                Menu
+              </SheetTitle>
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto p-6 pt-4 flex flex-col gap-6">
+            <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-4">
               {menuItems.map((menu) => (
                 <div key={menu.label}>
-                  <span className="text-lg font-semibold">{menu.label}</span>
-                  <div className="flex flex-col gap-2 mt-2">
+                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest px-3 mb-1">
+                    {menu.label}
+                  </p>
+                  <div className="flex flex-col gap-0.5">
                     {menu.items.map((item) => {
                       const isActive = item.path && pathname === item.path;
                       return (
                         <SheetClose asChild key={item.label}>
                           <Button
                             variant="ghost"
-                            className="justify-start"
+                            className={cn(
+                              "justify-start h-11 px-3 rounded-xl text-sm font-medium transition-colors",
+                              isActive
+                                ? "bg-zinc-100 text-zinc-400 cursor-default"
+                                : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900",
+                            )}
                             onClick={!isActive ? item.action : undefined}
                             disabled={!!isActive}
                           >
@@ -138,14 +157,16 @@ function Header() {
                       );
                     })}
                   </div>
-                  <Separator className="mt-2 mb-2" />
                 </div>
               ))}
             </div>
 
-            <SheetFooter className="p-4 border-t">
+            <SheetFooter className="px-4 py-4 border-t">
               <SheetClose asChild>
-                <Button variant="outline" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full h-11 rounded-xl font-medium"
+                >
                   Fechar
                 </Button>
               </SheetClose>
@@ -158,25 +179,24 @@ function Header() {
   );
 
   const renderDesktopMenu = (): JSX.Element => (
-    <div className="hidden md:flex items-start justify-between">
-      <div className="flex items-start gap-3">
-        <button
-          className="flex items-center justify-center gap-2 transition-all duration-300"
-          onClick={() => router.push("/")}
-          onMouseEnter={handlePrefetchHome}
+    <div className="hidden md:flex items-center justify-between gap-6">
+      <button
+        className="flex items-center gap-2.5 cursor-pointer transition-opacity duration-200 hover:opacity-75 shrink-0"
+        onClick={() => router.push("/")}
+        onMouseEnter={handlePrefetchHome}
+        aria-label="Ir para a página inicial"
+      >
+        <LogoIcon
+          className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-60 h-60"}`}
+        />
+        <h1
+          className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap ${scrolled ? "text-base" : "text-2xl"}`}
         >
-          <LogoIcon
-            className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-60 h-60"}`}
-          />
-          <h1
-            className={`font-bold transition-all duration-300 whitespace-nowrap ${scrolled ? "text-base" : "text-2xl"}`}
-          >
-            Nosso TBR
-          </h1>
-        </button>
-      </div>
+          Nosso TBR
+        </h1>
+      </button>
 
-      <div className="flex flex-col items-center justify-center w-full gap-2">
+      <div className="flex flex-col items-center justify-center flex-1 min-w-0 gap-2">
         {(!scrolled || isLogged) && (
           <DesktopNavMenu
             bookUpsertModal={bookUpsertModal}
@@ -186,20 +206,22 @@ function Header() {
         {pathname === "/" && <HomeSearchBar />}
       </div>
 
-      <div className="md:flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         {isLoadingUser ? (
-          <Skeleton className="h-4 w-[200px]" />
+          <Skeleton className="h-4 w-36 rounded-md" />
         ) : (
           <>
-            <small className="text-sm leading-none font-medium">
-              {user?.email}
-            </small>
+            {user?.email && (
+              <span className="text-sm font-medium text-zinc-500 truncate max-w-[180px]">
+                {user.email}
+              </span>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-11 h-11 rounded-full"
+                  className="w-11 h-11 rounded-full hover:bg-zinc-100 transition-colors"
                   aria-label="Menu da conta"
                 >
                   <CircleUser
@@ -249,11 +271,12 @@ function Header() {
       />
 
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 px-6 border-b ${
+        className={cn(
+          "fixed top-0 left-0 w-full z-50 transition-all duration-300 px-6 border-b",
           scrolled
-            ? "py-2 shadow-md bg-white/80 backdrop-blur-md border-white/20"
-            : "py-6 bg-white shadow-sm border-transparent"
-        }`}
+            ? "py-2 bg-white/90 backdrop-blur-md shadow-sm border-zinc-200/80"
+            : "py-6 bg-white border-transparent",
+        )}
       >
         <div className="container mx-auto flex flex-col gap-2">
           {renderDesktopMenu()}

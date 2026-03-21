@@ -98,7 +98,10 @@ export function BookUpsert(props: CreateBookProps) {
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
             {/* Drag handle — mobile only */}
-            <div className="flex justify-center pt-3 pb-1 sm:hidden" aria-hidden="true">
+            <div
+              className="flex justify-center pt-3 pb-1 sm:hidden"
+              aria-hidden="true"
+            >
               <div className="h-1 w-10 rounded-full bg-muted-foreground/25" />
             </div>
 
@@ -154,7 +157,11 @@ export function BookUpsert(props: CreateBookProps) {
                         <FormItem>
                           <FormLabel>URL da Capa</FormLabel>
                           <FormControl>
-                            <Input {...field} autoFocus={false} />
+                            <Input
+                              placeholder="Insira o link da imagem da Amazon"
+                              {...field}
+                              autoFocus={false}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
