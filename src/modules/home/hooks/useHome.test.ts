@@ -65,7 +65,7 @@ function mockQueryData(total: number) {
     data: {
       data: Array.from({ length: total }, (_, index) => ({
         id: String(index + 1),
-        readers: ["Matheus", "Barbara"],
+        readers: "Matheus e Barbara",
       })),
       total,
     },
@@ -479,9 +479,9 @@ describe("useHome", () => {
       (useQuery as Mock).mockReturnValue({
         data: {
           data: [
-            { id: "1", readers: ["Matheus", "Barbara"] },
-            { id: "2", readers: ["Matheus"] },
-            { id: "3", readers: ["Barbara", "Carol"] },
+            { id: "1", readers: "Matheus e Barbara" },
+            { id: "2", readers: "Matheus" },
+            { id: "3", readers: "Barbara e Carol" },
           ],
           total: 3,
         },
