@@ -159,6 +159,7 @@ export function useHome() {
           page: serverPage,
           pageSize: serverPageSize,
           bookId: filters.bookId,
+          authorId: filters.authorId,
           search: searchQuery,
           filters: {
             readers: [],
@@ -173,15 +174,6 @@ export function useHome() {
         return response;
       }
       const response = await bookService.getAll({
-        bookId: filters.bookId,
-        search: searchQuery,
-        userId: effectiveUserId,
-        filters: {
-          readers: [],
-          status: filters.status,
-          gender: filters.gender,
-          year: filters.year,
-        },
         page: serverPage,
         pageSize: serverPageSize,
       });
@@ -369,6 +361,7 @@ export function useHome() {
       queryFn: () =>
         bookService.getAll({
           bookId: serverFilters.bookId,
+          authorId: serverFilters.authorId,
           search: searchQuery,
           userId: effectiveUserId,
           filters: {

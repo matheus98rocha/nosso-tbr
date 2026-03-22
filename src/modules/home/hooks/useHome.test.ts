@@ -495,12 +495,67 @@ describe("useHome", () => {
           pageSize: 2000,
           search: "hobbit",
           bookId: "",
+          authorId: "",
           filters: expect.objectContaining({
             readers: [],
             status: [],
             gender: [],
             year: 2024,
           }),
+        }),
+      );
+    });
+
+    it("forwards authorId filter to service query", async () => {
+      setupHook({ authorId: "author-42" }, "tolkien");
+
+      const queryConfig = (useQuery as Mock).mock.calls[0][0];
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          search: "tolkien",
+          authorId: "author-42",
+        }),
+      );
+    });
+  });
+
+  describe("non-logged business rule", () => {
+    it("does not send search or filters when user is not logged in", async () => {
+      const { useIsLoggedIn } = await import("@/stores/hooks/useAuth");
+      (useIsLoggedIn as Mock).mockReturnValue(false);
+
+      setupHook(
+        {
+          bookId: "book-1",
+          authorId: "author-42",
+          readers: ["Matheus"],
+          status: ["reading"],
+          gender: ["Fantasia"],
+          year: 2025,
+        },
+        "tolkien",
+        true,
+      );
+
+      const queryConfig = (useQuery as Mock).mock.calls[0][0];
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 0,
+          pageSize: 2000,
+        }),
+      );
+      expect(mockGetAll).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          search: "tolkien",
+        }),
+      );
+      expect(mockGetAll).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.anything(),
         }),
       );
     });
