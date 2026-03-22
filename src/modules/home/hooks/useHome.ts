@@ -130,10 +130,20 @@ export function useHome() {
       effectiveUserId,
     ),
     queryFn: async () => {
-      if (isLoadingUsers) {
+      if (isLoggedIn) {
         const response = await bookService.getAll({
           page: serverPage,
           pageSize: serverPageSize,
+          ...(isMyBooksActive && {
+            userId: effectiveUserId,
+            search: searchQuery,
+            filters: {
+              readers: [],
+              status: serverFilters.status,
+              gender: serverFilters.gender,
+              year: serverFilters.year,
+            },
+          }),
         });
         return response;
       }
