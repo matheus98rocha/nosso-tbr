@@ -290,6 +290,7 @@ export function useHome() {
   }, [
     searchQuery,
     formattedGenres,
+    formattedReaders,
     formattedStatus,
     formattedYear,
     readersObj.readersDisplay,
