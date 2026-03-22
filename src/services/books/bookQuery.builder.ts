@@ -90,6 +90,13 @@ export class BookQueryBuilder {
     if (words.length > 0) {
       const formattedSearch = words.map((word) => `${word}:*`).join(" & ");
       this.query = this.query.filter("search_vector", "fts", formattedSearch);
+      const escapedWords = words.map((word) => word.replace(/[%]/g, "\\$&"));
+      const titleConditions = escapedWords.map((word) => `title.ilike.%${word}%`);
+      this.query = this.query.or(titleConditions.join(","));
+      const authorConditions = escapedWords.map((word) => `name.ilike.%${word}%`);
+      this.query = this.query.or(authorConditions.join(","), {
+        referencedTable: "authors",
+      });
     }
     return this;
   }

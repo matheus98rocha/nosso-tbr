@@ -142,7 +142,11 @@
 - **RN22 — Non-Logged Filters**
   - Cannot:
     - Apply filters
+    - Perform text search (`searchQuery`)
+    - Search by specific identifiers (`bookId`, `authorId`)
     - See filter UI
+  - Technical enforcement:
+    - Service calls for non-logged users must ignore search/filter params and only list all books with pagination
 
 ---
 
