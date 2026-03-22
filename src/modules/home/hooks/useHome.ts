@@ -158,15 +158,16 @@ export function useHome() {
         const response = await bookService.getAll({
           page: serverPage,
           pageSize: serverPageSize,
+          bookId: filters.bookId,
+          search: searchQuery,
+          filters: {
+            readers: [],
+            status: serverFilters.status,
+            gender: serverFilters.gender,
+            year: serverFilters.year,
+          },
           ...(isMyBooksActive && {
             userId: effectiveUserId,
-            search: searchQuery,
-            filters: {
-              readers: [],
-              status: serverFilters.status,
-              gender: serverFilters.gender,
-              year: serverFilters.year,
-            },
           }),
         });
         return response;

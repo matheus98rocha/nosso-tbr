@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { INITIAL_FILTERS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
 import { useUser } from "@/services/users/hooks/useUsers";
+import { BookService } from "@/services/books/books.service";
 
 vi.mock("@/services/books/books.service");
 vi.mock("@/services/users/hooks/useUsers", () => ({
@@ -41,6 +42,8 @@ const mockUsers = [
   { id: "1", display_name: "Matheus" },
   { id: "2", display_name: "Barbara" },
 ];
+
+const mockGetAll = vi.fn().mockResolvedValue({ data: [], total: 0 });
 
 function buildFiltersUrlReturn(
   filtersOverride: Partial<FiltersOptions> = {},
@@ -96,6 +99,7 @@ describe("useHome", () => {
     (useQueryClient as Mock).mockReturnValue({
       prefetchQuery: vi.fn(),
     });
+    vi.spyOn(BookService.prototype, "getAll").mockImplementation(mockGetAll);
   });
 
   describe("totalPages — PAGE_SIZE = 8", () => {
@@ -469,6 +473,36 @@ describe("useHome", () => {
         "15",
         "16",
       ]);
+    });
+  });
+
+  describe("collective year filter business rule", () => {
+    it("sends year filter for logged collective view without forcing user scope", async () => {
+      const { useIsLoggedIn } = await import("@/stores/hooks/useAuth");
+      const { useUserStore } = await import("@/stores/userStore");
+
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as Mock).mockReturnValue({ id: "user-1", display_name: "Matheus" });
+
+      setupHook({ myBooks: false, year: 2024 }, "hobbit");
+
+      const queryConfig = (useQuery as Mock).mock.calls[0][0];
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 0,
+          pageSize: 2000,
+          search: "hobbit",
+          bookId: "",
+          filters: expect.objectContaining({
+            readers: [],
+            status: [],
+            gender: [],
+            year: 2024,
+          }),
+        }),
+      );
     });
   });
 

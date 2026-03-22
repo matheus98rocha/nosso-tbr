@@ -118,6 +118,7 @@ export class BookQueryBuilder {
 
     this.query = this.query.or(
       `and(planned_start_date.gte.${startDate},planned_start_date.lte.${endDate}),` +
+        `and(start_date.gte.${startDate},start_date.lte.${endDate}),` +
         `and(end_date.gte.${startDate},end_date.lte.${endDate})`,
     );
 
