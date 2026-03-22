@@ -3,7 +3,6 @@
 ## 1. Book Creation & Validation (Schema)
 
 - **RN01 - Campos Obrigatórios:** `title`, `author_id` e `readers` são estritamente obrigatórios.
-- **RN02 - Curadoria (chosen_by):** Aceita apenas: "Matheus", "Fabi" ou "Barbara".
 - **RN03 - Integridade de Páginas:** O campo `pages` deve ser um número inteiro e positivo.
 - **RN04 - Segurança de Imagem:** `image_url` deve ser uma URL válida e pertencer obrigatoriamente aos domínios Amazon (`amazon.com`, `amazon.com.br`, `media-amazon.com`, `m.media-amazon.com`, `ssl-images-amazon.com`).
 
@@ -25,6 +24,12 @@
 - **RN18 - Guard de Autenticação em Queries:** Todo `useQuery` que acessa uma rota autenticada (`/api/users`, `/api/shelves`) DEVE declarar `enabled: isLoggedIn`. Queries sem esse guard disparam a requisição mesmo para sessões não autenticadas, resultando em 401 e erro em cascata.
 
 - **RN19 - staleTime em Queries Compartilhadas:** Queries com o mesmo `queryKey` usadas em múltiplos hooks/componentes DEVEM declarar `staleTime` consistente (padrão: `1000 * 60 * 5`). Sem `staleTime`, mounts sequenciais de componentes distintos disparam refetches redundantes mesmo com o cache populado, pois `staleTime` padrão é 0.
+
+- **RN20 - Livro duplicado:** Ao adicionar um livro já existente, verificando pelo titulo e autor, deve aparecer um modal avisando que aquele livro já foi adicionado e se deseja duplicar
+
+- **RN20 - Usuario não logado:** Não pode navegar entre telas, não pode fazer crud de absolutamente nada na aplicação e deve ver todos os livros cadastrados.
+
+- **RN21 - Usuario não logado - filtros:** Não pode aplicar filtros e não deve ver a opção de filtros.
 
 ## 3. Book Status & Lifecycle
 
