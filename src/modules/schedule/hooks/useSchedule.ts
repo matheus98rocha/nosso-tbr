@@ -23,19 +23,18 @@ export function useSchedule({ id }: UseScheduleProps) {
       return scheduleService.updateIsRead(id, isRead, user!.id);
     },
 
-    onMutate: async ({ id, isRead }) => {
-      await queryClient.cancelQueries({ queryKey: ["schedule", id] });
+    onMutate: async ({ id: scheduleId, isRead }) => {
+      await queryClient.cancelQueries({ queryKey: ["schedule", id, user?.id] });
 
       const previousSchedule = queryClient.getQueryData<ScheduleDomain[]>([
         "schedule",
         id,
         user?.id,
-        id,
       ]);
 
-      queryClient.setQueryData<ScheduleDomain[]>(["schedule", id], (old) =>
+      queryClient.setQueryData<ScheduleDomain[]>(["schedule", id, user?.id], (old) =>
         old?.map((day) =>
-          day.id === id ? { ...day, completed: isRead } : day,
+          day.id === scheduleId ? { ...day, completed: isRead } : day,
         ),
       );
 
@@ -44,12 +43,12 @@ export function useSchedule({ id }: UseScheduleProps) {
 
     onError: (_err, _variables, context) => {
       if (context?.previousSchedule) {
-        queryClient.setQueryData(["schedule", id], context.previousSchedule);
+        queryClient.setQueryData(["schedule", id, user?.id], context.previousSchedule);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["schedule", id] });
+      queryClient.invalidateQueries({ queryKey: ["schedule", id, user?.id] });
     },
   });
 
