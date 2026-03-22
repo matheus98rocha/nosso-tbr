@@ -402,6 +402,76 @@ describe("useHome", () => {
     });
   });
 
+
+
+  describe("pagination behavior for non-logged users", () => {
+    it("keeps current page when rerender happens with identical filters", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      (useQuery as Mock).mockReturnValue({
+        data: {
+          data: Array.from({ length: 20 }, (_, index) => ({
+            id: String(index + 1),
+            readers: "Matheus e Barbara",
+          })),
+          total: 20,
+        },
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      });
+
+      (useFiltersUrl as Mock).mockReturnValue(buildFiltersUrlReturn({}, "", false));
+      const { result, rerender } = renderHook(() => useHome());
+
+      act(() => result.current.setCurrentPage(1));
+      expect(result.current.currentPage).toBe(1);
+
+      (useFiltersUrl as Mock).mockReturnValue(buildFiltersUrlReturn({}, "", false));
+      rerender();
+
+      expect(result.current.currentPage).toBe(1);
+    });
+
+    it("returns second page slice when currentPage is 1", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      (useQuery as Mock).mockReturnValue({
+        data: {
+          data: Array.from({ length: 20 }, (_, index) => ({
+            id: String(index + 1),
+            readers: "Matheus e Barbara",
+          })),
+          total: 20,
+        },
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      });
+
+      const { result } = setupHook({ readers: [] });
+
+      act(() => result.current.setCurrentPage(1));
+
+      expect(result.current.allBooks?.data.map((book) => book.id)).toEqual([
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+      ]);
+    });
+  });
+
   describe("joint reading readers filters", () => {
     it("keeps readers filter empty when all readers are selected by default", () => {
       (useUser as Mock).mockReturnValue({
