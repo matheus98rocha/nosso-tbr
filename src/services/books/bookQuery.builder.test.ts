@@ -107,10 +107,11 @@ describe("BookQueryBuilder", () => {
       supabase = buildMockSupabase(mockQuery);
     });
 
-    it("applies complex OR filter for planned_start_date and end_date when year is provided", () => {
+    it("applies business-rule year filter for planned start, start and end dates", () => {
       const year = 2024;
       const expectedQuery =
         `and(planned_start_date.gte.2024-01-01,planned_start_date.lte.2024-12-31),` +
+        `and(start_date.gte.2024-01-01,start_date.lte.2024-12-31),` +
         `and(end_date.gte.2024-01-01,end_date.lte.2024-12-31)`;
 
       new BookQueryBuilder(supabase, mockQuery as never).withYear(year).build();
@@ -157,6 +158,7 @@ describe("BookQueryBuilder", () => {
       const year = 2021;
       const expectedQuery =
         `and(planned_start_date.gte.2021-01-01,planned_start_date.lte.2021-12-31),` +
+        `and(start_date.gte.2021-01-01,start_date.lte.2021-12-31),` +
         `and(end_date.gte.2021-01-01,end_date.lte.2021-12-31)`;
 
       new BookQueryBuilder(supabase, mockQuery as never).withYear(year).build();
