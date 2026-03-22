@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Testes unitários
+    name: Testes unitários + integração
     runs-on: ubuntu-latest
 
     steps:
@@ -31,8 +31,14 @@ jobs:
       - name: Instalar dependências
         run: yarn install --immutable
 
-      - name: Rodar testes com cobertura
+      - name: Rodar testes unitários com cobertura
         run: yarn vitest run --coverage
+        env:
+          TZ: America/Sao_Paulo
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Rodar testes de integração
+        run: yarn test:integration
         env:
           TZ: America/Sao_Paulo
           NEXT_TELEMETRY_DISABLED: "1"

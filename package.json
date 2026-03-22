@@ -10,7 +10,8 @@
     "update-types": "mkdir -p src/types && npx supabase gen types typescript --project-id xmekizajjewqituvnrgk > src/types/supabase.ts || (powershell -Command \"New-Item -ItemType Directory -Path src/types -Force; npx supabase gen types typescript --project-id xmekizajjewqituvnrgk > src/types/supabase.ts\")",
     "test": "vitest --coverage",
     "test:watch": "vitest --watch",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:integration": "vitest run integration --coverage=false"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
