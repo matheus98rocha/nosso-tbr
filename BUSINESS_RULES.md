@@ -1,53 +1,244 @@
-# Nosso TBR - Business Rules & Domain Logic
+# 📚 Nosso TBR — Business Rules & Domain Logic
 
-## 1. Book Creation & Validation (Schema)
+---
 
-- **RN01 - Campos Obrigatórios:** `title`, `author_id` e `readers` são estritamente obrigatórios.
-- **RN03 - Integridade de Páginas:** O campo `pages` deve ser um número inteiro e positivo.
-- **RN04 - Segurança de Imagem:** `image_url` deve ser uma URL válida e pertencer obrigatoriamente aos domínios Amazon (`amazon.com`, `amazon.com.br`, `media-amazon.com`, `m.media-amazon.com`, `ssl-images-amazon.com`).
+## 1. 📘 Book Creation & Validation (Schema)
 
-## 2. Listing, Search & Pagination
+- **RN01 — Required Fields**
+  - `title`, `author_id` and `readers` are strictly required.
 
-- **RN05 - Paginação:** O tamanho padrão da página é de 8 itens (`PAGE_SIZE = 8`).
-- **RN06 - Filtro de Leitores (Leituras Conjuntas):**
-  - Sem seleção explícita de leitores (`filters.readers` vazio), a UI deve considerar **todos os leitores como ativos**.
-  - Nesse estado "todos selecionados", a query **não deve aplicar filtro de `readers`** (envio de array vazio) para evitar restrição indevida por combinação exata.
-  - Com seleção parcial, a query deve enviar apenas os leitores selecionados.
-  - **RN18 - Normalização de Arrays de Filtro:** Os arrays de filtro (`readers`, `status`, `gender`) devem ser **ordenados alfabeticamente** antes de serem usados na query do banco e na query key do TanStack Query. Isso garante que `["Matheus", "Fabi"]` e `["Fabi", "Matheus"]` produzam o mesmo cache key e a mesma query, retornando sempre o mesmo resultado.
-- **RN07 - Sincronização em Busca (Retry Logic):** Ao buscar um livro específico (`bookId` ou `searchQuery`) estando logado: se a API retornar vazio, disparar erro "Sincronizando novo livro..." e realizar 2 retries (delay de 1s).
-- **RN08 - Reset de Estado:** Qualquer alteração em filtros ou na `searchQuery` deve resetar obrigatoriamente a `currentPage` para 0.
-- **RN09 - Limpeza de Filtros:** O botão "Limpar" deve ficar ativo apenas se houver busca ativa, filtros de gênero/status/ano selecionados ou se o filtro de leitores for diferente do padrão.
-- **RN16 - Filtro de Ano Híbrido (Query):** O filtro por ano deve retornar livros que foram **finalizados** naquele ano (`end_date`) OU que foram **planejados** para iniciar naquele ano (`planned_start_date`).
+- **RN03 — Pages Integrity**
+  - `pages` must be a positive integer.
 
-- **RN17 - Exibição de Livros (Query):** Caso usuário logado, exiba os filtros conforme regras, caso contrário exiba todos os livros.
+- **RN04 — Image Security**
+  - `image_url` must be a valid URL and belong to one of the allowed domains:
+    - `amazon.com`
+    - `amazon.com.br`
+    - `media-amazon.com`
+    - `m.media-amazon.com`
+    - `ssl-images-amazon.com`
 
-- **RN18 - Guard de Autenticação em Queries:** Todo `useQuery` que acessa uma rota autenticada (`/api/users`, `/api/shelves`) DEVE declarar `enabled: isLoggedIn`. Queries sem esse guard disparam a requisição mesmo para sessões não autenticadas, resultando em 401 e erro em cascata.
+---
 
-- **RN19 - staleTime em Queries Compartilhadas:** Queries com o mesmo `queryKey` usadas em múltiplos hooks/componentes DEVEM declarar `staleTime` consistente (padrão: `1000 * 60 * 5`). Sem `staleTime`, mounts sequenciais de componentes distintos disparam refetches redundantes mesmo com o cache populado, pois `staleTime` padrão é 0.
+## 2. 🔍 Listing, Search & Pagination
 
-- **RN20 - Livro duplicado:** Ao adicionar um livro já existente, verificando pelo titulo e autor, deve aparecer um modal avisando que aquele livro já foi adicionado e se deseja duplicar
+- **RN05 — Pagination**
+  - Default page size: `PAGE_SIZE = 8`.
 
-- **RN20 - Usuario não logado:** Não pode navegar entre telas, não pode fazer crud de absolutamente nada na aplicação e deve ver todos os livros cadastrados.
+---
 
-- **RN21 - Usuario não logado - filtros:** Não pode aplicar filtros e não deve ver a opção de filtros.
+### 👥 Readers Filter (Joint Reading)
 
-## 3. Book Status & Lifecycle
+- **RN06 — Default Behavior**
+  - If no readers are explicitly selected (`filters.readers` is empty):
+    - UI must consider **all readers as active**
+    - Query must **NOT apply a readers filter** (send empty array)
 
-- **RN10 - Estados Permitidos:** `not_started`, `planned`, `reading` e `finished`.
-- **RN11 - Lógica do Status "Planned" (UI):**
-  - Se possuir `planned_start_date`: Exibir "Início: [Data Formatada]" (Ex: 15 mar).
-  - Se NÃO possuir data: Exibir "Vou ler".
-- **RN12 - Toggle de Status:** A seleção de status é cumulativa. Clicar em um status ativo deve removê-lo; clicar em um inativo deve adicioná-lo ao array de filtros.
-- **RN17 - Definição Técnica de Estados (Query):**
-  - **Not Started:** `start_date` IS NULL AND `planned_start_date` IS NULL.
-  - **Planned:** `start_date` IS NULL AND `planned_start_date` NOT IS NULL.
-  - **Reading:** `start_date` NOT IS NULL AND `end_date` IS NULL.
-  - **Finished:** `start_date` NOT IS NULL AND `end_date` NOT IS NULL.
+- **RN06.1 — Partial Selection**
+  - When partially selected:
+    - Query must include only selected readers
 
-## 4. UI, Sharing & Deletion
+---
 
-- **RN13 - Compartilhamento WhatsApp:** A URL deve conter o base path do Vercel e o título do livro encodado no parâmetro `search`.
-- **RN14 - Deleção Lógica vs. Física:**
-  - Excluir via `BookService`: Remove o livro permanentemente da base.
-  - Excluir via `BookshelfService`: Remove apenas o vínculo do livro com a estante específica (módulo Shelves).
-- **RN15 - Mobile Touch Targets:** Elementos interativos (Dropdowns, Cards) devem seguir o padrão de acessibilidade para touch. Elementos de menu (ellipsis) devem ter áreas de clique de no mínimo 44x44px.
+### 🔄 Query Consistency & Cache
+
+- **RN18 — Filter Array Normalization**
+  - Arrays (`readers`, `status`, `gender`) must be:
+    - Alphabetically sorted before:
+      - Database queries
+      - TanStack Query keys
+  - Ensures:
+    - Stable cache keys
+    - Deterministic results
+
+---
+
+### 🔁 Retry & Sync
+
+- **RN07 — Search Retry Logic**
+  - When searching (`bookId` or `searchQuery`) and user is logged in:
+    - If API returns empty:
+      - Throw error: `"Sincronizando novo livro..."`
+      - Retry **2 times** with **1s delay**
+
+---
+
+### 🔄 State Management
+
+- **RN08 — Page Reset**
+  - Any change in filters or `searchQuery` must reset:
+    - `currentPage = 0`
+
+---
+
+### 🧹 Filter Reset
+
+- **RN09 — Clear Filters Button**
+  - Should only be enabled if:
+    - Active search exists OR
+    - Any filter (genre/status/year) is applied OR
+    - Readers filter differs from default
+
+---
+
+### 📅 Year Filter
+
+- **RN16 — Hybrid Year Filter**
+  - Must return books that:
+    - Were **finished** in the year (`end_date`)
+    - OR **planned** to start in the year (`planned_start_date`)
+
+---
+
+### 👤 Auth-Based Behavior
+
+- **RN17 — Logged vs Non-Logged Users**
+  - Logged user:
+    - Sees filters
+    - Uses all query rules
+  - Non-logged user:
+    - Sees all books
+    - No filters applied
+
+---
+
+### 🔐 Query Guards
+
+- **RN18 — Auth Guard in Queries**
+  - Any `useQuery` accessing protected routes:
+    - (`/api/users`, `/api/shelves`)
+  - MUST include:
+    - `enabled: isLoggedIn`
+  - Prevents:
+    - 401 errors
+    - Cascading failures
+
+---
+
+### ⏱ Query Performance
+
+- **RN19 — Shared Query staleTime**
+  - Queries sharing the same `queryKey` must define:
+    - `staleTime = 1000 * 60 * 5`
+  - Prevents:
+    - Redundant refetches
+    - Cache invalidation issues
+
+---
+
+### ⚠️ Business Constraints
+
+- **RN20 — Duplicate Book**
+  - If adding an existing book (same title + author):
+    - Show confirmation modal before duplicating
+
+- **RN21 — Non-Logged User Restrictions**
+  - Cannot:
+    - Navigate between screens
+    - Perform any CRUD operations
+  - Can:
+    - View all registered books
+
+- **RN22 — Non-Logged Filters**
+  - Cannot:
+    - Apply filters
+    - Perform text search (`searchQuery`)
+    - Search by specific identifiers (`bookId`, `authorId`)
+    - See filter UI
+  - Technical enforcement:
+    - Service calls for non-logged users must ignore search/filter params and only list all books with pagination
+
+---
+
+## 3. 🔄 Book Status & Lifecycle
+
+- **RN10 — Allowed States**
+  - `not_started`
+  - `planned`
+  - `reading`
+  - `finished`
+
+---
+
+### 🎯 Status Display Logic
+
+- **RN11 — Planned Status (UI)**
+  - If `planned_start_date` exists:
+    - Display: `"Início: [formatted date]"`
+  - Else:
+    - Display: `"Vou ler"`
+
+---
+
+### 🔁 Status Interaction
+
+- **RN12 — Toggle Behavior**
+  - Status selection is cumulative:
+    - Active → remove
+    - Inactive → add
+
+---
+
+### 🧠 Query State Definitions
+
+- **RN17 — Technical Status Rules**
+  - **Not Started**
+    - `start_date IS NULL`
+    - `planned_start_date IS NULL`
+
+  - **Planned**
+    - `start_date IS NULL`
+    - `planned_start_date IS NOT NULL`
+
+  - **Reading**
+    - `start_date IS NOT NULL`
+    - `end_date IS NULL`
+
+  - **Finished**
+    - `start_date IS NOT NULL`
+    - `end_date IS NOT NULL`
+
+---
+
+## 4. 📱 UI, Sharing & Deletion
+
+- **RN13 — WhatsApp Sharing**
+  - URL must include:
+    - Vercel base path
+    - Encoded book title in `search` param
+
+---
+
+### 🗑 Deletion Rules
+
+- **RN14 — Logical vs Physical Deletion**
+  - **BookService**
+    - Permanently deletes book
+
+  - **BookshelfService**
+    - Removes only the relationship with a shelf
+
+---
+
+### 📲 Mobile UX
+
+- **RN15 — Touch Targets**
+  - Interactive elements must follow:
+    - Minimum size: **44x44px**
+
+---
+
+## 5. 📅 Schedule (Cronograma)
+
+- **RN23 — Schedule Rules**
+  - Must NOT show creation form if a schedule already exists
+  - Each user has an independent schedule (even for the same book)
+  - Must respect **pt-BR timezone** for logged users in Brazil
+  - Deleting a schedule:
+    - Removes only for that user
+    - Must NOT affect other users
+  - Must support:
+    - Prologue handling
+    - Epilogue handling
+    - Chapter rounding rules
+    - Inclusion/exclusion of weekends

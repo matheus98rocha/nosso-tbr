@@ -22,6 +22,42 @@ const buildMockSupabase = (mockQuery: ReturnType<typeof buildMockQuery>) => {
 };
 
 describe("BookQueryBuilder", () => {
+  describe("withSearchTerm", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("applies FTS plus fallback ilike filters for title and author", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("Senhor Tolkien")
+        .build();
+
+      expect(mockQuery.filter).toHaveBeenCalledWith(
+        "search_vector",
+        "fts",
+        "Senhor:* & Tolkien:*",
+      );
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "title.ilike.%Senhor%,title.ilike.%Tolkien%",
+      );
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "name.ilike.%Senhor%,name.ilike.%Tolkien%",
+        { referencedTable: "authors" },
+      );
+    });
+
+    it("does not apply filters when search term is empty", () => {
+      new BookQueryBuilder(supabase, mockQuery as never).withSearchTerm("").build();
+
+      expect(mockQuery.filter).not.toHaveBeenCalled();
+      expect(mockQuery.or).not.toHaveBeenCalled();
+    });
+  });
+
   describe("withReaders", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;
@@ -107,10 +143,11 @@ describe("BookQueryBuilder", () => {
       supabase = buildMockSupabase(mockQuery);
     });
 
-    it("applies complex OR filter for planned_start_date and end_date when year is provided", () => {
+    it("applies business-rule year filter for planned start, start and end dates", () => {
       const year = 2024;
       const expectedQuery =
         `and(planned_start_date.gte.2024-01-01,planned_start_date.lte.2024-12-31),` +
+        `and(start_date.gte.2024-01-01,start_date.lte.2024-12-31),` +
         `and(end_date.gte.2024-01-01,end_date.lte.2024-12-31)`;
 
       new BookQueryBuilder(supabase, mockQuery as never).withYear(year).build();
@@ -157,6 +194,7 @@ describe("BookQueryBuilder", () => {
       const year = 2021;
       const expectedQuery =
         `and(planned_start_date.gte.2021-01-01,planned_start_date.lte.2021-12-31),` +
+        `and(start_date.gte.2021-01-01,start_date.lte.2021-12-31),` +
         `and(end_date.gte.2021-01-01,end_date.lte.2021-12-31)`;
 
       new BookQueryBuilder(supabase, mockQuery as never).withYear(year).build();

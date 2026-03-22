@@ -65,9 +65,33 @@ export function useHome() {
     handleSearchButtonClick,
   } = useFiltersUrl(defaultFactory);
 
+  const filtersSignature = useMemo(
+    () =>
+      JSON.stringify({
+        readers: [...filters.readers].sort(),
+        status: [...filters.status].sort(),
+        gender: [...filters.gender].sort(),
+        userId: filters.userId,
+        bookId: filters.bookId,
+        authorId: filters.authorId,
+        year: filters.year,
+        myBooks: filters.myBooks,
+      }),
+    [
+      filters.readers,
+      filters.status,
+      filters.gender,
+      filters.userId,
+      filters.bookId,
+      filters.authorId,
+      filters.year,
+      filters.myBooks,
+    ],
+  );
+
   useEffect(() => {
     setCurrentPage(0);
-  }, [filters, searchQuery]);
+  }, [filtersSignature, searchQuery]);
 
   const isMyBooksActive = !!(filters.myBooks && isLoggedIn && user?.id);
 
@@ -134,29 +158,22 @@ export function useHome() {
         const response = await bookService.getAll({
           page: serverPage,
           pageSize: serverPageSize,
+          bookId: filters.bookId,
+          authorId: filters.authorId,
+          search: searchQuery,
+          filters: {
+            readers: [],
+            status: serverFilters.status,
+            gender: serverFilters.gender,
+            year: serverFilters.year,
+          },
           ...(isMyBooksActive && {
             userId: effectiveUserId,
-            search: searchQuery,
-            filters: {
-              readers: [],
-              status: serverFilters.status,
-              gender: serverFilters.gender,
-              year: serverFilters.year,
-            },
           }),
         });
         return response;
       }
       const response = await bookService.getAll({
-        bookId: filters.bookId,
-        search: searchQuery,
-        userId: effectiveUserId,
-        filters: {
-          readers: [],
-          status: filters.status,
-          gender: filters.gender,
-          year: filters.year,
-        },
         page: serverPage,
         pageSize: serverPageSize,
       });
@@ -344,6 +361,7 @@ export function useHome() {
       queryFn: () =>
         bookService.getAll({
           bookId: serverFilters.bookId,
+          authorId: serverFilters.authorId,
           search: searchQuery,
           userId: effectiveUserId,
           filters: {
@@ -377,7 +395,6 @@ export function useHome() {
     searchQuery,
     updateUrlWithFilters,
     formattedStatus,
-    formattedReaders,
     formattedGenres,
     formattedYear,
     handleSearchButtonClick,

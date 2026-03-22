@@ -47,4 +47,17 @@ describe("BookMapper", () => {
     const domain = BookMapper.toDomain(persistence as BookPersistence);
     expect(domain.status).toBe("finished");
   });
+
+  it('deve mapear "Autor desconhecido" quando o relacionamento author vier nulo', () => {
+    const persistence: Partial<BookPersistence> = {
+      id: "book-1",
+      title: "Livro sem autor",
+      author: undefined as unknown as { name: string },
+      readers: ["Matheus"],
+    };
+
+    const domain = BookMapper.toDomain(persistence as BookPersistence);
+
+    expect(domain.author).toBe("Autor desconhecido");
+  });
 });
