@@ -115,7 +115,7 @@ export default function ClientHome() {
                   </div>
                 ) : (
                   <div className="flex items-center flex-col gap-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap w-full">
                       <Button
                         size="sm"
                         variant="outline"
@@ -172,7 +172,7 @@ export default function ClientHome() {
                     </div>
                     <div className="flex gap-2 items-start justify-start w-full">
                       {!isMyBooksActive && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           {readers.map((user) => (
                             <Button
                               key={user.id}
