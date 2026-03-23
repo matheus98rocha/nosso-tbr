@@ -1,6 +1,12 @@
 "use client";
 
-import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -8,6 +14,8 @@ import { Search } from "lucide-react";
 type InputWithButtonProps = {
   placeholder: string;
   defaultValue?: string;
+  value?: string;
+  onChange?: (value: string) => void;
   onButtonClick?: (value: string) => void;
   onBlur?: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -20,25 +28,56 @@ export type InputWithButtonRef = {
 export const InputWithButton = forwardRef<
   InputWithButtonRef,
   InputWithButtonProps
->(({ placeholder, defaultValue, onButtonClick, onBlur, onKeyDown }, ref) => {
+>(
+  (
+    {
+      placeholder,
+      defaultValue,
+      value,
+      onChange,
+      onButtonClick,
+      onBlur,
+      onKeyDown,
+    },
+    ref,
+  ) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [innerValue, setInnerValue] = useState(defaultValue ?? "");
+  const isControlled = typeof value === "string";
+  const currentValue = isControlled ? value : innerValue;
+
+  useEffect(() => {
+    if (!isControlled) {
+      setInnerValue(defaultValue ?? "");
+    }
+  }, [defaultValue, isControlled]);
 
   useImperativeHandle(ref, () => ({
     clear() {
-      if (inputRef.current) {
-        inputRef.current.value = "";
+      if (isControlled) {
+        onChange?.("");
+        return;
       }
+      setInnerValue("");
     },
   }));
 
   const handlePressEnter = () => {
-    const val = inputRef.current?.value ?? "";
-    onButtonClick?.(val);
+    onButtonClick?.(currentValue ?? "");
   };
 
   const handleBlur = () => {
-    const val = inputRef.current?.value ?? "";
-    onBlur?.(val);
+    onBlur?.(currentValue ?? "");
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.value;
+
+    if (!isControlled) {
+      setInnerValue(newValue);
+    }
+
+    onChange?.(newValue);
   };
 
   return (
@@ -46,8 +85,9 @@ export const InputWithButton = forwardRef<
       <Input
         type="search"
         placeholder={placeholder}
-        defaultValue={defaultValue}
+        value={currentValue}
         ref={inputRef}
+        onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={onKeyDown}
       />
@@ -62,6 +102,7 @@ export const InputWithButton = forwardRef<
       </Button>
     </div>
   );
-});
+},
+);
 
 InputWithButton.displayName = "InputWithButton";
