@@ -22,6 +22,48 @@ const buildMockSupabase = (mockQuery: ReturnType<typeof buildMockQuery>) => {
 };
 
 describe("BookQueryBuilder", () => {
+  describe("withSearchTerm", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("uses plainto_tsquery strategy (plfts) to avoid tsquery syntax errors", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("Harry Potter e a Câmara Secreta")
+        .build();
+
+      expect(mockQuery.filter).toHaveBeenCalledWith(
+        "search_vector",
+        "plfts",
+        "Harry Potter e a Câmara Secreta",
+      );
+    });
+
+    it("sanitizes unsafe characters before applying search", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("Harry: Potter!!!")
+        .build();
+
+      expect(mockQuery.filter).toHaveBeenCalledWith(
+        "search_vector",
+        "plfts",
+        "Harry Potter",
+      );
+    });
+
+    it("does not apply search when term is empty after sanitization", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("***")
+        .build();
+
+      expect(mockQuery.filter).not.toHaveBeenCalled();
+    });
+  });
+
   describe("withReaders", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;

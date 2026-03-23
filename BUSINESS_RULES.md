@@ -30,6 +30,12 @@
 - **RN20 - Usuario não logado:** Não pode navegar entre telas, não pode fazer crud de absolutamente nada na aplicação e deve ver todos os livros cadastrados.
 
 - **RN21 - Usuario não logado - filtros:** Não pode aplicar filtros e não deve ver a opção de filtros.
+- **RN22 - Busca Unificada (Autocomplete):** O autocomplete da busca inicial deve retornar resultados de **livros** e **autores** em um único fluxo de interação.
+- **RN23 - Performance do Autocomplete:** O autocomplete deve usar debounce (300ms) e entregar sugestões em até **500ms** em condições normais de rede.
+- **RN24 - Limite de Resultados no Autocomplete:** As sugestões devem ser limitadas por tipo para evitar sobrecarga de renderização e consultas.
+- **RN25 - Persistência do filtro "Meus Livros":** Ao executar buscas (digitação manual ou seleção via autocomplete), o estado `myBooks=true` deve ser preservado e **nunca** alternar automaticamente para leituras conjuntas.
+- **RN26 - Fechamento do Autocomplete:** O dropdown de autocomplete deve ser fechado quando o usuário clicar em uma sugestão, no botão de busca ou fora do campo.
+- **RN27 - Robustez da Busca Full-Text:** A busca textual de livros deve usar estratégia tolerante a stopwords e termos com acentos/pontuação (ex.: `plainto_tsquery`) para evitar erros de sintaxe em consultas como "Harry Potter e a Câmara Secreta".
 
 ## 3. Book Status & Lifecycle
 
