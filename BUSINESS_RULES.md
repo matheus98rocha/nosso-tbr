@@ -33,6 +33,7 @@
 - **RN22 - Busca Unificada (Autocomplete):** O autocomplete da busca inicial deve retornar resultados de **livros** e **autores** em um único fluxo de interação.
 - **RN23 - Performance do Autocomplete:** O autocomplete deve usar debounce (300ms) e entregar sugestões em até **500ms** em condições normais de rede.
 - **RN24 - Limite de Resultados no Autocomplete:** As sugestões devem ser limitadas por tipo para evitar sobrecarga de renderização e consultas.
+- **RN25 - Persistência do filtro "Meus Livros":** Ao executar buscas (digitação manual ou seleção via autocomplete), o estado `myBooks=true` deve ser preservado e **nunca** alternar automaticamente para leituras conjuntas.
 
 ## 3. Book Status & Lifecycle
 
