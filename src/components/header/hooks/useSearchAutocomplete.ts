@@ -10,12 +10,12 @@ export function useSearchAutocomplete(searchTerm: string) {
   const [debouncedTerm, setDebouncedTerm] = useState(searchTerm);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setDebouncedTerm(searchTerm);
     }, DEBOUNCE_MS);
 
     return () => {
-      window.clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
     };
   }, [searchTerm]);
 

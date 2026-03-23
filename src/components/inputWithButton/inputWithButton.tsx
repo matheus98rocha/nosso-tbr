@@ -64,7 +64,7 @@ export const InputWithButton = forwardRef<
     },
   }));
 
-  const handlePressEnter = () => {
+  const handleSearchClick = () => {
     onButtonClick?.(currentValue ?? "");
   };
 
@@ -96,7 +96,7 @@ export const InputWithButton = forwardRef<
       />
       <Button
         type="button"
-        onClick={handlePressEnter}
+        onClick={handleSearchClick}
         variant="secondary"
         className="absolute top-1/2 -translate-y-1/2 right-0.5 h-8 w-8 p-0 border-l border border-r-0 border-input border-y-0 rounded-l-none"
         aria-label="Search"
