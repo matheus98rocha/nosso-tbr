@@ -68,4 +68,9 @@ export const QUERY_KEYS = {
     collaboration: (reader: string) =>
       [...QUERY_KEYS.stats.all, "collaboration", reader] as const,
   },
+  search: {
+    all: ["search"] as const,
+    autocomplete: (term: string) =>
+      [...QUERY_KEYS.search.all, "autocomplete", term] as const,
+  },
 } as const;
