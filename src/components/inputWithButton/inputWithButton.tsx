@@ -18,6 +18,7 @@ type InputWithButtonProps = {
   onChange?: (value: string) => void;
   onButtonClick?: (value: string) => void;
   onBlur?: (value: string) => void;
+  onFocus?: () => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 };
 
@@ -37,6 +38,7 @@ export const InputWithButton = forwardRef<
       onChange,
       onButtonClick,
       onBlur,
+      onFocus,
       onKeyDown,
     },
     ref,
@@ -89,6 +91,7 @@ export const InputWithButton = forwardRef<
         ref={inputRef}
         onChange={handleChange}
         onBlur={handleBlur}
+        onFocus={onFocus}
         onKeyDown={onKeyDown}
       />
       <Button

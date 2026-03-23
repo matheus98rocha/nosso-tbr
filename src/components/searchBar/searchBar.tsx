@@ -3,6 +3,7 @@ import {
   InputWithButtonRef,
 } from "@/components/inputWithButton/inputWithButton";
 import { SearchAutocompleteDomain } from "@/components/header/types/searchAutocomplete.types";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type SearchBarProps = {
   refInput: React.RefObject<InputWithButtonRef | null>;
@@ -35,23 +36,57 @@ export function SearchBar({
   shouldSearch,
   // onOpenFilters,
 }: SearchBarProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
+
   const hasResults =
     groupedResults.books.length > 0 || groupedResults.authors.length > 0;
 
+  const showAutocomplete = useMemo(
+    () => isAutocompleteOpen && shouldSearch,
+    [isAutocompleteOpen, shouldSearch],
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!containerRef.current) return;
+
+      if (containerRef.current.contains(event.target as Node)) return;
+
+      setIsAutocompleteOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldSearch) {
+      setIsAutocompleteOpen(false);
+    }
+  }, [shouldSearch]);
+
   return (
     <div className="grid w-full md:w-[70%] mx-auto grid-cols-[1fr_auto] gap-2 items-center bg-white">
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         <InputWithButton
           ref={refInput}
           defaultValue={searchQuery}
           value={inputValue}
           onBlur={onBlur}
-          onButtonClick={onButtonClick}
+          onFocus={() => setIsAutocompleteOpen(true)}
+          onButtonClick={(value) => {
+            onButtonClick?.(value);
+            setIsAutocompleteOpen(false);
+          }}
           onKeyDown={onKeyDown}
           onChange={onChange}
           placeholder="Pesquise por título do livro ou nome do autor"
         />
-        {shouldSearch && (
+        {showAutocomplete && (
           <div className="absolute z-20 mt-1 w-full rounded-md border bg-white shadow-sm">
             {isLoadingSuggestions ? (
               <p className="px-3 py-2 text-sm text-muted-foreground">Buscando...</p>
@@ -68,7 +103,10 @@ export function SearchBar({
                         type="button"
                         className="w-full text-left px-3 py-2 text-sm hover:bg-muted"
                         onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => onSelectSuggestion?.(book)}
+                        onClick={() => {
+                          onSelectSuggestion?.(book);
+                          setIsAutocompleteOpen(false);
+                        }}
                       >
                         {book.label}
                       </button>
@@ -86,7 +124,10 @@ export function SearchBar({
                         type="button"
                         className="w-full text-left px-3 py-2 text-sm hover:bg-muted"
                         onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => onSelectSuggestion?.(author)}
+                        onClick={() => {
+                          onSelectSuggestion?.(author);
+                          setIsAutocompleteOpen(false);
+                        }}
                       >
                         {author.label}
                       </button>
