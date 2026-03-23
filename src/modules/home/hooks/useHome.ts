@@ -132,23 +132,32 @@ export function useHome() {
     queryFn: async () => {
       if (isLoggedIn) {
         const response = await bookService.getAll({
+          bookId: filters.bookId,
+          authorId: filters.authorId,
+          search: searchQuery,
+          userId: effectiveUserId,
+          filters: {
+            readers: [],
+            status: serverFilters.status,
+            gender: serverFilters.gender,
+            year: serverFilters.year,
+          },
           page: serverPage,
           pageSize: serverPageSize,
-          ...(isMyBooksActive && {
-            userId: effectiveUserId,
-            search: searchQuery,
-            filters: {
-              readers: [],
-              status: serverFilters.status,
-              gender: serverFilters.gender,
-              year: serverFilters.year,
-            },
-          }),
         });
+
+        if (
+          isAwaitingSpecificBook &&
+          (!response || response.data?.length === 0)
+        ) {
+          throw new Error("Sincronizando novo livro...");
+        }
+
         return response;
       }
       const response = await bookService.getAll({
         bookId: filters.bookId,
+        authorId: filters.authorId,
         search: searchQuery,
         userId: effectiveUserId,
         filters: {
