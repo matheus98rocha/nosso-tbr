@@ -147,8 +147,6 @@ export function useBookUpsert({
 
   const { shouldShowPlannedStartDate } = usePlannedStartDateFieldVisibility({
     selectedStatus: selected,
-    startDate: form.watch("start_date"),
-    endDate: form.watch("end_date"),
   });
 
   return {

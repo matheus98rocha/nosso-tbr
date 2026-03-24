@@ -40,6 +40,8 @@
 
 - **RN10 - Estados Permitidos:** `not_started`, `planned`, `reading`, `paused`, `abandoned` e `finished`.
 - **RN11 - Lógica do Status "Planned" (UI):**
+  - O campo `planned_start_date` no formulário deve aparecer apenas para `not_started`, `planned` ou quando nenhum status estiver selecionado.
+  - O campo não deve aparecer para `paused`, `abandoned`, `reading` e `finished`.
   - Se possuir `planned_start_date`: Exibir "Início: [Data Formatada]" (Ex: 15 mar).
   - Se NÃO possuir data: Exibir "Vou ler".
 - **RN12 - Toggle de Status:** A seleção de status é cumulativa. Clicar em um status ativo deve removê-lo; clicar em um inativo deve adicioná-lo ao array de filtros.
