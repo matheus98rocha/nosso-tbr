@@ -38,16 +38,20 @@
 
 ## 3. Book Status & Lifecycle
 
-- **RN10 - Estados Permitidos:** `not_started`, `planned`, `reading` e `finished`.
+- **RN10 - Estados Permitidos:** `not_started`, `planned`, `reading`, `paused`, `abandoned` e `finished`.
 - **RN11 - Lógica do Status "Planned" (UI):**
   - Se possuir `planned_start_date`: Exibir "Início: [Data Formatada]" (Ex: 15 mar).
   - Se NÃO possuir data: Exibir "Vou ler".
 - **RN12 - Toggle de Status:** A seleção de status é cumulativa. Clicar em um status ativo deve removê-lo; clicar em um inativo deve adicioná-lo ao array de filtros.
 - **RN17 - Definição Técnica de Estados (Query):**
-  - **Not Started:** `start_date` IS NULL AND `planned_start_date` IS NULL.
-  - **Planned:** `start_date` IS NULL AND `planned_start_date` NOT IS NULL.
-  - **Reading:** `start_date` NOT IS NULL AND `end_date` IS NULL.
-  - **Finished:** `start_date` NOT IS NULL AND `end_date` NOT IS NULL.
+  - O filtro por status deve usar a coluna explícita `books.status`.
+  - Mapeamento e listagem não devem inferir status a partir de datas.
+- **RN27 - Regras de Datas por Status (Edição):**
+  - `paused`: mantém `start_date` e `end_date`.
+  - `abandoned`: limpa `start_date` e `end_date` (NULL).
+- **RN28 - Retomada de Leitura:**
+  - Retomar de `paused` para `reading`: manter `start_date` existente quando nenhuma nova data for informada.
+  - Retomar de `abandoned` para `reading`: exigir nova `start_date` para reiniciar o ciclo.
 
 ## 4. UI, Sharing & Deletion
 

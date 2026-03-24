@@ -1,16 +1,19 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookMapper } from "@/services/books/books.mapper";
-import { BookDomain } from "@/types/books.types";
+import { BookDomain, Status } from "@/types/books.types";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { FiltersOptions } from "@/types/filters";
 
-const ALLOWED_STATUSES = [
+const ALLOWED_STATUSES: Status[] = [
   "reading",
   "finished",
   "not_started",
   "planned",
-] as const;
+  "paused",
+  "abandoned",
+];
+
 type BookStatus = (typeof ALLOWED_STATUSES)[number];
 
 function isBookStatus(value: unknown): value is BookStatus {
@@ -42,9 +45,7 @@ export class BookService {
 
       const query = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
-        .withStatus(
-          statuses as ("reading" | "finished" | "not_started" | "planned")[],
-        )
+        .withStatus(statuses)
         .withGender(filters?.gender)
         .withYear(filters?.year)
         .withSearchTerm(search)

@@ -1,7 +1,13 @@
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import z from "zod";
 
-export type Status = "reading" | "finished" | "not_started" | "planned";
+export type Status =
+  | "reading"
+  | "finished"
+  | "not_started"
+  | "planned"
+  | "paused"
+  | "abandoned";
 
 export type BookPersistence = {
   id?: string;
@@ -12,6 +18,7 @@ export type BookPersistence = {
   author_id: string;
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
+  status?: Status;
   start_date?: string | null;
   planned_start_date?: string | null;
   end_date?: string | null;
@@ -28,6 +35,7 @@ export type CreateBookPersistence = {
   author_id: string;
   chosen_by: "Matheus" | "Fabi" | "Barbara";
   pages: number;
+  status?: Status;
   start_date?: string | null;
   planned_start_date?: string | null;
   end_date?: string | null;

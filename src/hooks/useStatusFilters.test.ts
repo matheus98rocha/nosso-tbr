@@ -30,9 +30,9 @@ describe("useStatusFilters", () => {
 
     it("returns pre-populated statuses from filters", () => {
       const { result } = renderStatusFiltersHook({
-        status: ["reading", "finished"],
+        status: ["reading", "paused"],
       });
-      expect(result.current.activeStatuses).toEqual(["reading", "finished"]);
+      expect(result.current.activeStatuses).toEqual(["reading", "paused"]);
     });
 
     it("handles undefined filters.status gracefully", () => {
@@ -45,23 +45,23 @@ describe("useStatusFilters", () => {
     it("adds a status when it is not active", () => {
       const { result, updateUrlWithFilters } = renderStatusFiltersHook();
 
-      act(() => result.current.handleToggleStatus("reading"));
+      act(() => result.current.handleToggleStatus("paused"));
 
       expect(updateUrlWithFilters).toHaveBeenCalledWith(
-        { ...baseFilters, status: ["reading"] },
+        { ...baseFilters, status: ["paused"] },
         "",
       );
     });
 
     it("removes a status when it is already active", () => {
       const { result, updateUrlWithFilters } = renderStatusFiltersHook({
-        status: ["reading", "finished"],
+        status: ["reading", "abandoned"],
       });
 
       act(() => result.current.handleToggleStatus("reading"));
 
       expect(updateUrlWithFilters).toHaveBeenCalledWith(
-        { ...baseFilters, status: ["finished"] },
+        { ...baseFilters, status: ["abandoned"] },
         "",
       );
     });
@@ -91,10 +91,10 @@ describe("useStatusFilters", () => {
         useStatusFilters({ filters, searchQuery: "senhor dos aneis", updateUrlWithFilters }),
       );
 
-      act(() => result.current.handleToggleStatus("planned"));
+      act(() => result.current.handleToggleStatus("abandoned"));
 
       expect(updateUrlWithFilters).toHaveBeenCalledWith(
-        { readers: ["Matheus"], status: ["planned"], gender: ["fiction"] },
+        { readers: ["Matheus"], status: ["abandoned"], gender: ["fiction"] },
         "senhor dos aneis",
       );
     });
@@ -104,10 +104,10 @@ describe("useStatusFilters", () => {
         status: ["reading"],
       });
 
-      act(() => result.current.handleToggleStatus("finished"));
+      act(() => result.current.handleToggleStatus("paused"));
 
       expect(updateUrlWithFilters).toHaveBeenCalledWith(
-        { ...baseFilters, status: ["reading", "finished"] },
+        { ...baseFilters, status: ["reading", "paused"] },
         "",
       );
     });

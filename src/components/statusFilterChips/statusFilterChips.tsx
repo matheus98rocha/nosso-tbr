@@ -1,4 +1,11 @@
-import { Book, Bookmark, BookOpen, BookCheck } from "lucide-react";
+import {
+  Book,
+  Bookmark,
+  BookOpen,
+  BookCheck,
+  PauseCircle,
+  BookX,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -30,6 +37,22 @@ const STATUS_CHIP_CONFIG: StatusChipConfig[] = [
     activeClass: "bg-amber-500 border-amber-500 text-white hover:bg-amber-600",
     hoverClass:
       "hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 text-zinc-500 border-zinc-100",
+  },
+  {
+    status: "paused",
+    label: "Pausado",
+    Icon: PauseCircle,
+    activeClass: "bg-violet-600 border-violet-600 text-white hover:bg-violet-700",
+    hoverClass:
+      "hover:bg-violet-50 hover:text-violet-700 hover:border-violet-200 text-zinc-500 border-zinc-100",
+  },
+  {
+    status: "abandoned",
+    label: "Abandonado",
+    Icon: BookX,
+    activeClass: "bg-rose-600 border-rose-600 text-white hover:bg-rose-700",
+    hoverClass:
+      "hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-zinc-500 border-zinc-100",
   },
   {
     status: "finished",

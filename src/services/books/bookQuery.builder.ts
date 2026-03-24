@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "../../../database.types";
+import { Status } from "@/types/books.types";
 
 export class BookQueryBuilder {
   private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
@@ -26,30 +27,9 @@ export class BookQueryBuilder {
     return this;
   }
 
-  withStatus(
-    statuses?: ("not_started" | "reading" | "finished" | "planned")[],
-  ): this {
+  withStatus(statuses?: Status[]): this {
     if (!statuses || statuses.length === 0) return this;
-
-    const filters = statuses
-      .map((status) => {
-        if (status === "not_started") {
-          return `and(start_date.is.null,planned_start_date.is.null)`;
-        } else if (status === "planned") {
-          return `and(start_date.is.null,planned_start_date.not.is.null)`;
-        } else if (status === "reading") {
-          return `and(start_date.not.is.null,end_date.is.null)`;
-        } else if (status === "finished") {
-          return `and(start_date.not.is.null,end_date.not.is.null)`;
-        }
-        return "";
-      })
-      .filter(Boolean);
-
-    if (filters.length > 0) {
-      this.query = this.query.or(filters.join(","));
-    }
-
+    this.query = this.query.in("status", statuses);
     return this;
   }
 

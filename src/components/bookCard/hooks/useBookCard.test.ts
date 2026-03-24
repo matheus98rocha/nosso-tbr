@@ -76,6 +76,32 @@ describe("useBookCard", () => {
         );
       });
 
+      it("should return correct badge for paused", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "paused",
+        });
+        expect(result.current.badgeObject.bookStatusClass).toBe(
+          "bg-violet-600 text-white",
+        );
+        expect(result.current.badgeObject.bookStatusText).toBe(
+          "Leitura pausada",
+        );
+      });
+
+      it("should return correct badge for abandoned", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "abandoned",
+        });
+        expect(result.current.badgeObject.bookStatusClass).toBe(
+          "bg-rose-600 text-white",
+        );
+        expect(result.current.badgeObject.bookStatusText).toBe(
+          "Livro abandonado",
+        );
+      });
+
       it("should return correct badge for finished", () => {
         const { result } = renderBookCardHook({
           ...baseBook,

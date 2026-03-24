@@ -18,8 +18,12 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
   { id: "reading", label: "Já iniciei a leitura" },
+  { id: "paused", label: "Leitura pausada" },
+  { id: "abandoned", label: "Livro abandonado" },
   { id: "finished", label: "Terminei a Leitura" },
 ];
+
+const LOCKED_EDIT_STATUSES: Status[] = ["paused", "abandoned"];
 
 export function useBookDialog({
   bookData,
@@ -145,16 +149,29 @@ export function useBookDialog({
         return;
       }
 
-      const payload = { ...data };
+      const payload: BookCreateValidator = {
+        ...data,
+        status: selected ?? data.status ?? "not_started",
+      };
 
-      if (isEdit) {
-        if (selected === "not_started" || selected === "planned") {
-          payload.start_date = null;
-          payload.end_date = null;
-        } else if (selected === "reading") {
-          payload.end_date = null;
-          payload.planned_start_date = null;
-        }
+      if (payload.status === "not_started" || payload.status === "planned") {
+        payload.start_date = null;
+        payload.end_date = null;
+      }
+
+      if (payload.status === "reading") {
+        payload.end_date = null;
+        payload.planned_start_date = null;
+      }
+
+      if (payload.status === "paused") {
+        payload.planned_start_date = null;
+      }
+
+      if (payload.status === "abandoned") {
+        payload.start_date = null;
+        payload.end_date = null;
+        payload.planned_start_date = null;
       }
 
       return createBook.mutate(payload);
@@ -210,6 +227,29 @@ export function useBookDialog({
     createBook.mutate(formData);
   }, [form, createBook]);
 
+  const handleStatusChange = useCallback(
+    (id: string) => {
+      const statusId = id as Status;
+
+      if (!isEdit && LOCKED_EDIT_STATUSES.includes(statusId)) {
+        return;
+      }
+
+      if (
+        isEdit &&
+        LOCKED_EDIT_STATUSES.includes(statusId) &&
+        bookData?.status !== "reading"
+      ) {
+        return;
+      }
+
+      setSelected((current) =>
+        current === statusId ? null : statusId,
+      );
+    },
+    [bookData?.status, isEdit, setSelected],
+  );
+
   return {
     onSubmit,
     isLoading: createBook.isPending,
@@ -242,5 +282,6 @@ export function useBookDialog({
 
     handleOnChangePageNumber,
     handleChosenByChange,
+    handleStatusChange,
   };
 }
