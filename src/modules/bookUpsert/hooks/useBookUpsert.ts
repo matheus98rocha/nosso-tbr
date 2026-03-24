@@ -8,6 +8,8 @@ import { AuthorsService } from "../../authors/services/authors.service";
 import { ComboboxOption } from "../types/authorOptions";
 import { BookCreateValidator } from "@/types/books.types";
 import { ControllerRenderProps } from "react-hook-form";
+import { usePlannedStartDateLabel } from "./usePlannedStartDateLabel";
+import { usePlannedStartDateFieldVisibility } from "./usePlannedStartDateFieldVisibility";
 
 export function useBookUpsert({
   bookData,
@@ -141,6 +143,12 @@ export function useBookUpsert({
     setAuthorSearch(search);
   }, []);
 
+  const { plannedStartDateLabel } = usePlannedStartDateLabel(selected);
+
+  const { shouldShowPlannedStartDate } = usePlannedStartDateFieldVisibility({
+    selectedStatus: selected,
+  });
+
   return {
     isLoggedIn,
     chosenByOptions,
@@ -177,6 +185,8 @@ export function useBookUpsert({
     handlePageNumberChange,
     handleChosenByFieldChange,
     handleAuthorSearchChange,
+    plannedStartDateLabel,
+    shouldShowPlannedStartDate,
     bookData,
   };
 }

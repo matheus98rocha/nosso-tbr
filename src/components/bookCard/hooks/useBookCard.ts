@@ -51,6 +51,14 @@ export function useBookCard({ book }: BookCardProps) {
       bookStatusClass: "bg-green-800 text-white",
       bookStatusText: "Já iniciei a leitura",
     },
+    paused: {
+      bookStatusClass: "bg-violet-600 text-white",
+      bookStatusText: "Leitura pausada",
+    },
+    abandoned: {
+      bookStatusClass: "bg-rose-600 text-white",
+      bookStatusText: "Livro abandonado",
+    },
     finished: {
       bookStatusClass: "bg-red-500 text-white",
       bookStatusText: "Terminei a Leitura",
@@ -95,6 +103,18 @@ export function useBookCard({ book }: BookCardProps) {
         colorClass:
           "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400",
         dotClass: "bg-amber-500",
+      },
+      paused: {
+        label: "Leitura pausada",
+        colorClass:
+          "bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400",
+        dotClass: "bg-violet-500",
+      },
+      abandoned: {
+        label: "Livro abandonado",
+        colorClass:
+          "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400",
+        dotClass: "bg-rose-500",
       },
       planned: {
         label: formattedPlannedDate

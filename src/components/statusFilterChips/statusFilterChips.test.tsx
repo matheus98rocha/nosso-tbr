@@ -7,6 +7,8 @@ const LABEL_TO_STATUS: Record<string, Status> = {
   "Não Iniciado": "not_started",
   "Vou Iniciar": "planned",
   "Estou Lendo": "reading",
+  Pausado: "paused",
+  Abandonado: "abandoned",
   Terminei: "finished",
 };
 
@@ -14,7 +16,7 @@ const ALL_LABELS = Object.keys(LABEL_TO_STATUS);
 
 describe("StatusFilterChips", () => {
   describe("rendering", () => {
-    it("renders all four status chips", () => {
+    it("renders all six status chips", () => {
       render(<StatusFilterChips activeStatuses={[]} onToggle={vi.fn()} />);
 
       ALL_LABELS.forEach((label) => {
@@ -34,6 +36,8 @@ describe("StatusFilterChips", () => {
         "not_started",
         "planned",
         "reading",
+        "paused",
+        "abandoned",
         "finished",
       ];
 
@@ -60,22 +64,22 @@ describe("StatusFilterChips", () => {
       expect(onToggle).toHaveBeenCalledTimes(ALL_LABELS.length);
     });
 
-    it("calls onToggle with 'reading' when 'Estou Lendo' is clicked", () => {
+    it("calls onToggle with 'paused' when 'Pausado' is clicked", () => {
       const onToggle = vi.fn();
       render(<StatusFilterChips activeStatuses={[]} onToggle={onToggle} />);
 
-      fireEvent.click(screen.getByText("Estou Lendo"));
+      fireEvent.click(screen.getByText("Pausado"));
 
-      expect(onToggle).toHaveBeenCalledWith("reading");
+      expect(onToggle).toHaveBeenCalledWith("paused");
     });
 
-    it("calls onToggle with 'not_started' when 'Não Iniciado' is clicked", () => {
+    it("calls onToggle with 'abandoned' when 'Abandonado' is clicked", () => {
       const onToggle = vi.fn();
       render(<StatusFilterChips activeStatuses={[]} onToggle={onToggle} />);
 
-      fireEvent.click(screen.getByText("Não Iniciado"));
+      fireEvent.click(screen.getByText("Abandonado"));
 
-      expect(onToggle).toHaveBeenCalledWith("not_started");
+      expect(onToggle).toHaveBeenCalledWith("abandoned");
     });
   });
 
@@ -83,14 +87,14 @@ describe("StatusFilterChips", () => {
     it("active chip is still rendered and clickable", () => {
       const onToggle = vi.fn();
       render(
-        <StatusFilterChips activeStatuses={["reading"]} onToggle={onToggle} />,
+        <StatusFilterChips activeStatuses={["paused"]} onToggle={onToggle} />,
       );
 
-      const activeChip = screen.getByText("Estou Lendo");
+      const activeChip = screen.getByText("Pausado");
       expect(activeChip).toBeInTheDocument();
 
       fireEvent.click(activeChip);
-      expect(onToggle).toHaveBeenCalledWith("reading");
+      expect(onToggle).toHaveBeenCalledWith("paused");
     });
 
     it("inactive chips remain clickable when some statuses are active", () => {
@@ -102,8 +106,8 @@ describe("StatusFilterChips", () => {
         />,
       );
 
-      fireEvent.click(screen.getByText("Não Iniciado"));
-      expect(onToggle).toHaveBeenCalledWith("not_started");
+      fireEvent.click(screen.getByText("Abandonado"));
+      expect(onToggle).toHaveBeenCalledWith("abandoned");
     });
   });
 });

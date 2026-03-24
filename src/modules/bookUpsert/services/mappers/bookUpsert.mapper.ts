@@ -14,6 +14,7 @@ export class BookUpsertMapper {
       author_id: domain.author_id,
       chosen_by: domain.chosen_by,
       pages: domain.pages,
+      status: domain.status ?? "not_started",
       start_date: domain.start_date ?? null,
       planned_start_date: domain.planned_start_date ?? null,
       end_date: domain.end_date ?? null,

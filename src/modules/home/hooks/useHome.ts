@@ -65,9 +65,33 @@ export function useHome() {
     handleSearchButtonClick,
   } = useFiltersUrl(defaultFactory);
 
+  const filtersSignature = useMemo(
+    () =>
+      JSON.stringify({
+        readers: [...filters.readers].sort(),
+        status: [...filters.status].sort(),
+        gender: [...filters.gender].sort(),
+        userId: filters.userId,
+        bookId: filters.bookId,
+        authorId: filters.authorId,
+        year: filters.year,
+        myBooks: filters.myBooks,
+      }),
+    [
+      filters.readers,
+      filters.status,
+      filters.gender,
+      filters.userId,
+      filters.bookId,
+      filters.authorId,
+      filters.year,
+      filters.myBooks,
+    ],
+  );
+
   useEffect(() => {
     setCurrentPage(0);
-  }, [filters, searchQuery]);
+  }, [filtersSignature, searchQuery]);
 
   const isMyBooksActive = !!(filters.myBooks && isLoggedIn && user?.id);
 
@@ -353,6 +377,7 @@ export function useHome() {
       queryFn: () =>
         bookService.getAll({
           bookId: serverFilters.bookId,
+          authorId: serverFilters.authorId,
           search: searchQuery,
           userId: effectiveUserId,
           filters: {
