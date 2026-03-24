@@ -65,6 +65,7 @@ export function BookUpsert(props: CreateBookProps) {
     handlePageNumberChange,
     handleChosenByFieldChange,
     handleAuthorSearchChange,
+    plannedStartDateLabel,
     isLoadingUsers,
     chosenByOptions,
     bookData,
@@ -352,7 +353,7 @@ export function BookUpsert(props: CreateBookProps) {
                         name="planned_start_date"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Previsão de Início da Leitura</FormLabel>
+                            <FormLabel>{plannedStartDateLabel}</FormLabel>
                             <FormControl>
                               <DatePicker
                                 value={
