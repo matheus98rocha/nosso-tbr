@@ -98,6 +98,33 @@ describe("BookQueryBuilder", () => {
     });
   });
 
+  describe("withStatus", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("filters by paused and abandoned statuses", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withStatus(["paused", "abandoned"])
+        .build();
+
+      expect(mockQuery.in).toHaveBeenCalledWith("status", [
+        "paused",
+        "abandoned",
+      ]);
+    });
+
+    it("does not apply status filter when status list is empty", () => {
+      new BookQueryBuilder(supabase, mockQuery as never).withStatus([]).build();
+
+      expect(mockQuery.in).not.toHaveBeenCalled();
+    });
+  });
+
   describe("withYear", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;

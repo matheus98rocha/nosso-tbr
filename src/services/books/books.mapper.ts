@@ -10,19 +10,11 @@ export class BookMapper {
       author_id,
       chosen_by,
       pages,
+      status,
       start_date,
       end_date,
       planned_start_date,
     } = persistence;
-
-    let status: BookDomain["status"] = "not_started";
-
-    if (start_date) {
-      status = "reading";
-    }
-    if (end_date) {
-      status = "finished";
-    }
 
     const startDateObj = DateUtils.toDate(start_date);
     const endDateObj = DateUtils.toDate(end_date);
@@ -35,7 +27,7 @@ export class BookMapper {
       authorId: author_id || undefined,
       chosen_by,
       pages,
-      status,
+      status: status ?? "not_started",
       end_date: endDateObj ? endDateObj.toISOString() : null,
       start_date: startDateObj ? startDateObj.toISOString() : null,
       planned_start_date: plannedDateObj ? plannedDateObj.toISOString() : null,
