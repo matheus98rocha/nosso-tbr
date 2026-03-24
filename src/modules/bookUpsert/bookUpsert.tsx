@@ -66,12 +66,12 @@ export function BookUpsert(props: CreateBookProps) {
     handleChosenByFieldChange,
     handleAuthorSearchChange,
     plannedStartDateLabel,
+    shouldShowPlannedStartDate,
     isLoadingUsers,
     chosenByOptions,
     bookData,
   } = useBookUpsert(props);
 
-  const showPlannedDate = !form.watch("start_date") && !form.watch("end_date");
   return (
     <>
       <AuthorUpsert
@@ -347,7 +347,7 @@ export function BookUpsert(props: CreateBookProps) {
                       </div>
                     </FormItem>
 
-                    {showPlannedDate && (
+                    {shouldShowPlannedStartDate && (
                       <FormField
                         control={control}
                         name="planned_start_date"
