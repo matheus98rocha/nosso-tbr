@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookCreateValidator, Status } from "@/types/books.types";
-import { ErrorHandler, RepositoryError } from "@/services/errors/error";
+import {
+  BadRequestError,
+  ErrorHandler,
+  RepositoryError,
+} from "@/services/errors/error";
 import { BookUpsertMapper } from "./mappers/bookUpsert.mapper";
 import { BookQueryBuilder } from "@/services/books/bookQuery.builder";
 
@@ -45,17 +49,15 @@ export class BookUpsertService {
   ) {
     if (nextStatus && TRANSITION_LOCKED_STATUSES.includes(nextStatus)) {
       if (currentBook.status !== "reading") {
-        throw new RepositoryError(
+        throw new BadRequestError(
           "Status pausado e abandonado só podem ser aplicados a livros em andamento.",
-          400,
         );
       }
     }
 
     if (currentBook.status === "abandoned" && nextStatus === "reading" && !nextStartDate) {
-      throw new RepositoryError(
+      throw new BadRequestError(
         "Para retomar um livro abandonado, informe uma nova data de início.",
-        400,
       );
     }
   }
