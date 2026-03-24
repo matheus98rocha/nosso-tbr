@@ -14,6 +14,7 @@ import { bookCreateSchema } from "@/modules/home/validators/createBook.validator
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { LOCKED_BOOK_STATUSES } from "@/constants/bookStatuses";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -23,7 +24,6 @@ const checkboxes: { id: Status; label: string }[] = [
   { id: "finished", label: "Terminei a Leitura" },
 ];
 
-const LOCKED_EDIT_STATUSES: Status[] = ["paused", "abandoned"];
 
 export function useBookDialog({
   bookData,
@@ -231,13 +231,13 @@ export function useBookDialog({
     (id: string) => {
       const statusId = id as Status;
 
-      if (!isEdit && LOCKED_EDIT_STATUSES.includes(statusId)) {
+      if (!isEdit && LOCKED_BOOK_STATUSES.includes(statusId)) {
         return;
       }
 
       if (
         isEdit &&
-        LOCKED_EDIT_STATUSES.includes(statusId) &&
+        LOCKED_BOOK_STATUSES.includes(statusId) &&
         bookData?.status !== "reading"
       ) {
         return;

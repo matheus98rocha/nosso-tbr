@@ -7,15 +7,17 @@ import {
 } from "@/services/errors/error";
 import { BookUpsertMapper } from "./mappers/bookUpsert.mapper";
 import { BookQueryBuilder } from "@/services/books/bookQuery.builder";
-
-const NON_CREATABLE_STATUSES: Status[] = ["paused", "abandoned"];
-const TRANSITION_LOCKED_STATUSES: Status[] = ["paused", "abandoned"];
+import { normalizeDatesForTransition } from "./bookStatusTransition";
+import {
+  LOCKED_BOOK_STATUSES,
+  NON_CREATABLE_BOOK_STATUSES,
+} from "@/constants/bookStatuses";
 
 export class BookUpsertService {
   private supabase = createClient();
 
   private ensureCreatableStatus(status?: Status) {
-    if (status && NON_CREATABLE_STATUSES.includes(status)) {
+    if (status && NON_CREATABLE_BOOK_STATUSES.includes(status)) {
       throw new RepositoryError(
         "Livros não podem ser criados com status pausado ou abandonado.",
       );
@@ -47,7 +49,7 @@ export class BookUpsertService {
     nextStatus?: Status,
     nextStartDate?: string | null,
   ) {
-    if (nextStatus && TRANSITION_LOCKED_STATUSES.includes(nextStatus)) {
+    if (nextStatus && LOCKED_BOOK_STATUSES.includes(nextStatus)) {
       if (currentBook.status !== "reading") {
         throw new BadRequestError(
           "Status pausado e abandonado só podem ser aplicados a livros em andamento.",
@@ -115,24 +117,17 @@ export class BookUpsertService {
 
       const payload = BookUpsertMapper.toPersistence(book);
 
-      if (book.status === "paused") {
-        payload.start_date = currentBook?.start_date ?? payload.start_date;
-        payload.end_date = currentBook?.end_date ?? payload.end_date;
-      }
+      const normalizedDates = normalizeDatesForTransition({
+        currentStatus: currentBook?.status as Status | undefined,
+        currentStartDate: currentBook?.start_date,
+        currentEndDate: currentBook?.end_date,
+        nextStatus: book.status,
+        nextStartDate: book.start_date,
+        nextEndDate: book.end_date,
+      });
 
-      if (book.status === "abandoned") {
-        payload.start_date = null;
-        payload.end_date = null;
-      }
-
-      if (currentBook?.status === "paused" && book.status === "reading") {
-        payload.start_date = book.start_date ?? currentBook.start_date ?? null;
-        payload.end_date = null;
-      }
-
-      if (currentBook?.status === "abandoned" && book.status === "reading") {
-        payload.end_date = null;
-      }
+      payload.start_date = normalizedDates.start_date;
+      payload.end_date = normalizedDates.end_date;
 
       const { error } = await this.supabase
         .from("books")

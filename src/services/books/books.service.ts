@@ -4,15 +4,9 @@ import { BookDomain, Status } from "@/types/books.types";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { FiltersOptions } from "@/types/filters";
+import { ALL_BOOK_STATUSES } from "@/constants/bookStatuses";
 
-const ALLOWED_STATUSES: Status[] = [
-  "reading",
-  "finished",
-  "not_started",
-  "planned",
-  "paused",
-  "abandoned",
-];
+const ALLOWED_STATUSES: Status[] = ALL_BOOK_STATUSES;
 
 type BookStatus = (typeof ALLOWED_STATUSES)[number];
 
