@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import Link from "next/link";
+import { getBookshelfBooksPath } from "@/lib/routes/shelves";
 
 type Props = {
   shelf: BookshelfDomain;
@@ -92,9 +93,11 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
                   onOpenChange={dropdownModal.setIsOpen}
                   trigger={
                     <button
-                      className="min-w-[32px] min-h-[32px] flex items-center justify-center rounded-md hover:bg-muted transition-colors duration-150 cursor-pointer"
+                      type="button"
+                      className="flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors duration-150 hover:bg-muted cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       onClick={() => dropdownModal.setIsOpen(true)}
-                      aria-label="Opções da estante"
+                      aria-label={`Opções da estante ${shelf.name}`}
+                      aria-haspopup="menu"
                     >
                       <EllipsisVerticalIcon className="w-4 h-4 text-muted-foreground" />
                     </button>
@@ -134,7 +137,7 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2 text-muted-foreground/50 select-none pointer-events-none">
-                <BookOpen className="w-8 h-8" strokeWidth={1} />
+                <BookOpen className="h-8 w-8" strokeWidth={1} aria-hidden />
                 <span className="text-xs">Nenhum livro ainda</span>
               </div>
             )}
@@ -142,19 +145,27 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 pt-0">
-          <Link href={`/bookshelves/${shelf.id}`} className="w-full">
-            <Button className="w-full min-h-[44px] cursor-pointer transition-colors duration-200">
-              Acessar Estante
-            </Button>
-          </Link>
+          <Button
+            asChild
+            className="h-auto min-h-11 w-full cursor-pointer gap-2 py-3 transition-colors duration-200"
+          >
+            <Link
+              href={getBookshelfBooksPath(shelf.id)}
+              aria-label={`Acessar estante ${shelf.name} e ver os livros`}
+            >
+              Acessar estante
+            </Link>
+          </Button>
           {isLogged && (
             <Button
+              type="button"
               variant="outline"
-              className="w-full min-h-[44px] gap-2 cursor-pointer transition-colors duration-200"
+              className="h-auto min-h-11 w-full cursor-pointer gap-2 py-3 transition-colors duration-200"
               onClick={handleOpenAddBook}
+              aria-label={`Adicionar livro à estante ${shelf.name}`}
             >
-              <Plus className="w-4 h-4" />
-              Adicionar Livro
+              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+              Adicionar livro
             </Button>
           )}
         </CardFooter>

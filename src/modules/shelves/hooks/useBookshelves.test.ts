@@ -52,7 +52,13 @@ function setupMocks({
   (useQueryClient as Mock).mockReturnValue({
     invalidateQueries: mockInvalidateQueries,
   });
-  (useQuery as Mock).mockReturnValue({ data, isLoading, isFetched, error: null });
+  (useQuery as Mock).mockReturnValue({
+    data,
+    isLoading,
+    isFetched,
+    error: null,
+    isError: false,
+  });
   (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
 }
 
@@ -85,6 +91,7 @@ describe("useBookshelves", () => {
         isLoading: false,
         isFetched: false,
         error: null,
+        isError: false,
       });
       (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
       (useQueryClient as Mock).mockReturnValue({ invalidateQueries: vi.fn() });
@@ -151,6 +158,7 @@ describe("useBookshelves", () => {
         isLoading: false,
         isFetched: true,
         error: null,
+        isError: false,
       });
       (useMutation as Mock).mockImplementation(({ onSuccess }) => ({
         mutate: (payload: unknown) => {
@@ -175,6 +183,7 @@ describe("useBookshelves", () => {
         isLoading: false,
         isFetched: true,
         error: null,
+        isError: false,
       });
       (useMutation as Mock).mockImplementation(({ onSuccess }) => ({
         mutate: (payload: unknown) => {
@@ -188,6 +197,9 @@ describe("useBookshelves", () => {
       act(() => result.current.mutate({ name: "Estante Y" }));
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ["bookshelves"],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ["bookshelf-meta"],
       });
     });
   });
