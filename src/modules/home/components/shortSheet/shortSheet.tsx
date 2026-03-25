@@ -8,8 +8,8 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useSyncLocalStateOnClose } from "../../hooks/useSyncLocalStateOnClose";
 import { useLocalSort } from "./hooks/useLocalSort";
-import { useSyncLocalFilters } from "../filtersSheet/hooks/useSyncLocalFilters";
 
 export type SortSheetProps = {
   sort: string;
@@ -25,7 +25,11 @@ export default function SortSheet({
   updateUrlWithSort,
 }: SortSheetProps) {
   const { localSort, resetLocalSort } = useLocalSort(sort);
-  useSyncLocalFilters(sort, open, resetLocalSort);
+  useSyncLocalStateOnClose({
+    externalState: sort,
+    isOpen: open,
+    syncLocalState: resetLocalSort,
+  });
 
   const applySort = useCallback(() => {
     updateUrlWithSort(localSort);

@@ -10,7 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/multSelect/multiSelect";
 
-import { useSyncLocalFilters } from "./hooks/useSyncLocalFilters";
+import {
+  areFiltersOptionsEqual,
+  useSyncLocalStateOnClose,
+} from "../../hooks/useSyncLocalStateOnClose";
 import {
   FiltersProps,
   GENDER_OPTIONS,
@@ -31,7 +34,12 @@ export default function FiltersSheet({
   const { localFilters, handleFilterChange, resetLocalFilters } =
     useLocalFilters(filters);
 
-  useSyncLocalFilters(filters, open, resetLocalFilters);
+  useSyncLocalStateOnClose({
+    externalState: filters,
+    isOpen: open,
+    syncLocalState: resetLocalFilters,
+    areEqual: areFiltersOptionsEqual,
+  });
 
   const applyFilters = useCallback(() => {
     updateUrlWithFilters(localFilters, searchQuery);
