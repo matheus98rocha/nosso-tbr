@@ -8,6 +8,7 @@ import {
 import { SelectedBookshelf } from "@/modules/shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { getBookshelfBooksPath } from "@/lib/routes/shelves";
 
 export function useAddBookToShelf({ bookId, handleClose }: AddBookToShelfProps) {
   const [selectedShelfId, setSelectedShelfId] = useState("");
@@ -31,7 +32,7 @@ export function useAddBookToShelf({ bookId, handleClose }: AddBookToShelfProps) 
       queryClient.invalidateQueries({ queryKey: ["bookshelves"] });
       setSelectedShelfId("");
       handleClose(false);
-      router.push(`/bookshelves/${selectedShelfId}`);
+      router.push(getBookshelfBooksPath(selectedShelfId));
     },
   });
 

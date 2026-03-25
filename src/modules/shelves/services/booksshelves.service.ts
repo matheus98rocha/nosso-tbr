@@ -28,6 +28,19 @@ export class BookshelfService {
 
     if (error) throw new Error(error.message);
   }
+
+  async getShelfById(
+    id: string,
+  ): Promise<{ id: string; name: string } | null> {
+    const { data, error } = await this.supabase
+      .from("custom_shelves")
+      .select("id, name")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
   async addBookToShelf(bookshelfId: string, bookId: string): Promise<void> {
     try {
       const { error } = await this.supabase.from("custom_shelf_books").insert({

@@ -2,6 +2,7 @@ import { useModal } from "@/hooks/useModal";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
 import { usePathname, useRouter } from "next/navigation";
+import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { Menu } from "../types/header.types";
 
 export function useHeader() {
@@ -39,8 +40,8 @@ export function useHeader() {
       items: [
         {
           label: "Ver Estantes",
-          action: () => router.push("/shelves"),
-          path: "/shelves",
+          action: () => router.push(SHELVES_LIST_PATH),
+          path: SHELVES_LIST_PATH,
         },
         {
           label: "Adicionar Estante",

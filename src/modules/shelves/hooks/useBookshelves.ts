@@ -27,6 +27,7 @@ export function useBookshelves({
     isLoading: isFetching,
     isFetched,
     error,
+    isError,
   } = useQuery({
     queryKey: ["bookshelves"],
     queryFn: fetchBookShelves,
@@ -47,6 +48,7 @@ export function useBookshelves({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookshelves"] });
+      queryClient.invalidateQueries({ queryKey: ["bookshelf-meta"] });
       if (handleClose) {
         handleClose(false);
       }
@@ -57,6 +59,7 @@ export function useBookshelves({
     bookshelves,
     isFetching,
     error,
+    isError,
     mutate,
     isCreating,
     isFetched,

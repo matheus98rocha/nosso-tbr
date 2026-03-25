@@ -31,6 +31,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { FolderPlus, Pencil } from "lucide-react";
 import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 
 type BookshelfDialogProps = {
   isOpen: boolean;
@@ -63,8 +64,8 @@ export function CreateEditBookshelves({
   function onSubmit(values: BookshelfCreateValidator) {
     mutate(values, {
       onSuccess: () => {
-        if (pathname !== "/shelves") {
-          router.push("/shelves");
+        if (pathname !== SHELVES_LIST_PATH) {
+          router.push(SHELVES_LIST_PATH);
         }
         form.reset();
       },
