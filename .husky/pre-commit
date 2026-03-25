@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+scripts/validate-unit-tests.sh
