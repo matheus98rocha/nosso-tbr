@@ -35,6 +35,30 @@
 - **RN24 - Limite de Resultados no Autocomplete:** As sugestões devem ser limitadas por tipo para evitar sobrecarga de renderização e consultas.
 - **RN25 - Persistência do filtro "Meus Livros":** Ao executar buscas (digitação manual ou seleção via autocomplete), o estado `myBooks=true` deve ser preservado e **nunca** alternar automaticamente para leituras conjuntas.
 - **RN26 - Fechamento do Autocomplete:** O dropdown de autocomplete deve ser fechado quando o usuário clicar em uma sugestão, no botão de busca ou fora do campo.
+- **RN29 - Filtro de Visão "Todos" (Default):**
+  - A visão **Todos** deve estar disponível na lista de filtros de visão e iniciar selecionada por padrão no primeiro carregamento.
+  - Quando **Todos** estiver ativo para usuário logado, a consulta deve retornar apenas livros relacionados ao usuário por regra de relacionamento.
+  - A regra de relacionamento é: `user.id ∈ readers` **OU** `user.id === chosen_by`.
+  - Essa regra deve ser aplicada no nível de query (Supabase/PostgREST), evitando filtro apenas em memória.
+- **RN30 - Prioridade e Ausência de Filtro de Visão:**
+  - `view=todos`: aplica regra de relacionamento (`readers OR chosen_by`).
+  - `view=joint`: aplica regra existente de leituras conjuntas (comportamento preservado).
+  - `myBooks=true`: mantém comportamento de livros do usuário por `user_id` (comportamento preservado).
+  - Ao desativar `myBooks`, restaurar a última `view` não-`myBooks` selecionada pelo usuário.
+  - Sem filtro de visão ativo: retornar **todos os livros do sistema**, sem restrição por usuário.
+- **RN31 - Casos de Borda (Visão Todos):**
+  - Usuário sem livros relacionados: retorno vazio.
+  - `readers` vazio: livro pode ser retornado se `chosen_by` for o usuário.
+  - `chosen_by` nulo: livro pode ser retornado se `readers` contiver o usuário.
+- **RN32 - Compatibilidade de Identificador de Leitor:**
+  - Enquanto a base persistir `readers/chosen_by` em texto, a regra de relacionamento deve aceitar identificadores múltiplos do mesmo usuário (ex.: `id` e `display_name`) para manter compatibilidade durante migração gradual para UUID.
+- **RN33 - Seleção Inicial de Leitores na Visão Todos:**
+  - Ao abrir a Home logado, na visão **Todos**, apenas o leitor do usuário atual deve iniciar marcado.
+  - Ao selecionar outros leitores, a seleção deve acumular no filtro da visão **Todos**.
+  - O leitor padrão pode ser removido manualmente pelo usuário.
+- **RN34 - Paginação da Visão Todos:**
+  - A visão **Todos** deve respeitar `PAGE_SIZE = 8` e paginação por página atual.
+  - Alterações na seleção de leitores na visão **Todos** devem gerar nova query (query key distinta) para evitar stale cache.
 
 ## 3. Book Status & Lifecycle
 

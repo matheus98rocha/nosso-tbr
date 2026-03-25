@@ -5,6 +5,11 @@ import { Status } from "@/types/books.types";
 export class BookQueryBuilder {
   private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
 
+  private static quotePostgrestTextValue(value: string): string {
+    const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return `"${escaped}"`;
+  }
+
   constructor(
     supabase: SupabaseClient<Database>,
     initialQuery = supabase.from("books").select(
@@ -71,6 +76,29 @@ export class BookQueryBuilder {
       const formattedSearch = words.map((word) => `${word}:*`).join(" & ");
       this.query = this.query.filter("search_vector", "fts", formattedSearch);
     }
+    return this;
+  }
+
+  withUserRelationship(userValues?: string | string[]): this {
+    const values = Array.isArray(userValues)
+      ? userValues.filter((value) => !!value?.trim())
+      : userValues
+        ? [userValues]
+        : [];
+
+    if (values.length === 0) return this;
+
+    const uniqueValues = [...new Set(values)];
+    const orConditions = uniqueValues.flatMap((value) => {
+      const quotedValue = BookQueryBuilder.quotePostgrestTextValue(value);
+      return [
+        `readers.cs.{${quotedValue}}`,
+        `chosen_by.eq.${quotedValue}`,
+      ];
+    });
+
+    this.query = this.query.or(orConditions.join(","));
+
     return this;
   }
 

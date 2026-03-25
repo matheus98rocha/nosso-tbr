@@ -32,9 +32,21 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   const rawYear = searchParams.get("year");
   const year = rawYear ? parseInt(rawYear, 10) : undefined;
   const myBooks = searchParams.get("myBooks") === "true";
+  const viewParam = searchParams.get("view");
+  const view = viewParam === "joint" ? "joint" : "todos";
 
   return {
-    filters: { readers, status, gender, userId, bookId, authorId, year, myBooks },
+    filters: {
+      readers,
+      status,
+      gender,
+      userId,
+      bookId,
+      authorId,
+      year,
+      myBooks,
+      view,
+    },
     searchQuery,
   };
 }

@@ -5,6 +5,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
   readers: [],
   status: [],
   gender: [],
+  view: "todos",
   userId: "",
   bookId: "",
   authorId: "",

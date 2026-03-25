@@ -3,9 +3,11 @@ import { vi, Mock } from "vitest";
 import { useHome } from "./useHome";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { INITIAL_FILTERS } from "@/constants/keys";
+import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
 import { useUser } from "@/services/users/hooks/useUsers";
+import { useUserStore } from "@/stores/userStore";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 vi.mock("@/services/books/books.service");
 vi.mock("@/services/users/hooks/useUsers", () => ({
@@ -198,6 +200,109 @@ describe("useHome", () => {
     });
   });
 
+  describe('"Todos" default behavior and query keys', () => {
+    it('defaults to "Todos" on initial load', () => {
+      const { result } = setupHook();
+
+      expect(result.current.filters.view).toBe("todos");
+      expect(result.current.isAllBooksActive).toBe(true);
+    });
+
+    it("uses a deterministic query key for the Todos view", () => {
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      setupHook({ view: "todos" });
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            ...QUERY_KEYS.books.list(
+              { ...INITIAL_FILTERS, view: "todos", readers: [] },
+              "",
+              0,
+              undefined,
+            ),
+            "relationship",
+            "none",
+          ],
+        }),
+      );
+    });
+
+    it("reacts to filter changes by updating the selected view", () => {
+      const { result } = setupHook({ view: "todos" });
+
+      act(() => result.current.handleSetJointReading());
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ view: "joint", myBooks: false }),
+      );
+    });
+  });
+
+  describe('"Todos" reader selection behavior', () => {
+    it("marks only current user as active by default in Todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      const { result } = setupHook({ view: "todos", readers: [] });
+
+      expect(result.current.checkIsUserActive("Matheus")).toBe(true);
+      expect(result.current.checkIsUserActive("Barbara")).toBe(false);
+    });
+
+    it("adds additional readers in Todos when user toggles chips", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      const { result } = setupHook({ view: "todos", readers: ["Matheus"] });
+
+      act(() => result.current.handleToggleReader("Barbara"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: ["Matheus", "Barbara"] }),
+      );
+    });
+
+    it("allows removing the default user selection in Todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      const { result } = setupHook({ view: "todos", readers: [] });
+
+      act(() => result.current.handleToggleReader("Matheus"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: [] }),
+      );
+    });
+
+    it("changes query key when Todos readers selection changes", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ view: "todos", readers: ["Matheus"] }),
+      );
+      const { rerender } = renderHook(() => useHome());
+
+      const firstCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ view: "todos", readers: ["Matheus", "Barbara"] }),
+      );
+      rerender();
+
+      const secondCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
+
+      expect(JSON.stringify(firstCall)).not.toBe(JSON.stringify(secondCall));
+    });
+  });
+
   describe("handleSetYear", () => {
     it("calls updateUrlWithFilters with the selected year merged into current filters", () => {
       const { result } = setupHook();
@@ -258,6 +363,16 @@ describe("useHome", () => {
       act(() => result.current.handleToggleMyBooks());
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
         expect.objectContaining({ ...existing, myBooks: true }),
+      );
+    });
+
+    it("restores the previous non-myBooks view when disabling myBooks", () => {
+      const { result } = setupHook({ myBooks: true, view: "todos" });
+
+      act(() => result.current.handleToggleMyBooks());
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ myBooks: false, view: "todos" }),
       );
     });
   });
@@ -409,7 +524,7 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ readers: [], view: "joint" });
       expect(result.current.readersObj.readers).toEqual([]);
     });
 
@@ -419,7 +534,7 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ readers: [], view: "joint" });
       expect(result.current.checkIsUserActive("Matheus")).toBe(true);
       expect(result.current.checkIsUserActive("Barbara")).toBe(true);
     });
@@ -430,12 +545,13 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ readers: [], view: "joint" });
 
       act(() => result.current.handleToggleReader("Matheus"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
         ...INITIAL_FILTERS,
+        view: "joint",
         readers: ["Barbara"],
       });
     });
@@ -446,12 +562,13 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: ["Barbara"] });
+      const { result } = setupHook({ readers: ["Barbara"], view: "joint" });
 
       act(() => result.current.handleToggleReader("Matheus"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
         ...INITIAL_FILTERS,
+        view: "joint",
         readers: ["Barbara", "Matheus"],
       });
     });
@@ -462,7 +579,7 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: ["Matheus", "Leitor Removido"] });
+      const { result } = setupHook({ readers: ["Matheus", "Leitor Removido"], view: "joint" });
 
       expect(result.current.readersObj.readers).toEqual([
         "Matheus",
@@ -490,7 +607,7 @@ describe("useHome", () => {
         isError: false,
       });
 
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ readers: [], view: "joint" });
 
       expect(result.current.allBooks?.total).toBe(2);
       expect(result.current.allBooks?.data.map((book) => book.id)).toEqual([

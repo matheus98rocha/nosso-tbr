@@ -7,6 +7,7 @@ const baseFilters: FiltersOptions = {
   readers: [],
   status: [],
   gender: [],
+  view: "todos",
 };
 
 const renderStatusFiltersHook = (
@@ -85,6 +86,7 @@ describe("useStatusFilters", () => {
         readers: ["Matheus"],
         status: [],
         gender: ["fiction"],
+        view: "todos",
       };
 
       const { result } = renderHook(() =>
@@ -94,7 +96,12 @@ describe("useStatusFilters", () => {
       act(() => result.current.handleToggleStatus("abandoned"));
 
       expect(updateUrlWithFilters).toHaveBeenCalledWith(
-        { readers: ["Matheus"], status: ["abandoned"], gender: ["fiction"] },
+        {
+          readers: ["Matheus"],
+          status: ["abandoned"],
+          gender: ["fiction"],
+          view: "todos",
+        },
         "senhor dos aneis",
       );
     });

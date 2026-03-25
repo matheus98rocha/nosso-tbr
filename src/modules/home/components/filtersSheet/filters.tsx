@@ -39,16 +39,16 @@ export default function FiltersSheet({
   }, [localFilters, searchQuery, updateUrlWithFilters, setIsOpen]);
 
   const handleCancel = useCallback(() => {
-    const cleared = { readers: [], gender: [], status: [] };
+    const cleared = { ...filters, readers: [], gender: [], status: [] };
     setIsOpen(false);
     updateUrlWithFilters(cleared, "");
     resetLocalFilters(cleared);
-  }, [setIsOpen, updateUrlWithFilters, resetLocalFilters]);
+  }, [filters, setIsOpen, updateUrlWithFilters, resetLocalFilters]);
 
   const handleClearAll = useCallback(() => {
-    const cleared = { readers: [], gender: [], status: [] };
+    const cleared = { ...localFilters, readers: [], gender: [], status: [] };
     resetLocalFilters(cleared);
-  }, [resetLocalFilters]);
+  }, [localFilters, resetLocalFilters]);
 
   return (
     <Sheet open={open} onOpenChange={setIsOpen}>
