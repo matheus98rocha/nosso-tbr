@@ -90,6 +90,21 @@ describe("QUERY_KEYS.books.list", () => {
   });
 
   describe("key differentiation by other params", () => {
+    it("produces different keys for different view filters", () => {
+      const keyTodos = QUERY_KEYS.books.list(
+        { ...INITIAL_FILTERS, view: "todos" },
+        "",
+        0,
+      );
+      const keyJoint = QUERY_KEYS.books.list(
+        { ...INITIAL_FILTERS, view: "joint" },
+        "",
+        0,
+      );
+
+      expect(JSON.stringify(keyTodos)).not.toBe(JSON.stringify(keyJoint));
+    });
+
     it("produces different keys for different search terms", () => {
       const keyA = QUERY_KEYS.books.list(INITIAL_FILTERS, "harry", 0);
       const keyB = QUERY_KEYS.books.list(INITIAL_FILTERS, "potter", 0);

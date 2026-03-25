@@ -9,6 +9,24 @@ const baseFilters: FiltersOptions = {
 };
 
 describe("buildQueryStringFromFilters", () => {
+  describe("view serialization", () => {
+    it("serializes view when joint is selected", () => {
+      const params = new URLSearchParams(
+        buildQueryStringFromFilters({ ...baseFilters, view: "joint" }),
+      );
+
+      expect(params.get("view")).toBe("joint");
+    });
+
+    it('does not serialize view when "todos" is selected', () => {
+      const params = new URLSearchParams(
+        buildQueryStringFromFilters({ ...baseFilters, view: "todos" }),
+      );
+
+      expect(params.get("view")).toBeNull();
+    });
+  });
+
   describe("year serialization", () => {
     it("appends year param when year is provided", () => {
       const result = buildQueryStringFromFilters({ ...baseFilters, year: 2024 });

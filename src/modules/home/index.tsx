@@ -35,9 +35,11 @@ export default function ClientHome() {
     activeFilterLabels,
     totalPages,
     handleToggleMyBooks,
+    handleSetAllBooks,
     handleSetJointReading,
     handleToggleReader,
     isMyBooksActive,
+    isAllBooksActive,
     isLoggedIn,
     checkIsUserActive,
     readers,
@@ -119,23 +121,37 @@ export default function ClientHome() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={
-                          isMyBooksActive ? handleSetJointReading : undefined
-                        }
+                        onClick={handleSetAllBooks}
                         className={cn(
                           "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
-                          !isMyBooksActive
+                          isAllBooksActive
+                            ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                            : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
+                        )}
+                        aria-label="Ver todos os livros relacionados"
+                        aria-pressed={isAllBooksActive}
+                      >
+                        Todos
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSetJointReading}
+                        className={cn(
+                          "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                          !isMyBooksActive && !isAllBooksActive
                             ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
                             : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
                         )}
                         aria-label="Ver leituras conjuntas"
-                        aria-pressed={!isMyBooksActive}
+                        aria-pressed={!isMyBooksActive && !isAllBooksActive}
                       >
                         <Users
                           size={13}
                           className={cn(
                             "mr-1.5 transition-colors",
-                            !isMyBooksActive
+                            !isMyBooksActive && !isAllBooksActive
                               ? "text-white"
                               : "text-zinc-400 group-hover:text-inherit",
                           )}
@@ -171,7 +187,7 @@ export default function ClientHome() {
                       )}
                     </div>
                     <div className="flex gap-2 items-start justify-start w-full">
-                      {!isMyBooksActive && (
+                      {!isMyBooksActive && !isAllBooksActive && (
                         <div className="flex gap-2">
                           {readers.map((user) => (
                             <Button

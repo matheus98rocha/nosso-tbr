@@ -26,6 +26,7 @@ export function buildQueryStringFromFilters(
 
   if (newFilters.year) params.set("year", String(newFilters.year));
   if (newFilters.myBooks) params.set("myBooks", "true");
+  if (newFilters.view === "joint") params.set("view", "joint");
 
   return params.toString();
 }

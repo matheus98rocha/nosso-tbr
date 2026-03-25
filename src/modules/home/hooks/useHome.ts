@@ -44,6 +44,7 @@ export function useHome() {
         readers: readers.map((r) => r.display_name),
         status: [],
         gender: [],
+        view: "todos",
         userId: "",
         bookId: "",
         authorId: "",
@@ -69,6 +70,7 @@ export function useHome() {
     setCurrentPage(0);
   }, [filters, searchQuery]);
 
+  const isAllBooksActive = filters.view !== "joint" && !filters.myBooks;
   const isMyBooksActive = !!(filters.myBooks && isLoggedIn && user?.id);
 
   const readersObj = useMemo(() => {
@@ -105,6 +107,8 @@ export function useHome() {
   );
 
   const effectiveUserId = isMyBooksActive ? user!.id : undefined;
+  const relationshipUserId =
+    isAllBooksActive && isLoggedIn ? user?.id : undefined;
   const shouldWaitForUsers =
     !isMyBooksActive && filters.readers.length === 0 && isLoadingUsers;
 
@@ -136,11 +140,13 @@ export function useHome() {
           authorId: filters.authorId,
           search: searchQuery,
           userId: effectiveUserId,
+          relationshipUserId,
           filters: {
             readers: [],
             status: serverFilters.status,
             gender: serverFilters.gender,
             year: serverFilters.year,
+            view: serverFilters.view,
           },
           page: serverPage,
           pageSize: serverPageSize,
@@ -160,11 +166,13 @@ export function useHome() {
         authorId: filters.authorId,
         search: searchQuery,
         userId: effectiveUserId,
+        relationshipUserId,
         filters: {
           readers: [],
           status: filters.status,
           gender: filters.gender,
           year: filters.year,
+          view: filters.view,
         },
         page: serverPage,
         pageSize: serverPageSize,
@@ -221,7 +229,7 @@ export function useHome() {
       return rawBooks;
     }
 
-    if (isMyBooksActive) {
+    if (isMyBooksActive || isAllBooksActive) {
       return rawBooks;
     }
 
@@ -248,7 +256,13 @@ export function useHome() {
       data: filteredJointBooks.slice(from, to),
       total: filteredJointBooks.length,
     };
-  }, [rawBooks, isMyBooksActive, effectiveSelectedReaders, currentPage]);
+  }, [
+    rawBooks,
+    isMyBooksActive,
+    isAllBooksActive,
+    effectiveSelectedReaders,
+    currentPage,
+  ]);
 
   const canClear = useMemo(
     () =>
@@ -257,6 +271,7 @@ export function useHome() {
       (filters.readers?.length > 0 && hasSearchParams) ||
       filters.status?.length > 0 ||
       !!filters.year ||
+      filters.view === "joint" ||
       !!filters.myBooks,
     [searchQuery, hasSearchParams, filters],
   );
@@ -266,7 +281,7 @@ export function useHome() {
     if (filters.myBooks) labels.push("Meus Livros");
     if (searchQuery) labels.push(`"${searchQuery}"`);
     if (formattedGenres) labels.push(formattedGenres);
-    if (!isMyBooksActive && formattedReaders)
+    if (!isMyBooksActive && !isAllBooksActive && formattedReaders)
       labels.push(`Leitores: ${readersObj.readersDisplay}`);
     if (formattedStatus) labels.push(formattedStatus);
     if (formattedYear) labels.push(`Ano: ${formattedYear}`);
@@ -280,6 +295,7 @@ export function useHome() {
     readersObj.readersDisplay,
     filters.myBooks,
     isMyBooksActive,
+    isAllBooksActive,
   ]);
 
   const handleSetYear = useCallback(
@@ -290,11 +306,25 @@ export function useHome() {
   );
 
   const handleToggleMyBooks = useCallback(() => {
-    updateUrlWithFilters({ ...filters, myBooks: !filters.myBooks });
+    const nextMyBooks = !filters.myBooks;
+    updateUrlWithFilters({
+      ...filters,
+      myBooks: nextMyBooks,
+      view: nextMyBooks ? filters.view : "joint",
+    });
+  }, [filters, updateUrlWithFilters]);
+
+  const handleSetAllBooks = useCallback(() => {
+    updateUrlWithFilters({
+      ...filters,
+      myBooks: false,
+      view: "todos",
+      readers: [],
+    });
   }, [filters, updateUrlWithFilters]);
 
   const handleSetJointReading = useCallback(() => {
-    updateUrlWithFilters({ ...filters, myBooks: false });
+    updateUrlWithFilters({ ...filters, myBooks: false, view: "joint" });
   }, [filters, updateUrlWithFilters]);
 
   const handleToggleReader = useCallback(
@@ -355,11 +385,13 @@ export function useHome() {
           bookId: serverFilters.bookId,
           search: searchQuery,
           userId: effectiveUserId,
+          relationshipUserId,
           filters: {
             readers: [],
             status: serverFilters.status,
             gender: serverFilters.gender,
             year: serverFilters.year,
+            view: serverFilters.view,
           },
           page: nextPage,
           pageSize: PAGE_SIZE,
@@ -370,6 +402,7 @@ export function useHome() {
     allBooks?.total,
     currentPage,
     effectiveUserId,
+    relationshipUserId,
     serverFilters,
     isMyBooksActive,
     queryClient,
@@ -406,10 +439,12 @@ export function useHome() {
     canClear,
     activeFilterLabels,
     handleToggleMyBooks,
+    handleSetAllBooks,
     handleSetJointReading,
     handleToggleReader,
     checkIsUserActive,
     isMyBooksActive,
+    isAllBooksActive,
     isLoggedIn,
     users,
     readers,

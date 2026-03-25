@@ -22,6 +22,46 @@ const buildMockSupabase = (mockQuery: ReturnType<typeof buildMockQuery>) => {
 };
 
 describe("BookQueryBuilder", () => {
+  describe("withUserRelationship", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("filters by readers containing the user id", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship("user-123")
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'readers.cs.{"user-123"},chosen_by.eq.user-123',
+      );
+    });
+
+    it("filters by chosen_by equality as part of the OR expression", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship("owner-42")
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        expect.stringContaining("chosen_by.eq.owner-42"),
+      );
+    });
+
+    it("combines readers containment and chosen_by equality with OR", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship("abc")
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'readers.cs.{"abc"},chosen_by.eq.abc',
+      );
+    });
+  });
+
   describe("withReaders", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;

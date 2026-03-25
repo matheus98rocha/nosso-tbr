@@ -74,6 +74,18 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withUserRelationship(userId?: string): this {
+    if (!userId) return this;
+
+    const escapedUserId = userId.replace(/"/g, '\\"');
+
+    this.query = this.query.or(
+      `readers.cs.{"${escapedUserId}"},chosen_by.eq.${escapedUserId}`,
+    );
+
+    return this;
+  }
+
   withUser(userId?: string): this {
     if (userId) this.query = this.query.eq("user_id", userId);
     return this;

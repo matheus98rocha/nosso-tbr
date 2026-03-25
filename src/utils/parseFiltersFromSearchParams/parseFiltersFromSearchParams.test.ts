@@ -5,6 +5,18 @@ const buildParams = (entries: Record<string, string>) =>
   new URLSearchParams(entries);
 
 describe("parseFiltersFromSearchParams", () => {
+  describe("view parsing", () => {
+    it('defaults view to "todos" when param is absent', () => {
+      const { filters } = parseFiltersFromSearchParams(buildParams({}));
+      expect(filters.view).toBe("todos");
+    });
+
+    it('parses view=joint when explicitly informed', () => {
+      const { filters } = parseFiltersFromSearchParams(buildParams({ view: "joint" }));
+      expect(filters.view).toBe("joint");
+    });
+  });
+
   describe("year parsing", () => {
     it("parses a valid year param as a number", () => {
       const params = buildParams({ year: "2024" });

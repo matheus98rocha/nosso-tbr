@@ -22,6 +22,7 @@ export class BookService {
     filters,
     search,
     userId,
+    relationshipUserId,
     authorId,
     page = 0,
     pageSize = 10,
@@ -29,6 +30,7 @@ export class BookService {
     filters?: FiltersOptions;
     search?: string;
     userId?: string;
+    relationshipUserId?: string;
     bookId?: string;
     authorId?: string;
     page?: number;
@@ -45,6 +47,7 @@ export class BookService {
         .withSearchTerm(search)
         .withId(bookId)
         .withAuthor(authorId)
+        .withUserRelationship(relationshipUserId)
         .withUser(userId)
         .withDefaultOrdering(statuses.includes("planned"))
         .withPagination(page, pageSize);
