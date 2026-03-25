@@ -92,7 +92,13 @@ describe("parseFiltersFromSearchParams", () => {
       const { buildQueryStringFromFilters } = await import(
         "@/utils/buildQueryStringFromFilters/buildQueryStringFromFilters"
       );
-      const original = { readers: [], status: [], gender: [], year: 2026 };
+      const original = {
+        readers: [],
+        status: [],
+        gender: [],
+        view: "todos" as const,
+        year: 2026,
+      };
       const qs = buildQueryStringFromFilters(original);
       const { filters } = parseFiltersFromSearchParams(new URLSearchParams(qs));
       expect(filters.year).toBe(2026);

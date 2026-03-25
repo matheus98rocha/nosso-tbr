@@ -242,8 +242,8 @@ describe("useHome", () => {
 
   describe('"Todos" reader selection behavior', () => {
     it("marks only current user as active by default in Todos", () => {
-      (useIsLoggedIn as Mock).mockReturnValue(true);
-      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
 
       const { result } = setupHook({ view: "todos", readers: [] });
@@ -253,8 +253,8 @@ describe("useHome", () => {
     });
 
     it("adds additional readers in Todos when user toggles chips", () => {
-      (useIsLoggedIn as Mock).mockReturnValue(true);
-      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
 
       const { result } = setupHook({ view: "todos", readers: ["Matheus"] });
@@ -267,8 +267,8 @@ describe("useHome", () => {
     });
 
     it("allows removing the default user selection in Todos", () => {
-      (useIsLoggedIn as Mock).mockReturnValue(true);
-      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
 
       const { result } = setupHook({ view: "todos", readers: [] });
@@ -281,8 +281,8 @@ describe("useHome", () => {
     });
 
     it("changes query key when Todos readers selection changes", () => {
-      (useIsLoggedIn as Mock).mockReturnValue(true);
-      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
 
       (useFiltersUrl as Mock).mockReturnValue(

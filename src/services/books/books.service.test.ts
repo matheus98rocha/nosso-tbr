@@ -50,7 +50,7 @@ describe("BookService.getAll", () => {
 
     await service.getAll({
       relationshipUserValues: ["user-1", "Matheus"],
-      filters: { readers: [], status: [], gender: [] },
+      filters: { readers: [], status: [], gender: [], view: "todos" },
     });
 
     expect(builderInstance.withUserRelationship).toHaveBeenCalledWith([
@@ -64,7 +64,7 @@ describe("BookService.getAll", () => {
     const service = new BookService();
 
     await service.getAll({
-      filters: { readers: [], status: [], gender: [] },
+      filters: { readers: [], status: [], gender: [], view: "todos" },
     });
 
     expect(builderInstance.withUserRelationship).toHaveBeenCalledWith(undefined);
