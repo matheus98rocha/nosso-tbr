@@ -215,12 +215,16 @@ describe("useHome", () => {
 
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: QUERY_KEYS.books.list(
-            { ...INITIAL_FILTERS, view: "todos", readers: [] },
-            "",
-            0,
-            undefined,
-          ),
+          queryKey: [
+            ...QUERY_KEYS.books.list(
+              { ...INITIAL_FILTERS, view: "todos", readers: [] },
+              "",
+              0,
+              undefined,
+            ),
+            "relationship",
+            "none",
+          ],
         }),
       );
     });
@@ -260,6 +264,42 @@ describe("useHome", () => {
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
         expect.objectContaining({ readers: ["Matheus", "Barbara"] }),
       );
+    });
+
+    it("allows removing the default user selection in Todos", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      const { result } = setupHook({ view: "todos", readers: [] });
+
+      act(() => result.current.handleToggleReader("Matheus"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: [] }),
+      );
+    });
+
+    it("changes query key when Todos readers selection changes", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ view: "todos", readers: ["Matheus"] }),
+      );
+      const { rerender } = renderHook(() => useHome());
+
+      const firstCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ view: "todos", readers: ["Matheus", "Barbara"] }),
+      );
+      rerender();
+
+      const secondCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
+
+      expect(JSON.stringify(firstCall)).not.toBe(JSON.stringify(secondCall));
     });
   });
 

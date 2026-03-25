@@ -54,6 +54,10 @@
 - **RN33 - Seleção Inicial de Leitores na Visão Todos:**
   - Ao abrir a Home logado, na visão **Todos**, apenas o leitor do usuário atual deve iniciar marcado.
   - Ao selecionar outros leitores, a seleção deve acumular no filtro da visão **Todos**.
+  - O leitor padrão pode ser removido manualmente pelo usuário.
+- **RN34 - Paginação da Visão Todos:**
+  - A visão **Todos** deve respeitar `PAGE_SIZE = 8` e paginação por página atual.
+  - Alterações na seleção de leitores na visão **Todos** devem gerar nova query (query key distinta) para evitar stale cache.
 
 ## 3. Book Status & Lifecycle
 
