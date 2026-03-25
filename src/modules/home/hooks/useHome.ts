@@ -106,9 +106,21 @@ export function useHome() {
     [filters.bookId, searchQuery],
   );
 
+  const currentUserDisplayName = useMemo(
+    () => users.find((u) => u.id === user?.id)?.display_name,
+    [users, user?.id],
+  );
+
   const effectiveUserId = isMyBooksActive ? user!.id : undefined;
-  const relationshipUserId =
-    isAllBooksActive && isLoggedIn ? user?.id : undefined;
+  const relationshipUserValues = useMemo(() => {
+    if (!isAllBooksActive || !isLoggedIn) return undefined;
+
+    const values = [user?.id, currentUserDisplayName].filter(
+      (value): value is string => !!value,
+    );
+
+    return values.length > 0 ? values : undefined;
+  }, [isAllBooksActive, isLoggedIn, user?.id, currentUserDisplayName]);
   const shouldWaitForUsers =
     !isMyBooksActive && filters.readers.length === 0 && isLoadingUsers;
 
@@ -140,7 +152,7 @@ export function useHome() {
           authorId: filters.authorId,
           search: searchQuery,
           userId: effectiveUserId,
-          relationshipUserId,
+          relationshipUserValues,
           filters: {
             readers: [],
             status: serverFilters.status,
@@ -166,7 +178,7 @@ export function useHome() {
         authorId: filters.authorId,
         search: searchQuery,
         userId: effectiveUserId,
-        relationshipUserId,
+        relationshipUserValues,
         filters: {
           readers: [],
           status: filters.status,
@@ -385,7 +397,7 @@ export function useHome() {
           bookId: serverFilters.bookId,
           search: searchQuery,
           userId: effectiveUserId,
-          relationshipUserId,
+          relationshipUserValues,
           filters: {
             readers: [],
             status: serverFilters.status,
@@ -402,7 +414,7 @@ export function useHome() {
     allBooks?.total,
     currentPage,
     effectiveUserId,
-    relationshipUserId,
+    relationshipUserValues,
     serverFilters,
     isMyBooksActive,
     queryClient,

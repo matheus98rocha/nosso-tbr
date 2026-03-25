@@ -49,11 +49,14 @@ describe("BookService.getAll", () => {
     const service = new BookService();
 
     await service.getAll({
-      relationshipUserId: "user-1",
+      relationshipUserValues: ["user-1", "Matheus"],
       filters: { readers: [], status: [], gender: [] },
     });
 
-    expect(builderInstance.withUserRelationship).toHaveBeenCalledWith("user-1");
+    expect(builderInstance.withUserRelationship).toHaveBeenCalledWith([
+      "user-1",
+      "Matheus",
+    ]);
     expect(builderInstance.withUser).not.toHaveBeenCalledWith("user-1");
   });
 

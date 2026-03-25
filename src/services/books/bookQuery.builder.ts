@@ -74,14 +74,25 @@ export class BookQueryBuilder {
     return this;
   }
 
-  withUserRelationship(userId?: string): this {
-    if (!userId) return this;
+  withUserRelationship(userValues?: string | string[]): this {
+    const values = Array.isArray(userValues)
+      ? userValues.filter((value) => !!value?.trim())
+      : userValues
+        ? [userValues]
+        : [];
 
-    const escapedUserId = userId.replace(/"/g, '\\"');
+    if (values.length === 0) return this;
 
-    this.query = this.query.or(
-      `readers.cs.{"${escapedUserId}"},chosen_by.eq.${escapedUserId}`,
-    );
+    const uniqueValues = [...new Set(values)];
+    const orConditions = uniqueValues.flatMap((value) => {
+      const escapedValue = value.replace(/"/g, '\\"');
+      return [
+        `readers.cs.{"${escapedValue}"}`,
+        `chosen_by.eq.${escapedValue}`,
+      ];
+    });
+
+    this.query = this.query.or(orConditions.join(","));
 
     return this;
   }

@@ -60,6 +60,16 @@ describe("BookQueryBuilder", () => {
         'readers.cs.{"abc"},chosen_by.eq.abc',
       );
     });
+
+    it("supports multiple identifiers (id + display name) for backward compatibility", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship(["user-uuid", "Matheus"])
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'readers.cs.{"user-uuid"},chosen_by.eq.user-uuid,readers.cs.{"Matheus"},chosen_by.eq.Matheus',
+      );
+    });
   });
 
   describe("withReaders", () => {
