@@ -39,9 +39,12 @@ export function useHome() {
   }, [users, user?.id, isLoggedIn]);
 
   const defaultFactory = useMemo(
-    () => () =>
-      ({
-        readers: readers.map((r) => r.display_name),
+    () => () => {
+      const currentUserName =
+        readers.find((reader) => reader.id === user?.id)?.display_name ?? "";
+
+      return {
+        readers: currentUserName ? [currentUserName] : [],
         status: [],
         gender: [],
         view: "todos",
@@ -50,8 +53,9 @@ export function useHome() {
         authorId: "",
         year: undefined,
         myBooks: false,
-      }) as FiltersOptions,
-    [readers],
+      } as FiltersOptions;
+    },
+    [readers, user?.id],
   );
 
   const {
@@ -112,15 +116,31 @@ export function useHome() {
   );
 
   const effectiveUserId = isMyBooksActive ? user!.id : undefined;
+  const defaultTodosReaders = useMemo(
+    () => (currentUserDisplayName ? [currentUserDisplayName] : []),
+    [currentUserDisplayName],
+  );
+
   const relationshipUserValues = useMemo(() => {
     if (!isAllBooksActive || !isLoggedIn) return undefined;
 
-    const values = [user?.id, currentUserDisplayName].filter(
-      (value): value is string => !!value,
-    );
+    const selectedReaderNames =
+      filters.readers.length > 0 ? filters.readers : defaultTodosReaders;
+
+    const selectedReaderIds = selectedReaderNames
+      .map((readerName) => users.find((u) => u.display_name === readerName)?.id)
+      .filter((value): value is string => !!value);
+
+    const values = [...selectedReaderNames, ...selectedReaderIds];
 
     return values.length > 0 ? values : undefined;
-  }, [isAllBooksActive, isLoggedIn, user?.id, currentUserDisplayName]);
+  }, [
+    isAllBooksActive,
+    isLoggedIn,
+    filters.readers,
+    defaultTodosReaders,
+    users,
+  ]);
   const shouldWaitForUsers =
     !isMyBooksActive && filters.readers.length === 0 && isLoadingUsers;
 
@@ -280,12 +300,16 @@ export function useHome() {
     () =>
       (!!searchQuery && hasSearchParams) ||
       filters.gender?.length > 0 ||
-      (filters.readers?.length > 0 && hasSearchParams) ||
+      (filters.readers?.length > 0 &&
+        (hasSearchParams ||
+          (isAllBooksActive &&
+            JSON.stringify(filters.readers) !==
+              JSON.stringify(defaultTodosReaders)))) ||
       filters.status?.length > 0 ||
       !!filters.year ||
       filters.view === "joint" ||
       !!filters.myBooks,
-    [searchQuery, hasSearchParams, filters],
+    [searchQuery, hasSearchParams, filters, isAllBooksActive, defaultTodosReaders],
   );
 
   const activeFilterLabels = useMemo(() => {
@@ -342,8 +366,9 @@ export function useHome() {
   const handleToggleReader = useCallback(
     (readerName: string) => {
       const allReaders = users.map((u) => u.display_name);
+      const defaultReaders = isAllBooksActive ? defaultTodosReaders : allReaders;
       const currentReaders =
-        filters.readers.length > 0 ? filters.readers : allReaders;
+        filters.readers.length > 0 ? filters.readers : defaultReaders;
 
       const nextReaders = currentReaders.includes(readerName)
         ? currentReaders.filter((reader) => reader !== readerName)
@@ -351,12 +376,18 @@ export function useHome() {
 
       updateUrlWithFilters({ ...filters, readers: nextReaders });
     },
-    [filters, updateUrlWithFilters, users],
+    [filters, updateUrlWithFilters, users, isAllBooksActive, defaultTodosReaders],
   );
 
   const checkIsUserActive = useCallback(
     (readerName: string) => {
       if (isMyBooksActive) return false;
+
+      if (isAllBooksActive) {
+        const selectedTodosReaders =
+          filters.readers.length > 0 ? filters.readers : defaultTodosReaders;
+        return selectedTodosReaders.includes(readerName);
+      }
 
       if (filters.readers.length === 0) {
         return true;
@@ -364,7 +395,7 @@ export function useHome() {
 
       return filters.readers.includes(readerName);
     },
-    [filters.readers, isMyBooksActive],
+    [filters.readers, isMyBooksActive, isAllBooksActive, defaultTodosReaders],
   );
 
   const { activeStatuses, handleToggleStatus } = useStatusFilters({

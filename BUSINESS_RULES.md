@@ -51,6 +51,9 @@
   - `chosen_by` nulo: livro pode ser retornado se `readers` contiver o usuário.
 - **RN32 - Compatibilidade de Identificador de Leitor:**
   - Enquanto a base persistir `readers/chosen_by` em texto, a regra de relacionamento deve aceitar identificadores múltiplos do mesmo usuário (ex.: `id` e `display_name`) para manter compatibilidade durante migração gradual para UUID.
+- **RN33 - Seleção Inicial de Leitores na Visão Todos:**
+  - Ao abrir a Home logado, na visão **Todos**, apenas o leitor do usuário atual deve iniciar marcado.
+  - Ao selecionar outros leitores, a seleção deve acumular no filtro da visão **Todos**.
 
 ## 3. Book Status & Lifecycle
 

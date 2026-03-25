@@ -6,6 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
 import { useUser } from "@/services/users/hooks/useUsers";
+import { useUserStore } from "@/stores/userStore";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 vi.mock("@/services/books/books.service");
 vi.mock("@/services/users/hooks/useUsers", () => ({
@@ -230,6 +232,33 @@ describe("useHome", () => {
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
         expect.objectContaining({ view: "joint", myBooks: false }),
+      );
+    });
+  });
+
+  describe('"Todos" reader selection behavior', () => {
+    it("marks only current user as active by default in Todos", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      const { result } = setupHook({ view: "todos", readers: [] });
+
+      expect(result.current.checkIsUserActive("Matheus")).toBe(true);
+      expect(result.current.checkIsUserActive("Barbara")).toBe(false);
+    });
+
+    it("adds additional readers in Todos when user toggles chips", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+
+      const { result } = setupHook({ view: "todos", readers: ["Matheus"] });
+
+      act(() => result.current.handleToggleReader("Barbara"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: ["Matheus", "Barbara"] }),
       );
     });
   });

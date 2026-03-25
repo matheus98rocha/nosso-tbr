@@ -187,7 +187,7 @@ export default function ClientHome() {
                       )}
                     </div>
                     <div className="flex gap-2 items-start justify-start w-full">
-                      {!isMyBooksActive && !isAllBooksActive && (
+                      {!isMyBooksActive && (
                         <div className="flex gap-2">
                           {readers.map((user) => (
                             <Button
