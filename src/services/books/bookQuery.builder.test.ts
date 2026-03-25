@@ -37,7 +37,7 @@ describe("BookQueryBuilder", () => {
         .build();
 
       expect(mockQuery.or).toHaveBeenCalledWith(
-        'readers.cs.{"user-123"},chosen_by.eq.user-123',
+        'readers.cs.{"user-123"},chosen_by.eq."user-123"',
       );
     });
 
@@ -47,7 +47,7 @@ describe("BookQueryBuilder", () => {
         .build();
 
       expect(mockQuery.or).toHaveBeenCalledWith(
-        expect.stringContaining("chosen_by.eq.owner-42"),
+        expect.stringContaining('chosen_by.eq."owner-42"'),
       );
     });
 
@@ -57,7 +57,7 @@ describe("BookQueryBuilder", () => {
         .build();
 
       expect(mockQuery.or).toHaveBeenCalledWith(
-        'readers.cs.{"abc"},chosen_by.eq.abc',
+        'readers.cs.{"abc"},chosen_by.eq."abc"',
       );
     });
 
@@ -67,7 +67,17 @@ describe("BookQueryBuilder", () => {
         .build();
 
       expect(mockQuery.or).toHaveBeenCalledWith(
-        'readers.cs.{"user-uuid"},chosen_by.eq.user-uuid,readers.cs.{"Matheus"},chosen_by.eq.Matheus',
+        'readers.cs.{"user-uuid"},chosen_by.eq."user-uuid",readers.cs.{"Matheus"},chosen_by.eq."Matheus"',
+      );
+    });
+
+    it("quotes special characters safely in PostgREST OR expressions", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship('user, "special" value')
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'readers.cs.{"user, \\"special\\" value"},chosen_by.eq."user, \\"special\\" value"',
       );
     });
   });

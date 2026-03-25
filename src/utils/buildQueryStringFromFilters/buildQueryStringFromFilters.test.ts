@@ -6,6 +6,7 @@ const baseFilters: FiltersOptions = {
   readers: [],
   status: [],
   gender: [],
+  view: "todos",
 };
 
 describe("buildQueryStringFromFilters", () => {

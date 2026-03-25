@@ -5,6 +5,11 @@ import { Status } from "@/types/books.types";
 export class BookQueryBuilder {
   private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
 
+  private static quotePostgrestTextValue(value: string): string {
+    const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return `"${escaped}"`;
+  }
+
   constructor(
     supabase: SupabaseClient<Database>,
     initialQuery = supabase.from("books").select(
@@ -85,10 +90,10 @@ export class BookQueryBuilder {
 
     const uniqueValues = [...new Set(values)];
     const orConditions = uniqueValues.flatMap((value) => {
-      const escapedValue = value.replace(/"/g, '\\"');
+      const quotedValue = BookQueryBuilder.quotePostgrestTextValue(value);
       return [
-        `readers.cs.{"${escapedValue}"}`,
-        `chosen_by.eq.${escapedValue}`,
+        `readers.cs.{${quotedValue}}`,
+        `chosen_by.eq.${quotedValue}`,
       ];
     });
 

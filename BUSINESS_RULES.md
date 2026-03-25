@@ -44,6 +44,7 @@
   - `view=todos`: aplica regra de relacionamento (`readers OR chosen_by`).
   - `view=joint`: aplica regra existente de leituras conjuntas (comportamento preservado).
   - `myBooks=true`: mantém comportamento de livros do usuário por `user_id` (comportamento preservado).
+  - Ao desativar `myBooks`, restaurar a última `view` não-`myBooks` selecionada pelo usuário.
   - Sem filtro de visão ativo: retornar **todos os livros do sistema**, sem restrição por usuário.
 - **RN31 - Casos de Borda (Visão Todos):**
   - Usuário sem livros relacionados: retorno vazio.

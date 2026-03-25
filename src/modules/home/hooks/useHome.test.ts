@@ -365,6 +365,16 @@ describe("useHome", () => {
         expect.objectContaining({ ...existing, myBooks: true }),
       );
     });
+
+    it("restores the previous non-myBooks view when disabling myBooks", () => {
+      const { result } = setupHook({ myBooks: true, view: "todos" });
+
+      act(() => result.current.handleToggleMyBooks());
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ myBooks: false, view: "todos" }),
+      );
+    });
   });
 
   describe("canClear", () => {

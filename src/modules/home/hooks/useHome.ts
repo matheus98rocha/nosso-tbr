@@ -30,6 +30,9 @@ export function useHome() {
   const [currentPage, setCurrentPage] = useState(0);
   const [hasInteractedTodosReaders, setHasInteractedTodosReaders] =
     useState(false);
+  const [lastNonMyBooksView, setLastNonMyBooksView] = useState<
+    FiltersOptions["view"]
+  >("todos");
   const readers: UserDomain[] = useMemo(() => {
     if (isLoggedIn) {
       return sortWithPriority(
@@ -78,6 +81,12 @@ export function useHome() {
       setHasInteractedTodosReaders(false);
     }
   }, [filters.view]);
+
+  useEffect(() => {
+    if (!filters.myBooks) {
+      setLastNonMyBooksView(filters.view);
+    }
+  }, [filters.myBooks, filters.view]);
 
   const isAllBooksActive = filters.view !== "joint" && !filters.myBooks;
   const isMyBooksActive = !!(filters.myBooks && isLoggedIn && user?.id);
@@ -361,12 +370,13 @@ export function useHome() {
 
   const handleToggleMyBooks = useCallback(() => {
     const nextMyBooks = !filters.myBooks;
+
     updateUrlWithFilters({
       ...filters,
       myBooks: nextMyBooks,
-      view: nextMyBooks ? filters.view : "joint",
+      view: nextMyBooks ? filters.view : lastNonMyBooksView,
     });
-  }, [filters, updateUrlWithFilters]);
+  }, [filters, updateUrlWithFilters, lastNonMyBooksView]);
 
   const handleSetAllBooks = useCallback(() => {
     updateUrlWithFilters({
