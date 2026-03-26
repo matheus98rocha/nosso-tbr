@@ -1,10 +1,7 @@
-import type {
-  RegisterUserApiPayload,
-  RegisterUserFormValues,
-} from "../types/userRegistration.types";
+import type { RegisterUserBody } from "../validators/userRegistration.validator";
 
 export const userRegistrationMapper = {
-  toApiPayload(values: RegisterUserFormValues): RegisterUserApiPayload {
+  toApiPayload(values: RegisterUserBody): RegisterUserBody {
     return {
       email: values.email.trim(),
       password: values.password,

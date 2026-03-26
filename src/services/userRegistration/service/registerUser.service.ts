@@ -1,7 +1,7 @@
-import type { RegisterUserApiPayload } from "../types/userRegistration.types";
+import type { RegisterUserBody } from "../validators/userRegistration.validator";
 
 export async function registerUser(
-  payload: RegisterUserApiPayload,
+  payload: RegisterUserBody,
 ): Promise<{ ok: true }> {
   const res = await fetch("/api/auth/register", {
     method: "POST",

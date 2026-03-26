@@ -1,37 +1,11 @@
-"use client";
-
-import { UserRegistrationComponent } from "@/components/userRegistration/UserRegistrationComponent";
-import { useUserRegistration } from "@/services/userRegistration/hooks/useUserRegistration";
+import { Skeleton } from "@/components/ui/skeleton";
+import ClientRegister from "@/modules/register";
+import React, { Suspense } from "react";
 
 export default function RegisterPage() {
-  const {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    display_name,
-    setDisplayName,
-    submit,
-    isPending,
-    isError,
-    error,
-    isSuccess,
-  } = useUserRegistration();
-
   return (
-    <UserRegistrationComponent
-      email={email}
-      password={password}
-      display_name={display_name}
-      onEmailChange={setEmail}
-      onPasswordChange={setPassword}
-      onDisplayNameChange={setDisplayName}
-      onSubmit={() => {
-        void submit();
-      }}
-      isPending={isPending}
-      errorMessage={isError && error ? error.message : null}
-      success={isSuccess}
-    />
+    <Suspense fallback={<Skeleton className="h-40 w-full max-w-sm" />}>
+      <ClientRegister />
+    </Suspense>
   );
 }

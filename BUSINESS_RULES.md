@@ -86,3 +86,10 @@
   - Excluir via `BookService`: Remove o livro permanentemente da base.
   - Excluir via `BookshelfService`: Remove apenas o vínculo do livro com a estante específica (módulo Shelves).
 - **RN15 - Mobile Touch Targets:** Elementos interativos (Dropdowns, Cards) devem seguir o padrão de acessibilidade para touch. Elementos de menu (ellipsis) devem ter áreas de clique de no mínimo 44x44px.
+
+## 5. Cadastro direto de usuário (link exclusivo)
+
+- **RN35 - Descoberta e layout:** A rota `/register` não faz parte da navegação principal nem do layout `(main)`; o acesso é apenas por URL direta (ou link compartilhado), sem alterar fluxos de usuários já autenticados.
+- **RN36 - Fluxo de persistência:** O endpoint `POST /api/auth/register` valida o corpo, cria o usuário no Supabase Auth (`signUp`) e em seguida faz upsert em `public.users` com `id` igual ao `auth.users.id`, preenchendo `display_name` e `email`.
+- **RN37 - Validação (alinhada API + formulário):** `email` válido; `password` com mínimo de 8 caracteres; `display_name` obrigatório após trim, até 200 caracteres. O schema Zod compartilhado entre a rota e o React Hook Form (`zodResolver`) deve permanecer a única fonte dessas regras.
+- **RN38 - Camada de UI e dados:** O cadastro é implementado no módulo `modules/register` (componente cliente `ClientRegister`, hook `useRegister`). O envio usa TanStack Query (`useMutation`); o formulário usa React Hook Form. A página `register` segue o padrão da home: `Suspense` com fallback em `Skeleton` envolvendo o cliente.
