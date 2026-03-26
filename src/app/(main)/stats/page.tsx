@@ -28,16 +28,22 @@ export default async function StatsPage({
   );
 
   return (
-    <div className="container w-full flex  justify-center flex-col gap-6">
-      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
-        Estatísticas de Leitura
-      </h1>
+    <main className="mx-auto w-full max-w-7xl">
+      <header className="mb-8 border-b border-border pb-8 text-center md:mb-10 md:text-left">
+        <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+          Estatísticas de Leitura
+        </h1>
+        <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground md:mx-0">
+          Visão geral dos livros lidos, páginas e hábitos por leitor. Escolha um
+          leitor abaixo para atualizar os gráficos.
+        </p>
+      </header>
 
       <StatsClient
         yearlyStats={yearlyStats as EstatisticaAnual[]}
         collaborators={collaborators as CollaborationStatsDomain[]}
         totalBooks={totalBooks}
       />
-    </div>
+    </main>
   );
 }
