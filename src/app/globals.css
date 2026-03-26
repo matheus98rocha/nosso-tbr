@@ -113,6 +113,15 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+[data-stats-charts] {
+  --stats-chart-bar: var(--primary);
+  --stats-chart-pie-1: var(--primary);
+  --stats-chart-pie-2: var(--ring);
+  --stats-chart-pie-3: var(--muted-foreground);
+  --stats-chart-pie-4: color-mix(in oklch, var(--primary) 52%, var(--ring));
+  --stats-chart-pie-5: color-mix(in oklch, var(--ring) 48%, var(--muted));
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

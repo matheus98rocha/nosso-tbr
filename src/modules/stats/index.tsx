@@ -35,12 +35,12 @@ import { BookOpen, FileText, PenLine, Tag } from "lucide-react";
 
 const leitores = ["Matheus", "Fabi", "Barbara"];
 
-const CHART_FILLS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
+const STATS_PIE_FILLS = [
+  "var(--stats-chart-pie-1)",
+  "var(--stats-chart-pie-2)",
+  "var(--stats-chart-pie-3)",
+  "var(--stats-chart-pie-4)",
+  "var(--stats-chart-pie-5)",
 ] as const;
 
 export type EstatisticaAnual = {
@@ -189,6 +189,7 @@ export function StatsClient({
       <section
         className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"
         aria-label="Gráficos"
+        data-stats-charts
       >
         <Card className="shadow-sm">
           <CardHeader className="space-y-1">
@@ -234,11 +235,16 @@ export function StatsClient({
                         color: "var(--popover-foreground)",
                       }}
                     />
-                    <Legend />
+                    <Legend
+                      wrapperStyle={{
+                        color: "var(--foreground)",
+                        fontSize: 12,
+                      }}
+                    />
                     <Bar
                       dataKey="totalBooks"
                       name="Livros lidos"
-                      fill="var(--chart-1)"
+                      fill="var(--stats-chart-bar)"
                       radius={[6, 6, 0, 0]}
                       label={{
                         position: "top",
@@ -289,7 +295,9 @@ export function StatsClient({
                       {collaborators.map((c, i) => (
                         <Cell
                           key={c.readerName}
-                          fill={CHART_FILLS[i % CHART_FILLS.length]}
+                          fill={
+                            STATS_PIE_FILLS[i % STATS_PIE_FILLS.length]
+                          }
                         />
                       ))}
                     </Pie>
@@ -301,7 +309,12 @@ export function StatsClient({
                         color: "var(--popover-foreground)",
                       }}
                     />
-                    <Legend />
+                    <Legend
+                      wrapperStyle={{
+                        color: "var(--foreground)",
+                        fontSize: 12,
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
