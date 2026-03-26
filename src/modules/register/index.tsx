@@ -83,6 +83,26 @@ export default function ClientRegister() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="password_confirm"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirmar senha</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  disabled={isPending}
+                  aria-label="Confirm password"
+                  minLength={8}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Button
           type="submit"
           disabled={isPending}

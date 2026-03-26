@@ -6,26 +6,29 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { userRegistrationMapper } from "@/services/userRegistration/mappers/userRegistration.mapper";
 import { registerUser } from "@/services/userRegistration/service/registerUser.service";
 import {
-  registerUserBodySchema,
-  type RegisterUserBody,
+  registerUserFormSchema,
+  type RegisterUserFormValues,
 } from "@/services/userRegistration/validators/userRegistration.validator";
 
 export function useRegister() {
-  const form = useForm<RegisterUserBody>({
-    resolver: zodResolver(registerUserBodySchema),
+  const form = useForm<RegisterUserFormValues>({
+    resolver: zodResolver(registerUserFormSchema),
     defaultValues: {
       email: "",
       password: "",
+      password_confirm: "",
       display_name: "",
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (values: RegisterUserBody) =>
+    mutationFn: (values: RegisterUserFormValues) =>
       registerUser(userRegistrationMapper.toApiPayload(values)),
   });
 
-  const onValidSubmit: SubmitHandler<RegisterUserBody> = async (data) => {
+  const onValidSubmit: SubmitHandler<RegisterUserFormValues> = async (
+    data,
+  ) => {
     await mutation.mutateAsync(data);
   };
 
