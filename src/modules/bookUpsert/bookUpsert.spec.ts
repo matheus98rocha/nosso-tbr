@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { bookCreateSchema } from "../home/validators/createBook.validator";
 import { BookUpsertMapper } from "./services/mappers/bookUpsert.mapper";
 import { BookCreateValidator } from "@/types/books.types";
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
 function createValidBook(
   overrides?: Partial<BookCreateValidator>,
@@ -303,6 +304,29 @@ describe("BookUpsert - regras de negócio do schema", () => {
       expect(
         result.error.issues.some((issue) => issue.path[0] === "image_url"),
       ).toBe(true);
+    }
+  });
+
+  it("deve aceitar image_url vazio ou ausente (RN04 — opcional)", () => {
+    const empty = bookCreateSchema.safeParse(
+      createValidBook({ image_url: "" }),
+    );
+    expect(empty.success).toBe(true);
+
+    const book = createValidBook();
+    delete (book as Partial<BookCreateValidator>).image_url;
+    const omitted = bookCreateSchema.safeParse(book);
+    expect(omitted.success).toBe(true);
+  });
+
+  it("deve persistir capa padrão quando image_url estiver vazio (RN04)", () => {
+    const result = bookCreateSchema.safeParse(
+      createValidBook({ image_url: "" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const persistence = BookUpsertMapper.toPersistence(result.data);
+      expect(persistence.image_url).toBe(BOOK_COVER_PLACEHOLDER_SRC);
     }
   });
 });

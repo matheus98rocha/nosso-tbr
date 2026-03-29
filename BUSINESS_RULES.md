@@ -4,7 +4,7 @@
 
 - **RN01 - Campos Obrigatórios:** `title`, `author_id` e `readers` são estritamente obrigatórios.
 - **RN03 - Integridade de Páginas:** O campo `pages` deve ser um número inteiro e positivo.
-- **RN04 - Segurança de Imagem:** `image_url` deve ser uma URL válida e pertencer obrigatoriamente aos domínios Amazon (`amazon.com`, `amazon.com.br`, `media-amazon.com`, `m.media-amazon.com`, `ssl-images-amazon.com`).
+- **RN04 - Segurança de Imagem:** `image_url` é **opcional**. Se o usuário não informar (campo vazio ou ausente), o sistema persiste e exibe a **capa padrão** (`/book-cover-placeholder.svg`). Se informada, deve ser uma URL válida e pertencer aos domínios Amazon (`amazon.com`, `amazon.com.br`, `media-amazon.com`, `m.media-amazon.com`, `ssl-images-amazon.com`).
 
 ## 2. Listing, Search & Pagination
 
@@ -86,3 +86,10 @@
   - Excluir via `BookService`: Remove o livro permanentemente da base.
   - Excluir via `BookshelfService`: Remove apenas o vínculo do livro com a estante específica (módulo Shelves).
 - **RN15 - Mobile Touch Targets:** Elementos interativos (Dropdowns, Cards) devem seguir o padrão de acessibilidade para touch. Elementos de menu (ellipsis) devem ter áreas de clique de no mínimo 44x44px.
+
+## 5. Cadastro direto de usuário (link exclusivo)
+
+- **RN35 - Descoberta e layout:** A rota `/register` não faz parte da navegação principal nem do layout `(main)`; o acesso é apenas por URL direta (ou link compartilhado), sem alterar fluxos de usuários já autenticados.
+- **RN36 - Fluxo de persistência:** O endpoint `POST /api/auth/register` valida o corpo, cria o usuário no Supabase Auth (`signUp`) e em seguida faz upsert em `public.users` com `id` igual ao `auth.users.id`, preenchendo `display_name` e `email`.
+- **RN37 - Validação (API + formulário):** Os campos enviados à API (`email`, `password`, `display_name`) são obrigatórios: `email` com formato válido; `password` com mínimo de 8 caracteres; `display_name` com trim, mínimo de 2 e máximo de 200 caracteres. A rota usa `registerUserBodySchema`; o formulário usa `registerUserFormSchema`, que inclui `password_confirm` obrigatório e deve coincidir com `password` (o campo de confirmação não é enviado ao servidor). As regras dos três campos persistidos ficam centralizadas em `registerFieldsSchema` no mesmo módulo de validação.
+- **RN38 - Camada de UI e dados:** O cadastro é implementado no módulo `modules/register` (componente cliente `ClientRegister`, hook `useRegister`). O envio usa TanStack Query (`useMutation`); o formulário usa React Hook Form. A página `register` segue o padrão da home: `Suspense` com fallback em `Skeleton` envolvendo o cliente.

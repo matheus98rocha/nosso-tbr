@@ -25,7 +25,7 @@ export type BookPersistence = {
   inserted_at?: string;
   readers: string[];
   gender: string | null;
-  image_url: string;
+  image_url: string | null;
   user_id: string;
 };
 
@@ -45,10 +45,7 @@ export type CreateBookPersistence = {
   image_url: string;
   user_id: string;
 };
-export type BookCreateValidator = z.infer<typeof bookCreateSchema> & {
-  id?: string;
-  status?: Status;
-};
+export type BookCreateValidator = z.infer<typeof bookCreateSchema>;
 
 export type BookDomain = {
   id?: string;

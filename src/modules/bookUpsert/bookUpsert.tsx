@@ -159,7 +159,7 @@ export function BookUpsert(props: CreateBookProps) {
                           <FormLabel>URL da Capa</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Insira o link da imagem da Amazon"
+                              placeholder="Link da capa na Amazon; deixe em branco para usar capa padrão"
                               {...field}
                               autoFocus={false}
                             />

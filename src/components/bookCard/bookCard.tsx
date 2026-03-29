@@ -12,6 +12,7 @@ import { useBookCard } from "./hooks/useBookCard";
 import { BookCardProps } from "./types/bookCard.types";
 import { getGenderLabel, getGenreBadgeColor } from "@/constants/genders";
 import { cn } from "@/lib/utils";
+import { resolveBookCoverUrl } from "@/constants/bookCover";
 
 export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
   const {
@@ -62,7 +63,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
           <div className="flex gap-3">
             <div className="relative shrink-0 w-[90px] h-[130px] rounded-md overflow-hidden shadow-sm">
               <Image
-                src={book.image_url as string}
+                src={resolveBookCoverUrl(book.image_url)}
                 alt={book.title}
                 fill
                 className="object-cover"

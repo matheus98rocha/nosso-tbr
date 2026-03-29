@@ -2,6 +2,7 @@ import {
   BookCreateValidator,
   CreateBookPersistence,
 } from "@/types/books.types";
+import { resolveBookCoverUrl } from "@/constants/bookCover";
 
 export class BookUpsertMapper {
   static toPersistence(
@@ -25,7 +26,7 @@ export class BookUpsertMapper {
           ? domain.readers.split(" e ")
           : [],
       gender: domain.gender ?? null,
-      image_url: domain.image_url,
+      image_url: resolveBookCoverUrl(domain.image_url),
       user_id: domain.user_id ?? "",
     };
   }
