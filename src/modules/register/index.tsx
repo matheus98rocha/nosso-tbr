@@ -73,7 +73,7 @@ export default function ClientRegister() {
                 void onSubmit(e);
               }}
               className="space-y-4"
-              aria-label="User registration form"
+              aria-busy={isPending}
             >
               <FormField
                 control={form.control}
@@ -87,7 +87,6 @@ export default function ClientRegister() {
                         autoComplete="name"
                         disabled={isPending}
                         className="min-h-11 text-base"
-                        aria-label="Display name"
                         {...field}
                       />
                     </FormControl>
@@ -108,7 +107,6 @@ export default function ClientRegister() {
                         disabled={isPending}
                         className="min-h-11 text-base"
                         placeholder="exemplo@email.com"
-                        aria-label="Email"
                         {...field}
                       />
                     </FormControl>
@@ -128,7 +126,6 @@ export default function ClientRegister() {
                         autoComplete="new-password"
                         disabled={isPending}
                         className="min-h-11 text-base"
-                        aria-label="Password"
                         aria-describedby="register-password-hints"
                         {...field}
                       />
@@ -185,7 +182,6 @@ export default function ClientRegister() {
                         autoComplete="new-password"
                         disabled={isPending}
                         className="min-h-11 text-base"
-                        aria-label="Confirm password"
                         aria-describedby="register-password-match-hint"
                         {...field}
                       />
@@ -231,7 +227,6 @@ export default function ClientRegister() {
                 type="submit"
                 disabled={isPending}
                 className="h-11 w-full min-h-11 cursor-pointer transition-opacity disabled:opacity-60"
-                aria-label="Submit registration"
               >
                 {isPending ? "Enviando…" : "Cadastrar"}
               </Button>
@@ -262,7 +257,7 @@ export default function ClientRegister() {
               className="h-11 min-h-11 cursor-pointer px-2"
               asChild
             >
-              <Link href="/auth" aria-label="Go to sign in">
+              <Link href="/auth">
                 Já tem conta? Entrar
               </Link>
             </Button>

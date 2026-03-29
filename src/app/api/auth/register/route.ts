@@ -2,6 +2,18 @@ import { createClient } from "@/lib/supabase/server";
 import { registerUserBodySchema } from "@/services/userRegistration/validators/userRegistration.validator";
 import { NextResponse } from "next/server";
 
+function mapAuthErrorToClientMessage(errorCode?: string): string {
+  switch (errorCode) {
+    case "user_already_exists":
+    case "email_exists":
+      return "Não foi possível concluir o cadastro com esse e-mail.";
+    case "weak_password":
+      return "A senha informada não atende aos requisitos mínimos.";
+    default:
+      return "Não foi possível concluir o cadastro. Tente novamente.";
+  }
+}
+
 export async function POST(request: Request) {
   let json: unknown;
   try {
@@ -27,10 +39,21 @@ export async function POST(request: Request) {
   });
 
   if (authError) {
-    return NextResponse.json({ error: authError.message }, { status: 400 });
+    console.error("Auth signUp failed during registration", {
+      code: authError.code,
+      message: authError.message,
+      status: authError.status,
+    });
+
+    return NextResponse.json(
+      { error: mapAuthErrorToClientMessage(authError.code) },
+      { status: 400 },
+    );
   }
 
   if (!authData.user) {
+    console.error("Auth signUp succeeded without returning a user", { email });
+
     return NextResponse.json(
       { error: "Registration did not return a user" },
       { status: 400 },
@@ -47,7 +70,22 @@ export async function POST(request: Request) {
   );
 
   if (upsertError) {
-    return NextResponse.json({ error: upsertError.message }, { status: 500 });
+    console.error("Profile upsert failed after auth signUp", {
+      userId: authData.user.id,
+      email,
+      code: upsertError.code,
+      message: upsertError.message,
+      details: upsertError.details,
+      hint: upsertError.hint,
+    });
+
+    return NextResponse.json(
+      {
+        error:
+          "Cadastro criado, mas não foi possível salvar seu perfil agora. Tente novamente em instantes.",
+      },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ ok: true }, { status: 201 });
