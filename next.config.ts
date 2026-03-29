@@ -9,6 +9,18 @@ const nextConfig: NextConfig = {
         port: "",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "**.ssl-images-amazon.com",
+        port: "",
+        search: "",
+      },
+      {
+        protocol: "https",
+        hostname: "**.media-amazon.com",
+        port: "",
+        search: "",
+      },
     ],
   },
 };

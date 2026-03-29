@@ -4,7 +4,7 @@
 
 - **RN01 - Campos Obrigatórios:** `title`, `author_id` e `readers` são estritamente obrigatórios.
 - **RN03 - Integridade de Páginas:** O campo `pages` deve ser um número inteiro e positivo.
-- **RN04 - Segurança de Imagem:** `image_url` deve ser uma URL válida e pertencer obrigatoriamente aos domínios Amazon (`amazon.com`, `amazon.com.br`, `media-amazon.com`, `m.media-amazon.com`, `ssl-images-amazon.com`).
+- **RN04 - Segurança de Imagem:** `image_url` é **opcional**. Se o usuário não informar (campo vazio ou ausente), o sistema persiste e exibe a **capa padrão** (`/book-cover-placeholder.svg`). Se informada, deve ser uma URL válida e pertencer aos domínios Amazon (`amazon.com`, `amazon.com.br`, `media-amazon.com`, `m.media-amazon.com`, `ssl-images-amazon.com`).
 
 ## 2. Listing, Search & Pagination
 

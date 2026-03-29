@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { BookMapper } from "../books.mapper";
 import { BookPersistence } from "@/types/books.types";
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
 describe("BookMapper", () => {
   it("deve mapear corretamente os dados de persistência para o domínio", () => {
@@ -62,5 +63,33 @@ describe("BookMapper", () => {
 
     const domain = BookMapper.toDomain(persistence as BookPersistence);
     expect(domain.status).toBe("not_started");
+  });
+
+  it("deve usar capa padrão quando image_url for nulo ou vazio (RN04)", () => {
+    const withNull: BookPersistence = {
+      id: "1",
+      title: "Livro",
+      author: { name: "Autor" },
+      author_id: "a1",
+      chosen_by: "Matheus",
+      pages: 100,
+      readers: ["Matheus"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+    };
+
+    expect(BookMapper.toDomain(withNull).image_url).toBe(
+      BOOK_COVER_PLACEHOLDER_SRC,
+    );
+
+    const withEmpty: BookPersistence = {
+      ...withNull,
+      image_url: "",
+    };
+
+    expect(BookMapper.toDomain(withEmpty).image_url).toBe(
+      BOOK_COVER_PLACEHOLDER_SRC,
+    );
   });
 });

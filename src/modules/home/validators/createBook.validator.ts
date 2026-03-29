@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+const AMAZON_IMAGE_HOST_RE =
+  /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com)/;
+
 export const bookCreateSchema = z.object({
   title: z.string().min(1, { message: "O título do livro é obrigatório" }),
   author_id: z.string().min(1, { message: "O autor do livro é obrigatório" }),
@@ -19,16 +22,36 @@ export const bookCreateSchema = z.object({
   readers: z.string().min(1, { message: "O leitor é obrigatório" }),
   gender: z.string().nullable().optional(),
   image_url: z
-    .url({ message: "A URL da imagem deve ser um endereço válido" })
-    .refine(
-      (url) =>
-        !url ||
-        /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com)/.test(
-          url,
-        ),
-      {
-        message: "A URL da imagem deve ser de um domínio da Amazon válido",
-      },
-    ),
+    .string()
+    .optional()
+    .superRefine((val, ctx) => {
+      if (val === undefined || val.trim() === "") return;
+      const trimmed = val.trim();
+      const urlCheck = z.string().url().safeParse(trimmed);
+      if (!urlCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A URL da imagem deve ser um endereço válido",
+        });
+        return;
+      }
+      if (!AMAZON_IMAGE_HOST_RE.test(trimmed)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A URL da imagem deve ser de um domínio da Amazon válido",
+        });
+      }
+    }),
   user_id: z.string().optional(),
+  id: z.string().optional(),
+  status: z
+    .enum([
+      "reading",
+      "finished",
+      "not_started",
+      "planned",
+      "paused",
+      "abandoned",
+    ])
+    .optional(),
 });

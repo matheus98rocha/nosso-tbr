@@ -1,5 +1,6 @@
 import { BookDomain, BookPersistence } from "@/types/books.types";
 import { DateUtils } from "@/utils";
+import { resolveBookCoverUrl } from "@/constants/bookCover";
 
 export class BookMapper {
   static toDomain(persistence: BookPersistence): BookDomain {
@@ -35,7 +36,7 @@ export class BookMapper {
         ? (persistence.readers.join(" e ") as BookDomain["readers"])
         : (persistence.readers as BookDomain["readers"]),
       gender: persistence.gender ?? null,
-      image_url: persistence.image_url,
+      image_url: resolveBookCoverUrl(persistence.image_url),
       user_id: persistence.user_id,
     };
   }

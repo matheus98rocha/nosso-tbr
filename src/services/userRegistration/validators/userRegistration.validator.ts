@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  passwordHasLetter,
+  passwordHasNumber,
+} from "@/utils/passwordRules";
 
 const registerFieldsSchema = z.object({
   email: z
@@ -9,7 +13,15 @@ const registerFieldsSchema = z.object({
   password: z
     .string()
     .min(1, { message: "Senha é obrigatória" })
-    .min(8, { message: "A senha deve ter no mínimo 8 caracteres" }),
+    .min(8, {
+      message: "Sua senha precisa ter pelo menos 8 caracteres. Isso ajuda a proteger sua conta.",
+    })
+    .refine(passwordHasLetter, {
+      message: "Adicione pelo menos uma letra para sua senha ficar mais segura.",
+    })
+    .refine(passwordHasNumber, {
+      message: "Inclua pelo menos um número junto com as letras.",
+    }),
   display_name: z
     .string()
     .trim()
@@ -24,10 +36,13 @@ export const registerUserFormSchema = registerFieldsSchema
   .extend({
     password_confirm: z
       .string()
-      .min(1, { message: "Confirmação de senha é obrigatória" }),
+      .min(1, {
+        message: "Digite a mesma senha novamente no campo de confirmação.",
+      }),
   })
   .refine((data) => data.password === data.password_confirm, {
-    message: "As senhas não coincidem",
+    message:
+      "As duas senhas precisam ser iguais. Verifique se não há espaços a mais e tente de novo.",
     path: ["password_confirm"],
   });
 
