@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import DefaultPagination from "@/components/pagintation/pagination";
 import { StatusFilterChips } from "@/components/statusFilterChips/statusFilterChips";
 import { YearFilterChips } from "@/components/yearFilterChips/yearFilterChips";
-import { BookOpen, LogInIcon, Tag, Users } from "lucide-react";
+import { BookOpen, BookPlus, LogInIcon, Tag, UserPlus, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -290,16 +290,73 @@ export default function ClientHome() {
       </header>
 
       {shouldSuggestFollowing ? (
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 text-center space-y-3 bg-zinc-50/50 dark:bg-zinc-900/30">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Não encontramos livros para os filtros selecionados ou sua rede.
-          </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Siga novos amigos para descobrir e acompanhar os livros deles.
-          </p>
-          <Link href="/profile" className="inline-flex">
-            <Button size="sm">Ir para perfil</Button>
-          </Link>
+        <div
+          className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-linear-to-b from-zinc-50/80 to-zinc-50/40 dark:from-zinc-900/40 dark:to-zinc-900/20 p-6 sm:p-8 shadow-sm"
+          role="region"
+          aria-labelledby="empty-suggestions-title"
+        >
+          <div className="mx-auto max-w-xl text-center space-y-2 mb-8">
+            <h3
+              id="empty-suggestions-title"
+              className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
+            >
+              Ainda não há livros por aqui
+            </h3>
+            <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Pode ser combinação dos filtros ou ainda pouca atividade na sua
+              rede. Escolha um caminho abaixo — os dois ajudam a preencher sua
+              lista com boas leituras.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 max-w-3xl mx-auto">
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/80 dark:text-violet-300 mb-4">
+                <UserPlus className="size-5" aria-hidden />
+              </div>
+              <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                Conectar com amigos
+              </h4>
+              <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 flex-1">
+                No perfil você encontra pessoas para seguir e acompanha o que
+                elas estão lendo.
+              </p>
+              <Button
+                asChild
+                variant="outline"
+                className="min-h-11 w-full justify-center gap-2 border-violet-200 text-violet-800 hover:bg-violet-50 hover:text-violet-900 dark:border-violet-800/60 dark:text-violet-200 dark:hover:bg-violet-950/50 cursor-pointer transition-colors"
+              >
+                <Link
+                  href="/profile"
+                  aria-label="Abrir perfil para encontrar e seguir amigos"
+                >
+                  <UserPlus className="size-4 shrink-0" aria-hidden />
+                  Ir ao perfil
+                </Link>
+              </Button>
+            </div>
+
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 mb-4">
+                <BookPlus className="size-5" aria-hidden />
+              </div>
+              <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                Registrar suas leituras
+              </h4>
+              <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 flex-1">
+                Cadastre títulos que você quer ler ou já leu — sua lista fica
+                só sua, do jeito que preferir.
+              </p>
+              <Button
+                className="min-h-11 w-full justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white cursor-pointer transition-colors"
+                onClick={() => dialogModal.setIsOpen(true)}
+                aria-label="Abrir formulário para adicionar livros à sua lista"
+              >
+                <BookPlus className="size-4 shrink-0" aria-hidden />
+                Adicionar livros
+              </Button>
+            </div>
+          </div>
         </div>
       ) : (
         <ListGrid<BookDomain>
