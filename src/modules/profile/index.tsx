@@ -11,7 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar, Mail, Search, UserRound } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ProfileInitialsAvatar } from "@/modules/profile/_components/ProfileInitialsAvatar";
+import { initialsFromEmail } from "@/modules/profile/utils/initials";
 
 function formatJoined(iso: string | null | undefined) {
   if (!iso) return "—";
@@ -24,18 +25,6 @@ function formatJoined(iso: string | null | undefined) {
   } catch {
     return "—";
   }
-}
-
-function initialsFromEmail(email: string) {
-  const local = email.split("@")[0] ?? email;
-  const parts = local
-    .replace(/[^a-zA-Z0-9]/g, " ")
-    .trim()
-    .split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return local.slice(0, 2).toUpperCase() || "?";
 }
 
 export default function ClientProfile() {
@@ -71,16 +60,10 @@ export default function ClientProfile() {
       <Card className="dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm gap-0 py-0 overflow-hidden">
         <CardHeader className="px-6 py-6 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div
-              className={cn(
-                "flex size-16 shrink-0 items-center justify-center rounded-2xl",
-                "bg-violet-600 text-white text-lg font-semibold tracking-tight",
-                "shadow-sm",
-              )}
-              aria-hidden
-            >
-              {initialsFromEmail(user.email)}
-            </div>
+            <ProfileInitialsAvatar
+              initials={initialsFromEmail(user.email)}
+              size="md"
+            />
             <div className="space-y-1 min-w-0">
               <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100 truncate">
                 {displayName}

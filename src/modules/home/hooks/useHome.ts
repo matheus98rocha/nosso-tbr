@@ -65,8 +65,8 @@ export function useHome() {
   }, [users, user?.id, isLoggedIn, allowedTodosReaderIds]);
 
   const defaultFactory = useMemo(
-    () => () =>
-      ({
+    () => () => {
+      return {
         readers: [],
         status: [],
         gender: [],
@@ -76,7 +76,8 @@ export function useHome() {
         authorId: "",
         year: undefined,
         myBooks: false,
-      }) as FiltersOptions,
+      } as FiltersOptions;
+    },
     [],
   );
 
@@ -178,7 +179,7 @@ export function useHome() {
 
   const {
     data: rawBooks,
-    isFetching: isFetchingBooks,
+    isFetching: isLoadingAllBooks,
     isFetched,
     isError,
   } = useQuery({
@@ -231,6 +232,14 @@ export function useHome() {
         page: serverPage,
         pageSize: serverPageSize,
       });
+
+      if (
+        isLoggedIn &&
+        isAwaitingSpecificBook &&
+        (!response || response.data?.length === 0)
+      ) {
+        throw new Error("Sincronizando novo livro...");
+      }
 
       return response;
     },
@@ -432,15 +441,7 @@ export function useHome() {
     updateUrlWithFilters,
   });
 
-  const isLoadingData = isLoadingUsers || isFetchingBooks;
-
-  const isBooksListAwaitingData = shouldWaitForUsers || isFetchingBooks;
-
-  const showEmptyReadingSuggestions =
-    !isBooksListAwaitingData &&
-    isFetched &&
-    !isError &&
-    (allBooks?.total ?? 0) === 0;
+  const isLoadingData = isLoadingUsers || isLoadingAllBooks;
 
   const totalPages = Math.ceil((allBooks?.total || 0) / PAGE_SIZE);
 
@@ -492,10 +493,6 @@ export function useHome() {
   return {
     allBooks,
     isLoadingAllBooks: isLoadingData,
-    isFetchingBooks,
-    shouldWaitForUsers,
-    isBooksListAwaitingData,
-    showEmptyReadingSuggestions,
     totalPages,
     isFetched,
     isError,

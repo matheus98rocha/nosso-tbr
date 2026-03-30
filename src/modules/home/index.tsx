@@ -43,17 +43,19 @@ export default function ClientHome() {
     isLoggedIn,
     checkIsUserActive,
     readers,
-    isBooksListAwaitingData,
-    showEmptyReadingSuggestions,
   } = useHome();
 
   const dialogModal = useModal();
   const createShelfDialog = useModal();
   const isLoading = isLoadingAllBooks || isLoggingOut;
-  const isBooksListLoading = isLoggingOut || isBooksListAwaitingData;
 
   const shouldSuggestFollowing =
-    !isLoggingOut && showEmptyReadingSuggestions;
+    !isLoading &&
+    isFetched &&
+    !isError &&
+    isLoggedIn &&
+    isAllBooksActive &&
+    (allBooks?.total ?? 0) === 0;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">
@@ -359,7 +361,7 @@ export default function ClientHome() {
       ) : (
         <ListGrid<BookDomain>
           items={allBooks?.data ?? []}
-          isLoading={isBooksListLoading}
+          isLoading={isLoading}
           isFetched={isFetched}
           renderItem={(book) => <BookCard key={book.id} book={book} />}
           emptyMessage="Nenhum livro encontrado para os filtros selecionados."

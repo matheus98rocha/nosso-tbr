@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClientHome from "./index";
 import { useHome } from "@/modules/home/hooks/useHome";
-import { useUserStore } from "@/stores/userStore";
 
 const mockSetBookFormOpen = vi.fn();
 
@@ -11,8 +10,6 @@ const { baseUseHome } = vi.hoisted(() => ({
   baseUseHome: {
     allBooks: { data: [], total: 0 },
     isLoadingAllBooks: false,
-    isBooksListAwaitingData: false,
-    showEmptyReadingSuggestions: true,
     isFetched: true,
     isError: false,
     handleClearAllFilters: vi.fn(),
@@ -67,11 +64,7 @@ vi.mock(
 );
 
 vi.mock("../../components/listGrid/listGrid", () => ({
-  ListGrid: ({ isLoading }: { isLoading?: boolean }) => (
-    <div data-testid="list-grid" data-loading={isLoading ? "true" : "false"}>
-      list-grid
-    </div>
-  ),
+  ListGrid: () => <div>list-grid</div>,
 }));
 
 vi.mock("@/components/bookCard/bookCard", () => ({
@@ -94,10 +87,6 @@ describe("ClientHome book suggestions (empty network)", () => {
   beforeEach(() => {
     mockSetBookFormOpen.mockClear();
     vi.mocked(useHome).mockImplementation(() => ({ ...baseUseHome }));
-    vi.mocked(useUserStore).mockImplementation(
-      (selector: (state: UserStoreState) => unknown) =>
-        selector({ isLoggingOut: false }),
-    );
   });
 
   it("shows guidance copy and both paths when logged-in Todos view has zero books", () => {
@@ -142,7 +131,6 @@ describe("ClientHome book suggestions (empty network)", () => {
     vi.mocked(useHome).mockReturnValueOnce({
       ...baseUseHome,
       allBooks: { data: [{ id: "b1" } as never], total: 1 },
-      showEmptyReadingSuggestions: false,
     } as unknown as ReturnType<typeof useHome>);
 
     render(<ClientHome />);
@@ -151,56 +139,5 @@ describe("ClientHome book suggestions (empty network)", () => {
       screen.queryByRole("heading", { name: "Ainda não há livros por aqui" }),
     ).not.toBeInTheDocument();
     expect(screen.getByText("list-grid")).toBeInTheDocument();
-  });
-
-
-  it("keeps suggestion panel as default empty return even with active filters", () => {
-    vi.mocked(useHome).mockReturnValueOnce({
-      ...baseUseHome,
-      activeFilterLabels: ["Ano: 2024"],
-      showEmptyReadingSuggestions: true,
-      allBooks: { data: [], total: 0 },
-    } as unknown as ReturnType<typeof useHome>);
-
-    render(<ClientHome />);
-
-    expect(
-      screen.getByRole("heading", { name: "Ainda não há livros por aqui" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("list-grid")).not.toBeInTheDocument();
-  });
-
-  it("does not show the suggestion panel while the books list is awaiting data", () => {
-    vi.mocked(useHome).mockReturnValueOnce({
-      ...baseUseHome,
-      isBooksListAwaitingData: true,
-      showEmptyReadingSuggestions: false,
-    } as unknown as ReturnType<typeof useHome>);
-
-    render(<ClientHome />);
-
-    expect(
-      screen.queryByRole("heading", { name: "Ainda não há livros por aqui" }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByTestId("list-grid")).toHaveAttribute(
-      "data-loading",
-      "true",
-    );
-  });
-
-  it("hides the suggestion panel during logout even if the hook would show empty suggestions", () => {
-    vi.mocked(useUserStore).mockImplementation((selector) =>
-      selector({ isLoggingOut: true } as never),
-    );
-
-    render(<ClientHome />);
-
-    expect(
-      screen.queryByRole("heading", { name: "Ainda não há livros por aqui" }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByTestId("list-grid")).toHaveAttribute(
-      "data-loading",
-      "true",
-    );
   });
 });
