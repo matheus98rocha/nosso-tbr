@@ -31,16 +31,17 @@ import {
   CartesianGrid,
 } from "recharts";
 import { getGenderLabel } from "@/constants/genders";
+import { ReadingRankingSection } from "@/modules/stats/_components/readingRanking";
 import { BookOpen, FileText, PenLine, Tag } from "lucide-react";
 
 const leitores = ["Matheus", "Fabi", "Barbara"];
 
 const CHART_FILLS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
+  "var(--stats-chart-pie-1)",
+  "var(--stats-chart-pie-2)",
+  "var(--stats-chart-pie-3)",
+  "var(--stats-chart-pie-4)",
+  "var(--stats-chart-pie-5)",
 ] as const;
 
 export type EstatisticaAnual = {
@@ -238,7 +239,7 @@ export function StatsClient({
                     <Bar
                       dataKey="totalBooks"
                       name="Livros lidos"
-                      fill="var(--chart-1)"
+                      fill="var(--stats-chart-bar)"
                       radius={[6, 6, 0, 0]}
                       label={{
                         position: "top",
@@ -309,6 +310,8 @@ export function StatsClient({
           </CardContent>
         </Card>
       </section>
+
+      <ReadingRankingSection />
     </div>
   );
 }

@@ -37,6 +37,13 @@
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
+  /* Stats dashboard: violet spectrum (avoids default chart-1 orange in light mode) */
+  --stats-chart-bar: oklch(0.52 0.21 264);
+  --stats-chart-pie-1: oklch(0.55 0.2 264);
+  --stats-chart-pie-2: oklch(0.62 0.16 268);
+  --stats-chart-pie-3: oklch(0.48 0.19 262);
+  --stats-chart-pie-4: oklch(0.7 0.13 272);
+  --stats-chart-pie-5: oklch(0.58 0.15 276);
 }
 
 @theme inline {
@@ -111,6 +118,12 @@
   --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+  --stats-chart-bar: oklch(0.65 0.19 264);
+  --stats-chart-pie-1: oklch(0.68 0.18 264);
+  --stats-chart-pie-2: oklch(0.72 0.14 268);
+  --stats-chart-pie-3: oklch(0.58 0.2 262);
+  --stats-chart-pie-4: oklch(0.55 0.17 272);
+  --stats-chart-pie-5: oklch(0.62 0.16 276);
 }
 
 @layer base {

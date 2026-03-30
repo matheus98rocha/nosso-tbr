@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { StatsMapper } from "./mappers/stats.mapper";
-import { StatsDomain, CollaborationStatsDomain } from "../types/stats.types";
+import {
+  StatsDomain,
+  CollaborationStatsDomain,
+  ReadingLeaderboardEntryDomain,
+} from "../types/stats.types";
 
 export class StatsService {
   private supabase = createClient();
@@ -43,5 +47,24 @@ export class StatsService {
     }
 
     return data?.map(StatsMapper.toCollaborationDomain) || [];
+  }
+
+  async getReadingLeaderboard(
+    year?: number | null
+  ): Promise<Omit<ReadingLeaderboardEntryDomain, "rank">[]> {
+    const { data, error } = await this.supabase.rpc("get_reading_leaderboard", {
+      year_input: year ?? null,
+    });
+
+    if (error) {
+      console.error("Supabase error:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw error;
+    }
+
+    return (data ?? []).map(StatsMapper.toLeaderboardBase);
   }
 }

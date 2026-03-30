@@ -68,6 +68,8 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.stats.all, "reader", reader] as const,
     collaboration: (reader: string) =>
       [...QUERY_KEYS.stats.all, "collaboration", reader] as const,
+    leaderboard: (year: number | "all") =>
+      [...QUERY_KEYS.stats.all, "leaderboard", year] as const,
   },
   search: {
     all: ["search"] as const,
