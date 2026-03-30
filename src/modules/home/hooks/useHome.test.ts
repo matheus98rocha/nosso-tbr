@@ -20,12 +20,18 @@ vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(() => false),
 }));
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: vi.fn(() => ({
-    data: undefined,
-    isFetching: false,
-    isFetched: true,
-    isError: false,
-  })),
+  useQuery: vi.fn((params: { queryKey?: unknown[] }) => {
+    if (Array.isArray(params?.queryKey) && params.queryKey[0] === "userSocial") {
+      return { data: [], isLoading: false, isFetching: false, isFetched: true, isError: false };
+    }
+
+    return {
+      data: undefined,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    };
+  }),
   useQueryClient: vi.fn(() => ({
     prefetchQuery: vi.fn(),
   })),
@@ -62,20 +68,28 @@ function buildFiltersUrlReturn(
   };
 }
 
-function mockQueryData(total: number) {
-  (useQuery as Mock).mockReturnValue({
-    data: {
-      data: Array.from({ length: total }, (_, index) => ({
-        id: String(index + 1),
-        readerIds: ["1", "2"],
-        readersDisplay: "Matheus e Barbara",
-      })),
-      total,
-    },
-    isFetching: false,
-    isFetched: true,
-    isError: false,
-  });
+function mockQueryData(total: number, followingIds: string[] = []) {
+  (useQuery as Mock)
+    .mockReturnValueOnce({
+      data: followingIds,
+      isLoading: false,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    })
+    .mockReturnValueOnce({
+      data: {
+        data: Array.from({ length: total }, (_, index) => ({
+          id: String(index + 1),
+          readerIds: ["1", "2"],
+          readersDisplay: "Matheus e Barbara",
+        })),
+        total,
+      },
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    });
 }
 
 function setupHook(
@@ -95,6 +109,12 @@ describe("useHome", () => {
     (useUser as Mock).mockReturnValue({
       users: [],
       isLoadingUsers: false,
+    });
+    (useQuery as Mock).mockImplementation((params: { queryKey?: unknown[] }) => {
+      if (Array.isArray(params?.queryKey) && params.queryKey[0] === "userSocial") {
+        return { data: [], isLoading: false, isFetching: false, isFetched: true, isError: false };
+      }
+      return { data: undefined, isFetching: false, isFetched: true, isError: false };
     });
     (useQueryClient as Mock).mockReturnValue({
       prefetchQuery: vi.fn(),
@@ -230,6 +250,21 @@ describe("useHome", () => {
       );
     });
 
+    it("usa relacionamento baseado em usuário atual + seguidos na query key", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      mockQueryData(0, ["2"]);
+
+      setupHook({ view: "todos" });
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: expect.arrayContaining(["relationship", "1|2"]),
+        }),
+      );
+    });
+
     it("reacts to filter changes by updating the selected view", () => {
       const { result } = setupHook({ view: "todos" });
 
@@ -242,15 +277,16 @@ describe("useHome", () => {
   });
 
   describe('"Todos" reader selection behavior', () => {
-    it("marks only current user as active by default in Todos", () => {
+    it("marks current user and followed users as active by default in Todos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
 
+      mockQueryData(0, ["2"]);
       const { result } = setupHook({ view: "todos", readers: [] });
 
       expect(result.current.checkIsUserActive("1")).toBe(true);
-      expect(result.current.checkIsUserActive("2")).toBe(false);
+      expect(result.current.checkIsUserActive("2")).toBe(true);
     });
 
     it("adds additional readers in Todos when user toggles chips", () => {
@@ -267,24 +303,33 @@ describe("useHome", () => {
       );
     });
 
-    it("allows removing the default user selection in Todos", () => {
+    it("limita leitores visíveis na visão Todos para usuário atual e seguidos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
-      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      (useUser as Mock).mockReturnValue({
+        users: [
+          ...mockUsers,
+          { id: "3", display_name: "Nao Seguido" },
+        ],
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, ["2"]);
 
       const { result } = setupHook({ view: "todos", readers: [] });
 
-      act(() => result.current.handleToggleReader("1"));
-
-      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
-        expect.objectContaining({ readers: [] }),
-      );
+      expect(result.current.readers.map((r) => r.id)).toEqual(["1", "2"]);
     });
 
     it("changes query key when Todos readers selection changes", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      (useQuery as Mock).mockImplementation((params: { queryKey?: unknown[] }) => {
+        if (Array.isArray(params?.queryKey) && params.queryKey[0] === "userSocial") {
+          return { data: ["2"], isLoading: false, isFetching: false, isFetched: true, isError: false };
+        }
+        return { data: undefined, isFetching: false, isFetched: true, isError: false };
+      });
 
       (useFiltersUrl as Mock).mockReturnValue(
         buildFiltersUrlReturn({ view: "todos", readers: ["1"] }),
@@ -294,7 +339,7 @@ describe("useHome", () => {
       const firstCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
 
       (useFiltersUrl as Mock).mockReturnValue(
-        buildFiltersUrlReturn({ view: "todos", readers: ["1", "2"] }),
+        buildFiltersUrlReturn({ view: "todos", readers: ["2"] }),
       );
       rerender();
 
