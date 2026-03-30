@@ -63,6 +63,18 @@ describe("BookService.getAll", () => {
     expect(builderInstance.withUser).not.toHaveBeenCalledWith("user-1");
   });
 
+  it("scopes Todos view to the current user only when they follow nobody (single relationship id)", async () => {
+    const soloId = "11111111-1111-4111-8111-111111111111";
+    const service = new BookService();
+
+    await service.getAll({
+      relationshipUserValues: [soloId],
+      filters: { readers: [], status: [], gender: [], view: "todos" },
+    });
+
+    expect(builderInstance.withUserRelationship).toHaveBeenCalledWith([soloId]);
+  });
+
   it("returns all books when no filter is applied", async () => {
     const service = new BookService();
 

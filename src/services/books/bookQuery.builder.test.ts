@@ -71,6 +71,14 @@ describe("BookQueryBuilder", () => {
       );
     });
 
+    it("does not apply relationship filter when values resolve to empty (no scoped ids)", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship([])
+        .build();
+
+      expect(mockQuery.or).not.toHaveBeenCalled();
+    });
+
     it("quotes special characters safely in PostgREST OR expressions", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
         .withUserRelationship('user, "special" value')

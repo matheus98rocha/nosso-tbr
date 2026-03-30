@@ -265,6 +265,21 @@ describe("useHome", () => {
       );
     });
 
+    it("when logged in with no follows, relationship key is only the current user (empty feed from scoped query)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      mockQueryData(0, []);
+
+      setupHook({ view: "todos" });
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: expect.arrayContaining(["relationship", "1"]),
+        }),
+      );
+    });
+
     it("reacts to filter changes by updating the selected view", () => {
       const { result } = setupHook({ view: "todos" });
 
