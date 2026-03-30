@@ -194,12 +194,10 @@ export default function ClientHome() {
                               key={user.id}
                               size="sm"
                               variant="outline"
-                              onClick={() =>
-                                handleToggleReader(user.display_name)
-                              }
+                              onClick={() => handleToggleReader(user.id)}
                               className={cn(
                                 "rounded-full h-8 px-3 text-xs font-medium transition-all",
-                                checkIsUserActive(user.display_name)
+                                checkIsUserActive(user.id)
                                   ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
                                   : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
                               )}

@@ -8,7 +8,7 @@ import {
 } from "../../shelves/services/booksshelves.service";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { UseCreateBookDialog } from "../bookUpsert.types";
-import { ControllerRenderProps, useForm } from "react-hook-form";
+import { ControllerRenderProps, useForm, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
@@ -23,7 +23,6 @@ const checkboxes: { id: Status; label: string }[] = [
   { id: "abandoned", label: "Livro abandonado" },
   { id: "finished", label: "Terminei a Leitura" },
 ];
-
 
 export function useBookDialog({
   bookData,
@@ -44,40 +43,61 @@ export function useBookDialog({
   const bookUpsertService = useMemo(() => new BookUpsertService(), []);
   const bookshelfService = useMemo(() => new BookshelfService(), []);
 
-  const form = useForm<BookCreateValidator>({
-    resolver: zodResolver(bookCreateSchema),
-    defaultValues: {
+  const emptyDefaults = useMemo(
+    (): DefaultValues<BookCreateValidator> => ({
       title: "",
-      pages: undefined,
-      readers: "",
+      readers: [],
       start_date: null,
       end_date: null,
+      planned_start_date: null,
       gender: "",
       image_url: "",
-      chosen_by: bookData?.chosen_by ?? ("" as "Matheus" | "Fabi" | "Barbara"),
-      user_id: bookData?.user_id ?? "",
-      ...bookData,
-      author_id: bookData?.authorId ?? "",
-    },
+      chosen_by: "",
+      user_id: "",
+      author_id: "",
+    }),
+    [],
+  );
+
+  const form = useForm<BookCreateValidator>({
+    resolver: zodResolver(bookCreateSchema),
+    defaultValues: emptyDefaults,
   });
 
   const { reset, handleSubmit, control } = form;
 
+  useEffect(() => {
+    if (bookData?.id) {
+      reset({
+        ...emptyDefaults,
+        title: bookData.title,
+        pages: bookData.pages,
+        readers: [...bookData.readerIds],
+        chosen_by: bookData.chosen_by,
+        user_id: bookData.chosen_by,
+        author_id: bookData.authorId ?? "",
+        start_date: bookData.start_date ?? null,
+        end_date: bookData.end_date ?? null,
+        planned_start_date: bookData.planned_start_date ?? null,
+        gender: bookData.gender ?? "",
+        image_url: bookData.image_url ?? "",
+        status: bookData.status,
+        id: bookData.id,
+      });
+      setSelected(bookData.status ?? null);
+    } else {
+      reset(emptyDefaults);
+      setSelected(null);
+    }
+  }, [bookData?.id, bookData, reset, emptyDefaults]);
+
   const handleResetForm = useCallback(() => {
     setIsBookFormOpen(false);
-    reset();
+    reset(emptyDefaults);
     setSelected(null);
     setIsAddToShelfEnabled(false);
     setSelectedShelfId("");
-  }, [setIsBookFormOpen, reset]);
-
-  useEffect(() => {
-    if (bookData) {
-      setSelected(bookData.status ?? null);
-    } else {
-      setSelected(null);
-    }
-  }, [bookData]);
+  }, [setIsBookFormOpen, reset, emptyDefaults]);
 
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
     queryKey: ["bookshelves"],
@@ -200,25 +220,14 @@ export function useBookDialog({
 
       if (isDeselecting) {
         field.onChange("");
-        form.setValue("chosen_by", "" as "Matheus" | "Fabi" | "Barbara", {
-          shouldValidate: true,
-        });
+        form.setValue("chosen_by", "", { shouldValidate: true });
         return;
       }
 
       field.onChange(selectedUserId);
-
-      const selectedOption = chosenByOptions.find(
-        (opt) => opt.value === selectedUserId,
-      );
-
-      form.setValue(
-        "chosen_by",
-        selectedOption?.label as "Matheus" | "Fabi" | "Barbara",
-        { shouldValidate: true },
-      );
+      form.setValue("chosen_by", selectedUserId, { shouldValidate: true });
     },
-    [chosenByOptions, form],
+    [form],
   );
 
   const handleConfirmCreateBook = useCallback(async () => {

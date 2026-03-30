@@ -235,12 +235,23 @@ function Header() {
                 <DropdownMenuLabel>Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {isLogged ? (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => useUserStore.getState().logout()}
-                  >
-                    Sair
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem
+                      className="cursor-pointer h-11"
+                      onClick={() => router.push("/profile")}
+                      aria-label="Abrir página de perfil"
+                    >
+                      Perfil
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="cursor-pointer h-11"
+                      onClick={() => useUserStore.getState().logout()}
+                      aria-label="Sair da conta"
+                    >
+                      Sair
+                    </DropdownMenuItem>
+                  </>
                 ) : (
                   <DropdownMenuItem
                     className="cursor-pointer"

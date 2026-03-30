@@ -17,7 +17,6 @@ import {
 import {
   FiltersProps,
   GENDER_OPTIONS,
-  READER_OPTIONS,
   STATUS_OPTIONS,
   useLocalFilters,
 } from "./hooks/useFiltersSheet";
@@ -29,6 +28,7 @@ export default function FiltersSheet({
   setIsOpen,
   updateUrlWithFilters,
   searchQuery,
+  readerOptions,
 }: FiltersProps) {
   const pathname = usePathname();
   const { localFilters, handleFilterChange, resetLocalFilters } =
@@ -76,7 +76,7 @@ export default function FiltersSheet({
           {pathname === "/" && (
             <FilterSection
               title="Leitores"
-              options={READER_OPTIONS}
+              options={readerOptions}
               selected={localFilters.readers}
               onChange={(values) => handleFilterChange("readers", values)}
               placeholder="Selecione os leitores"

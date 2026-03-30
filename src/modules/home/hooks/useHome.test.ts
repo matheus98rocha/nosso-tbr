@@ -67,7 +67,8 @@ function mockQueryData(total: number) {
     data: {
       data: Array.from({ length: total }, (_, index) => ({
         id: String(index + 1),
-        readers: "Matheus e Barbara",
+        readerIds: ["1", "2"],
+        readersDisplay: "Matheus e Barbara",
       })),
       total,
     },
@@ -248,8 +249,8 @@ describe("useHome", () => {
 
       const { result } = setupHook({ view: "todos", readers: [] });
 
-      expect(result.current.checkIsUserActive("Matheus")).toBe(true);
-      expect(result.current.checkIsUserActive("Barbara")).toBe(false);
+      expect(result.current.checkIsUserActive("1")).toBe(true);
+      expect(result.current.checkIsUserActive("2")).toBe(false);
     });
 
     it("adds additional readers in Todos when user toggles chips", () => {
@@ -257,12 +258,12 @@ describe("useHome", () => {
       (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
 
-      const { result } = setupHook({ view: "todos", readers: ["Matheus"] });
+      const { result } = setupHook({ view: "todos", readers: ["1"] });
 
-      act(() => result.current.handleToggleReader("Barbara"));
+      act(() => result.current.handleToggleReader("2"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
-        expect.objectContaining({ readers: ["Matheus", "Barbara"] }),
+        expect.objectContaining({ readers: ["1", "2"] }),
       );
     });
 
@@ -273,7 +274,7 @@ describe("useHome", () => {
 
       const { result } = setupHook({ view: "todos", readers: [] });
 
-      act(() => result.current.handleToggleReader("Matheus"));
+      act(() => result.current.handleToggleReader("1"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
         expect.objectContaining({ readers: [] }),
@@ -286,14 +287,14 @@ describe("useHome", () => {
       (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
 
       (useFiltersUrl as Mock).mockReturnValue(
-        buildFiltersUrlReturn({ view: "todos", readers: ["Matheus"] }),
+        buildFiltersUrlReturn({ view: "todos", readers: ["1"] }),
       );
       const { rerender } = renderHook(() => useHome());
 
       const firstCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
 
       (useFiltersUrl as Mock).mockReturnValue(
-        buildFiltersUrlReturn({ view: "todos", readers: ["Matheus", "Barbara"] }),
+        buildFiltersUrlReturn({ view: "todos", readers: ["1", "2"] }),
       );
       rerender();
 
@@ -535,8 +536,8 @@ describe("useHome", () => {
       });
 
       const { result } = setupHook({ readers: [], view: "joint" });
-      expect(result.current.checkIsUserActive("Matheus")).toBe(true);
-      expect(result.current.checkIsUserActive("Barbara")).toBe(true);
+      expect(result.current.checkIsUserActive("1")).toBe(true);
+      expect(result.current.checkIsUserActive("2")).toBe(true);
     });
 
     it("toggles reader selection from default-all state", () => {
@@ -547,12 +548,12 @@ describe("useHome", () => {
 
       const { result } = setupHook({ readers: [], view: "joint" });
 
-      act(() => result.current.handleToggleReader("Matheus"));
+      act(() => result.current.handleToggleReader("1"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
         ...INITIAL_FILTERS,
         view: "joint",
-        readers: ["Barbara"],
+        readers: ["2"],
       });
     });
 
@@ -562,14 +563,14 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: ["Barbara"], view: "joint" });
+      const { result } = setupHook({ readers: ["2"], view: "joint" });
 
-      act(() => result.current.handleToggleReader("Matheus"));
+      act(() => result.current.handleToggleReader("1"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
         ...INITIAL_FILTERS,
         view: "joint",
-        readers: ["Barbara", "Matheus"],
+        readers: ["2", "1"],
       });
     });
 
@@ -579,11 +580,11 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: ["Matheus", "Leitor Removido"], view: "joint" });
+      const { result } = setupHook({ readers: ["1", "stale-unknown"], view: "joint" });
 
       expect(result.current.readersObj.readers).toEqual([
-        "Matheus",
-        "Leitor Removido",
+        "1",
+        "stale-unknown",
       ]);
     });
 
@@ -596,9 +597,9 @@ describe("useHome", () => {
       (useQuery as Mock).mockReturnValue({
         data: {
           data: [
-            { id: "1", readers: "Matheus e Barbara" },
-            { id: "2", readers: "Matheus" },
-            { id: "3", readers: "Barbara e Carol" },
+            { id: "1", readerIds: ["1", "2"], readersDisplay: "Matheus e Barbara" },
+            { id: "2", readerIds: ["1"], readersDisplay: "Matheus" },
+            { id: "3", readerIds: ["2", "9"], readersDisplay: "Barbara e Carol" },
           ],
           total: 3,
         },

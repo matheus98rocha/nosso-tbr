@@ -64,6 +64,12 @@ export function useHeader() {
       label: "Conta",
       items: [
         {
+          label: "Perfil",
+          action: () => router.push("/profile"),
+          path: "/profile",
+          requiresAuth: true,
+        },
+        {
           label: "Login",
           action: () => router.push("/auth"),
           path: "/auth",

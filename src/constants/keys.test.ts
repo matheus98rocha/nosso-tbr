@@ -3,14 +3,16 @@ import { QUERY_KEYS, INITIAL_FILTERS } from "./keys";
 
 describe("QUERY_KEYS.books.list", () => {
   describe("readers array normalization (RN18)", () => {
-    it("produces the same key for ['Matheus','Fabi'] and ['Fabi','Matheus']", () => {
+    it("produces the same key for reader id permutations", () => {
+      const a = "11111111-1111-4111-8111-111111111111";
+      const b = "22222222-2222-4222-8222-222222222222";
       const keyA = QUERY_KEYS.books.list(
-        { ...INITIAL_FILTERS, readers: ["Matheus", "Fabi"] },
+        { ...INITIAL_FILTERS, readers: [a, b] },
         "",
         0,
       );
       const keyB = QUERY_KEYS.books.list(
-        { ...INITIAL_FILTERS, readers: ["Fabi", "Matheus"] },
+        { ...INITIAL_FILTERS, readers: [b, a] },
         "",
         0,
       );
@@ -18,19 +20,22 @@ describe("QUERY_KEYS.books.list", () => {
       expect(JSON.stringify(keyA)).toBe(JSON.stringify(keyB));
     });
 
-    it("produces the same key for ['Barbara','Fabi','Matheus'] in any order", () => {
+    it("produces the same key for three reader ids in any order", () => {
+      const a = "11111111-1111-4111-8111-111111111111";
+      const b = "22222222-2222-4222-8222-222222222222";
+      const c = "33333333-3333-4333-8333-333333333333";
       const keyA = QUERY_KEYS.books.list(
-        { ...INITIAL_FILTERS, readers: ["Barbara", "Fabi", "Matheus"] },
+        { ...INITIAL_FILTERS, readers: [c, b, a] },
         "",
         0,
       );
       const keyB = QUERY_KEYS.books.list(
-        { ...INITIAL_FILTERS, readers: ["Matheus", "Barbara", "Fabi"] },
+        { ...INITIAL_FILTERS, readers: [a, c, b] },
         "",
         0,
       );
       const keyC = QUERY_KEYS.books.list(
-        { ...INITIAL_FILTERS, readers: ["Fabi", "Matheus", "Barbara"] },
+        { ...INITIAL_FILTERS, readers: [b, a, c] },
         "",
         0,
       );
@@ -40,13 +45,15 @@ describe("QUERY_KEYS.books.list", () => {
     });
 
     it("produces different keys for different reader subsets", () => {
+      const a = "11111111-1111-4111-8111-111111111111";
+      const b = "22222222-2222-4222-8222-222222222222";
       const keyOnlyMatheus = QUERY_KEYS.books.list(
-        { ...INITIAL_FILTERS, readers: ["Matheus"] },
+        { ...INITIAL_FILTERS, readers: [a] },
         "",
         0,
       );
       const keyBoth = QUERY_KEYS.books.list(
-        { ...INITIAL_FILTERS, readers: ["Matheus", "Fabi"] },
+        { ...INITIAL_FILTERS, readers: [a, b] },
         "",
         0,
       );

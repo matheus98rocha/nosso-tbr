@@ -31,11 +31,11 @@ const baseBook = {
   id: "book-1",
   title: "Book",
   author_id: "author-1",
-  chosen_by: "Matheus" as const,
+  chosen_by: "11111111-1111-4111-8111-111111111111",
   pages: 200,
-  readers: "Matheus",
+  readers: ["11111111-1111-4111-8111-111111111111"],
   image_url: "https://amazon.com/image.jpg",
-  user_id: "user-1",
+  user_id: "11111111-1111-4111-8111-111111111111",
 };
 
 describe("BookUpsertService business rules", () => {

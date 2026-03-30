@@ -8,12 +8,8 @@ export type FiltersProps = {
   setIsOpen: (open: boolean) => void;
   updateUrlWithFilters: (filters: FiltersOptions, search?: string) => void;
   searchQuery: string;
+  readerOptions: { label: string; value: string }[];
 };
-
-export const READER_OPTIONS = ["Matheus", "Fabi", "Barbara"].map((name) => ({
-  label: name,
-  value: name,
-}));
 
 export const STATUS_OPTIONS = [
   { label: "Já iniciei a leitura", value: "reading" },
