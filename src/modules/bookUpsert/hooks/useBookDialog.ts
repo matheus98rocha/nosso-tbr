@@ -8,7 +8,11 @@ import {
 } from "../../shelves/services/booksshelves.service";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { UseCreateBookDialog } from "../bookUpsert.types";
-import { ControllerRenderProps, useForm, type DefaultValues } from "react-hook-form";
+import {
+  ControllerRenderProps,
+  useForm,
+  type DefaultValues,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
@@ -27,7 +31,6 @@ const checkboxes: { id: Status; label: string }[] = [
 export function useBookDialog({
   bookData,
   setIsBookFormOpen,
-  chosenByOptions,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -252,9 +255,7 @@ export function useBookDialog({
         return;
       }
 
-      setSelected((current) =>
-        current === statusId ? null : statusId,
-      );
+      setSelected((current) => (current === statusId ? null : statusId));
     },
     [bookData?.status, isEdit, setSelected],
   );
