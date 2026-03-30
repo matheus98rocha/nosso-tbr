@@ -17,10 +17,12 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { QUERY_KEYS } from "@/constants/keys";
 import { useStatusFilters } from "@/hooks/useStatusFilters";
 import { sortWithPriority } from "../utils";
+import { UserSocialService } from "@/services/userSocial/userSocial.service";
 
 const PAGE_SIZE = 8;
 const JOINT_READINGS_FETCH_SIZE = 2000;
 const bookService = new BookService();
+const userSocialService = new UserSocialService();
 
 export function useHome() {
   const queryClient = useQueryClient();
@@ -29,20 +31,38 @@ export function useHome() {
   const isLoggedIn = useIsLoggedIn();
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [hasInteractedTodosReaders, setHasInteractedTodosReaders] =
-    useState(false);
   const [lastNonMyBooksView, setLastNonMyBooksView] = useState<
     FiltersOptions["view"]
   >("todos");
+  const { data: followingIdsData, isLoading: isLoadingFollowingIds } = useQuery({
+    queryKey: ["userSocial", "following", user?.id],
+    queryFn: () => userSocialService.getFollowingIds(),
+    enabled: isLoggedIn && !!user?.id,
+    staleTime: 1000 * 60 * 2,
+  });
+
+
+  const followingIds = useMemo(
+    () => (Array.isArray(followingIdsData) ? followingIdsData : []),
+    [followingIdsData],
+  );
+
+  const allowedTodosReaderIds = useMemo(() => {
+    if (!isLoggedIn || !user?.id) return [] as string[];
+    return [...new Set([user.id, ...followingIds])];
+  }, [isLoggedIn, user?.id, followingIds]);
+
   const readers: UserDomain[] = useMemo(() => {
     if (isLoggedIn) {
+      const allowed = new Set(allowedTodosReaderIds);
+      const scopedUsers = users.filter((u: UserDomain) => allowed.has(u.id));
       return sortWithPriority(
-        users,
-        users.find((u: UserDomain) => u.id === user?.id)?.display_name ?? "",
+        scopedUsers,
+        scopedUsers.find((u: UserDomain) => u.id === user?.id)?.display_name ?? "",
       );
     }
     return users.map((u: UserDomain) => u);
-  }, [users, user?.id, isLoggedIn]);
+  }, [users, user?.id, isLoggedIn, allowedTodosReaderIds]);
 
   const defaultFactory = useMemo(
     () => () => {
@@ -78,12 +98,6 @@ export function useHome() {
   }, [filters, searchQuery]);
 
   useEffect(() => {
-    if (filters.view !== "todos") {
-      setHasInteractedTodosReaders(false);
-    }
-  }, [filters.view]);
-
-  useEffect(() => {
     if (!filters.myBooks) {
       setLastNonMyBooksView(filters.view);
     }
@@ -97,7 +111,7 @@ export function useHome() {
       return { readers: [], readersDisplay: "" };
     }
 
-    const allIds = users.map((u) => u.id);
+    const allIds = readers.map((u) => u.id);
     const selectedReaders =
       filters.readers.length > 0 ? filters.readers : allIds;
     const selectedSet = new Set(selectedReaders);
@@ -108,7 +122,7 @@ export function useHome() {
       [...selectedSet].every((id) => availableSet.has(id));
 
     const labelFor = (id: string) =>
-      users.find((u) => u.id === id)?.display_name ?? id;
+      readers.find((u) => u.id === id)?.display_name ?? id;
 
     if (!isAllReadersSelected) {
       return {
@@ -121,7 +135,7 @@ export function useHome() {
       readers: [],
       readersDisplay: allIds.map(labelFor).join(", "),
     };
-  }, [filters.readers, users, isMyBooksActive]);
+  }, [filters.readers, readers, isMyBooksActive]);
 
   const isAwaitingSpecificBook = useMemo(
     () => !!(filters.bookId || searchQuery),
@@ -130,15 +144,18 @@ export function useHome() {
 
   const effectiveUserId = isMyBooksActive ? user!.id : undefined;
   const defaultTodosReaders = useMemo(
-    () => (user?.id ? [user.id] : []),
-    [user?.id],
+    () => allowedTodosReaderIds,
+    [allowedTodosReaderIds],
   );
 
   const effectiveTodosReaders = useMemo(() => {
-    if (filters.readers.length > 0) return filters.readers;
-    if (hasInteractedTodosReaders) return [];
+    const scopedReaders = filters.readers.filter((id) =>
+      defaultTodosReaders.includes(id),
+    );
+
+    if (scopedReaders.length > 0) return scopedReaders;
     return defaultTodosReaders;
-  }, [filters.readers, hasInteractedTodosReaders, defaultTodosReaders]);
+  }, [filters.readers, defaultTodosReaders]);
 
   const relationshipUserValues = useMemo(() => {
     if (!isAllBooksActive || !isLoggedIn) return undefined;
@@ -146,7 +163,7 @@ export function useHome() {
     return ids.length > 0 ? ids : undefined;
   }, [isAllBooksActive, isLoggedIn, effectiveTodosReaders]);
   const shouldWaitForUsers =
-    !isMyBooksActive && filters.readers.length === 0 && isLoadingUsers;
+    !isMyBooksActive && filters.readers.length === 0 && (isLoadingUsers || isLoadingFollowingIds);
 
   const serverFilters = useMemo(
     () => ({ ...filters, readers: [] as string[] }),
@@ -388,10 +405,6 @@ export function useHome() {
       const nextReaders = currentReaders.includes(readerId)
         ? currentReaders.filter((id) => id !== readerId)
         : [...currentReaders, readerId];
-
-      if (isAllBooksActive) {
-        setHasInteractedTodosReaders(true);
-      }
 
       updateUrlWithFilters({ ...filters, readers: nextReaders });
     },
