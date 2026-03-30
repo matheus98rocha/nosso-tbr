@@ -8,6 +8,12 @@ import { FiltersOptions } from "@/types/filters";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { BookService } from "@/services/books/books.service";
+import { UserSocialService } from "@/services/userSocial/userSocial.service";
+
+const { mockPrefetchQuery } = vi.hoisted(() => ({
+  mockPrefetchQuery: vi.fn(),
+}));
 
 vi.mock("@/services/books/books.service");
 vi.mock("@/services/users/hooks/useUsers", () => ({
@@ -33,7 +39,7 @@ vi.mock("@tanstack/react-query", () => ({
     };
   }),
   useQueryClient: vi.fn(() => ({
-    prefetchQuery: vi.fn(),
+    prefetchQuery: mockPrefetchQuery,
   })),
 }));
 vi.mock("@/hooks/useStatusFilters", () => ({
@@ -106,6 +112,11 @@ function setupHook(
 describe("useHome", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrefetchQuery.mockClear();
+    (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+    (useUserStore as unknown as Mock).mockImplementation((selector) =>
+      selector({ user: null }),
+    );
     (useUser as Mock).mockReturnValue({
       users: [],
       isLoadingUsers: false,
@@ -117,7 +128,7 @@ describe("useHome", () => {
       return { data: undefined, isFetching: false, isFetched: true, isError: false };
     });
     (useQueryClient as Mock).mockReturnValue({
-      prefetchQuery: vi.fn(),
+      prefetchQuery: mockPrefetchQuery,
     });
   });
 
@@ -438,6 +449,27 @@ describe("useHome", () => {
     });
   });
 
+
+
+  describe("handleSetAllBooks", () => {
+    it("resets view to todos, disables myBooks and clears readers", () => {
+      const { result } = setupHook({
+        view: "joint",
+        myBooks: true,
+        readers: ["1", "2"],
+      });
+
+      act(() => result.current.handleSetAllBooks());
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
+        ...INITIAL_FILTERS,
+        view: "todos",
+        myBooks: false,
+        readers: [],
+      });
+    });
+  });
+
   describe("canClear", () => {
     it("returns false when all filters are empty and no search", () => {
       const { result } = setupHook();
@@ -648,6 +680,19 @@ describe("useHome", () => {
       ]);
     });
 
+
+
+    it("checkIsUserActive returns false when reader is not selected in joint mode", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: ["1"], view: "joint" });
+
+      expect(result.current.checkIsUserActive("2")).toBe(false);
+    });
+
     it("in joint-reading mode only keeps books with more than one reader", () => {
       (useUser as Mock).mockReturnValue({
         users: mockUsers,
@@ -675,6 +720,28 @@ describe("useHome", () => {
         "1",
         "3",
       ]);
+    });
+
+    it("keeps joint books when no readers are available (selectedReadersSet empty)", () => {
+      (useUser as Mock).mockReturnValue({
+        users: [],
+        isLoadingUsers: false,
+      });
+
+      (useQuery as Mock).mockReturnValue({
+        data: {
+          data: [{ id: "1", readerIds: ["10", "11"], readersDisplay: "A e B" }],
+          total: 1,
+        },
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      });
+
+      const { result } = setupHook({ readers: [], view: "joint" });
+
+      expect(result.current.allBooks?.total).toBe(1);
+      expect(result.current.allBooks?.data.map((book) => book.id)).toEqual(["1"]);
     });
   });
 
@@ -768,4 +835,176 @@ describe("useHome", () => {
       expect(result.current.showEmptyReadingSuggestions).toBe(false);
     });
   });
+
+  describe("books query configuration", () => {
+    it("builds default filters factory with view todos and empty arrays", () => {
+      (useFiltersUrl as Mock).mockImplementation((factory) => {
+        const defaults = factory();
+        expect(defaults).toEqual({
+          readers: [],
+          status: [],
+          gender: [],
+          view: "todos",
+          userId: "",
+          bookId: "",
+          authorId: "",
+          year: undefined,
+          myBooks: false,
+        });
+        return buildFiltersUrlReturn();
+      });
+
+      setupHook();
+    });
+
+    it("calls user social queryFn to load following ids", async () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockImplementation((selector) =>
+        selector({ user: { id: "1", display_name: "Matheus" } }),
+      );
+      vi.spyOn(UserSocialService.prototype, "getFollowingIds").mockResolvedValueOnce(["2"]);
+
+      setupHook();
+
+      const socialCall = (useQuery as Mock).mock.calls.find(
+        ([cfg]) => Array.isArray(cfg?.queryKey) && cfg.queryKey[0] === "userSocial",
+      )?.[0];
+
+      await expect(socialCall.queryFn()).resolves.toEqual(["2"]);
+    });
+
+    it("retries syncing specific book for logged-in users up to 2 attempts", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockImplementation((selector) =>
+        selector({ user: { id: "1", display_name: "Matheus" } }),
+      );
+      setupHook({ bookId: "b-1", myBooks: true });
+
+      const booksCall = (useQuery as Mock).mock.calls.find(
+        ([cfg]) => Array.isArray(cfg?.queryKey) && cfg.queryKey[0] !== "userSocial",
+      )?.[0];
+
+      expect(booksCall.retry(0)).toBe(true);
+      expect(booksCall.retry(1)).toBe(true);
+      expect(booksCall.retry(2)).toBe(false);
+      expect(booksCall.retryDelay).toBe(1000);
+    });
+
+    it("does not retry when user is logged out", () => {
+      setupHook({ bookId: "b-1" });
+
+      const booksCall = (useQuery as Mock).mock.calls.find(
+        ([cfg]) => Array.isArray(cfg?.queryKey) && cfg.queryKey[0] !== "userSocial",
+      )?.[0];
+
+      expect(booksCall.retry(0)).toBe(false);
+    });
+
+    it("queryFn throws sync error for logged-in specific-book search with empty response", async () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockImplementation((selector) =>
+        selector({ user: { id: "1", display_name: "Matheus" } }),
+      );
+      (BookService.prototype.getAll as Mock).mockResolvedValueOnce({
+        data: [],
+        total: 0,
+      });
+      setupHook({ bookId: "book-1", myBooks: true });
+
+      const booksCall = (useQuery as Mock).mock.calls.find(
+        ([cfg]) => Array.isArray(cfg?.queryKey) && cfg.queryKey[0] !== "userSocial",
+      )?.[0];
+
+      await expect(booksCall.queryFn()).rejects.toThrow("Sincronizando novo livro...");
+    });
+
+    it("queryFn returns response for logged-in users when data exists", async () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockImplementation((selector) =>
+        selector({ user: { id: "1", display_name: "Matheus" } }),
+      );
+      const response = { data: [{ id: "ok" }], total: 1 };
+      (BookService.prototype.getAll as Mock).mockResolvedValueOnce(response);
+      setupHook({ myBooks: true });
+
+      const booksCall = (useQuery as Mock).mock.calls.find(
+        ([cfg]) => Array.isArray(cfg?.queryKey) && cfg.queryKey[0] !== "userSocial",
+      )?.[0];
+
+      await expect(booksCall.queryFn()).resolves.toEqual(response);
+    });
+
+    it("queryFn returns API response for logged-out users", async () => {
+      const expectedResponse = { data: [{ id: "a" }], total: 1 };
+      (BookService.prototype.getAll as Mock).mockResolvedValueOnce(expectedResponse);
+      setupHook({ view: "todos" });
+
+      const booksCall = (useQuery as Mock).mock.calls.find(
+        ([cfg]) => Array.isArray(cfg?.queryKey) && cfg.queryKey[0] !== "userSocial",
+      )?.[0];
+
+      await expect(booksCall.queryFn()).resolves.toEqual(expectedResponse);
+    });
+  });
+
+  describe("prefetch next page", () => {
+    it("prefetches next page when myBooks is active and there is a next page", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockImplementation((selector) =>
+        selector({ user: { id: "1", display_name: "Matheus" } }),
+      );
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockQueryData(9);
+
+      setupHook({ myBooks: true });
+
+      expect(mockPrefetchQuery).toHaveBeenCalledTimes(1);
+      expect(mockPrefetchQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          staleTime: 1000 * 60 * 5,
+          queryKey: QUERY_KEYS.books.list(
+            { ...INITIAL_FILTERS, myBooks: true, readers: [] },
+            "",
+            1,
+            "1",
+          ),
+        }),
+      );
+    });
+
+    it("does not prefetch when not in myBooks mode", () => {
+      mockQueryData(17);
+      setupHook({ myBooks: false, view: "todos" });
+
+      expect(mockPrefetchQuery).not.toHaveBeenCalled();
+    });
+
+    it("prefetch queryFn fetches next page with PAGE_SIZE=8", async () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockImplementation((selector) =>
+        selector({ user: { id: "1", display_name: "Matheus" } }),
+      );
+      (BookService.prototype.getAll as Mock).mockResolvedValueOnce({
+        data: [{ id: "next" }],
+        total: 9,
+      });
+      mockQueryData(9);
+      setupHook({ myBooks: true });
+
+      const prefetchConfig = mockPrefetchQuery.mock.calls[0][0];
+      await prefetchConfig.queryFn();
+
+      expect(BookService.prototype.getAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 1,
+          pageSize: 8,
+          userId: "1",
+        }),
+      );
+    });
+  });
+
 });
