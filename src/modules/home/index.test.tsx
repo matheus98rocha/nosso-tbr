@@ -1,9 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClientHome from "./index";
+import { useHome } from "@/modules/home/hooks/useHome";
 
-vi.mock("@/modules/home/hooks/useHome", () => ({
-  useHome: vi.fn(() => ({
+const mockSetBookFormOpen = vi.fn();
+
+const { baseUseHome } = vi.hoisted(() => ({
+  baseUseHome: {
     allBooks: { data: [], total: 0 },
     isLoadingAllBooks: false,
     isFetched: true,
@@ -27,7 +31,11 @@ vi.mock("@/modules/home/hooks/useHome", () => ({
     isLoggedIn: true,
     checkIsUserActive: vi.fn(() => false),
     readers: [],
-  })),
+  },
+}));
+
+vi.mock("@/modules/home/hooks/useHome", () => ({
+  useHome: vi.fn(() => ({ ...baseUseHome })),
 }));
 
 type UserStoreState = {
@@ -41,7 +49,7 @@ vi.mock("@/stores/userStore", () => ({
 }));
 
 vi.mock("@/hooks/useModal", () => ({
-  useModal: vi.fn(() => ({ isOpen: false, setIsOpen: vi.fn() })),
+  useModal: vi.fn(() => ({ isOpen: false, setIsOpen: mockSetBookFormOpen })),
 }));
 
 vi.mock("@/modules/bookUpsert/bookUpsert", () => ({
@@ -75,22 +83,61 @@ vi.mock("@/components/yearFilterChips/yearFilterChips", () => ({
   YearFilterChips: () => <div>year-chips</div>,
 }));
 
-describe("ClientHome empty social state", () => {
-  it("exibe mensagem amigável e CTA para perfil quando não há livros na rede", () => {
+describe("ClientHome book suggestions (empty network)", () => {
+  beforeEach(() => {
+    mockSetBookFormOpen.mockClear();
+    vi.mocked(useHome).mockImplementation(() => ({ ...baseUseHome }));
+  });
+
+  it("shows guidance copy and both paths when logged-in Todos view has zero books", () => {
     render(<ClientHome />);
 
     expect(
-      screen.getByText(
-        "Não encontramos livros para os filtros selecionados ou sua rede.",
-      ),
+      screen.getByRole("heading", { name: "Ainda não há livros por aqui" }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Siga novos amigos para descobrir e acompanhar os livros deles.",
+        /Pode ser combinação dos filtros ou ainda pouca atividade na sua rede/,
       ),
     ).toBeInTheDocument();
 
-    const profileLink = screen.getByRole("link", { name: /Ir para perfil/i });
+    expect(
+      screen.getByRole("heading", { name: "Conectar com amigos" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Registrar suas leituras" }),
+    ).toBeInTheDocument();
+
+    const profileLink = screen.getByRole("link", {
+      name: "Abrir perfil para encontrar e seguir amigos",
+    });
     expect(profileLink).toHaveAttribute("href", "/profile");
+  });
+
+  it("opens add-book flow when choosing Registrar suas leituras CTA", async () => {
+    const user = userEvent.setup();
+    render(<ClientHome />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Abrir formulário para adicionar livros à sua lista",
+      }),
+    );
+
+    expect(mockSetBookFormOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("renders list grid when there are books (no suggestion panel)", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      allBooks: { data: [{ id: "b1" } as never], total: 1 },
+    } as unknown as ReturnType<typeof useHome>);
+
+    render(<ClientHome />);
+
+    expect(
+      screen.queryByRole("heading", { name: "Ainda não há livros por aqui" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("list-grid")).toBeInTheDocument();
   });
 });
