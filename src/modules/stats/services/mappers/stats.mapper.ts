@@ -3,6 +3,8 @@ import {
   StatsPersistence,
   CollaborationStatsDomain,
   CollaborationStatsPersistence,
+  ReadingLeaderboardPersistence,
+  ReadingLeaderboardEntryDomain,
 } from "../../types/stats.types";
 
 export class StatsMapper {
@@ -36,6 +38,17 @@ export class StatsMapper {
     return {
       readerName: p.reader_name,
       booksRead: p.books_read,
+    };
+  }
+
+  static toLeaderboardBase(
+    p: ReadingLeaderboardPersistence
+  ): Omit<ReadingLeaderboardEntryDomain, "rank"> {
+    return {
+      readerId: p.reader_id,
+      displayName: p.display_name,
+      booksRead: Number(p.books_read),
+      totalPages: Number(p.total_pages),
     };
   }
 }

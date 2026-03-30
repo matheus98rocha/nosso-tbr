@@ -179,7 +179,7 @@ export function useHome() {
 
   const {
     data: rawBooks,
-    isFetching: isLoadingAllBooks,
+    isFetching: isFetchingBooks,
     isFetched,
     isError,
   } = useQuery({
@@ -441,7 +441,15 @@ export function useHome() {
     updateUrlWithFilters,
   });
 
-  const isLoadingData = isLoadingUsers || isLoadingAllBooks;
+  const isLoadingData = isLoadingUsers || isFetchingBooks;
+
+  const isBooksListAwaitingData = shouldWaitForUsers || isFetchingBooks;
+
+  const showEmptyReadingSuggestions =
+    !isBooksListAwaitingData &&
+    isFetched &&
+    !isError &&
+    (allBooks?.total ?? 0) === 0;
 
   const totalPages = Math.ceil((allBooks?.total || 0) / PAGE_SIZE);
 
@@ -493,6 +501,10 @@ export function useHome() {
   return {
     allBooks,
     isLoadingAllBooks: isLoadingData,
+    isFetchingBooks,
+    shouldWaitForUsers,
+    isBooksListAwaitingData,
+    showEmptyReadingSuggestions,
     totalPages,
     isFetched,
     isError,

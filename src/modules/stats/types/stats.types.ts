@@ -33,3 +33,18 @@ export interface CollaborationStatsDomain {
   readerName: string;
   booksRead: number;
 }
+
+export type ReadingLeaderboardPersistence = {
+  reader_id: string;
+  display_name: string;
+  books_read: number;
+  total_pages: number;
+};
+
+export interface ReadingLeaderboardEntryDomain {
+  readerId: string;
+  displayName: string;
+  booksRead: number;
+  totalPages: number;
+  rank: number;
+}

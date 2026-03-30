@@ -31,6 +31,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { getGenderLabel } from "@/constants/genders";
+import { ReadingRankingSection } from "@/modules/stats/_components/readingRanking/readingRankingSection";
 import { BookOpen, FileText, PenLine, Tag } from "lucide-react";
 
 const leitores = ["Matheus", "Fabi", "Barbara"];
@@ -185,6 +186,8 @@ export function StatsClient({
           icon={<PenLine className="size-5 md:size-6" strokeWidth={1.75} />}
         />
       </section>
+
+      <ReadingRankingSection />
 
       <section
         className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"

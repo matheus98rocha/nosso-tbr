@@ -677,4 +677,95 @@ describe("useHome", () => {
       ]);
     });
   });
+
+  describe("books list empty state (showEmptyReadingSuggestions vs isBooksListAwaitingData)", () => {
+    function mockFollowingThenBooks(overrides: {
+      followingIds?: string[];
+      total?: number;
+      isFetching?: boolean;
+      isFetched?: boolean;
+      isError?: boolean;
+    }) {
+      const {
+        followingIds = [],
+        total = 0,
+        isFetching = false,
+        isFetched = true,
+        isError = false,
+      } = overrides;
+      (useQuery as Mock)
+        .mockReturnValueOnce({
+          data: followingIds,
+          isLoading: false,
+          isFetching: false,
+          isFetched: true,
+          isError: false,
+        })
+        .mockReturnValueOnce({
+          data: {
+            data: [],
+            total,
+          },
+          isFetching,
+          isFetched,
+          isError,
+        });
+    }
+
+    it("shows empty reading suggestions when the books query finished with zero books", () => {
+      mockFollowingThenBooks({ total: 0, isFetching: false });
+      const { result } = setupHook();
+
+      expect(result.current.isBooksListAwaitingData).toBe(false);
+      expect(result.current.showEmptyReadingSuggestions).toBe(true);
+    });
+
+    it("does not show empty suggestions while the books query is fetching", () => {
+      mockFollowingThenBooks({ total: 0, isFetching: true, isFetched: false });
+      const { result } = setupHook();
+
+      expect(result.current.isBooksListAwaitingData).toBe(true);
+      expect(result.current.showEmptyReadingSuggestions).toBe(false);
+    });
+
+    it("does not show empty suggestions while waiting for users when no reader filter is selected", () => {
+      (useUser as Mock).mockReturnValue({
+        users: [],
+        isLoadingUsers: true,
+      });
+      mockFollowingThenBooks({ total: 0 });
+      const { result } = setupHook();
+
+      expect(result.current.shouldWaitForUsers).toBe(true);
+      expect(result.current.isBooksListAwaitingData).toBe(true);
+      expect(result.current.showEmptyReadingSuggestions).toBe(false);
+    });
+
+    it("allows empty suggestions when users are still loading but My Books is active (query not gated on users)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: true,
+      });
+      mockFollowingThenBooks({ total: 0 });
+
+      const { result } = setupHook({ myBooks: true });
+
+      expect(result.current.shouldWaitForUsers).toBe(false);
+      expect(result.current.isBooksListAwaitingData).toBe(false);
+      expect(result.current.showEmptyReadingSuggestions).toBe(true);
+      expect(result.current.isLoadingAllBooks).toBe(true);
+    });
+
+    it("does not show empty suggestions when the books query errored", () => {
+      mockFollowingThenBooks({ total: 0, isError: true, isFetched: true });
+      const { result } = setupHook();
+
+      expect(result.current.showEmptyReadingSuggestions).toBe(false);
+    });
+  });
 });
