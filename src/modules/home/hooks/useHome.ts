@@ -65,8 +65,8 @@ export function useHome() {
   }, [users, user?.id, isLoggedIn, allowedTodosReaderIds]);
 
   const defaultFactory = useMemo(
-    () => () => {
-      return {
+    () => () =>
+      ({
         readers: [],
         status: [],
         gender: [],
@@ -76,8 +76,7 @@ export function useHome() {
         authorId: "",
         year: undefined,
         myBooks: false,
-      } as FiltersOptions;
-    },
+      }) as FiltersOptions,
     [],
   );
 
@@ -232,14 +231,6 @@ export function useHome() {
         page: serverPage,
         pageSize: serverPageSize,
       });
-
-      if (
-        isLoggedIn &&
-        isAwaitingSpecificBook &&
-        (!response || response.data?.length === 0)
-      ) {
-        throw new Error("Sincronizando novo livro...");
-      }
 
       return response;
     },

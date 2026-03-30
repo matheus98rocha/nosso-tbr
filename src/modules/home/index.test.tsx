@@ -153,6 +153,23 @@ describe("ClientHome book suggestions (empty network)", () => {
     expect(screen.getByText("list-grid")).toBeInTheDocument();
   });
 
+
+  it("keeps suggestion panel as default empty return even with active filters", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      activeFilterLabels: ["Ano: 2024"],
+      showEmptyReadingSuggestions: true,
+      allBooks: { data: [], total: 0 },
+    } as unknown as ReturnType<typeof useHome>);
+
+    render(<ClientHome />);
+
+    expect(
+      screen.getByRole("heading", { name: "Ainda não há livros por aqui" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("list-grid")).not.toBeInTheDocument();
+  });
+
   it("does not show the suggestion panel while the books list is awaiting data", () => {
     vi.mocked(useHome).mockReturnValueOnce({
       ...baseUseHome,
