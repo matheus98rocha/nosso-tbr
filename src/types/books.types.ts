@@ -16,7 +16,7 @@ export type BookPersistence = {
     name: string;
   };
   author_id: string;
-  chosen_by: "Matheus" | "Fabi" | "Barbara";
+  chosen_by: string;
   pages: number;
   status?: Status;
   start_date?: string | null;
@@ -33,7 +33,7 @@ export type CreateBookPersistence = {
   id?: string;
   title: string;
   author_id: string;
-  chosen_by: "Matheus" | "Fabi" | "Barbara";
+  chosen_by: string;
   pages: number;
   status?: Status;
   start_date?: string | null;
@@ -52,16 +52,11 @@ export type BookDomain = {
   title: string;
   author: string;
   authorId?: string;
-  chosen_by: "Matheus" | "Fabi" | "Barbara";
+  chosen_by: string;
   pages: number;
   status?: Status;
-  readers:
-    | "Matheus"
-    | "Fabi"
-    | "Matheus e Fabi"
-    | "Barbara e Fabi"
-    | "Matheus e Barbara"
-    | "Barbara, Fabi e Matheus";
+  readerIds: string[];
+  readersDisplay: string;
   start_date?: string | null;
   planned_start_date?: string | null;
   end_date?: string | null;

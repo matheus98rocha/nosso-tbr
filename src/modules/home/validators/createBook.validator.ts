@@ -6,9 +6,7 @@ const AMAZON_IMAGE_HOST_RE =
 export const bookCreateSchema = z.object({
   title: z.string().min(1, { message: "O título do livro é obrigatório" }),
   author_id: z.string().min(1, { message: "O autor do livro é obrigatório" }),
-  chosen_by: z.enum(["Matheus", "Fabi", "Barbara"], {
-    message: "Quem escolheu o livro é obrigatório",
-  }),
+  chosen_by: z.string().min(1, { message: "Quem escolheu o livro é obrigatório" }),
   pages: z
     .number({
       message: "O número de páginas é obrigatório",
@@ -16,10 +14,12 @@ export const bookCreateSchema = z.object({
     .int("O número de páginas deve ser inteiro")
     .positive("O número de páginas deve ser positivo"),
   start_date: z.string().nullable().optional(),
-  planned_start_date: z.string().nullable().optional(), // Adicionado
+  planned_start_date: z.string().nullable().optional(),
   end_date: z.string().nullable().optional(),
   inserted_at: z.string().optional(),
-  readers: z.string().min(1, { message: "O leitor é obrigatório" }),
+  readers: z
+    .array(z.string().min(1))
+    .min(1, { message: "Selecione ao menos um leitor" }),
   gender: z.string().nullable().optional(),
   image_url: z
     .string()

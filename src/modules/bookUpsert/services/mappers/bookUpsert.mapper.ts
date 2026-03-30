@@ -20,11 +20,7 @@ export class BookUpsertMapper {
       planned_start_date: domain.planned_start_date ?? null,
       end_date: domain.end_date ?? null,
       inserted_at: extra?.inserted_at ?? undefined,
-      readers: Array.isArray(domain.readers)
-        ? domain.readers
-        : domain.readers
-          ? domain.readers.split(" e ")
-          : [],
+      readers: domain.readers,
       gender: domain.gender ?? null,
       image_url: resolveBookCoverUrl(domain.image_url),
       user_id: domain.user_id ?? "",

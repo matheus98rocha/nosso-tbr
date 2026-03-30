@@ -259,26 +259,45 @@ export function BookUpsert(props: CreateBookProps) {
                         <FormItem>
                           <FormLabel>Quem vai ler o livro?</FormLabel>
                           <FormControl>
-                            <SelectField
-                              value={field.value}
-                              onChange={field.onChange}
-                              items={[
-                                { label: "Matheus", value: "Matheus" },
-                                { label: "Fabi", value: "Fabi" },
-                                {
-                                  label: "Matheus e Fabi",
-                                  value: "Matheus e Fabi",
-                                },
-                                {
-                                  label: "Barbara e Fabi",
-                                  value: "Barbara e Fabi",
-                                },
-                                {
-                                  label: "Barbara, Fabi e Matheus",
-                                  value: "Barbara,Fabi e Matheus",
-                                },
-                              ]}
-                            />
+                            {isLoadingUsers ? (
+                              <div className="flex gap-4">
+                                {[1, 2, 3].map((i) => (
+                                  <div
+                                    key={i}
+                                    className="h-5 w-20 animate-pulse rounded bg-muted"
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap gap-x-6 gap-y-1">
+                                {chosenByOptions.map(({ label, value }) => {
+                                  const selected = (field.value ?? []).includes(
+                                    value,
+                                  );
+                                  return (
+                                    <div
+                                      key={value}
+                                      className="flex items-center gap-2 min-h-[44px]"
+                                    >
+                                      <Checkbox
+                                        id={`readers-${value}`}
+                                        checked={selected}
+                                        onCheckedChange={() => {
+                                          const cur = field.value ?? [];
+                                          const next = selected
+                                            ? cur.filter((id: string) => id !== value)
+                                            : [...cur, value];
+                                          field.onChange(next);
+                                        }}
+                                      />
+                                      <FormLabel htmlFor={`readers-${value}`}>
+                                        {label}
+                                      </FormLabel>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </FormControl>
                           <FormMessage />
                         </FormItem>

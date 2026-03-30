@@ -130,7 +130,7 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
 
                 <div className="flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500">
                   <Users size={10} className="shrink-0" />
-                  <span className="truncate">{book.readers}</span>
+                  <span className="truncate">{book.readersDisplay}</span>
                 </div>
 
                 {book.gender && (

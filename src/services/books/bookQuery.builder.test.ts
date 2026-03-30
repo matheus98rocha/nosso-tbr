@@ -61,13 +61,13 @@ describe("BookQueryBuilder", () => {
       );
     });
 
-    it("supports multiple identifiers (id + display name) for backward compatibility", () => {
+    it("supports multiple user ids in OR conditions", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
-        .withUserRelationship(["user-uuid", "Matheus"])
+        .withUserRelationship(["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"])
         .build();
 
       expect(mockQuery.or).toHaveBeenCalledWith(
-        'readers.cs.{"user-uuid"},chosen_by.eq."user-uuid",readers.cs.{"Matheus"},chosen_by.eq."Matheus"',
+        'readers.cs.{"11111111-1111-4111-8111-111111111111"},chosen_by.eq."11111111-1111-4111-8111-111111111111",readers.cs.{"22222222-2222-4222-8222-222222222222"},chosen_by.eq."22222222-2222-4222-8222-222222222222"',
       );
     });
 
@@ -93,37 +93,41 @@ describe("BookQueryBuilder", () => {
 
     it("applies contains filter with the provided readers", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
-        .withReaders(["Matheus", "Fabi"])
+        .withReaders([
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+        ])
         .build();
 
       expect(mockQuery.contains).toHaveBeenCalledWith(
         "readers",
-        ["Fabi", "Matheus"],
+        [
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+        ],
       );
     });
 
-    it("normalizes reader order so ['Matheus','Fabi'] and ['Fabi','Matheus'] produce the same query", () => {
+    it("normalizes reader order so permutations produce the same query", () => {
       const mockQueryA = buildMockQuery();
       const mockQueryB = buildMockQuery();
       const supabaseA = buildMockSupabase(mockQueryA);
       const supabaseB = buildMockSupabase(mockQueryB);
 
+      const a = "11111111-1111-4111-8111-111111111111";
+      const b = "22222222-2222-4222-8222-222222222222";
+
       new BookQueryBuilder(supabaseA, mockQueryA as never)
-        .withReaders(["Matheus", "Fabi"])
+        .withReaders([a, b])
         .build();
 
       new BookQueryBuilder(supabaseB, mockQueryB as never)
-        .withReaders(["Fabi", "Matheus"])
+        .withReaders([b, a])
         .build();
 
-      expect(mockQueryA.contains).toHaveBeenCalledWith("readers", [
-        "Fabi",
-        "Matheus",
-      ]);
-      expect(mockQueryB.contains).toHaveBeenCalledWith("readers", [
-        "Fabi",
-        "Matheus",
-      ]);
+      const sorted = [a, b].sort();
+      expect(mockQueryA.contains).toHaveBeenCalledWith("readers", sorted);
+      expect(mockQueryB.contains).toHaveBeenCalledWith("readers", sorted);
     });
 
     it("does not apply filter when readers is undefined", () => {
@@ -144,15 +148,19 @@ describe("BookQueryBuilder", () => {
 
     it("applies filter with a single reader", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
-        .withReaders(["Matheus"])
+        .withReaders(["11111111-1111-4111-8111-111111111111"])
         .build();
 
-      expect(mockQuery.contains).toHaveBeenCalledWith("readers", ["Matheus"]);
+      expect(mockQuery.contains).toHaveBeenCalledWith("readers", [
+        "11111111-1111-4111-8111-111111111111",
+      ]);
     });
 
     it("returns the builder instance to support method chaining", () => {
       const builder = new BookQueryBuilder(supabase, mockQuery as never);
-      const returned = builder.withReaders(["Fabi"]);
+      const returned = builder.withReaders([
+        "22222222-2222-4222-8222-222222222222",
+      ]);
 
       expect(returned).toBe(builder);
     });

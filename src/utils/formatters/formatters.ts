@@ -20,6 +20,17 @@ export function formatReaders(readers?: string[] | null) {
   return formatList(readers);
 }
 
+export function formatReaderIds(
+  readerIds: string[] | null | undefined,
+  users: { id: string; display_name: string }[],
+): string | null {
+  if (!Array.isArray(readerIds) || readerIds.length === 0) return null;
+  const labels = readerIds.map(
+    (id) => users.find((u) => u.id === id)?.display_name ?? id,
+  );
+  return formatList(labels);
+}
+
 export function formatStatus(status?: string[] | null) {
   if (!Array.isArray(status) || status.length === 0) return null;
   return formatList(

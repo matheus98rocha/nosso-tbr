@@ -3,6 +3,7 @@
 ## 1. Book Creation & Validation (Schema)
 
 - **RN01 - Campos Obrigatórios:** `title`, `author_id` e `readers` são estritamente obrigatórios.
+- **Persistência `books.readers`:** A coluna `readers` na tabela `books` é do tipo **`uuid[]`**. Cada elemento referencia `public.users.id` (leitores associados ao livro).
 - **RN03 - Integridade de Páginas:** O campo `pages` deve ser um número inteiro e positivo.
 - **RN04 - Segurança de Imagem:** `image_url` é **opcional**. Se o usuário não informar (campo vazio ou ausente), o sistema persiste e exibe a **capa padrão** (`/book-cover-placeholder.svg`). Se informada, deve ser uma URL válida e pertencer aos domínios Amazon (`amazon.com`, `amazon.com.br`, `media-amazon.com`, `m.media-amazon.com`, `ssl-images-amazon.com`).
 
@@ -13,7 +14,7 @@
   - Sem seleção explícita de leitores (`filters.readers` vazio), a UI deve considerar **todos os leitores como ativos**.
   - Nesse estado "todos selecionados", a query **não deve aplicar filtro de `readers`** (envio de array vazio) para evitar restrição indevida por combinação exata.
   - Com seleção parcial, a query deve enviar apenas os leitores selecionados.
-  - **RN18 - Normalização de Arrays de Filtro:** Os arrays de filtro (`readers`, `status`, `gender`) devem ser **ordenados alfabeticamente** antes de serem usados na query do banco e na query key do TanStack Query. Isso garante que `["Matheus", "Fabi"]` e `["Fabi", "Matheus"]` produzam o mesmo cache key e a mesma query, retornando sempre o mesmo resultado.
+  - **RN18 - Normalização de Arrays de Filtro:** Os arrays de filtro (`readers`, `status`, `gender`) devem ser **ordenados alfabeticamente** antes de serem usados na query do banco e na query key do TanStack Query. Para `readers`, os valores são UUIDs de usuário; a ordenação lexicográfica de string dos UUIDs garante que permutações do mesmo conjunto produzam a mesma cache key e a mesma query.
 - **RN07 - Sincronização em Busca (Retry Logic):** Ao buscar um livro específico (`bookId` ou `searchQuery`) estando logado: se a API retornar vazio, disparar erro "Sincronizando novo livro..." e realizar 2 retries (delay de 1s).
 - **RN08 - Reset de Estado:** Qualquer alteração em filtros ou na `searchQuery` deve resetar obrigatoriamente a `currentPage` para 0.
 - **RN09 - Limpeza de Filtros:** O botão "Limpar" deve ficar ativo apenas se houver busca ativa, filtros de gênero/status/ano selecionados ou se o filtro de leitores for diferente do padrão.
@@ -50,8 +51,7 @@
   - Usuário sem livros relacionados: retorno vazio.
   - `readers` vazio: livro pode ser retornado se `chosen_by` for o usuário.
   - `chosen_by` nulo: livro pode ser retornado se `readers` contiver o usuário.
-- **RN32 - Compatibilidade de Identificador de Leitor:**
-  - Enquanto a base persistir `readers/chosen_by` em texto, a regra de relacionamento deve aceitar identificadores múltiplos do mesmo usuário (ex.: `id` e `display_name`) para manter compatibilidade durante migração gradual para UUID.
+- **RN32 - Identificadores na visão Todos (query):** `books.readers` persiste **apenas UUIDs** (`uuid[]`). A regra `user.id ∈ readers` compara o id do usuário com esses UUIDs. `chosen_by` segue o tipo definido no schema; a comparação com `user.id` na query permanece alinhada aos identificadores persistidos.
 - **RN33 - Seleção Inicial de Leitores na Visão Todos:**
   - Ao abrir a Home logado, na visão **Todos**, apenas o leitor do usuário atual deve iniciar marcado.
   - Ao selecionar outros leitores, a seleção deve acumular no filtro da visão **Todos**.
@@ -93,3 +93,8 @@
 - **RN36 - Fluxo de persistência:** O endpoint `POST /api/auth/register` valida o corpo, cria o usuário no Supabase Auth (`signUp`) e em seguida faz upsert em `public.users` com `id` igual ao `auth.users.id`, preenchendo `display_name` e `email`.
 - **RN37 - Validação (API + formulário):** Os campos enviados à API (`email`, `password`, `display_name`) são obrigatórios: `email` com formato válido; `password` com mínimo de 8 caracteres; `display_name` com trim, mínimo de 2 e máximo de 200 caracteres. A rota usa `registerUserBodySchema`; o formulário usa `registerUserFormSchema`, que inclui `password_confirm` obrigatório e deve coincidir com `password` (o campo de confirmação não é enviado ao servidor). As regras dos três campos persistidos ficam centralizadas em `registerFieldsSchema` no mesmo módulo de validação.
 - **RN38 - Camada de UI e dados:** O cadastro é implementado no módulo `modules/register` (componente cliente `ClientRegister`, hook `useRegister`). O envio usa TanStack Query (`useMutation`); o formulário usa React Hook Form. A página `register` segue o padrão da home: `Suspense` com fallback em `Skeleton` envolvendo o cliente.
+
+## 6. Social graph (seguidores)
+
+- **RN39 - Tabela `user_followers`:** Relações de seguir/deixar de seguir são persistidas em `public.user_followers`, com colunas **`follower_id`** (quem segue) e **`following_id`** (quem é seguido), ambas `uuid` referenciando `public.users.id`. Não é permitida linha com `follower_id = following_id`.
+- **RN40 - Semântica:** Uma linha `(follower_id, following_id)` indica que o usuário `follower_id` segue o usuário `following_id`. Contagens e listas de seguidores/seguindo derivam dessa tabela.

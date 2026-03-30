@@ -10,9 +10,9 @@ describe("BookMapper", () => {
       title: "O Hobbit",
       author: { name: "J.R.R. Tolkien" },
       author_id: "auth-123",
-      chosen_by: "Matheus",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
       pages: 300,
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
       gender: "Fantasia",
       image_url: "https://amazon.com/hobbit.jpg",
       user_id: "user-456",
@@ -32,7 +32,7 @@ describe("BookMapper", () => {
       start_date: "2024-01-01",
       end_date: null,
       author: { name: "Autor" },
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
     };
 
     const domain = BookMapper.toDomain(persistence as BookPersistence);
@@ -45,7 +45,7 @@ describe("BookMapper", () => {
       start_date: "2024-01-01",
       end_date: null,
       author: { name: "Autor" },
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
     };
 
     const domain = BookMapper.toDomain(persistence as BookPersistence);
@@ -58,7 +58,7 @@ describe("BookMapper", () => {
       start_date: "2024-01-01",
       end_date: "2024-01-10",
       author: { name: "Autor" },
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
     };
 
     const domain = BookMapper.toDomain(persistence as BookPersistence);
@@ -71,9 +71,9 @@ describe("BookMapper", () => {
       title: "Livro",
       author: { name: "Autor" },
       author_id: "a1",
-      chosen_by: "Matheus",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
       pages: 100,
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
       gender: null,
       image_url: null,
       user_id: "u1",
