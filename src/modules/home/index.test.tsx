@@ -48,9 +48,12 @@ vi.mock("@/modules/bookUpsert/bookUpsert", () => ({
   BookUpsert: () => null,
 }));
 
-vi.mock("../shelves/components/createEditBookshelves/createEditBookshelves", () => ({
-  CreateEditBookshelves: () => null,
-}));
+vi.mock(
+  "../shelves/components/createEditBookshelves/createEditBookshelves",
+  () => ({
+    CreateEditBookshelves: () => null,
+  }),
+);
 
 vi.mock("../../components/listGrid/listGrid", () => ({
   ListGrid: () => <div>list-grid</div>,
@@ -77,10 +80,14 @@ describe("ClientHome empty social state", () => {
     render(<ClientHome />);
 
     expect(
-      screen.getByText("Você ainda não tem livros na sua rede"),
+      screen.getByText(
+        "Não encontramos livros para os filtros selecionados ou sua rede.",
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Siga novos amigos para descobrir e acompanhar os livros deles."),
+      screen.getByText(
+        "Siga novos amigos para descobrir e acompanhar os livros deles.",
+      ),
     ).toBeInTheDocument();
 
     const profileLink = screen.getByRole("link", { name: /Ir para perfil/i });

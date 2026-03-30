@@ -28,7 +28,10 @@ function formatJoined(iso: string | null | undefined) {
 
 function initialsFromEmail(email: string) {
   const local = email.split("@")[0] ?? email;
-  const parts = local.replace(/[^a-zA-Z0-9]/g, " ").trim().split(/\s+/);
+  const parts = local
+    .replace(/[^a-zA-Z0-9]/g, " ")
+    .trim()
+    .split(/\s+/);
   if (parts.length >= 2) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
@@ -143,7 +146,7 @@ export default function ClientProfile() {
               type="search"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search people..."
+              placeholder="Buscar pessoas..."
               className="h-11 pl-10 text-base md:text-sm rounded-xl border-zinc-200 dark:border-zinc-800"
               aria-label="Search people in the community"
               autoComplete="off"
@@ -177,8 +180,7 @@ export default function ClientProfile() {
           ) : (
             directoryUsers.map((member) => {
               const following = isFollowing(member.id);
-              const busy =
-                isToggleLoading && pendingUserId === member.id;
+              const busy = isToggleLoading && pendingUserId === member.id;
               return (
                 <li key={member.id}>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors">

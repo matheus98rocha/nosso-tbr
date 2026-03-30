@@ -57,7 +57,6 @@ export default function ClientHome() {
     isAllBooksActive &&
     (allBooks?.total ?? 0) === 0;
 
-
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">
       <BookUpsert
@@ -293,7 +292,7 @@ export default function ClientHome() {
       {shouldSuggestFollowing ? (
         <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 text-center space-y-3 bg-zinc-50/50 dark:bg-zinc-900/30">
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Você ainda não tem livros na sua rede
+            Não encontramos livros para os filtros selecionados ou sua rede.
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Siga novos amigos para descobrir e acompanhar os livros deles.
