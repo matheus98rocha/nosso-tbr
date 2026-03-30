@@ -30,8 +30,12 @@ vi.mock("@/modules/home/hooks/useHome", () => ({
   })),
 }));
 
+type UserStoreState = {
+  isLoggingOut: boolean;
+};
+
 vi.mock("@/stores/userStore", () => ({
-  useUserStore: vi.fn((selector: (state: any) => unknown) =>
+  useUserStore: vi.fn((selector: (state: UserStoreState) => unknown) =>
     selector({ isLoggingOut: false }),
   ),
 }));

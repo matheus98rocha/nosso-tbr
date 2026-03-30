@@ -19,6 +19,10 @@ vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(),
 }));
 
+type UserStoreState = {
+  user: { id: string; email: string } | null;
+};
+
 describe("useUserSocial", () => {
   const invalidateQueries = vi.fn();
   const followMutate = vi.fn();
@@ -28,8 +32,9 @@ describe("useUserSocial", () => {
     vi.clearAllMocks();
 
     (useQueryClient as Mock).mockReturnValue({ invalidateQueries });
-    (useUserStore as Mock).mockImplementation((selector: any) =>
-      selector({ user: { id: "me", email: "me@mail.com" } }),
+    (useUserStore as Mock).mockImplementation(
+      (selector: (state: UserStoreState) => unknown) =>
+        selector({ user: { id: "me", email: "me@mail.com" } }),
     );
     (useIsLoggedIn as Mock).mockReturnValue(true);
 

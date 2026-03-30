@@ -12,11 +12,16 @@ vi.mock("./useUserSocial", () => ({
   useUserSocial: vi.fn(),
 }));
 
+type UserStoreState = {
+  user: { id: string; email: string } | null;
+};
+
 describe("useProfile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useUserStore as Mock).mockImplementation((selector: any) =>
-      selector({ user: { id: "1", email: "reader@tbr.com" } }),
+    (useUserStore as Mock).mockImplementation(
+      (selector: (state: UserStoreState) => unknown) =>
+        selector({ user: { id: "1", email: "reader@tbr.com" } }),
     );
     (useUserSocial as Mock).mockReturnValue({
       searchQuery: "",

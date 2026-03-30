@@ -7,21 +7,38 @@ vi.mock("@/lib/supabase/client", () => ({
 
 type QueryResult<T> = { data: T; error: unknown };
 
-function makeThenableQuery<T>(result: QueryResult<T>) {
-  const query: any = {
-    select: vi.fn(() => query),
-    order: vi.fn(() => query),
-    limit: vi.fn(() => query),
-    or: vi.fn(() => query),
-    eq: vi.fn(() => query),
-    delete: vi.fn(() => query),
-    insert: vi.fn(() => Promise.resolve({ error: null })),
-    then: (resolve: (value: QueryResult<T>) => unknown) =>
-      Promise.resolve(result).then(resolve),
-  };
+type ThenableQuery<T> = {
+  select: () => ThenableQuery<T>;
+  order: () => ThenableQuery<T>;
+  limit: () => ThenableQuery<T>;
+  or: () => ThenableQuery<T>;
+  eq: () => ThenableQuery<T>;
+  delete: () => ThenableQuery<T>;
+  insert: () => Promise<{ error: null }>;
+  then: (resolve: (value: QueryResult<T>) => unknown) => Promise<unknown>;
+};
+
+function makeThenableQuery<T>(result: QueryResult<T>): ThenableQuery<T> {
+  const query = {} as ThenableQuery<T>;
+
+  query.select = vi.fn(() => query);
+  query.order = vi.fn(() => query);
+  query.limit = vi.fn(() => query);
+  query.or = vi.fn(() => query);
+  query.eq = vi.fn(() => query);
+  query.delete = vi.fn(() => query);
+  query.insert = vi.fn(() => Promise.resolve({ error: null }));
+  query.then = (resolve) => Promise.resolve(result).then(resolve);
 
   return query;
 }
+
+type TestSupabase = {
+  auth: {
+    getUser: () => Promise<{ data: { user: { id: string } | null }; error: unknown }>;
+  };
+  from: (table: string) => ThenableQuery<unknown>;
+};
 
 describe("UserSocialService", () => {
   const getUser = vi.fn();
@@ -55,7 +72,7 @@ describe("UserSocialService", () => {
 
   function makeService() {
     const service = new UserSocialService();
-    (service as any).supabase = {
+    (service as unknown as { supabase: TestSupabase }).supabase = {
       auth: { getUser },
       from,
     };
@@ -67,7 +84,7 @@ describe("UserSocialService", () => {
     const result = await service.searchUsers("_ana% ");
 
     expect(from).toHaveBeenCalledWith("users");
-    const usersQuery = from.mock.results[0].value;
+    const usersQuery = from.mock.results[0].value as ThenableQuery<unknown>;
     expect(usersQuery.or).toHaveBeenCalledWith(
       "display_name.ilike.%\\_ana\\%%,email.ilike.%\\_ana\\%%",
     );
@@ -97,7 +114,7 @@ describe("UserSocialService", () => {
     const service = makeService();
     await service.unfollow("2");
 
-    const followersQuery = from.mock.results[0].value;
+    const followersQuery = from.mock.results[0].value as ThenableQuery<unknown>;
     expect(followersQuery.delete).toHaveBeenCalled();
     expect(followersQuery.eq).toHaveBeenNthCalledWith(1, "follower_id", "user-1");
     expect(followersQuery.eq).toHaveBeenNthCalledWith(2, "following_id", "2");
