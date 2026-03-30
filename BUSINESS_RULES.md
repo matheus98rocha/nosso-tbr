@@ -51,7 +51,7 @@
   - Usuário sem livros relacionados: retorno vazio.
   - `readers` vazio: livro pode ser retornado se `chosen_by` for o usuário.
   - `chosen_by` nulo: livro pode ser retornado se `readers` contiver o usuário.
-- **RN32 - Identificadores na visão Todos (query):** `books.readers` persiste **apenas UUIDs** (`uuid[]`). A regra `user.id ∈ readers` compara o id do usuário com esses UUIDs. `chosen_by` segue o tipo definido no schema; a comparação com `user.id` na query permanece alinhada aos identificadores persistidos.
+- **RN32 - Identificadores na visão Todos (query):** `books.readers` persiste **apenas UUIDs** (`uuid[]`). A regra `user.id ∈ readers` compara o id do usuário com esses UUIDs. `chosen_by` é **`uuid`** referenciando `users.id` (FK); a comparação com `user.id` na query usa o mesmo identificador.
 - **RN33 - Seleção Inicial de Leitores na Visão Todos:**
   - Ao abrir a Home logado, na visão **Todos**, apenas o leitor do usuário atual deve iniciar marcado.
   - Ao selecionar outros leitores, a seleção deve acumular no filtro da visão **Todos**.
