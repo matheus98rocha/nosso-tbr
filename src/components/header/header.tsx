@@ -132,7 +132,7 @@ function Header() {
               <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-4">
                 {menuItems.map((menu) => (
                   <div key={menu.label}>
-                    <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest px-3 mb-1">
+                    <p className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-widest px-3 mb-1">
                       {menu.label}
                     </p>
                     <div className="flex flex-col gap-0.5">
@@ -145,7 +145,7 @@ function Header() {
                               className={cn(
                                 "justify-start h-11 px-3 rounded-xl text-sm font-medium transition-colors",
                                 isActive
-                                  ? "bg-zinc-100 text-zinc-400 cursor-default"
+                                  ? "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 cursor-default"
                                   : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900",
                               )}
                               onClick={!isActive ? item.action : undefined}
@@ -213,7 +213,7 @@ function Header() {
         ) : (
           <>
             {user?.email && (
-              <span className="text-sm font-medium text-zinc-500 truncate max-w-[180px]">
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 truncate max-w-[180px]">
                 {user.email}
               </span>
             )}

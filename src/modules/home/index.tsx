@@ -271,17 +271,17 @@ export default function ClientHome() {
         ) : (
           <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-2 text-center flex flex-col items-center gap-2">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Quer uma experiência personalizada?
-              </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px]">
+              </h2>
+              <p className="text-xs text-zinc-600 dark:text-zinc-300 max-w-[240px]">
                 Faça login para gerenciar sua lista de leitura, acompanhar
                 progresso e acessar filtros exclusivos.
               </p>
             </div>
 
             <div className="w-full pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800/50">
-              <p className="text-[10px] text-zinc-400 uppercase tracking-wider mb-2">
+              <p className="text-[10px] text-zinc-600 dark:text-zinc-300 uppercase tracking-wider mb-2">
                 Não possui uma conta?
               </p>
               <Link
@@ -303,13 +303,13 @@ export default function ClientHome() {
           aria-labelledby="empty-suggestions-title"
         >
           <div className="mx-auto max-w-xl text-center space-y-2 mb-8">
-            <h3
+            <h2
               id="empty-suggestions-title"
               className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
             >
               Ainda não há livros por aqui
-            </h3>
-            <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            </h2>
+            <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed">
               Pode ser combinação dos filtros ou ainda pouca atividade na sua
               rede. Escolha um caminho abaixo — os dois ajudam a preencher sua
               lista com boas leituras.
@@ -321,10 +321,10 @@ export default function ClientHome() {
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/80 dark:text-violet-300 mb-4">
                 <UserPlus className="size-5" aria-hidden />
               </div>
-              <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                 Conectar com amigos
-              </h4>
-              <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 flex-1">
+              </h3>
+              <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
                 No perfil você encontra pessoas para seguir e acompanha o que
                 elas estão lendo.
               </p>
@@ -347,10 +347,10 @@ export default function ClientHome() {
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 mb-4">
                 <BookPlus className="size-5" aria-hidden />
               </div>
-              <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                 Registrar suas leituras
-              </h4>
-              <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 flex-1">
+              </h3>
+              <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
                 Cadastre títulos que você quer ler ou já leu — sua lista fica só
                 sua, do jeito que preferir.
               </p>
