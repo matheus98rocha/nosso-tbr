@@ -9,6 +9,10 @@ import {
 } from "../types/bookshelves.types";
 import { useUserStore } from "@/stores/userStore";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { useEffect } from "react";
+import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function useBookshelves({
   handleClose,
@@ -21,6 +25,7 @@ export function useBookshelves({
   const service = new BookshelfService();
   const user = useUserStore((state) => state.user);
   const isLoggedIn = useIsLoggedIn();
+  const router = useRouter();
 
   const {
     data: bookshelves,
@@ -54,6 +59,16 @@ export function useBookshelves({
       }
     },
   });
+
+  useEffect(() => {
+    if (!isError || !isUnauthorizedError(error)) return;
+
+    toast("Sessão expirada", {
+      description: "Faça login novamente para continuar.",
+      className: "toast-error",
+    });
+    router.push("/auth");
+  }, [error, isError, router]);
 
   return {
     bookshelves,

@@ -2,7 +2,10 @@ import { QUERY_KEYS } from "@/constants/keys";
 import { StatsService } from "@/modules/stats/services/stats.service";
 import type { ReadingLeaderboardEntryDomain } from "@/modules/stats/types/stats.types";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const statsService = new StatsService();
 
@@ -11,6 +14,7 @@ const YEARS_TO_SHOW = 6;
 export type ReadingRankingMetric = "books" | "pages";
 
 export function useReadingRanking() {
+  const router = useRouter();
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
   const [metric, setMetric] = useState<ReadingRankingMetric>("books");
 
@@ -62,6 +66,16 @@ export function useReadingRanking() {
   const handleSetMetric = useCallback((next: ReadingRankingMetric) => {
     setMetric(next);
   }, []);
+
+  useEffect(() => {
+    if (!isError || !isUnauthorizedError(error)) return;
+
+    toast("Sessão expirada", {
+      description: "Faça login novamente para continuar.",
+      className: "toast-error",
+    });
+    router.push("/auth");
+  }, [error, isError, router]);
 
   return {
     ranked,

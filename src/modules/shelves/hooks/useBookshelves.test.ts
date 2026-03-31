@@ -3,6 +3,9 @@ import { Mock, vi } from "vitest";
 import { useBookshelves } from "./useBookshelves";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ApiError } from "@/lib/api/clientJsonFetch";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn(),
@@ -13,6 +16,12 @@ vi.mock("@tanstack/react-query", () => ({
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(),
 }));
+
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(),
+}));
+
+vi.mock("sonner", () => ({ toast: vi.fn() }));
 
 vi.mock("@/stores/userStore", () => ({
   useUserStore: vi.fn(() => ({ id: "user-1", display_name: "Matheus" })),
@@ -31,6 +40,7 @@ vi.mock("@/modules/shelves/services/booksshelves.service", () => ({
 
 const mockMutate = vi.fn();
 const mockInvalidateQueries = vi.fn();
+const mockPush = vi.fn();
 
 const mockShelves = [
   { id: "shelf-1", name: "Favoritos", books: [] },
@@ -49,6 +59,7 @@ function setupMocks({
   isFetched?: boolean;
 } = {}) {
   (useIsLoggedIn as Mock).mockReturnValue(isLoggedIn);
+  (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
   (useQueryClient as Mock).mockReturnValue({
     invalidateQueries: mockInvalidateQueries,
   });
@@ -95,6 +106,7 @@ describe("useBookshelves", () => {
       });
       (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
       (useQueryClient as Mock).mockReturnValue({ invalidateQueries: vi.fn() });
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
 
       const { result } = renderHook(() => useBookshelves({}));
       expect(result.current.bookshelves).toBeUndefined();
@@ -201,6 +213,30 @@ describe("useBookshelves", () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ["bookshelf-meta"],
       });
+    });
+  });
+
+  describe("tratamento de sessão expirada", () => {
+    it("exibe toast e redireciona para /auth quando query retorna 401", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
+      (useQueryClient as Mock).mockReturnValue({ invalidateQueries: mockInvalidateQueries });
+      (useQuery as Mock).mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isFetched: true,
+        error: new ApiError("Unauthorized", 401),
+        isError: true,
+      });
+      (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
+
+      renderHook(() => useBookshelves({}));
+
+      expect(toast).toHaveBeenCalledWith("Sessão expirada", {
+        description: "Faça login novamente para continuar.",
+        className: "toast-error",
+      });
+      expect(mockPush).toHaveBeenCalledWith("/auth");
     });
   });
 });

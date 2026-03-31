@@ -19,6 +19,7 @@ import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { LOCKED_BOOK_STATUSES } from "@/constants/bookStatuses";
+import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -151,6 +152,15 @@ export function useBookDialog({
       }
     },
     onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast("Sessão expirada", {
+          description: "Faça login novamente para continuar.",
+          className: "toast-error",
+        });
+        router.push("/auth");
+        return;
+      }
+
       if (error instanceof Error) {
         toast("Erro ao salvar livro", {
           description: error.message || "Ocorreu um erro inesperado.",
