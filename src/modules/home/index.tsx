@@ -6,7 +6,7 @@ import { useHome } from "@/modules/home/hooks/useHome";
 import { useModal } from "@/hooks/useModal";
 import { ListGrid } from "../../components/listGrid";
 import { BookDomain } from "../../types/books.types";
-import { BookCard } from "@/components/bookCard";
+import { BookCard } from "@/components/";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,7 +82,7 @@ export default function ClientHome() {
               <Skeleton className="h-full w-40" />
             ) : (
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                <span className="page-title tabular-nums text-zinc-900 dark:text-zinc-100">
                   {allBooks?.total || 0}
                 </span>
                 <span className="text-sm font-medium text-zinc-500 uppercase tracking-widest">

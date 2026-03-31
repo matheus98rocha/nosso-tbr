@@ -56,7 +56,7 @@ export function DataTable({
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
       <div className="flex items-center justify-center">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+        <h2 className="section-heading">
           Autores
         </h2>
       </div>

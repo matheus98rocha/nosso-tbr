@@ -69,7 +69,7 @@ function ClienteShelves() {
                 Biblioteca pessoal
               </span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            <h1 className="page-title">
               Minhas estantes
             </h1>
             <p className="max-w-xl text-base text-muted-foreground">
