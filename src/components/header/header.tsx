@@ -101,11 +101,11 @@ function Header() {
           <LogoIcon
             className={`transition-all duration-300 ${scrolled ? "w-5 h-5" : "w-6 h-6"}`}
           />
-          <h1
+          <span
             className={`font-bold tracking-tight transition-all duration-300 ${scrolled ? "text-lg" : "text-xl"}`}
           >
             Nosso TBR
-          </h1>
+          </span>
         </button>
 
         <Sheet>
@@ -188,13 +188,13 @@ function Header() {
         aria-label="Ir para a página inicial"
       >
         <LogoIcon
-          className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-60 h-60"}`}
+          className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-10 h-10"}`}
         />
-        <h1
+        <span
           className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap ${scrolled ? "text-base" : "text-2xl"}`}
         >
           Nosso TBR
-        </h1>
+        </span>
       </button>
       {isLogged && (
         <div className="flex flex-col items-center justify-center flex-1 min-w-0 gap-2">
