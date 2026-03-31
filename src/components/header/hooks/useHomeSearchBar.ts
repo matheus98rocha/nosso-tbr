@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
+import { InputWithButtonRef } from "@/components/inputWithButton";
 import { FiltersOptions } from "@/types/filters";
 import { useSearchAutocomplete } from "./useSearchAutocomplete";
 import { SearchAutocompleteDomain } from "../types/searchAutocomplete.types";

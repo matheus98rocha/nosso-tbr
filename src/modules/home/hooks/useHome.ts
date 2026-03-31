@@ -2,7 +2,7 @@ import { BookService } from "@/services/books/books.service";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiltersOptions } from "@/types/filters";
 import { useFiltersUrl } from "@/hooks/useFiltersUrl";
 import {
@@ -10,7 +10,7 @@ import {
   formatReaderIds,
   formatStatus,
   formatYear,
-} from "@/utils/formatters/formatters";
+} from "@/utils/formatters";
 import { BookMapper } from "@/services/books/books.mapper";
 import { UserDomain } from "@/services/users/types/users.types";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";

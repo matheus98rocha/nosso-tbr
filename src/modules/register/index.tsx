@@ -20,9 +20,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRegister } from "@/modules/register/hooks/useRegister";
 import {
-  getPasswordRuleStatuses,
   PASSWORD_RULE_LABELS,
   type PasswordRuleKey,
+  getPasswordRuleStatuses,
 } from "@/utils/passwordRules";
 import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";

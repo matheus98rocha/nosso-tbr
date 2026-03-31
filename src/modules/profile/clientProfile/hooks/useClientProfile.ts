@@ -1,9 +1,8 @@
-import { useCallback, useMemo, type ChangeEvent } from "react";
-import { useUserStore } from "@/stores/userStore";
-import { useUserSocial } from "@/modules/profile/hooks/useUserSocial";
-import { initialsFromEmail } from "@/modules/profile/utils/initials";
-import { formatJoinedDate } from "@/modules/profile/utils/formatJoinedDate";
+import { type ChangeEvent, useCallback, useMemo } from "react";
 import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/types/clientProfile.types";
+import { useUserSocial } from "@/modules/profile/hooks";
+import { formatJoinedDate, initialsFromEmail } from "@/modules/profile/utils";
+import { useUserStore } from "@/stores/userStore";
 
 function emailLocalPart(email: string) {
   const at = email.indexOf("@");

@@ -1,13 +1,13 @@
 "use client";
 
-import { ProfileInitialsAvatar } from "@/modules/profile/components/ProfileInitialsAvatar";
-import type { ProfileInitialsAvatarSize } from "@/modules/profile/components/ProfileInitialsAvatar";
-import { initialsFromDisplayName } from "@/modules/profile/utils/initials";
-import type { ReadingLeaderboardEntryDomain } from "@/modules/stats/types/stats.types";
-import type { ReadingRankingMetric } from "@/modules/stats/_hooks/useReadingRanking";
+import { ProfileInitialsAvatar } from "@/modules/profile/components";
+import type { ProfileInitialsAvatarSize } from "@/modules/profile/components";
+import { initialsFromDisplayName } from "@/modules/profile/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Medal, Trophy } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import type { ReadingLeaderboardEntryDomain } from "@/modules/stats/types/stats.types";
+import type { ReadingRankingMetric } from "@/modules/stats/_hooks/useReadingRanking";
 
 /** Máximo de leitores exibidos no pódio (layout adapta até este limite). */
 export const LEADERBOARD_PODIUM_MAX = 5;

@@ -1,5 +1,5 @@
-import { renderHook, act } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
 import { useUserSocial } from "./useUserSocial";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/stores/userStore";

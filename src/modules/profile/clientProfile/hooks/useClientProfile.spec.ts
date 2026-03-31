@@ -2,13 +2,13 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useClientProfile } from "./useClientProfile";
 import { useUserStore } from "@/stores/userStore";
-import { useUserSocial } from "@/modules/profile/hooks/useUserSocial";
+import { useUserSocial } from "@/modules/profile/hooks";
 
 vi.mock("@/stores/userStore", () => ({
   useUserStore: vi.fn(),
 }));
 
-vi.mock("@/modules/profile/hooks/useUserSocial", () => ({
+vi.mock("@/modules/profile/hooks", () => ({
   useUserSocial: vi.fn(),
 }));
 

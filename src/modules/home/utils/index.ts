@@ -1,1 +1,1 @@
-export { default as sortWithPriority } from "./sortWithPriority/sortWithPriority";
+export { default as sortWithPriority } from "./sortWithPriority";

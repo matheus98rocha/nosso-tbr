@@ -9,16 +9,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SelectField } from "@/components/selectField/selectField";
+import { SelectField } from "@/components/selectField";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/datePicker/datePicker";
+import { DatePicker } from "@/components/datePicker";
 
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";

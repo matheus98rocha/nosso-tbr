@@ -1,1 +1,1 @@
-export { default } from "./clientProfile/clientProfile";
+export { default } from "./clientProfile";

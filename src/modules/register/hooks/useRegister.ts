@@ -2,12 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import { userRegistrationMapper } from "@/services/userRegistration/mappers/userRegistration.mapper";
 import { registerUser } from "@/services/userRegistration/service/registerUser.service";
 import {
-  registerUserFormSchema,
   type RegisterUserFormValues,
+  registerUserFormSchema,
 } from "@/services/userRegistration/validators/userRegistration.validator";
 
 export function useRegister() {

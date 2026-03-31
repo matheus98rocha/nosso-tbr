@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
 import { StatsMapper } from "./mappers/stats.mapper";
 import {
-  StatsDomain,
   CollaborationStatsDomain,
   ReadingLeaderboardEntryDomain,
+  StatsDomain,
 } from "../types/stats.types";
 
 export class StatsService {

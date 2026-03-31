@@ -1,9 +1,9 @@
 "use client";
 
-import { CreateScheduleForm } from "./components/createScheduleForm/createScheduleForm";
+import { CreateScheduleForm } from "./components/createScheduleForm";
 import { useSchedule } from "./hooks/useSchedule";
 import { ClientScheduleProps } from "./types/schedule.types";
-import { ScheduleTable } from "./components/scheduleTable/scheduleTable";
+import { ScheduleTable } from "./components/scheduleTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserStore } from "@/stores/userStore";
 
