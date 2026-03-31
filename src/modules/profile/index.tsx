@@ -148,7 +148,7 @@ export default function ClientProfile() {
           ) : directoryUsers.length === 0 ? (
             <li className="px-4 sm:px-6 py-12 text-center">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                No people found for this search. Try another term.
+                Não encontramos nenhum leitor...
               </p>
               <Button
                 type="button"
@@ -157,7 +157,7 @@ export default function ClientProfile() {
                 onClick={() => handleSearchChange("")}
                 aria-label="Clear people search"
               >
-                Clear search
+                Limpar busca
               </Button>
             </li>
           ) : (

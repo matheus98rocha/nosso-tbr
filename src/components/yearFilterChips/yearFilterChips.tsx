@@ -1,12 +1,12 @@
+import { memo, useMemo, useCallback } from "react";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useMemo, useCallback } from "react";
 import { YearFilterChipsProps } from "./yearFilterChips.types";
 
 const YEARS_TO_SHOW = 6;
 
-export function YearFilterChips({ activeYear, onSelect }: YearFilterChipsProps) {
+function YearFilterChipsComponent({ activeYear, onSelect }: YearFilterChipsProps) {
   const years = useMemo(() => {
     const currentYear = new Date().getFullYear();
     return Array.from({ length: YEARS_TO_SHOW }, (_, i) => currentYear - i);
@@ -49,3 +49,5 @@ export function YearFilterChips({ activeYear, onSelect }: YearFilterChipsProps) 
     </div>
   );
 }
+
+export const YearFilterChips = memo(YearFilterChipsComponent);

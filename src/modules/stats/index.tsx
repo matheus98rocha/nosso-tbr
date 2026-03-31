@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { memo } from "react";
 import {
   Select,
   SelectContent,
@@ -32,44 +31,14 @@ import {
 } from "recharts";
 import { getGenderLabel } from "@/constants/genders";
 import { ReadingRankingSection } from "@/modules/stats/_components/readingRanking";
+import {
+  STATS_CHART_PIE_FILLS,
+  useStatsClient,
+} from "@/modules/stats/_hooks/useStatsClient";
+import type { KpiCardProps, StatsClientProps } from "@/modules/stats/types/stats.types";
 import { BookOpen, FileText, PenLine, Tag } from "lucide-react";
 
-const leitores = ["Matheus", "Fabi", "Barbara"];
-
-const CHART_FILLS = [
-  "var(--stats-chart-pie-1)",
-  "var(--stats-chart-pie-2)",
-  "var(--stats-chart-pie-3)",
-  "var(--stats-chart-pie-4)",
-  "var(--stats-chart-pie-5)",
-] as const;
-
-export type EstatisticaAnual = {
-  year: number;
-  totalBooks: number;
-  totalPages: number;
-  mostReadGenre: string;
-  mostReadAuthor: string;
-};
-
-type EstatisticaColaboracao = {
-  readerName: string;
-  booksRead: number;
-};
-
-type StatsClientProps = {
-  yearlyStats: EstatisticaAnual[];
-  collaborators: EstatisticaColaboracao[];
-  totalBooks: number;
-};
-
-type KpiCardProps = {
-  title: string;
-  value: React.ReactNode;
-  icon: React.ReactNode;
-};
-
-function KpiCard({ title, value, icon }: KpiCardProps) {
+const KpiCard = memo(function KpiCard({ title, value, icon }: KpiCardProps) {
   return (
     <Card className="transition-shadow duration-300 hover:shadow-md">
       <CardContent className="flex flex-row items-center gap-4 pt-6">
@@ -88,36 +57,27 @@ function KpiCard({ title, value, icon }: KpiCardProps) {
       </CardContent>
     </Card>
   );
-}
+});
 
-export function StatsClient({
+export const StatsClient = memo(function StatsClient({
   yearlyStats,
   collaborators,
   totalBooks,
 }: StatsClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const readerParam = searchParams.get("reader") ?? leitores[0];
-  const [reader, setReader] = useState(readerParam);
-
-  useEffect(() => {
-    setReader(readerParam);
-  }, [readerParam]);
-
-  function onChange(value: string) {
-    router.push(`/stats?reader=${value}`);
-  }
-
-  const totalPages = yearlyStats.reduce(
-    (acc, s) => acc + (s.totalPages ?? 0),
-    0
-  );
-
-  const mostReadGenre = yearlyStats[0]?.mostReadGenre ?? "N/A";
-  const mostReadAuthor = yearlyStats[0]?.mostReadAuthor ?? "N/A";
-
-  const axisTick = { fill: "var(--muted-foreground)", fontSize: 12 };
-  const gridStroke = "var(--border)";
+  const {
+    selectedReader,
+    readerOptions,
+    handleReaderChange,
+    totalPagesAcrossYears,
+    primaryYearMostReadGenre,
+    primaryYearMostReadAuthor,
+    barChartAxisTickStyle,
+    chartGridStroke,
+    chartTooltipContentStyle,
+    collaborationPieLabelFormatter,
+    hasYearlyChartData,
+    hasCollaborationChartData,
+  } = useStatsClient({ yearlyStats, collaborators });
 
   return (
     <div className="space-y-10 md:space-y-12">
@@ -130,7 +90,7 @@ export function StatsClient({
           >
             Leitor
           </Label>
-          <Select value={reader} onValueChange={onChange}>
+          <Select value={selectedReader} onValueChange={handleReaderChange}>
             <SelectTrigger
               id="stats-reader"
               aria-labelledby="stats-reader-label"
@@ -139,9 +99,9 @@ export function StatsClient({
               <SelectValue placeholder="Selecione um leitor" />
             </SelectTrigger>
             <SelectContent>
-              {leitores.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {r}
+              {readerOptions.map((readerName) => (
+                <SelectItem key={readerName} value={readerName}>
+                  {readerName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -160,18 +120,18 @@ export function StatsClient({
         />
         <KpiCard
           title="Total de páginas"
-          value={totalPages}
+          value={totalPagesAcrossYears}
           icon={<FileText className="size-5 md:size-6" strokeWidth={1.75} />}
         />
         <KpiCard
           title="Gênero mais lido"
           value={
-            mostReadGenre === "N/A" ? (
+            primaryYearMostReadGenre === "N/A" ? (
               <span className="text-xl text-muted-foreground md:text-2xl">
                 N/A
               </span>
             ) : (
-              getGenderLabel(mostReadGenre)
+              getGenderLabel(primaryYearMostReadGenre)
             )
           }
           icon={<Tag className="size-5 md:size-6" strokeWidth={1.75} />}
@@ -180,7 +140,7 @@ export function StatsClient({
           title="Autor mais lido"
           value={
             <span className="line-clamp-2 text-xl md:text-2xl">
-              {mostReadAuthor}
+              {primaryYearMostReadAuthor}
             </span>
           }
           icon={<PenLine className="size-5 md:size-6" strokeWidth={1.75} />}
@@ -199,7 +159,7 @@ export function StatsClient({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {yearlyStats.length === 0 ? (
+            {!hasYearlyChartData ? (
               <p className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
                 Nenhum dado anual disponível para este leitor.
               </p>
@@ -212,29 +172,22 @@ export function StatsClient({
                   >
                     <CartesianGrid
                       strokeDasharray="4 4"
-                      stroke={gridStroke}
+                      stroke={chartGridStroke}
                       vertical={false}
                     />
                     <XAxis
                       dataKey="year"
-                      tick={axisTick}
+                      tick={barChartAxisTickStyle}
                       tickLine={false}
-                      axisLine={{ stroke: gridStroke }}
+                      axisLine={{ stroke: chartGridStroke }}
                     />
                     <YAxis
-                      tick={axisTick}
+                      tick={barChartAxisTickStyle}
                       tickLine={false}
-                      axisLine={{ stroke: gridStroke }}
+                      axisLine={{ stroke: chartGridStroke }}
                       width={40}
                     />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--popover)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "var(--radius-md)",
-                        color: "var(--popover-foreground)",
-                      }}
-                    />
+                    <Tooltip contentStyle={chartTooltipContentStyle} />
                     <Legend />
                     <Bar
                       dataKey="totalBooks"
@@ -264,7 +217,7 @@ export function StatsClient({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {collaborators.length === 0 ? (
+            {!hasCollaborationChartData ? (
               <p className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
                 Não há outros leitores com dados de colaboração para exibir.
               </p>
@@ -282,26 +235,20 @@ export function StatsClient({
                       innerRadius="42%"
                       paddingAngle={2}
                       labelLine={false}
-                      label={({ name, percent }) => {
-                        const pct = Math.round((percent ?? 0) * 100);
-                        return `${name} (${pct}%)`;
-                      }}
+                      label={collaborationPieLabelFormatter}
                     >
-                      {collaborators.map((c, i) => (
+                      {collaborators.map((entry, index) => (
                         <Cell
-                          key={c.readerName}
-                          fill={CHART_FILLS[i % CHART_FILLS.length]}
+                          key={entry.readerName}
+                          fill={
+                            STATS_CHART_PIE_FILLS[
+                              index % STATS_CHART_PIE_FILLS.length
+                            ]
+                          }
                         />
                       ))}
                     </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--popover)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "var(--radius-md)",
-                        color: "var(--popover-foreground)",
-                      }}
-                    />
+                    <Tooltip contentStyle={chartTooltipContentStyle} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -314,4 +261,6 @@ export function StatsClient({
       <ReadingRankingSection />
     </div>
   );
-}
+});
+
+export type { EstatisticaAnual, StatsClientProps } from "@/modules/stats/types/stats.types";

@@ -10,10 +10,17 @@ import { BookCard } from "@/components/bookCard/bookCard";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
-import DefaultPagination from "@/components/pagintation/pagination";
+import DefaultPagination from "@/components/defaultPagintation/defaultPagination";
 import { StatusFilterChips } from "@/components/statusFilterChips/statusFilterChips";
 import { YearFilterChips } from "@/components/yearFilterChips/yearFilterChips";
-import { BookOpen, BookPlus, LogInIcon, Tag, UserPlus, Users } from "lucide-react";
+import {
+  BookOpen,
+  BookPlus,
+  LogInIcon,
+  Tag,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -344,8 +351,8 @@ export default function ClientHome() {
                 Registrar suas leituras
               </h4>
               <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-5 flex-1">
-                Cadastre títulos que você quer ler ou já leu — sua lista fica
-                só sua, do jeito que preferir.
+                Cadastre títulos que você quer ler ou já leu — sua lista fica só
+                sua, do jeito que preferir.
               </p>
               <Button
                 className="min-h-11 w-full justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white cursor-pointer transition-colors"

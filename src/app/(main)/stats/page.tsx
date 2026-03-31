@@ -12,17 +12,14 @@ export default async function StatsPage({
 
   const service = new StatsService();
 
-  // Executa as duas chamadas em paralelo
   const [yearlyStats, collaborationStats] = await Promise.all([
     service.getByReader(reader),
     service.getCollaborationStats(reader),
   ]);
 
-  // total de livros lidos pelo leitor principal
   const totalBooks =
     collaborationStats.find((s) => s.readerName === reader)?.booksRead ?? 0;
 
-  // colaboradores (remove o leitor principal)
   const collaborators = collaborationStats.filter(
     (s) => s.readerName !== reader
   );

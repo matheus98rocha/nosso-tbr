@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   Book,
   Bookmark,
@@ -65,7 +66,7 @@ const STATUS_CHIP_CONFIG: StatusChipConfig[] = [
   },
 ];
 
-export function StatusFilterChips({
+function StatusFilterChipsComponent({
   activeStatuses,
   onToggle,
 }: StatusFilterChipsProps) {
@@ -103,3 +104,5 @@ export function StatusFilterChips({
     </div>
   );
 }
+
+export const StatusFilterChips = memo(StatusFilterChipsComponent);

@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/components";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-import DefaultPagination from "@/components/pagintation/pagination";
+import DefaultPagination from "@/components/defaultPagintation/defaultPagination";
 import { QUERY_KEYS } from "@/constants/keys";
 
 const PAGE_SIZE = 10;
