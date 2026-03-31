@@ -1,20 +1,19 @@
 import { UserSocialService } from "@/services/userSocial/userSocial.service";
-import { DirectoryUser } from "@/services/userSocial/types/userSocial.types";
 import { useUserStore } from "@/stores/userStore";
 import {
-  useMutation,
   useQuery,
-  useQueryClient,
 } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { useClientMounted } from "./useClientMounted";
+import { useOptimisticFollowToggle } from "./useOptimisticFollowToggle";
 
 const service = new UserSocialService();
 
 export function useUserSocial() {
-  const queryClient = useQueryClient();
   const currentUser = useUserStore((s) => s.user);
   const isLoggedIn = useIsLoggedIn();
+  const isClientReady = useClientMounted();
   const [searchQuery, setSearchQuery] = useState("");
 
   const debouncedSearch = searchQuery.trim();
@@ -22,16 +21,27 @@ export function useUserSocial() {
   const { data: directoryUsers = [], isLoading: isLoadingDirectory } = useQuery({
     queryKey: ["userSocial", "directory", debouncedSearch],
     queryFn: () => service.searchUsers(debouncedSearch),
-    enabled: isLoggedIn,
+    enabled: isClientReady && isLoggedIn,
     staleTime: 1000 * 60 * 2,
   });
 
+  const followingQueryKey = useMemo(
+    () => ["userSocial", "following", currentUser?.id] as const,
+    [currentUser?.id],
+  );
+
   const { data: followingIds = [] } = useQuery({
-    queryKey: ["userSocial", "following", currentUser?.id],
+    queryKey: followingQueryKey,
     queryFn: () => service.getFollowingIds(),
-    enabled: isLoggedIn && !!currentUser?.id,
+    enabled: isClientReady && isLoggedIn && !!currentUser?.id,
     staleTime: 1000 * 60 * 2,
   });
+
+  const {
+    toggleFollow: enqueueFollowToggle,
+    isTogglePending,
+    pendingUserId,
+  } = useOptimisticFollowToggle(currentUser?.id);
 
   const followingSet = useMemo(
     () => new Set(followingIds),
@@ -43,42 +53,21 @@ export function useUserSocial() {
     [followingSet],
   );
 
-  const followMutation = useMutation({
-    mutationFn: (userId: string) => service.follow(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userSocial", "following"] });
-    },
-  });
-
-  const unfollowMutation = useMutation({
-    mutationFn: (userId: string) => service.unfollow(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userSocial", "following"] });
-    },
-  });
-
   const toggleFollow = useCallback(
     (userId: string) => {
-      if (!currentUser?.id || userId === currentUser.id) return;
-      if (isFollowing(userId)) {
-        unfollowMutation.mutate(userId);
-      } else {
-        followMutation.mutate(userId);
+      if (!currentUser?.id || userId === currentUser.id) {
+        return;
       }
+      enqueueFollowToggle(userId, !isFollowing(userId));
     },
-    [
-      currentUser?.id,
-      isFollowing,
-      followMutation,
-      unfollowMutation,
-    ],
+    [currentUser, isFollowing, enqueueFollowToggle],
   );
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
   }, []);
 
-  const visibleMembers: DirectoryUser[] = useMemo(() => {
+  const visibleMembers = useMemo(() => {
     return directoryUsers.filter((u) => u.id !== currentUser?.id);
   }, [directoryUsers, currentUser?.id]);
 
@@ -89,9 +78,7 @@ export function useUserSocial() {
     isLoadingDirectory,
     isFollowing,
     toggleFollow,
-    isFollowPending: followMutation.isPending,
-    isUnfollowPending: unfollowMutation.isPending,
-    pendingUserId:
-      followMutation.variables ?? unfollowMutation.variables ?? null,
+    isTogglePending,
+    pendingUserId,
   };
 }

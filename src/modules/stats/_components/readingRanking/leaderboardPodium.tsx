@@ -1,7 +1,7 @@
 "use client";
 
-import { ProfileInitialsAvatar } from "@/modules/profile/_components/ProfileInitialsAvatar";
-import type { ProfileInitialsAvatarSize } from "@/modules/profile/_components/ProfileInitialsAvatar";
+import { ProfileInitialsAvatar } from "@/modules/profile/components/ProfileInitialsAvatar";
+import type { ProfileInitialsAvatarSize } from "@/modules/profile/components/ProfileInitialsAvatar";
 import { initialsFromDisplayName } from "@/modules/profile/utils/initials";
 import type { ReadingLeaderboardEntryDomain } from "@/modules/stats/types/stats.types";
 import type { ReadingRankingMetric } from "@/modules/stats/_hooks/useReadingRanking";
@@ -170,7 +170,11 @@ function PodiumColumn({
 /** Ordem visual do pódio de 5 colunas (esquerda → direita). */
 const PODIUM_FIVE_VISUAL_PLACES: PodiumPlace[] = [5, 4, 2, 1, 3];
 
-export function LeaderboardPodiumSkeleton({ className }: { className?: string }) {
+export function LeaderboardPodiumSkeleton({
+  className,
+}: {
+  className?: string;
+}) {
   return (
     <div
       className={cn(
@@ -188,10 +192,7 @@ export function LeaderboardPodiumSkeleton({ className }: { className?: string })
             <Skeleton className="mb-2 size-16 rounded-2xl" />
             <Skeleton className="mb-2 h-4 w-14" />
             <Skeleton
-              className={cn(
-                "w-full max-w-36 rounded-t-xl",
-                barHeights[place],
-              )}
+              className={cn("w-full max-w-36 rounded-t-xl", barHeights[place])}
             />
           </div>
         ))}
