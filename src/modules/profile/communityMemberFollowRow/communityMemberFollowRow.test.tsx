@@ -16,7 +16,7 @@ describe("CommunityMemberFollowRow", () => {
         onPress={onPress}
       />,
     );
-    await user.click(screen.getByRole("button", { name: /follow ana/i }));
+    await user.click(screen.getByRole("button", { name: /seguir ana/i }));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

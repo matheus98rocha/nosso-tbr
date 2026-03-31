@@ -15,6 +15,10 @@ vi.mock("@/modules/schedule/services/schedule.service", () => ({
   },
 }));
 
+import {
+  getScheduleBookQueryFilterKey,
+  getScheduleQueryKey,
+} from "@/modules/schedule/utils/scheduleQueryKey";
 import { useOptimisticScheduleDelete } from "./useOptimisticScheduleDelete";
 
 function makeTestContext() {
@@ -33,7 +37,7 @@ function makeTestContext() {
 describe("useOptimisticScheduleDelete", () => {
   const bookId = "book-1";
   const userId = "user-1";
-  const scheduleKey = ["schedule", bookId, userId] as const;
+  const scheduleKey = getScheduleQueryKey(bookId, userId);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -137,7 +141,7 @@ describe("useOptimisticScheduleDelete", () => {
 
     await waitFor(() => {
       expect(invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ["schedule", bookId],
+        queryKey: getScheduleBookQueryFilterKey(bookId),
       });
     });
   });

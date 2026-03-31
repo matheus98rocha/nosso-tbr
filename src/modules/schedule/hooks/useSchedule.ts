@@ -1,4 +1,5 @@
 import { ScheduleUpsertService } from "@/modules/schedule/services/schedule.service";
+import { getScheduleQueryKey } from "@/modules/schedule/utils/scheduleQueryKey";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useUserStore } from "@/stores/userStore";
@@ -14,7 +15,7 @@ export function useSchedule({ id: bookId }: UseScheduleProps) {
   const { user } = useUserStore();
 
   const { data: schedule, isLoading: isLoadingSchedules } = useQuery({
-    queryKey: ["schedule", bookId, user?.id],
+    queryKey: getScheduleQueryKey(bookId, user?.id),
     queryFn: () => scheduleService.getByBookId(bookId, user!.id),
     enabled: !!user?.id,
   });
