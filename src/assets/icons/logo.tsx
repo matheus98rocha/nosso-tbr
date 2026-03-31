@@ -1,23 +1,33 @@
 import React, { useId } from "react";
 
-const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
-  const gradientPrefix = useId();
-  const bookColor1 = `${gradientPrefix}-book-color-1`;
-  const bookColor2 = `${gradientPrefix}-book-color-2`;
-  const bookColor3 = `${gradientPrefix}-book-color-3`;
+const LogoIcon = React.forwardRef<
+  SVGSVGElement,
+  React.SVGProps<SVGSVGElement>
+>(function LogoIcon(
+  { className, "aria-hidden": ariaHidden = true, focusable = false, ...props },
+  ref,
+) {
+  const uid = useId().replace(/:/g, "");
+  const g1 = `${uid}-bookColor1`;
+  const g2 = `${uid}-bookColor2`;
+  const g3 = `${uid}-bookColor3`;
 
   return (
     <svg
+      ref={ref}
       width="48"
       height="48"
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden={ariaHidden}
+      focusable={focusable}
       {...props}
     >
       <defs>
         <linearGradient
-          id={bookColor1}
+          id={g1}
           x1="8"
           y1="14"
           x2="8"
@@ -28,7 +38,7 @@ const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
           <stop offset="1" stopColor="#8E7DFF" />
         </linearGradient>
         <linearGradient
-          id={bookColor2}
+          id={g2}
           x1="18"
           y1="10"
           x2="18"
@@ -39,7 +49,7 @@ const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
           <stop offset="1" stopColor="#30E6BF" />
         </linearGradient>
         <linearGradient
-          id={bookColor3}
+          id={g3}
           x1="28"
           y1="16"
           x2="28"
@@ -51,7 +61,7 @@ const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
         </linearGradient>
       </defs>
 
-      <rect x="8" y="14" width="8" height="24" rx="1" fill={`url(#${bookColor1})`} />
+      <rect x="8" y="14" width="8" height="24" rx="1" fill={`url(#${g1})`} />
       <path d="M8 14V38H16V14H8Z" fill="white" fillOpacity="0.1" />
       <path
         d="M8 15.5H16"
@@ -60,14 +70,7 @@ const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
         strokeLinecap="round"
       />
 
-      <rect
-        x="18"
-        y="10"
-        width="8"
-        height="28"
-        rx="1"
-        fill={`url(#${bookColor2})`}
-      />
+      <rect x="18" y="10" width="8" height="28" rx="1" fill={`url(#${g2})`} />
       <path d="M18 10V38H26V10H18Z" fill="white" fillOpacity="0.1" />
       <path
         d="M18 11.5H26"
@@ -76,14 +79,7 @@ const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
         strokeLinecap="round"
       />
 
-      <rect
-        x="28"
-        y="16"
-        width="8"
-        height="22"
-        rx="1"
-        fill={`url(#${bookColor3})`}
-      />
+      <rect x="28" y="16" width="8" height="22" rx="1" fill={`url(#${g3})`} />
       <path d="M28 16V38H36V16H28Z" fill="white" fillOpacity="0.1" />
       <path
         d="M28 17.5H36"
@@ -93,6 +89,8 @@ const LogoIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
       />
     </svg>
   );
-};
+});
+
+LogoIcon.displayName = "LogoIcon";
 
 export default LogoIcon;
