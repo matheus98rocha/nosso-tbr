@@ -25,7 +25,7 @@ function ClientProfileView() {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-7 space-y-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <h1 className="page-title text-zinc-900 dark:text-zinc-100">
           Perfil
         </h1>
         <p className="text-base text-zinc-600 dark:text-zinc-400 max-w-xl">

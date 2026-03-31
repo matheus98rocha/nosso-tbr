@@ -27,7 +27,7 @@ export default async function StatsPage({
   return (
     <main className="mx-auto w-full max-w-7xl">
       <header className="mb-8 border-b border-border pb-8 text-center md:mb-10 md:text-left">
-        <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+        <h1 className="page-title">
           Estatísticas de Leitura
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground md:mx-0">
