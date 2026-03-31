@@ -1,9 +1,9 @@
 "use client";
 
-import React, { JSX, useEffect, useState, useCallback } from "react";
+import React, { JSX, useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
-import { CreateEditBookshelves } from "@/modules/shelves/components/createEditBookshelves/createEditBookshelves";
+import { BookUpsert } from "@/modules/bookUpsert";
+import { CreateEditBookshelves } from "@/modules/shelves/components/createEditBookshelves";
 import {
   Sheet,
   SheetClose,
@@ -16,18 +16,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { CircleUser, Menu as MenuIcon } from "lucide-react";
 import { useHeader } from "./hooks/useHeader";
-import { HomeSearchBar } from "./components/homeSearchBar/homeSearchBar";
+import { HomeSearchBar } from "./components/homeSearchBar";
 import { useUserStore } from "@/stores/userStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
 } from "../ui/dropdown-menu";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
-import { DesktopNavMenu } from "./components/navMenu/navMenu";
+import { DesktopNavMenu } from "./components/navMenu";
 import { Skeleton } from "../ui/skeleton";
 import LogoIcon from "@/assets/icons/logo";
 import { BookService } from "@/services/books/books.service";

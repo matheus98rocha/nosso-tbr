@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Trash2, Eye } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { AuthorDomain } from "../types";
 import {
   Tooltip,

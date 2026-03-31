@@ -1,5 +1,5 @@
-import type { RefObject, KeyboardEvent } from "react";
-import type { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
+import type { KeyboardEvent, RefObject } from "react";
+import type { InputWithButtonRef } from "@/components/inputWithButton";
 import type { SearchAutocompleteDomain } from "@/components/header/types/searchAutocomplete.types";
 
 export type SearchBarProps = {

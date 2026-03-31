@@ -1,5 +1,5 @@
 import { renderHook } from "@testing-library/react";
-import { vi, Mock } from "vitest";
+import { Mock, vi } from "vitest";
 import { useUser } from "./useUsers";
 import { useQuery } from "@tanstack/react-query";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";

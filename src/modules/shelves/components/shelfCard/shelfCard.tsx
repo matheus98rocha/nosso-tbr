@@ -8,15 +8,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EllipsisVerticalIcon, BookOpen, Plus } from "lucide-react";
+import { BookOpen, EllipsisVerticalIcon, Plus } from "lucide-react";
 import { useModal } from "@/hooks/useModal";
 import {
   BookshelfDomain,
   SelectedBookshelf,
 } from "../../types/bookshelves.types";
-import { CreateEditBookshelves } from "../createEditBookshelves/createEditBookshelves";
-import { DropdownShelf } from "../dropdownShelf/dropdownShelf";
-import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
+import { CreateEditBookshelves } from "../createEditBookshelves";
+import { DropdownShelf } from "../dropdownShelf";
+import { ConfirmDialog } from "@/components/confirmDialog";
 import { BookshelfService } from "../../services/booksshelves.service";
 import Image from "next/image";
 import {

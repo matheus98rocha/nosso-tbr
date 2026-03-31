@@ -1,13 +1,13 @@
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { SelectField } from "@/components/selectField/selectField";
+import { SelectField } from "@/components/selectField";
 import { AddBookToShelfProps } from "./types/addBookToShelf.types";
 import { useAddBookToShelf } from "./hooks/useAddBookToShelf";
 

@@ -22,7 +22,7 @@ const { mockUseClientProfile } = vi.hoisted(() => ({
   mockUseClientProfile: vi.fn(() => baseViewModel),
 }));
 
-vi.mock("@/modules/profile/clientProfile/hooks/useClientProfile", () => ({
+vi.mock("@/modules/profile/clientProfile/hooks", () => ({
   useClientProfile: () => mockUseClientProfile(),
 }));
 

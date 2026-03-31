@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { parseFiltersFromSearchParams } from "./parseFiltersFromSearchParams";
 
 const buildParams = (entries: Record<string, string>) =>
@@ -90,7 +90,7 @@ describe("parseFiltersFromSearchParams", () => {
   describe("round-trip consistency with buildQueryStringFromFilters", () => {
     it("year survives a serialize → parse round-trip", async () => {
       const { buildQueryStringFromFilters } = await import(
-        "@/utils/buildQueryStringFromFilters/buildQueryStringFromFilters"
+        "@/utils/buildQueryStringFromFilters"
       );
       const original = {
         readers: [],

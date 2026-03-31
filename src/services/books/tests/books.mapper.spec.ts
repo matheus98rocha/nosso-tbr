@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { BookMapper } from "../books.mapper";
 import { BookPersistence } from "@/types/books.types";
 import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";

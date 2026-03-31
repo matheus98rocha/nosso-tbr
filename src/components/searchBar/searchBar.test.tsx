@@ -2,7 +2,7 @@ import { createRef } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { SearchBar } from "./searchBar";
-import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
+import { InputWithButtonRef } from "@/components/inputWithButton";
 
 describe("SearchBar", () => {
   it("fecha o dropdown ao clicar em uma sugestão", () => {
