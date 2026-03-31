@@ -4,6 +4,10 @@ import {
   ScheduleReadToggleMutationContext,
   ScheduleReadToggleVariables,
 } from "@/modules/schedule/types/scheduleReadToggle.types";
+import {
+  getScheduleBookQueryFilterKey,
+  getScheduleQueryKey,
+} from "@/modules/schedule/utils/scheduleQueryKey";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
@@ -16,7 +20,7 @@ export function useOptimisticScheduleReadToggle(
   const queryClient = useQueryClient();
 
   const scheduleQueryKey = useMemo(
-    () => ["schedule", bookId, userId] as const,
+    () => getScheduleQueryKey(bookId, userId),
     [bookId, userId],
   );
 
@@ -26,7 +30,7 @@ export function useOptimisticScheduleReadToggle(
       completed,
     }: ScheduleReadToggleVariables) => {
       if (!userId) {
-        throw new Error("User required");
+        return;
       }
       await service.updateIsRead(scheduleId, completed, userId);
     },
@@ -51,7 +55,9 @@ export function useOptimisticScheduleReadToggle(
       }
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["schedule", bookId] });
+      await queryClient.invalidateQueries({
+        queryKey: getScheduleBookQueryFilterKey(bookId),
+      });
     },
   });
 

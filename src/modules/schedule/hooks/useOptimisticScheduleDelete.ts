@@ -4,6 +4,10 @@ import {
   ScheduleDeleteMutationContext,
   ScheduleDeleteVariables,
 } from "@/modules/schedule/types/scheduleDelete.types";
+import {
+  getScheduleBookQueryFilterKey,
+  getScheduleQueryKey,
+} from "@/modules/schedule/utils/scheduleQueryKey";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
@@ -16,14 +20,14 @@ export function useOptimisticScheduleDelete(
   const queryClient = useQueryClient();
 
   const scheduleQueryKey = useMemo(
-    () => ["schedule", bookId, userId] as const,
+    () => getScheduleQueryKey(bookId, userId),
     [bookId, userId],
   );
 
   const mutation = useMutation({
     mutationFn: async ({ id: targetBookId }: ScheduleDeleteVariables) => {
       if (!userId) {
-        throw new Error("User required");
+        return;
       }
       await service.deleteSchedule(targetBookId, userId);
     },
@@ -41,7 +45,9 @@ export function useOptimisticScheduleDelete(
       }
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["schedule", bookId] });
+      await queryClient.invalidateQueries({
+        queryKey: getScheduleBookQueryFilterKey(bookId),
+      });
     },
   });
 

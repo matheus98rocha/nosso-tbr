@@ -37,7 +37,9 @@ function CommunityMemberFollowRowComponent({
         onClick={onPress}
         aria-busy={isToggleBusy}
         aria-label={
-          isFollowing ? `Unfollow ${displayName}` : `Follow ${displayName}`
+          isFollowing
+            ? `Deixar de seguir ${displayName}`
+            : `Seguir ${displayName}`
         }
         aria-pressed={isFollowing}
       >

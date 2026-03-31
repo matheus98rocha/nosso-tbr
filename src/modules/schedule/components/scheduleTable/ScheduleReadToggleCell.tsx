@@ -31,7 +31,7 @@ function ScheduleReadToggleCellComponent({
           isBusy && "disabled:opacity-100",
         )}
       />
-      <span className="relative flex min-h-5 min-w-21 items-center justify-center overflow-hidden text-xs font-medium text-zinc-600 dark:text-zinc-400">
+      <span className="relative flex min-h-5 min-w-[84px] items-center justify-center overflow-hidden text-xs font-medium text-zinc-600 dark:text-zinc-400">
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
             key={checked ? "done" : "todo"}

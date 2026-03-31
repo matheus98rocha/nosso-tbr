@@ -16,6 +16,10 @@ vi.mock("@/modules/schedule/services/schedule.service", () => ({
 }));
 
 import type { ScheduleDomain } from "@/modules/schedule/types/schedule.types";
+import {
+  getScheduleBookQueryFilterKey,
+  getScheduleQueryKey,
+} from "@/modules/schedule/utils/scheduleQueryKey";
 import { useOptimisticScheduleReadToggle } from "./useOptimisticScheduleReadToggle";
 
 function makeTestContext() {
@@ -34,7 +38,7 @@ function makeTestContext() {
 describe("useOptimisticScheduleReadToggle", () => {
   const bookId = "book-1";
   const userId = "user-1";
-  const scheduleKey = ["schedule", bookId, userId] as const;
+  const scheduleKey = getScheduleQueryKey(bookId, userId);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -140,7 +144,7 @@ describe("useOptimisticScheduleReadToggle", () => {
 
     await waitFor(() => {
       expect(invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ["schedule", bookId],
+        queryKey: getScheduleBookQueryFilterKey(bookId),
       });
     });
   });
