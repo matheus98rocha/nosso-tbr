@@ -14,22 +14,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import {
-  bookshelfCreateSchema,
   BookshelfCreateValidator,
+  bookshelfCreateSchema,
 } from "../../validators/bookshelves.validator";
 import { useBookshelves } from "../../hooks/useBookshelves";
 import { BookshelfDomain } from "../../types/bookshelves.types";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { FolderPlus, Pencil } from "lucide-react";
-import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
+import { BlurOverlay } from "@/components/blurOverlay";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 

@@ -35,11 +35,11 @@ vi.mock("./_hooks/useBookshelfMeta", () => ({
   })),
 }));
 
-vi.mock("@/components/listGrid/listGrid", () => ({
+vi.mock("@/components/listGrid", () => ({
   ListGrid: () => <div data-testid="list-grid" />,
 }));
 
-vi.mock("@/components/bookCard/bookCard", () => ({
+vi.mock("@/components/bookCard", () => ({
   BookCard: () => null,
 }));
 

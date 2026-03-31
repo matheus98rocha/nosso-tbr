@@ -1,10 +1,10 @@
 import {
-  StatsDomain,
-  StatsPersistence,
   CollaborationStatsDomain,
   CollaborationStatsPersistence,
-  ReadingLeaderboardPersistence,
   ReadingLeaderboardEntryDomain,
+  ReadingLeaderboardPersistence,
+  StatsDomain,
+  StatsPersistence,
 } from "../../types/stats.types";
 
 export class StatsMapper {

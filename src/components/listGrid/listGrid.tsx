@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import ErrorComponent from "../error/error";
+import ErrorComponent from "../error";
 import type { ListGridProps } from "./types/listGrid.types";
 
 function BookCardSkeleton() {

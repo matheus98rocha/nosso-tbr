@@ -1,6 +1,6 @@
 "use client";
 
-import { useProfile } from "@/modules/profile/hooks/useProfile";
+import { memo } from "react";
 import {
   Card,
   CardContent,
@@ -11,37 +11,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar, Mail, Search, UserRound } from "lucide-react";
-import { ProfileInitialsAvatar } from "@/modules/profile/_components/ProfileInitialsAvatar";
-import { initialsFromEmail } from "@/modules/profile/utils/initials";
+import { ProfileInitialsAvatar } from "@/modules/profile/components";
+import { useClientProfile } from "@/modules/profile/clientProfile/hooks";
+import CommunityMemberFollowRow from "../communityMemberFollowRow";
 
-function formatJoined(iso: string | null | undefined) {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return "—";
-  }
-}
+function ClientProfileView() {
+  const viewModel = useClientProfile();
 
-export default function ClientProfile() {
-  const {
-    user,
-    displayName,
-    searchQuery,
-    handleSearchChange,
-    directoryUsers,
-    isLoadingDirectory,
-    isFollowing,
-    handleFollowPress,
-    isToggleLoading,
-    pendingUserId,
-  } = useProfile();
-
-  if (!user?.email) {
+  if (!viewModel) {
     return null;
   }
 
@@ -61,18 +38,18 @@ export default function ClientProfile() {
         <CardHeader className="px-6 py-6 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <ProfileInitialsAvatar
-              initials={initialsFromEmail(user.email)}
+              initials={viewModel.avatarInitials}
               size="md"
             />
             <div className="space-y-1 min-w-0">
               <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100 truncate">
-                {displayName}
+                {viewModel.displayName}
               </CardTitle>
               <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                 <span className="inline-flex items-center gap-1.5 min-w-0">
                   <Mail className="size-4 shrink-0 text-zinc-400" aria-hidden />
                   <span className="truncate text-zinc-600 dark:text-zinc-300">
-                    {user.email}
+                    {viewModel.userEmail}
                   </span>
                 </span>
               </CardDescription>
@@ -87,7 +64,7 @@ export default function ClientProfile() {
                 Conta criada
               </dt>
               <dd className="mt-1.5 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                {formatJoined(user.created_at)}
+                {viewModel.formattedAccountCreated}
               </dd>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/40 px-4 py-3">
@@ -96,7 +73,7 @@ export default function ClientProfile() {
                 Último acesso
               </dt>
               <dd className="mt-1.5 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                {formatJoined(user.last_sign_in_at)}
+                {viewModel.formattedLastSignIn}
               </dd>
             </div>
           </dl>
@@ -127,8 +104,8 @@ export default function ClientProfile() {
             <Input
               id="profile-user-search"
               type="search"
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              value={viewModel.searchQuery}
+              onChange={viewModel.onCommunitySearchChange}
               placeholder="Buscar pessoas..."
               className="h-11 pl-10 text-base md:text-sm rounded-xl border-zinc-200 dark:border-zinc-800"
               aria-label="Search people in the community"
@@ -141,11 +118,11 @@ export default function ClientProfile() {
           className="divide-y divide-zinc-200 dark:divide-zinc-800 max-h-[min(420px,60vh)] overflow-y-auto"
           role="list"
         >
-          {isLoadingDirectory ? (
+          {viewModel.isDirectoryLoading ? (
             <li className="px-4 sm:px-6 py-12 text-center text-sm text-zinc-500">
               Loading...
             </li>
-          ) : directoryUsers.length === 0 ? (
+          ) : viewModel.isCommunityEmpty ? (
             <li className="px-4 sm:px-6 py-12 text-center">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 Não encontramos nenhum leitor...
@@ -154,49 +131,29 @@ export default function ClientProfile() {
                 type="button"
                 variant="outline"
                 className="mt-4 h-11 rounded-xl cursor-pointer transition-colors"
-                onClick={() => handleSearchChange("")}
+                onClick={viewModel.onClearCommunitySearch}
                 aria-label="Clear people search"
               >
                 Limpar busca
               </Button>
             </li>
           ) : (
-            directoryUsers.map((member) => {
-              const following = isFollowing(member.id);
-              const busy = isToggleLoading && pendingUserId === member.id;
-              return (
-                <li key={member.id}>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors">
-                    <div className="min-w-0">
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                        {member.displayName}
-                      </p>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
-                        {member.email || "—"}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant={following ? "secondary" : "default"}
-                      className="h-11 min-w-[120px] shrink-0 rounded-xl cursor-pointer transition-colors"
-                      disabled={busy}
-                      onClick={() => handleFollowPress(member.id)}
-                      aria-label={
-                        following
-                          ? `Unfollow ${member.displayName}`
-                          : `Follow ${member.displayName}`
-                      }
-                      aria-pressed={following}
-                    >
-                      {busy ? "..." : following ? "Following" : "Follow"}
-                    </Button>
-                  </div>
-                </li>
-              );
-            })
+            viewModel.communityRows.map((row) => (
+              <li key={row.memberId}>
+                <CommunityMemberFollowRow
+                  displayName={row.displayName}
+                  email={row.email}
+                  isFollowing={row.isFollowing}
+                  isToggleBusy={row.isToggleBusy}
+                  onPress={row.onToggle}
+                />
+              </li>
+            ))
           )}
         </ul>
       </section>
     </div>
   );
 }
+
+export default memo(ClientProfileView);

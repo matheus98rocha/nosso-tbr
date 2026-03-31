@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QuotesService } from "../services/quotes.service";
 import { useState } from "react";
 import { ClientQuotesProps, QuoteDomain } from "../types/quotes.types";

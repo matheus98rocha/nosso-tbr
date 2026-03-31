@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { QUERY_KEYS, INITIAL_FILTERS } from "./keys";
+import { describe, expect, it } from "vitest";
+import { INITIAL_FILTERS, QUERY_KEYS } from "./keys";
 
 describe("QUERY_KEYS.books.list", () => {
   describe("readers array normalization (RN18)", () => {

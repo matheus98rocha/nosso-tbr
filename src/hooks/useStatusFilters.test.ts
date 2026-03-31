@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { vi } from "vitest";
 import { useStatusFilters } from "./useStatusFilters";
 import { FiltersOptions } from "@/types/filters";

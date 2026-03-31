@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActionState } from "react";
-import { loginAction, LoginState } from "./actions/login";
+import { LoginState, loginAction } from "./actions/login";
 import { useLogin } from "./hooks/useLogin";
 
 export default function LoginPage() {
