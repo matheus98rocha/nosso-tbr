@@ -11,9 +11,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar, Mail, Search, UserRound } from "lucide-react";
-import { ProfileInitialsAvatar } from "@/modules/profile/components/ProfileInitialsAvatar";
-import { useClientProfile } from "@/modules/profile/clientProfile/hooks/useClientProfile";
-import CommunityMemberFollowRow from "../communityMemberFollowRow/communityMemberFollowRow";
+import { ProfileInitialsAvatar } from "@/modules/profile/components";
+import { useClientProfile } from "@/modules/profile/clientProfile/hooks";
+import CommunityMemberFollowRow from "../communityMemberFollowRow";
 
 function ClientProfileView() {
   const viewModel = useClientProfile();

@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { InputWithButtonRef } from "@/components/inputWithButton/inputWithButton";
+import { InputWithButtonRef } from "@/components";
 import { FiltersOptions } from "@/types/filters";
 
 import {
-  parseFiltersFromSearchParams,
   buildQueryStringFromFilters,
+  parseFiltersFromSearchParams,
 } from "@/utils";
 
 export function useFiltersUrl(defaultFiltersFactory: () => FiltersOptions) {

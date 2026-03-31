@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookMarked, Plus } from "lucide-react";
-import { CreateEditBookshelves } from "./components/createEditBookshelves/createEditBookshelves";
+import { CreateEditBookshelves } from "./components/createEditBookshelves";
 import { useBookshelves } from "./hooks/useBookshelves";
-import { ListGrid } from "../../components/listGrid/listGrid";
+import { ListGrid } from "../../components/listGrid";
 import { BookshelfDomain, SelectedBookshelf } from "./types/bookshelves.types";
-import { AddBookToBookshelfDialog } from "./components/addBookToBookshelfDialog/addBookToBookshelfDialog";
+import { AddBookToBookshelfDialog } from "./components/addBookToBookshelfDialog";
 import { useModal } from "@/hooks/useModal";
-import { ShelfCard } from "./components/shelfCard/shelfCard";
+import { ShelfCard } from "./components/shelfCard";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 function ClienteShelves() {

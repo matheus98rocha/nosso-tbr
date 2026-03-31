@@ -1,9 +1,9 @@
 import {
+  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  type MouseEvent,
 } from "react";
 import type {
   DefaultPaginationProps,

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { BookPlus } from "lucide-react";
 import { BookService } from "@/services/books/books.service";
-import { BookCombobox } from "../bookCombobox/bookCombobox";
+import { BookCombobox } from "../bookCombobox";
 import { BookshelfService } from "../../services/booksshelves.service";
 import { SelectedBookshelf } from "../../types/bookshelves.types";
 

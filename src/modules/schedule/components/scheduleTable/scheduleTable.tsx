@@ -1,14 +1,14 @@
 import { useState } from "react";
 import {
   Card,
+  CardAction,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
-  CardAction,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
+import { ConfirmDialog } from "@/components";
 import { ScheduleTableProps } from "./types/scheduleTable.types";
 
 export function ScheduleTable({

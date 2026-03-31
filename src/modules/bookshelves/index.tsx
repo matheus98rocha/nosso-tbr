@@ -3,8 +3,8 @@
 import React from "react";
 import { useParams } from "next/navigation";
 import { BookDomain } from "@/types/books.types";
-import { ListGrid } from "@/components/listGrid/listGrid";
-import { BookCard } from "@/components/bookCard/bookCard";
+import { ListGrid } from "@/components";
+import { BookCard } from "@/components";
 import Link from "next/link";
 import { ArrowLeft, Library } from "lucide-react";
 import { useBookshelfBooks } from "./_hooks/useBookshelfBooks";

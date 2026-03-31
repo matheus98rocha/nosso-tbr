@@ -1,18 +1,20 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
+import {
+  BookCard,
+  DefaultPagination,
+  ListGrid,
+  StatusFilterChips,
+  YearFilterChips,
+} from "@/components";
+import { BookUpsert } from "@/modules/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
 import { useModal } from "@/hooks/useModal";
-import { ListGrid } from "../../components/listGrid/listGrid";
 import { BookDomain } from "../../types/books.types";
-import { BookCard } from "@/components/bookCard/bookCard";
-import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
+import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
-import DefaultPagination from "@/components/defaultPagintation/defaultPagination";
-import { StatusFilterChips } from "@/components/statusFilterChips/statusFilterChips";
-import { YearFilterChips } from "@/components/yearFilterChips/yearFilterChips";
 import {
   BookOpen,
   BookPlus,

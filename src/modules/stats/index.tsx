@@ -17,17 +17,17 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
+  BarChart,
+  CartesianGrid,
   Cell,
   Legend,
-  CartesianGrid,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { getGenderLabel } from "@/constants/genders";
 import { ReadingRankingSection } from "@/modules/stats/_components/readingRanking";

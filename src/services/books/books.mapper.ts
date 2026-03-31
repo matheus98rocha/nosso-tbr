@@ -1,7 +1,7 @@
 import { BookDomain, BookPersistence } from "@/types/books.types";
 import { DateUtils } from "@/utils";
 import { resolveBookCoverUrl } from "@/constants/bookCover";
-import { formatList } from "@/utils/formatters/formatters";
+import { formatList } from "@/utils/formatters";
 
 type UserLookup = { id: string; display_name: string };
 

@@ -52,35 +52,23 @@ vi.mock("@/hooks/useModal", () => ({
   useModal: vi.fn(() => ({ isOpen: false, setIsOpen: mockSetBookFormOpen })),
 }));
 
-vi.mock("@/modules/bookUpsert/bookUpsert", () => ({
+vi.mock("@/modules/bookUpsert", () => ({
   BookUpsert: () => null,
 }));
 
 vi.mock(
-  "../shelves/components/createEditBookshelves/createEditBookshelves",
+  "../shelves/components/createEditBookshelves",
   () => ({
     CreateEditBookshelves: () => null,
   }),
 );
 
-vi.mock("../../components/listGrid/listGrid", () => ({
+vi.mock("@/components", () => ({
   ListGrid: () => <div>list-grid</div>,
-}));
-
-vi.mock("@/components/bookCard/bookCard", () => ({
   BookCard: () => <div>book-card</div>,
-}));
-
-vi.mock("@/components/pagintation/pagination", () => ({
-  default: () => <div>pagination</div>,
-}));
-
-vi.mock("@/components/statusFilterChips/statusFilterChips", () => ({
   StatusFilterChips: () => <div>status-chips</div>,
-}));
-
-vi.mock("@/components/yearFilterChips/yearFilterChips", () => ({
   YearFilterChips: () => <div>year-chips</div>,
+  DefaultPagination: () => <div>pagination</div>,
 }));
 
 describe("ClientHome book suggestions (empty network)", () => {

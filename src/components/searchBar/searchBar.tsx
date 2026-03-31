@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { BookOpen, PenLine } from "lucide-react";
-import { InputWithButton } from "@/components/inputWithButton/inputWithButton";
+import { InputWithButton } from "@/components";
 import { useSearchBar } from "./hooks/useSearchBar";
 import type { SearchBarProps } from "./types/searchBar.types";
 

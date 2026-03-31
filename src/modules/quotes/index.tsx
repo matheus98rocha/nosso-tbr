@@ -3,10 +3,10 @@
 import React from "react";
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { useQuotes } from "./hooks/useQuotes";
 import { X } from "lucide-react";
@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ClientQuotesProps } from "./types/quotes.types";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/confirmDialog/confirmDialog";
+import { ConfirmDialog } from "@/components";
 
 export function ClientQuotes({ id, title }: ClientQuotesProps) {
   const {

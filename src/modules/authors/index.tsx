@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataTable } from "./components/dataTable";
 import { AuthorDomain } from "./types";
 import { AuthorsService } from "./services/authors.service";
@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/components";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-import DefaultPagination from "@/components/defaultPagintation/defaultPagination";
+import DefaultPagination from "@/components";
 import { QUERY_KEYS } from "@/constants/keys";
 
 const PAGE_SIZE = 10;

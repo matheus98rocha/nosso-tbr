@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchBar } from "@/components/searchBar/searchBar";
+import { SearchBar } from "@/components";
 import { useHomeSearchBar } from "../../hooks/useHomeSearchBar";
 import { useModal } from "@/hooks/useModal";
 import FiltersSheet from "@/modules/home/components/filtersSheet/filters";
