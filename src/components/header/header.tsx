@@ -99,7 +99,7 @@ function Header() {
           aria-label="Ir para a página inicial"
         >
           <LogoIcon
-            className={`transition-all duration-300 ${scrolled ? "w-5 h-5" : "w-6 h-6"}`}
+            className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-7 h-7"}`}
           />
           <span
             className={`font-bold tracking-tight transition-all duration-300 ${scrolled ? "text-lg" : "text-xl"}`}
@@ -188,7 +188,7 @@ function Header() {
         aria-label="Ir para a página inicial"
       >
         <LogoIcon
-          className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-10 h-10"}`}
+          className={`transition-all duration-300 ${scrolled ? "w-7 h-7" : "w-10 h-10"}`}
         />
         <span
           className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap ${scrolled ? "text-base" : "text-2xl"}`}
