@@ -17,12 +17,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { scheduleSchema } from "@/modules/schedule/components/createScheduleForm/validators/schedule.validator";
 import { ChangeEvent, useCallback, useState } from "react";
 import { useUserStore } from "@/stores/userStore";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
 
 export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
   const scheduleService = new ScheduleUpsertService();
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
   const { user } = useUserStore();
+  const router = useRouter();
 
   const form = useForm<ScheduleFormInput>({
     resolver: zodResolver(scheduleSchema),
@@ -50,6 +54,16 @@ export function useCreateScheduleForm({ id: bookId }: ClientScheduleProps) {
       queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
     onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        setFormError("Sua sessão expirou. Faça login novamente.");
+        toast("Sessão expirada", {
+          description: "Faça login novamente para continuar.",
+          className: "toast-error",
+        });
+        router.push("/auth");
+        return;
+      }
+
       setFormError("Erro ao criar cronograma. Tente novamente.");
       console.error("Erro ao criar cronograma:", error);
     },

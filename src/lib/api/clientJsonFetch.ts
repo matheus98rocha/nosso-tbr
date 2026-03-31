@@ -1,6 +1,16 @@
 /**
  * Chamadas às rotas /api com cookie de sessão (credenciais).
  */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 export async function apiJson<T>(
   path: string,
   init?: RequestInit,
@@ -34,7 +44,7 @@ export async function apiJson<T>(
       typeof (body as { error: unknown }).error === "string"
         ? (body as { error: string }).error
         : res.statusText;
-    throw new Error(msg);
+    throw new ApiError(msg, res.status);
   }
 
   return body as T;

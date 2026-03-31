@@ -4,6 +4,8 @@ import { useBookDialog } from "./useBookDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ApiError } from "@/lib/api/clientJsonFetch";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn(),
@@ -191,6 +193,36 @@ describe("useBookDialog — query de estantes", () => {
       setupMocks({ isLoggedIn: true, isLoadingBookshelves: false });
       const { result } = renderHook(() => useBookDialog(defaultProps));
       expect(result.current.isLoadingBookshelves).toBe(false);
+    });
+  });
+
+  describe("tratamento de erro de autenticação", () => {
+    it("exibe mensagem amigável e redireciona para /auth quando recebe 401", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() => useBookDialog(defaultProps));
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      mutationOptions.onError?.(new ApiError("Unauthorized", 401));
+
+      expect(toast).toHaveBeenCalledWith("Sessão expirada", {
+        description: "Faça login novamente para continuar.",
+        className: "toast-error",
+      });
+      expect(mockPush).toHaveBeenCalledWith("/auth");
+    });
+
+    it("mantém toast genérico para erros não relacionados à autenticação", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() => useBookDialog(defaultProps));
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      mutationOptions.onError?.(new Error("Falha qualquer"));
+
+      expect(toast).toHaveBeenCalledWith("Erro ao salvar livro", {
+        description: "Falha qualquer",
+        className: "toast-error",
+      });
+      expect(mockPush).not.toHaveBeenCalled();
     });
   });
 });
