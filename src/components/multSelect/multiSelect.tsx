@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { memo } from "react";
 import {
   Popover,
   PopoverContent,
@@ -7,49 +9,39 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Check } from "lucide-react";
+import { useMultiSelect } from "./hooks/useMultiSelect";
+import type { MultiSelectProps } from "./types/multiSelect.types";
 
-type Option = { label: string; value: string };
-
-type MultiSelectProps = {
-  options: Option[];
-  selected: string[];
-  onChange: (values: string[]) => void;
-  placeholder?: string;
-};
-
-export function MultiSelect({
+function MultiSelectComponent({
   options,
   selected,
   onChange,
   placeholder = "Select options",
 }: MultiSelectProps) {
-  const [open, setOpen] = useState(false);
+  const { open, setOpen, toggleValue, selectedLabels } = useMultiSelect({
+    options,
+    selected,
+    onChange,
+  });
 
-  const toggleValue = (value: string) => {
-    if (selected.includes(value)) {
-      onChange(selected.filter((v) => v !== value));
-    } else {
-      onChange([...selected, value]);
-    }
-  };
-
-  const selectedLabels = selected
-    .map((val) => options.find((opt) => opt.value === val)?.label)
-    .filter(Boolean);
+  const triggerLabel =
+    selectedLabels.length > 0
+      ? selectedLabels.length === 1
+        ? selectedLabels[0]
+        : `${selectedLabels.length} selecionados`
+      : placeholder;
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
+          aria-expanded={open}
           className="w-full justify-between"
         >
-          {selectedLabels.length > 0
-            ? selectedLabels.length === 1
-              ? selectedLabels[0]
-              : `${selectedLabels.length} selecionados`
-            : placeholder}
+          {triggerLabel}
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -63,7 +55,7 @@ export function MultiSelect({
             return (
               <div
                 key={value}
-                className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted transition-all multi-select-item"
+                className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted transition-all multi-select-item min-h-11"
                 onClick={() => toggleValue(value)}
               >
                 <Checkbox checked={isChecked} onCheckedChange={() => {}} />
@@ -79,3 +71,5 @@ export function MultiSelect({
     </Popover>
   );
 }
+
+export const MultiSelect = memo(MultiSelectComponent);

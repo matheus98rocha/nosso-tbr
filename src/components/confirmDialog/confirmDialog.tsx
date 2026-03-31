@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,10 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ConfirmDialogProps } from "./confirmDialog.types";
-import { useConfirmDialog } from "./useConfirmDialog";
+import type { ConfirmDialogProps } from "./confirmDialog.types";
+import { useConfirmDialog } from "./hooks/useConfirmDialog";
 
-export function ConfirmDialog({
+function ConfirmDialogComponent({
   title,
   description,
   id,
@@ -20,9 +21,15 @@ export function ConfirmDialog({
   onCancel,
   open,
   onOpenChange,
-  buttonLabel
+  buttonLabel,
 }: ConfirmDialogProps) {
-  const {confirmBookMutation, isLoading} = useConfirmDialog({onConfirm, id, queryKeyToInvalidate, onOpenChange, title, description, open});
+  const { confirmBookMutation, isLoading } = useConfirmDialog({
+    onConfirm,
+    id,
+    queryKeyToInvalidate,
+    onOpenChange,
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -32,12 +39,14 @@ export function ConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button onClick={onCancel} variant="outline">Cancelar</Button>
+            <Button type="button" onClick={onCancel} variant="outline">
+              Cancelar
+            </Button>
           </DialogClose>
           <Button
             isLoading={isLoading}
             type="button"
-            onClick={() =>confirmBookMutation()}
+            onClick={() => confirmBookMutation()}
           >
             {buttonLabel}
           </Button>
@@ -46,3 +55,5 @@ export function ConfirmDialog({
     </Dialog>
   );
 }
+
+export const ConfirmDialog = memo(ConfirmDialogComponent);

@@ -1,4 +1,5 @@
-// Tipos para as estatísticas anuais
+import type { ReactNode } from "react";
+
 export type StatsPersistence = {
   year: number;
   total_books: number;
@@ -23,7 +24,6 @@ export interface StatsDomain {
   avgPagesPerBook: number | null;
 }
 
-// Tipos para as estatísticas de colaboração
 export type CollaborationStatsPersistence = {
   reader_name: string;
   books_read: number;
@@ -48,3 +48,23 @@ export interface ReadingLeaderboardEntryDomain {
   totalPages: number;
   rank: number;
 }
+
+export type EstatisticaAnual = {
+  year: number;
+  totalBooks: number;
+  totalPages: number;
+  mostReadGenre: string;
+  mostReadAuthor: string;
+};
+
+export type StatsClientProps = {
+  yearlyStats: EstatisticaAnual[];
+  collaborators: CollaborationStatsDomain[];
+  totalBooks: number;
+};
+
+export type KpiCardProps = {
+  title: string;
+  value: ReactNode;
+  icon: ReactNode;
+};

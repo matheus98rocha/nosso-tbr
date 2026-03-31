@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { memo } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,26 +10,27 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useDatePicker } from "./hooks/useDatePicker";
+import type { DatePickerProps } from "./types/datePicker.types";
 
-type DatePickerProps = {
-  value?: Date;
-  onChange?: (date: Date | undefined) => void;
-  isRequiredField?: boolean;
-  isAfterTodayHidden?: boolean;
-};
-
-export function DatePicker({ value, onChange, isAfterTodayHidden }: DatePickerProps) {
-  const [open, setOpen] = React.useState(false);
+function DatePickerComponent({
+  value,
+  onChange,
+  isAfterTodayHidden,
+}: DatePickerProps) {
+  const { open, setOpen, calendarHidden, displayLabel, handleSelect } =
+    useDatePicker({ value, onChange, isAfterTodayHidden });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           id="date"
           className="w-full justify-between font-normal"
         >
-          {value ? value.toLocaleDateString() : "Selecione uma data"}
+          {displayLabel}
           <ChevronDownIcon />
         </Button>
       </PopoverTrigger>
@@ -37,13 +39,12 @@ export function DatePicker({ value, onChange, isAfterTodayHidden }: DatePickerPr
           mode="single"
           selected={value}
           captionLayout="dropdown"
-          onSelect={(date) => {
-            onChange?.(date);
-            setOpen(false);
-          }}
-          hidden={isAfterTodayHidden ? { after: new Date() } : undefined}
+          onSelect={handleSelect}
+          hidden={calendarHidden}
         />
       </PopoverContent>
     </Popover>
   );
 }
+
+export const DatePicker = memo(DatePickerComponent);

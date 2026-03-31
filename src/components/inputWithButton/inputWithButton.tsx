@@ -10,21 +10,12 @@ import React, {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import type {
+  InputWithButtonProps,
+  InputWithButtonRef,
+} from "./types/inputWithButton.types";
 
-type InputWithButtonProps = {
-  placeholder: string;
-  defaultValue?: string;
-  value?: string;
-  onChange?: (value: string) => void;
-  onButtonClick?: (value: string) => void;
-  onBlur?: (value: string) => void;
-  onFocus?: () => void;
-  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
-};
-
-export type InputWithButtonRef = {
-  clear: () => void;
-};
+export type { InputWithButtonRef };
 
 export const InputWithButton = forwardRef<
   InputWithButtonRef,
