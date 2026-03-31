@@ -1,32 +1,27 @@
 import { createClient } from "@/lib/supabase/client";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
-import { ErrorHandler, RepositoryError } from "@/services/errors/error";
+import { ErrorHandler } from "@/services/errors/error";
 
 export class BookshelfService {
   private supabase = createClient();
 
   async create(shelf: { name: string; user_id: string }): Promise<void> {
-    const { error } = await this.supabase
-      .from("custom_shelves")
-      .insert({ name: shelf.name, user_id: shelf.user_id });
-
-    if (error) throw new Error(error.message);
+    await apiJson<{ ok: true }>("/api/shelves", {
+      method: "POST",
+      body: JSON.stringify(shelf),
+    });
   }
   async update(id: string, shelf: BookshelfCreateValidator): Promise<void> {
-    const { error } = await this.supabase
-      .from("custom_shelves")
-      .update({ name: shelf.name })
-      .eq("id", id);
-
-    if (error) throw new Error(error.message);
+    await apiJson<{ ok: true }>(`/api/shelves/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: shelf.name }),
+    });
   }
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase
-      .from("custom_shelves")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw new Error(error.message);
+    await apiJson<{ ok: true }>(`/api/shelves/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
   }
 
   async getShelfById(
@@ -43,22 +38,10 @@ export class BookshelfService {
   }
   async addBookToShelf(bookshelfId: string, bookId: string): Promise<void> {
     try {
-      const { error } = await this.supabase.from("custom_shelf_books").insert({
-        shelf_id: bookshelfId,
-        book_id: bookId,
-      });
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao adicionar livro á estante",
-          undefined,
-          undefined,
-          error,
-          {
-            origin: "BookshelfService",
-          }
-        );
-      }
+      await apiJson<{ ok: true }>(
+        `/api/shelves/${encodeURIComponent(bookshelfId)}/books/${encodeURIComponent(bookId)}`,
+        { method: "POST" },
+      );
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "booksshelves",

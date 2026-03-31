@@ -6,24 +6,24 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: vi.fn(),
 }));
 
+vi.mock("@/lib/api/clientJsonFetch", () => ({
+  apiJson: vi.fn(),
+}));
+
+import { apiJson } from "@/lib/api/clientJsonFetch";
+
 const createClientMock = vi.mocked(createClient);
+const apiJsonMock = vi.mocked(apiJson);
 
 function buildSupabaseMock() {
   const single = vi.fn();
-  const updateEq = vi.fn();
   const select = vi.fn(() => ({ eq: vi.fn(() => ({ single })) }));
-  const update = vi.fn(() => ({ eq: updateEq }));
-  const insert = vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn() })) }));
 
   return {
     from: vi.fn(() => ({
       select,
-      update,
-      insert,
     })),
     single,
-    update,
-    updateEq,
   };
 }
 
@@ -52,115 +52,35 @@ describe("BookUpsertService business rules", () => {
     await expect(
       service.create({ ...baseBook, status: "paused" }),
     ).rejects.toThrow(/pausado ou abandonado/i);
+    expect(apiJsonMock).not.toHaveBeenCalled();
   });
 
-  it("allows transition to paused only from reading", async () => {
+  it("create calls API when status is valid", async () => {
     const supabase = buildSupabaseMock();
-    supabase.single.mockResolvedValue({
-      data: {
-        id: "book-1",
-        status: "reading",
-        start_date: "2025-01-01",
-        end_date: null,
-      },
-      error: null,
-    });
-    supabase.updateEq.mockResolvedValue({ error: null });
     createClientMock.mockReturnValue(supabase as never);
+    apiJsonMock.mockResolvedValue({ id: "new-id" });
 
     const service = new BookUpsertService();
+    const result = await service.create({ ...baseBook, status: "reading" });
 
-    await expect(
-      service.edit("book-1", { ...baseBook, status: "paused" }),
-    ).resolves.toBeUndefined();
-  });
-
-  it("blocks transition to abandoned when current status is not reading", async () => {
-    const supabase = buildSupabaseMock();
-    supabase.single.mockResolvedValue({
-      data: {
-        id: "book-1",
-        status: "finished",
-        start_date: "2025-01-01",
-        end_date: "2025-01-10",
-      },
-      error: null,
-    });
-    createClientMock.mockReturnValue(supabase as never);
-
-    const service = new BookUpsertService();
-
-    await expect(
-      service.edit("book-1", { ...baseBook, status: "abandoned" }),
-    ).rejects.toThrow(/só podem ser aplicados/i);
-  });
-
-  it("clears dates when status changes to abandoned", async () => {
-    const supabase = buildSupabaseMock();
-
-    supabase.single.mockResolvedValue({
-      data: {
-        id: "book-1",
-        status: "reading",
-        start_date: "2025-01-01",
-        end_date: null,
-      },
-      error: null,
-    });
-    supabase.updateEq.mockResolvedValue({ error: null });
-    createClientMock.mockReturnValue(supabase as never);
-
-    const service = new BookUpsertService();
-
-    await service.edit("book-1", { ...baseBook, status: "abandoned" });
-
-    expect(supabase.update).toHaveBeenCalledWith(
-      expect.objectContaining({ start_date: null, end_date: null }),
+    expect(result.id).toBe("new-id");
+    expect(apiJsonMock).toHaveBeenCalledWith(
+      "/api/books",
+      expect.objectContaining({ method: "POST" }),
     );
   });
 
-  it("keeps previous start_date when resuming a paused book as reading", async () => {
+  it("edit calls PATCH API", async () => {
     const supabase = buildSupabaseMock();
-
-    supabase.single.mockResolvedValue({
-      data: {
-        id: "book-1",
-        status: "paused",
-        start_date: "2025-02-15",
-        end_date: null,
-      },
-      error: null,
-    });
-    supabase.updateEq.mockResolvedValue({ error: null });
     createClientMock.mockReturnValue(supabase as never);
+    apiJsonMock.mockResolvedValue({ ok: true });
 
     const service = new BookUpsertService();
+    await service.edit("book-1", { ...baseBook, status: "reading" });
 
-    await service.edit("book-1", { ...baseBook, status: "reading", start_date: null });
-
-    expect(supabase.update).toHaveBeenCalledWith(
-      expect.objectContaining({ start_date: "2025-02-15", end_date: null }),
+    expect(apiJsonMock).toHaveBeenCalledWith(
+      "/api/books/book-1",
+      expect.objectContaining({ method: "PATCH" }),
     );
-  });
-
-  it("requires a new start_date when resuming an abandoned book as reading", async () => {
-    const supabase = buildSupabaseMock();
-
-    supabase.single.mockResolvedValue({
-      data: {
-        id: "book-1",
-        status: "abandoned",
-        start_date: null,
-        end_date: null,
-      },
-      error: null,
-    });
-    createClientMock.mockReturnValue(supabase as never);
-
-    const service = new BookUpsertService();
-
-    await expect(
-      service.edit("book-1", { ...baseBook, status: "reading", start_date: null }),
-    ).rejects.toThrow(/nova data de início/i);
   });
 });

@@ -95,7 +95,12 @@ function ClientBookshelves() {
         isError={isError}
         emptyMessage="Nenhum livro nesta estante. Adicione livros pela sua biblioteca ou pelas estantes."
         renderItem={(book) => (
-          <BookCard key={book.id} book={book} isShelf={true} />
+          <BookCard
+            key={book.id}
+            book={book}
+            isShelf={true}
+            shelfId={bookshelfId}
+          />
         )}
       />
     </div>

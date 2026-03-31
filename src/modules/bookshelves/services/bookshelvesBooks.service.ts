@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import { BookMapper } from "@/services/books/books.mapper";
 
 import { BookDomain, BookPersistence } from "@/types/books.types";
@@ -28,12 +29,10 @@ export class BookshelfServiceBooks {
       );
   }
 
-  async removeBookFromShelf(bookId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from("custom_shelf_books")
-      .delete()
-      .eq("book_id", bookId);
-
-    if (error) throw new Error(error.message);
+  async removeBookFromShelf(shelfId: string, bookId: string): Promise<void> {
+    await apiJson<{ ok: true }>(
+      `/api/shelves/${encodeURIComponent(shelfId)}/books/${encodeURIComponent(bookId)}`,
+      { method: "DELETE" },
+    );
   }
 }

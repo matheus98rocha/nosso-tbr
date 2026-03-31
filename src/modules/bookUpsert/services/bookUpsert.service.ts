@@ -1,90 +1,23 @@
 import { createClient } from "@/lib/supabase/client";
-import { BookCreateValidator, Status } from "@/types/books.types";
-import {
-  BadRequestError,
-  ErrorHandler,
-  RepositoryError,
-} from "@/services/errors/error";
-import { BookUpsertMapper } from "./mappers/bookUpsert.mapper";
+import { BookCreateValidator } from "@/types/books.types";
+import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { BookQueryBuilder } from "@/services/books/bookQuery.builder";
-import { normalizeDatesForTransition } from "./bookStatusTransition";
-import {
-  LOCKED_BOOK_STATUSES,
-  NON_CREATABLE_BOOK_STATUSES,
-} from "@/constants/bookStatuses";
+import { ensureCreatableStatus } from "./bookUpsert.validation";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 
 export class BookUpsertService {
   private supabase = createClient();
 
-  private ensureCreatableStatus(status?: Status) {
-    if (status && NON_CREATABLE_BOOK_STATUSES.includes(status)) {
-      throw new RepositoryError(
-        "Livros não podem ser criados com status pausado ou abandonado.",
-      );
-    }
-  }
-
-  private async getCurrentBook(id: string) {
-    const { data, error } = await this.supabase
-      .from("books")
-      .select("id,status,start_date,end_date")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      throw new RepositoryError(
-        "Falha ao carregar estado atual do livro",
-        undefined,
-        undefined,
-        error,
-        { id },
-      );
-    }
-
-    return data;
-  }
-
-  private validateTransition(
-    currentBook: { status?: Status; start_date?: string | null },
-    nextStatus?: Status,
-    nextStartDate?: string | null,
-  ) {
-    if (nextStatus && LOCKED_BOOK_STATUSES.includes(nextStatus)) {
-      if (currentBook.status !== "reading") {
-        throw new BadRequestError(
-          "Status pausado e abandonado só podem ser aplicados a livros em andamento.",
-        );
-      }
-    }
-
-    if (currentBook.status === "abandoned" && nextStatus === "reading" && !nextStartDate) {
-      throw new BadRequestError(
-        "Para retomar um livro abandonado, informe uma nova data de início.",
-      );
-    }
-  }
-
   async create(book: BookCreateValidator): Promise<{ id: string }> {
     try {
-      this.ensureCreatableStatus(book.status);
+      ensureCreatableStatus(book.status);
 
-      const payload = BookUpsertMapper.toPersistence(book);
-      const { data, error } = await this.supabase
-        .from("books")
-        .insert(payload)
-        .select("id")
-        .single();
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao criar livro",
-          undefined,
-          undefined,
-          error,
-          { book },
-        );
-      }
+      const result = await apiJson<{ id: string }>("/api/books", {
+        method: "POST",
+        body: JSON.stringify(book),
+      });
 
-      if (!data?.id) {
+      if (!result?.id) {
         throw new RepositoryError(
           "Livro criado, mas ID não retornado.",
           undefined,
@@ -94,7 +27,7 @@ export class BookUpsertService {
         );
       }
 
-      return { id: data.id };
+      return result;
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "BookService",
@@ -108,41 +41,13 @@ export class BookUpsertService {
 
   async edit(id: string, book: BookCreateValidator): Promise<void> {
     try {
-      const currentBook = await this.getCurrentBook(id);
-      this.validateTransition(
-        currentBook as { status?: Status; start_date?: string | null },
-        book.status,
-        book.start_date,
+      await apiJson<{ ok: true }>(
+        `/api/books/${encodeURIComponent(id)}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(book),
+        },
       );
-
-      const payload = BookUpsertMapper.toPersistence(book);
-
-      const normalizedDates = normalizeDatesForTransition({
-        currentStatus: currentBook?.status as Status | undefined,
-        currentStartDate: currentBook?.start_date,
-        currentEndDate: currentBook?.end_date,
-        nextStatus: book.status,
-        nextStartDate: book.start_date,
-        nextEndDate: book.end_date,
-      });
-
-      payload.start_date = normalizedDates.start_date;
-      payload.end_date = normalizedDates.end_date;
-
-      const { error } = await this.supabase
-        .from("books")
-        .update(payload)
-        .eq("id", id);
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao editar livro",
-          undefined,
-          undefined,
-          error,
-          { id, book },
-        );
-      }
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "BookService",

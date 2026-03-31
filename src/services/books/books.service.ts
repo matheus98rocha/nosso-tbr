@@ -3,6 +3,7 @@ import { BookMapper } from "@/services/books/books.mapper";
 import { BookDomain, Status } from "@/types/books.types";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import { FiltersOptions } from "@/types/filters";
 import { ALL_BOOK_STATUSES } from "@/constants/bookStatuses";
 
@@ -80,7 +81,8 @@ export class BookService {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase.from("books").delete().eq("id", id);
-    if (error) throw new Error(error.message);
+    await apiJson<{ ok: true }>(`/api/books/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
   }
 }

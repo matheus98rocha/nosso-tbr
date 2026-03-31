@@ -98,3 +98,23 @@
 
 - **RN39 - Tabela `user_followers`:** Relações de seguir/deixar de seguir são persistidas em `public.user_followers`, com colunas **`follower_id`** (quem segue) e **`following_id`** (quem é seguido), ambas `uuid` referenciando `public.users.id`. Não é permitida linha com `follower_id = following_id`.
 - **RN40 - Semântica:** Uma linha `(follower_id, following_id)` indica que o usuário `follower_id` segue o usuário `following_id`. Contagens e listas de seguidores/seguindo derivam dessa tabela.
+
+## 7. Segurança (RLS e Postgres)
+
+As regras abaixo são aplicadas no banco (Row Level Security). A UI continua responsável por **RN20** (visitante sem CRUD); no Postgres, o papel `anon` tem apenas **SELECT** nas tabelas necessárias para listagem e autocomplete (**RN17**, **RN22**), e **nenhuma** operação de escrita.
+
+- **RN41 - Visitante (`anon`):** Apenas `SELECT` em `books`, `authors` e demais tabelas expostas para leitura pública. `INSERT` / `UPDATE` / `DELETE` são negados para `anon` (alinhado a **RN20** e **RN21**).
+
+- **RN42 - Escrita em `books` (leitura coletiva):** Um usuário autenticado pode **inserir, atualizar ou excluir** uma linha em `books` somente se participar do livro, isto é, se `auth.uid()` for igual a `user_id` (quando preenchido), ou a `chosen_by`, ou estiver em `readers`. Assim, leitores conjuntos podem editar ou remover o registro conforme o mesmo critério de participação (alinhado a **RN29–RN32** e ao modelo de `readers` / `chosen_by`).
+
+- **RN43 - `quotes`:** `INSERT`, `UPDATE` e `DELETE` em `quotes` exigem que o usuário tenha permissão de mutação no livro pai (`books.id = quotes.book_id`), pela mesma regra de **RN42**.
+
+- **RN44 - `schedule`:** Cada linha é isolada por `owner`: apenas o dono (`owner = auth.uid()`) pode ler, inserir, atualizar ou excluir o próprio cronograma.
+
+- **RN45 - `custom_shelves` e `custom_shelf_books`:** Apenas o dono da estante (`custom_shelves.user_id = auth.uid()`) gerencia prateleiras e vínculos livro–estante.
+
+- **RN46 - `public.users`:** Usuário autenticado pode ler perfis necessários à UI social. Pode **inserir/atualizar/remover** somente a própria linha (`id = auth.uid()`), inclusive no fluxo de **RN36** após `signUp`.
+
+- **RN47 - `authors` (catálogo compartilhado):** Leitura ampla para listagem e autocomplete. Usuários autenticados podem **criar** e **atualizar** autores. **Exclusão** de autor só é permitida quando **não** existir livro (nem vínculo em `book_authors`) referenciando esse autor, evitando apagar registro em uso por terceiros.
+
+- **RN48 - Camada de aplicação (API Routes):** Mutações destrutivas ou sensíveis (`books` criar/editar/excluir, `authors`, `quotes`, `schedule`, `custom_shelves` / vínculos) devem passar pelas rotas em `src/app/api/**`, com sessão validada e a mesma regra de participação em livros (**RN42**) aplicada no servidor antes de chamar o Supabase. Isso complementa o RLS no Postgres; leituras que podem permanecer via cliente (`getAll` de livros, autocomplete, etc.) seguem **RN17** e **RN22**.
