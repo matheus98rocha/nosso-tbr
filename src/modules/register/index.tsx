@@ -186,19 +186,23 @@ export default function ClientRegister() {
                         {...field}
                       />
                     </FormControl>
-                    {(passwordConfirm?.length ?? 0) > 0 ? (
-                      <p
-                        id="register-password-match-hint"
-                        role="status"
-                        aria-live="polite"
-                        className={cn(
-                          "flex items-center gap-2 text-sm",
-                          passwordsMatch
+                    <p
+                      id="register-password-match-hint"
+                      role={(passwordConfirm?.length ?? 0) > 0 ? "status" : undefined}
+                      aria-live={(passwordConfirm?.length ?? 0) > 0 ? "polite" : undefined}
+                      className={cn(
+                        "text-sm",
+                        (passwordConfirm?.length ?? 0) > 0 &&
+                          "flex items-center gap-2",
+                        (passwordConfirm?.length ?? 0) > 0
+                          ? passwordsMatch
                             ? "text-chart-2"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {passwordsMatch ? (
+                            : "text-muted-foreground"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {(passwordConfirm?.length ?? 0) > 0 ? (
+                        passwordsMatch ? (
                           <>
                             <Check className="size-4 shrink-0" aria-hidden />
                             As senhas coincidem.
@@ -209,16 +213,11 @@ export default function ClientRegister() {
                             As senhas ainda não coincidem. Confira os dois
                             campos.
                           </>
-                        )}
-                      </p>
-                    ) : (
-                      <p
-                        id="register-password-match-hint"
-                        className="text-sm text-muted-foreground"
-                      >
-                        Digite novamente a mesma senha para confirmar.
-                      </p>
-                    )}
+                        )
+                      ) : (
+                        "Digite novamente a mesma senha para confirmar."
+                      )}
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

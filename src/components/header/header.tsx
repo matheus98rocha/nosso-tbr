@@ -99,13 +99,13 @@ function Header() {
           aria-label="Ir para a página inicial"
         >
           <LogoIcon
-            className={`transition-all duration-300 ${scrolled ? "w-5 h-5" : "w-6 h-6"}`}
+            className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-7 h-7"}`}
           />
-          <h1
+          <span
             className={`font-bold tracking-tight transition-all duration-300 ${scrolled ? "text-lg" : "text-xl"}`}
           >
             Nosso TBR
-          </h1>
+          </span>
         </button>
 
         <Sheet>
@@ -132,7 +132,7 @@ function Header() {
               <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-4">
                 {menuItems.map((menu) => (
                   <div key={menu.label}>
-                    <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest px-3 mb-1">
+                    <p className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-widest px-3 mb-1">
                       {menu.label}
                     </p>
                     <div className="flex flex-col gap-0.5">
@@ -145,7 +145,7 @@ function Header() {
                               className={cn(
                                 "justify-start h-11 px-3 rounded-xl text-sm font-medium transition-colors",
                                 isActive
-                                  ? "bg-zinc-100 text-zinc-400 cursor-default"
+                                  ? "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 cursor-default"
                                   : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900",
                               )}
                               onClick={!isActive ? item.action : undefined}
@@ -188,13 +188,13 @@ function Header() {
         aria-label="Ir para a página inicial"
       >
         <LogoIcon
-          className={`transition-all duration-300 ${scrolled ? "w-6 h-6" : "w-60 h-60"}`}
+          className={`transition-all duration-300 ${scrolled ? "w-7 h-7" : "w-10 h-10"}`}
         />
-        <h1
+        <span
           className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap ${scrolled ? "text-base" : "text-2xl"}`}
         >
           Nosso TBR
-        </h1>
+        </span>
       </button>
       {isLogged && (
         <div className="flex flex-col items-center justify-center flex-1 min-w-0 gap-2">
@@ -213,7 +213,7 @@ function Header() {
         ) : (
           <>
             {user?.email && (
-              <span className="text-sm font-medium text-zinc-500 truncate max-w-[180px]">
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 truncate max-w-[180px]">
                 {user.email}
               </span>
             )}
