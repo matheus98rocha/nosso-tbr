@@ -20,6 +20,8 @@ import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { LOCKED_BOOK_STATUSES } from "@/constants/bookStatuses";
 import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
+import { useRequireAuth } from "@/stores/hooks/useAuth";
+import { useBookPreCreationValidation } from "./useBookPreCreationValidation";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -36,16 +38,27 @@ export function useBookDialog({
   const queryClient = useQueryClient();
   const router = useRouter();
   const isLoggedIn = useIsLoggedIn();
+  const authUser = useRequireAuth();
 
   const [selected, setSelected] = useState<Status | null>(null);
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
   const [selectedShelfId, setSelectedShelfId] = useState("");
-  const [isDuplicateBookDialogOpen, setIsDuplicateBookDialogOpen] =
-    useState<boolean>(false);
   const isEdit: boolean = Boolean(bookData && bookData.id);
 
   const bookUpsertService = useMemo(() => new BookUpsertService(), []);
   const bookshelfService = useMemo(() => new BookshelfService(), []);
+  const {
+    isDiscoveryOpen,
+    matchedBook,
+    validateBeforeCreate,
+    closeDiscovery,
+    linkUserToExistingBook,
+    takePendingPayloadForCreation,
+  } = useBookPreCreationValidation({
+    isEdit,
+    currentUserId: authUser?.id,
+    bookUpsertService,
+  });
 
   const emptyDefaults = useMemo(
     (): DefaultValues<BookCreateValidator> => ({
@@ -139,7 +152,7 @@ export function useBookDialog({
       const createdBookId = isEdit ? bookData?.id : result?.id;
 
       handleResetForm();
-      setIsDuplicateBookDialogOpen(false);
+      closeDiscovery();
       toast("Livro salvo com sucesso!");
 
       await queryClient.invalidateQueries({
@@ -172,12 +185,16 @@ export function useBookDialog({
 
   const onSubmit = useCallback(
     async (data: BookCreateValidator) => {
-      const isDuplicate = await bookUpsertService.checkDuplicateBook(
-        data.title,
-      );
+      const decision = await validateBeforeCreate(data);
+      if (decision.type === "block_duplicate") {
+        toast("Livro já está na sua biblioteca", {
+          description: "Esse livro já foi adicionado para o seu perfil.",
+          className: "toast-error",
+        });
+        return;
+      }
 
-      if (isDuplicate && !isEdit) {
-        setIsDuplicateBookDialogOpen(true);
+      if (decision.type === "suggest_existing") {
         setIsBookFormOpen(false);
         return;
       }
@@ -209,7 +226,7 @@ export function useBookDialog({
 
       return createBook.mutate(payload);
     },
-    [bookUpsertService, isEdit, createBook, setIsBookFormOpen, selected],
+    [validateBeforeCreate, createBook, setIsBookFormOpen, selected],
   );
 
   const handleOnChangePageNumber = useCallback(
@@ -243,11 +260,24 @@ export function useBookDialog({
     [form],
   );
 
-  const handleConfirmCreateBook = useCallback(async () => {
-    setIsDuplicateBookDialogOpen(false);
-    const formData = form.getValues();
-    createBook.mutate(formData);
-  }, [form, createBook]);
+  const handleLinkToExistingBook = useCallback(async () => {
+    const linked = await linkUserToExistingBook();
+    if (!linked) {
+      return;
+    }
+
+    toast("Livro adicionado à sua biblioteca!");
+    await queryClient.invalidateQueries({ queryKey: ["books"], exact: false });
+    setIsBookFormOpen(false);
+  }, [linkUserToExistingBook, queryClient, setIsBookFormOpen]);
+
+  const handleIgnoreAndCreateNewBook = useCallback(() => {
+    const payload = takePendingPayloadForCreation();
+    if (!payload) {
+      return;
+    }
+    createBook.mutate(payload);
+  }, [createBook, takePendingPayloadForCreation]);
 
   const handleStatusChange = useCallback(
     (id: string) => {
@@ -286,10 +316,12 @@ export function useBookDialog({
     selectedShelfId,
     setSelectedShelfId,
 
-    isDuplicateBookDialogOpen,
-    setIsDuplicateBookDialogOpen,
+    isDiscoveryOpen,
+    matchedBook,
 
-    handleConfirmCreateBook,
+    handleLinkToExistingBook,
+    handleIgnoreAndCreateNewBook,
+    closeDiscovery,
 
     form,
     reset,

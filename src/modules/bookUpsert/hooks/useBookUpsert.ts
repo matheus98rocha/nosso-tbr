@@ -28,8 +28,8 @@ export function useBookUpsert({
     setIsAddToShelfEnabled,
     setSelected,
     setSelectedShelfId,
-    isDuplicateBookDialogOpen,
-    setIsDuplicateBookDialogOpen,
+    isDiscoveryOpen,
+    matchedBook,
     form,
     reset,
     handleSubmit,
@@ -38,7 +38,9 @@ export function useBookUpsert({
     isEdit,
     isLoadingBookshelves,
     bookshelfOptions,
-    handleConfirmCreateBook,
+    handleLinkToExistingBook,
+    handleIgnoreAndCreateNewBook,
+    closeDiscovery,
     handleOnChangePageNumber,
     handleChosenByChange,
   } = useBookDialog({
@@ -98,17 +100,10 @@ export function useBookUpsert({
     [reset, setSelected, setIsBookFormOpen],
   );
 
-  const handleCancelDuplicateDialog = useCallback(() => {
-    setIsDuplicateBookDialogOpen(false);
+  const handleCancelDiscoveryDialog = useCallback(() => {
+    closeDiscovery();
     setIsBookFormOpen(true);
-  }, [setIsDuplicateBookDialogOpen, setIsBookFormOpen]);
-
-  const handleDuplicateDialogOpenChange = useCallback(
-    (open: boolean) => {
-      setIsDuplicateBookDialogOpen(open);
-    },
-    [setIsDuplicateBookDialogOpen],
-  );
+  }, [closeDiscovery, setIsBookFormOpen]);
 
   const handleStatusChange = useCallback(
     (id: string) => {
@@ -160,8 +155,10 @@ export function useBookUpsert({
     selectedShelfId,
     setIsAddToShelfEnabled,
     setSelectedShelfId,
-    isDuplicateBookDialogOpen,
-    handleConfirmCreateBook,
+    isDiscoveryOpen,
+    matchedBook,
+    handleLinkToExistingBook,
+    handleIgnoreAndCreateNewBook,
     form,
     reset,
     handleSubmit,
@@ -179,8 +176,7 @@ export function useBookUpsert({
     handleAuthorCreated,
     authorSearch,
     handleDialogOpenChange,
-    handleDuplicateDialogOpenChange,
-    handleCancelDuplicateDialog,
+    handleCancelDiscoveryDialog,
     handleStatusChange,
     handlePageNumberChange,
     handleChosenByFieldChange,
