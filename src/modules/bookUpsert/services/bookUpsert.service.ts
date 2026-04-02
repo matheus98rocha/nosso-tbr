@@ -10,6 +10,27 @@ import {
   BookCatalogMatchResult,
 } from "../types/bookDiscovery.types";
 
+
+type AuthorJoinRow = {
+  name: string | null;
+};
+
+type CatalogBookRow = {
+  id: string;
+  title: string;
+  author_id: string;
+  readers: unknown;
+  image_url: string | null;
+  author: AuthorJoinRow | AuthorJoinRow[] | null;
+};
+
+function extractAuthorName(author: CatalogBookRow["author"]): string {
+  if (Array.isArray(author)) {
+    return author[0]?.name ?? "Autor desconhecido";
+  }
+
+  return author?.name ?? "Autor desconhecido";
+}
 export class BookUpsertService {
   private supabase = createClient();
   private catalogMatchService = new BookCatalogMatchService();
@@ -103,12 +124,14 @@ export class BookUpsertService {
         throw error;
       }
 
-      const catalogCandidates: BookCatalogCandidate[] = (data ?? []).map((row) => ({
+      const catalogRows = (data ?? []) as CatalogBookRow[];
+
+      const catalogCandidates: BookCatalogCandidate[] = catalogRows.map((row) => ({
         id: row.id,
         title: row.title,
         authorId: row.author_id,
-        authorName: row.author?.name ?? "Autor desconhecido",
-        imageUrl: row.image_url ?? null,
+        authorName: extractAuthorName(row.author),
+        imageUrl: row.image_url,
         synopsis: null,
         publisher: null,
         readers: Array.isArray(row.readers) ? row.readers : [],
