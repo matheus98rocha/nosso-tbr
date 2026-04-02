@@ -218,6 +218,38 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 
 ### Componentização e hooks
 
+### Co-location obrigatória de implementação + teste
+
+Para manter consistência estrutural entre features, **todo arquivo de implementação que tenha teste associado deve viver em uma pasta própria com seu teste ao lado**.
+
+✅ **Padrão obrigatório**
+
+```text
+feature-name/
+  feature-name.ts(x)
+  feature-name.test.ts(x) | feature-name.spec.ts(x)
+  index.ts (quando fizer sentido para export público)
+```
+
+❌ **Evitar**
+
+```text
+components/
+  feature-name.tsx
+  feature-name.test.tsx
+```
+
+#### Regra prática para novas contribuições
+
+- Se você criou `foo.ts`, `foo.tsx` ou `foo.service.ts` e também criou `foo.test.ts`, `foo.test.tsx`, `foo.spec.ts` ou `foo.spec.tsx`, então:
+  - crie a pasta `foo/` (ou `foo.service/`, seguindo o nome-base já usado);
+  - mova implementação e teste para dentro dela;
+  - ajuste imports relativos e exportações (`index.ts`) do módulo pai para manter API estável.
+
+#### Rule pronta (para adicionar na sua skill/projeto)
+
+> **Regra:** Sempre que existir par implementação + teste com o mesmo basename no mesmo diretório, o par deve ser movido para uma pasta dedicada com o mesmo basename. Ex.: `bar.ts` + `bar.test.ts` ⟶ `bar/bar.ts` + `bar/bar.test.ts` (+ `bar/index.ts` quando necessário). Após mover, atualize imports e exports para manter compatibilidade pública.
+
 - **Componentes de tela**:
   - Focados em renderizar UI, lidar com eventos e compor componentes menores.
   - Não devem conter lógica complexa de acesso a dados direto no componente.
