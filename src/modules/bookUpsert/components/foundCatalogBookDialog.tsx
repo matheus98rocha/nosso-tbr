@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,10 +39,14 @@ export function FoundCatalogBookDialog({
 
         <div className="grid gap-3 text-sm">
           {candidate?.imageUrl ? (
-            <img
+            <Image
               src={candidate.imageUrl}
               alt={`Capa de ${candidate.title}`}
-              className="h-40 w-28 rounded-md object-cover border"
+              width={112}
+              height={160}
+              className="h-40 w-28 rounded-md border object-cover"
+              unoptimized
+              loader={({ src }) => src}
             />
           ) : null}
           <p>
