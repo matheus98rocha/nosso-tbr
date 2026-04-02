@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { FoundCatalogBookDialog } from "./foundCatalogBookDialog";
-import type { BookCatalogMatchResult } from "../types/bookDiscovery.types";
+import type { BookCatalogMatchResult } from "../../types/bookDiscovery.types";
 
 vi.mock("next/image", () => ({
   default: function MockImage({ src, alt }: { src: string; alt: string }) {

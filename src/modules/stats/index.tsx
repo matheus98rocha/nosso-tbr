@@ -30,7 +30,7 @@ import {
   YAxis,
 } from "recharts";
 import { getGenderLabel } from "@/constants/genders";
-import { ReadingRankingSection } from "@/modules/stats/_components/readingRanking";
+import { ReadingRankingSection } from "@/modules/stats/_components";
 import {
   STATS_CHART_PIE_FILLS,
   useStatsClient,

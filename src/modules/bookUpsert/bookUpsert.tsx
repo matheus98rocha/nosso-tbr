@@ -24,15 +24,11 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { BlurOverlay } from "@/components/";
+import { BlurOverlay } from "@/components";
 import { CreateBookProps } from "./bookUpsert.types";
 import { genders } from "@/constants/genders";
-import {
-  AutocompleteInput,
-  BookParticipationBlockedDialog,
-  FoundCatalogBookDialog,
-} from "./components";
-import AuthorUpsert from "../authors/components/authorUpsert";
+import { AuthorUpsert } from "@/modules/authors/components";
+import { AutocompleteInput, BookParticipationBlockedDialog, FoundCatalogBookDialog } from "./components";
 import { useBookUpsert } from "./hooks/useBookUpsert";
 import { DateUtils } from "@/utils";
 

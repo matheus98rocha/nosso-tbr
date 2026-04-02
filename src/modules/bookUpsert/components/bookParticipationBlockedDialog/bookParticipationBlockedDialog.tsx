@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { BookParticipationBlockedDialogProps } from "../types/bookParticipationBlockedDialog.types";
+import type { BookParticipationBlockedDialogProps } from "../../types/bookParticipationBlockedDialog.types";
 
 export const BookParticipationBlockedDialog = memo(
   function BookParticipationBlockedDialog({

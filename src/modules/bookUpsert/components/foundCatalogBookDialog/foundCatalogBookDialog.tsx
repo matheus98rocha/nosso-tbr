@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { FoundCatalogBookDialogProps } from "../types/foundCatalogBookDialog.types";
+import type { FoundCatalogBookDialogProps } from "../../types/foundCatalogBookDialog.types";
 
 function optionalText(value: string | null | undefined): string {
   const t = value?.trim();

@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AuthorsService } from "../services/authors.service";
+import { AuthorsService } from "../../services/authors.service";
 import { toast } from "sonner";
 
 interface AuthorUpsertProps {

@@ -87,26 +87,26 @@ Gera os tipos do banco em `src/types/supabase.ts` a partir do projeto configurad
 
 ## 🏗 Arquitetura geral
 
-- **Rotas (camada de página)**  
-  - Local: `src/app/(main)/**/page.tsx` e `src/app/(auth)/**/page.tsx`.  
+- **Rotas (camada de página)**
+  - Local: `src/app/(main)/**/page.tsx` e `src/app/(auth)/**/page.tsx`.
   - Responsáveis por orquestrar dados de servidor/SSR e renderizar os módulos de tela.
 
-- **Módulos de funcionalidade**  
-  - Local: `src/modules/<feature>/`.  
+- **Módulos de funcionalidade**
+  - Local: `src/modules/<feature>/`.
   - Cada módulo concentra **componentes de tela**, **hooks**, **tipos** e, às vezes, **services específicos da feature**.
 
-- **Serviços de domínio**  
+- **Serviços de domínio**
   - Exemplo: `src/services/books/` com:
     - `bookQuery.builder.ts`: construção fluente de queries (filtros de gênero, leitores, status, paginação, busca textual etc.).
     - `books.mapper.ts`: mapeamento entre dados do banco (Supabase) e o domínio (`BookDomain`).
     - `books.service.ts`: orquestração de consultas, aplicação de filtros e tratamento de erros.
 
-- **Estado global e stores**  
-  - Local: `src/stores/**`.  
+- **Estado global e stores**
+  - Local: `src/stores/**`.
   - Ex.: `useUserStore`, hooks de autenticação como `useIsLoggedIn`, controle de logout, etc.
 
-- **Componentes compartilhados**  
-  - Local: `src/components/**`.  
+- **Componentes compartilhados**
+  - Local: `src/components/**`.
   - Exemplos: `ListGrid`, `confirmDialog`, componentes de UI (`button`, `card`, `pagination`, `skeleton`), etc.
 
 > **Regra importante**: mantenha a lógica de negócio em **hooks** e **services**, deixando os componentes focados em **renderização** e **interação com o usuário**.
@@ -237,6 +237,8 @@ feature-name/
 components/
   feature-name.tsx
   feature-name.test.tsx
+  feature-name1.tsx
+  feature-name2.test.tsx
 ```
 
 #### Regra prática para novas contribuições

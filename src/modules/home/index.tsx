@@ -4,15 +4,11 @@ import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
 import { useModal } from "@/hooks/useModal";
-import { ListGrid } from "../../components/listGrid";
 import { BookDomain } from "../../types/books.types";
-import { BookCard } from "@/components/";
+import { BookCard, DefaultPagination, ListGrid, StatusFilterChips, YearFilterChips } from "@/components";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
-import DefaultPagination from "@/components/defaultPagintation/defaultPagination";
-import { StatusFilterChips } from "@/components/statusFilterChips";
-import { YearFilterChips } from "@/components/yearFilterChips";
 import {
   BookOpen,
   BookPlus,
