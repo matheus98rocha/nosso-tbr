@@ -19,6 +19,8 @@ export function useBookPreCreationValidation({
   bookUpsertService,
 }: UseBookPreCreationValidationParams) {
   const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
+  const [isParticipationBlockOpen, setIsParticipationBlockOpen] = useState(false);
+  const [isLinkingToExistingBook, setIsLinkingToExistingBook] = useState(false);
   const [matchedBook, setMatchedBook] = useState<BookCatalogMatchResult | null>(null);
   const [pendingCreationPayload, setPendingCreationPayload] =
     useState<PendingCreationPayload>(null);
@@ -40,20 +42,30 @@ export function useBookPreCreationValidation({
       }
 
       if (catalogMatch.userAlreadyLinked) {
+        setMatchedBook(catalogMatch);
+        setIsParticipationBlockOpen(true);
         return { type: "block_duplicate", match: catalogMatch };
       }
 
-      setPendingCreationPayload(payload);
-      setMatchedBook(catalogMatch);
-      setIsDiscoveryOpen(true);
+      if (catalogMatch.suggestJoinEligible) {
+        setPendingCreationPayload(payload);
+        setMatchedBook(catalogMatch);
+        setIsDiscoveryOpen(true);
+        return { type: "suggest_existing", match: catalogMatch };
+      }
 
-      return { type: "suggest_existing", match: catalogMatch };
+      return { type: "create_new" };
     },
     [bookUpsertService, currentUserId, isEdit],
   );
 
   const closeDiscovery = useCallback(() => {
     setIsDiscoveryOpen(false);
+  }, []);
+
+  const closeParticipationBlock = useCallback(() => {
+    setIsParticipationBlockOpen(false);
+    setMatchedBook(null);
   }, []);
 
   const clearDiscoveryState = useCallback(() => {
@@ -69,9 +81,14 @@ export function useBookPreCreationValidation({
       return false;
     }
 
-    await bookUpsertService.linkReaderToExistingBook(candidateId);
-    clearDiscoveryState();
-    return true;
+    setIsLinkingToExistingBook(true);
+    try {
+      await bookUpsertService.linkReaderToExistingBook(candidateId);
+      clearDiscoveryState();
+      return true;
+    } finally {
+      setIsLinkingToExistingBook(false);
+    }
   }, [bookUpsertService, clearDiscoveryState, matchedBook]);
 
   const takePendingPayloadForCreation = useCallback(() => {
@@ -84,10 +101,13 @@ export function useBookPreCreationValidation({
 
   return {
     isDiscoveryOpen,
+    isParticipationBlockOpen,
+    isLinkingToExistingBook,
     matchedBook,
     hasDiscoveryMatch,
     validateBeforeCreate,
     closeDiscovery,
+    closeParticipationBlock,
     clearDiscoveryState,
     linkUserToExistingBook,
     takePendingPayloadForCreation,

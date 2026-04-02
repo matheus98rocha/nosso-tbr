@@ -27,7 +27,11 @@ import { Separator } from "@/components/ui/separator";
 import { BlurOverlay } from "@/components/";
 import { CreateBookProps } from "./bookUpsert.types";
 import { genders } from "@/constants/genders";
-import { AutocompleteInput, FoundCatalogBookDialog } from "./components";
+import {
+  AutocompleteInput,
+  BookParticipationBlockedDialog,
+  FoundCatalogBookDialog,
+} from "./components";
 import AuthorUpsert from "../authors/components/authorUpsert";
 import { useBookUpsert } from "./hooks/useBookUpsert";
 import { DateUtils } from "@/utils";
@@ -43,6 +47,7 @@ export function BookUpsert(props: CreateBookProps) {
     setIsAddToShelfEnabled,
     setSelectedShelfId,
     isDiscoveryOpen,
+    isLinkingToExistingBook,
     matchedBook,
     form,
     handleSubmit,
@@ -61,6 +66,8 @@ export function BookUpsert(props: CreateBookProps) {
     authorSearch,
     handleDialogOpenChange,
     handleCancelDiscoveryDialog,
+    isParticipationBlockOpen,
+    closeParticipationBlock,
     handleLinkToExistingBook,
     handleIgnoreAndCreateNewBook,
     handleStatusChange,
@@ -83,9 +90,15 @@ export function BookUpsert(props: CreateBookProps) {
         onSuccess={handleAuthorCreated}
         mode="create"
       />
+      <BookParticipationBlockedDialog
+        open={isParticipationBlockOpen}
+        bookTitle={matchedBook?.candidate.title}
+        onDismiss={closeParticipationBlock}
+      />
       <FoundCatalogBookDialog
         open={isDiscoveryOpen}
         matchedBook={matchedBook}
+        isLinkingToExisting={isLinkingToExistingBook}
         onAddExisting={handleLinkToExistingBook}
         onIgnoreAndCreate={handleIgnoreAndCreateNewBook}
         onCancel={handleCancelDiscoveryDialog}
@@ -283,7 +296,9 @@ export function BookUpsert(props: CreateBookProps) {
                                         onCheckedChange={() => {
                                           const cur = field.value ?? [];
                                           const next = selected
-                                            ? cur.filter((id: string) => id !== value)
+                                            ? cur.filter(
+                                                (id: string) => id !== value,
+                                              )
                                             : [...cur, value];
                                           field.onChange(next);
                                         }}
@@ -484,7 +499,6 @@ export function BookUpsert(props: CreateBookProps) {
               </Form>
             </div>
 
-            {/* Sticky footer */}
             <div
               className={`shrink-0 border-t px-4 sm:px-6 py-4 bg-background ${
                 !isLoggedIn ? "pointer-events-none opacity-50" : ""

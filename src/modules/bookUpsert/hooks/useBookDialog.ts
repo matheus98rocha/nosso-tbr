@@ -49,9 +49,12 @@ export function useBookDialog({
   const bookshelfService = useMemo(() => new BookshelfService(), []);
   const {
     isDiscoveryOpen,
+    isParticipationBlockOpen,
+    isLinkingToExistingBook,
     matchedBook,
     validateBeforeCreate,
     closeDiscovery,
+    closeParticipationBlock,
     linkUserToExistingBook,
     takePendingPayloadForCreation,
   } = useBookPreCreationValidation({
@@ -187,10 +190,6 @@ export function useBookDialog({
     async (data: BookCreateValidator) => {
       const decision = await validateBeforeCreate(data);
       if (decision.type === "block_duplicate") {
-        toast("Livro já está na sua biblioteca", {
-          description: "Esse livro já foi adicionado para o seu perfil.",
-          className: "toast-error",
-        });
         return;
       }
 
@@ -317,11 +316,14 @@ export function useBookDialog({
     setSelectedShelfId,
 
     isDiscoveryOpen,
+    isParticipationBlockOpen,
     matchedBook,
+    isLinkingToExistingBook,
 
     handleLinkToExistingBook,
     handleIgnoreAndCreateNewBook,
     closeDiscovery,
+    closeParticipationBlock,
 
     form,
     reset,

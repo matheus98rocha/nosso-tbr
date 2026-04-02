@@ -2,10 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { requireUser } from "@/app/api/_utils/requireUser";
 
-type RouteParams = { params: { id: string } };
+type RouteParams = { params: Promise<{ id: string }> };
 
 export async function POST(_request: Request, { params }: RouteParams) {
-  const { id } = params;
+  const { id } = await params;
   const supabase = await createClient();
   const auth = await requireUser(supabase);
   if (auth.errorResponse) return auth.errorResponse;

@@ -10,9 +10,11 @@ const candidates = [
     authorId: "author-1",
     authorName: "J.R.R. Tolkien",
     imageUrl: null,
-    synopsis: null,
-    publisher: null,
+    pages: null,
     readers: ["user-1"],
+    chosenBy: "user-1" as string | null,
+    chosenByDisplayName: null,
+    status: "not_started" as const,
   },
   {
     id: "book-2",
@@ -20,9 +22,11 @@ const candidates = [
     authorId: "author-1",
     authorName: "J.R.R. Tolkien",
     imageUrl: null,
-    synopsis: null,
-    publisher: null,
+    pages: null,
     readers: [],
+    chosenBy: null,
+    chosenByDisplayName: null,
+    status: "not_started" as const,
   },
 ];
 
@@ -60,5 +64,30 @@ describe("BookCatalogMatchService", () => {
     });
 
     expect(result?.userAlreadyLinked).toBe(true);
+  });
+
+  it("sinaliza participação quando usuário é chosen_by ainda sem estar em readers", () => {
+    const result = service.findBestMatch({
+      title: "o senhor dos aneis",
+      authorId: "author-1",
+      currentUserId: "owner-1",
+      candidates: [
+        {
+          id: "book-owned",
+          title: "O Senhor dos Anéis",
+          authorId: "author-1",
+          authorName: "Tolkien",
+          imageUrl: null,
+          pages: null,
+          readers: ["other-1"],
+          chosenBy: "owner-1",
+          chosenByDisplayName: null,
+          status: "not_started",
+        },
+      ],
+    });
+
+    expect(result?.userAlreadyLinked).toBe(true);
+    expect(result?.suggestJoinEligible).toBe(false);
   });
 });

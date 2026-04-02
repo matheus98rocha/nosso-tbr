@@ -4,6 +4,7 @@ import {
   BookCatalogCandidate,
   BookCatalogMatchResult,
 } from "../types/bookDiscovery.types";
+import { userParticipatesInBook } from "./bookCatalogDiscovery.rules";
 
 function buildDistanceThreshold(normalizedTitle: string): number {
   return Math.max(2, Math.floor(normalizedTitle.length * 0.2));
@@ -46,11 +47,16 @@ export class BookCatalogMatchService {
     });
 
     if (exactMatch) {
-      const readers = exactMatch.readers ?? [];
+      const participates = userParticipatesInBook(
+        params.currentUserId,
+        exactMatch.chosenBy,
+        exactMatch.readers ?? [],
+      );
       return {
         candidate: exactMatch,
         kind: "exact",
-        userAlreadyLinked: !!params.currentUserId && readers.includes(params.currentUserId),
+        userAlreadyLinked: participates,
+        suggestJoinEligible: false,
       };
     }
 
@@ -74,12 +80,17 @@ export class BookCatalogMatchService {
       return null;
     }
 
-    const readers = bestApproximate.candidate.readers ?? [];
+    const cand = bestApproximate.candidate;
+    const participates = userParticipatesInBook(
+      params.currentUserId,
+      cand.chosenBy,
+      cand.readers ?? [],
+    );
     return {
-      candidate: bestApproximate.candidate,
+      candidate: cand,
       kind: "approximate",
-      userAlreadyLinked:
-        !!params.currentUserId && readers.includes(params.currentUserId),
+      userAlreadyLinked: participates,
+      suggestJoinEligible: false,
     };
   }
 }
