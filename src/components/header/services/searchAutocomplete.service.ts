@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
+import { stripLatinDiacritics } from "@/utils/stripLatinDiacritics";
 import { SearchAutocompleteMapper } from "./mappers/searchAutocomplete.mapper";
 import { SearchAutocompleteDomain } from "../types/searchAutocomplete.types";
 
@@ -19,17 +20,19 @@ export class SearchAutocompleteService {
       return [];
     }
 
+    const asciiFoldedTerm = stripLatinDiacritics(normalizedTerm).toLowerCase();
+
     try {
       const [booksResponse, authorsResponse] = await Promise.all([
         this.supabase
           .from("books")
           .select("id, title")
-          .ilike("title", `%${normalizedTerm}%`)
+          .ilike("title_unaccent", `%${asciiFoldedTerm}%`)
           .limit(limitPerType * 2),
         this.supabase
           .from("authors")
           .select("id, name")
-          .ilike("name", `%${normalizedTerm}%`)
+          .ilike("name_unaccent", `%${asciiFoldedTerm}%`)
           .limit(limitPerType * 2),
       ]);
 

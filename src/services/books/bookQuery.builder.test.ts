@@ -9,6 +9,7 @@ const buildMockQuery = () => ({
   eq: vi.fn().mockReturnThis(),
   in: vi.fn().mockReturnThis(),
   filter: vi.fn().mockReturnThis(),
+  textSearch: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   range: vi.fn().mockReturnThis(),
   gte: vi.fn().mockReturnThis(),
@@ -22,6 +23,35 @@ const buildMockSupabase = (mockQuery: ReturnType<typeof buildMockQuery>) => {
 };
 
 describe("BookQueryBuilder", () => {
+  describe("withSearchTerm", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("uses textSearch plain + simple config so lexemes match to_tsvector(simple) on search_vector", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("Senhor dos aneis A")
+        .build();
+
+      expect(mockQuery.textSearch).toHaveBeenCalledWith("search_vector", "senhor aneis", {
+        type: "plain",
+        config: "simple",
+      });
+    });
+
+    it("does not apply FTS when the term reduces to only stop words", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("o a de")
+        .build();
+
+      expect(mockQuery.textSearch).not.toHaveBeenCalled();
+    });
+  });
+
   describe("withUserRelationship", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;

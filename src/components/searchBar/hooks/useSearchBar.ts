@@ -43,12 +43,6 @@ export function useSearchBar({
     };
   }, []);
 
-  useEffect(() => {
-    if (!shouldSearch) {
-      setIsAutocompleteOpen(false);
-    }
-  }, [shouldSearch]);
-
   const handleFocusInput = useCallback(() => {
     setIsAutocompleteOpen(true);
   }, []);

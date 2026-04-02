@@ -1,0 +1,1 @@
+export { stripLatinDiacritics } from "./stripLatinDiacritics";

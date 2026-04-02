@@ -1,11 +1,12 @@
+import { stripLatinDiacritics } from "@/utils/stripLatinDiacritics";
 import {
   SearchAutocompleteDomain,
   SearchAutocompletePersistence,
 } from "../../types/searchAutocomplete.types";
 
 function calculateRelevance(term: string, label: string): number {
-  const normalizedTerm = term.trim().toLowerCase();
-  const normalizedLabel = label.trim().toLowerCase();
+  const normalizedTerm = stripLatinDiacritics(term.trim()).toLowerCase();
+  const normalizedLabel = stripLatinDiacritics(label.trim()).toLowerCase();
 
   if (!normalizedTerm || !normalizedLabel) return 0;
   if (normalizedLabel.startsWith(normalizedTerm)) return 2;
