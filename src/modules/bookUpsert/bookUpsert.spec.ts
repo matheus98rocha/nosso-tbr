@@ -331,4 +331,15 @@ describe("BookUpsert - regras de negócio do schema", () => {
       expect(persistence.image_url).toBe(BOOK_COVER_PLACEHOLDER_SRC);
     }
   });
+
+  it("deve enviar user_id null em vez de string vazia (UUID válido no Postgres)", () => {
+    const result = bookCreateSchema.safeParse(
+      createValidBook({ user_id: "" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const persistence = BookUpsertMapper.toPersistence(result.data);
+      expect(persistence.user_id).toBeNull();
+    }
+  });
 });

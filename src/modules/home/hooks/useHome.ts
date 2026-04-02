@@ -18,6 +18,7 @@ import { QUERY_KEYS } from "@/constants/keys";
 import { useStatusFilters } from "@/hooks/useStatusFilters";
 import { sortWithPriority } from "../utils";
 import { UserSocialService } from "@/services/userSocial/userSocial.service";
+import { useBookSearchRefinement } from "./useBookSearchRefinement";
 
 const PAGE_SIZE = 8;
 const JOINT_READINGS_FETCH_SIZE = 2000;
@@ -284,17 +285,31 @@ export function useHome() {
     };
   }, [rawBooks, users]);
 
+  const { refinedBooks } = useBookSearchRefinement({
+    books: booksQueryData?.data ?? [],
+    searchTerm: searchQuery,
+    isEnabled: Boolean(searchQuery?.trim()),
+  });
+
+  const booksQueryDataWithRefinement = useMemo(() => {
+    if (!booksQueryData) return booksQueryData;
+    return {
+      ...booksQueryData,
+      data: refinedBooks,
+    };
+  }, [booksQueryData, refinedBooks]);
+
   const allBooks = useMemo(() => {
-    if (!booksQueryData) {
-      return booksQueryData;
+    if (!booksQueryDataWithRefinement) {
+      return booksQueryDataWithRefinement;
     }
 
     if (isMyBooksActive || isAllBooksActive) {
-      return booksQueryData;
+      return booksQueryDataWithRefinement;
     }
 
     const selectedReadersSet = new Set(effectiveSelectedReaders);
-    const filteredJointBooks = booksQueryData.data.filter((book) => {
+    const filteredJointBooks = booksQueryDataWithRefinement.data.filter((book) => {
       if (book.readerIds.length < 2) {
         return false;
       }
@@ -314,7 +329,7 @@ export function useHome() {
       total: filteredJointBooks.length,
     };
   }, [
-    booksQueryData,
+    booksQueryDataWithRefinement,
     isMyBooksActive,
     isAllBooksActive,
     effectiveSelectedReaders,

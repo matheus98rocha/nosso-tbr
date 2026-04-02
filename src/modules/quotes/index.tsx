@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { useQuotes } from "./hooks/useQuotes";
 import { X } from "lucide-react";
-import { UpsertQuoteModal } from "./components/UpsertQuoteModal";
+import { UpsertQuoteModal } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientQuotesProps } from "./types/quotes.types";
 import { Separator } from "@/components/ui/separator";

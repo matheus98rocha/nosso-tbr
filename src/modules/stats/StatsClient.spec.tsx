@@ -15,7 +15,7 @@ vi.mock("@/modules/stats/_hooks/useStatsClient", () => ({
   useStatsClient: vi.fn(),
 }));
 
-vi.mock("@/modules/stats/_components/readingRanking", () => ({
+vi.mock("@/modules/stats/_components", () => ({
   ReadingRankingSection: () => <div data-testid="reading-ranking-section" />,
 }));
 

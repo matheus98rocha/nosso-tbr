@@ -15,6 +15,7 @@ vi.mock("@tanstack/react-query", () => ({
 
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(),
+  useRequireAuth: vi.fn(() => ({ id: "user-1" })),
 }));
 
 vi.mock("next/navigation", () => ({

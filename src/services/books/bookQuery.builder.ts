@@ -1,6 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "../../../database.types";
 import { Status } from "@/types/books.types";
+import { buildFtsQueryFromUserSearch } from "./buildFtsQueryFromUserSearch";
 
 export class BookQueryBuilder {
   private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
@@ -68,13 +69,12 @@ export class BookQueryBuilder {
   }
 
   withSearchTerm(searchTerm?: string): this {
-    if (!searchTerm?.trim()) return this;
-    const cleanTerm = searchTerm.replace(/[^\w\sÀ-ÿ]/g, " ").trim();
-    const words = cleanTerm.split(/\s+/).filter((word) => word.length >= 1);
-
-    if (words.length > 0) {
-      const formattedSearch = words.map((word) => `${word}:*`).join(" & ");
-      this.query = this.query.filter("search_vector", "fts", formattedSearch);
+    const ftsQuery = buildFtsQueryFromUserSearch(searchTerm);
+    if (ftsQuery) {
+      this.query = this.query.textSearch("search_vector", ftsQuery, {
+        type: "plain",
+        config: "simple",
+      });
     }
     return this;
   }

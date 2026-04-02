@@ -40,4 +40,17 @@ describe("SearchAutocompleteMapper", () => {
 
     expect(result.score).toBe(0);
   });
+
+  it("trata termo sem acento como match com rótulo acentuado", () => {
+    const result = SearchAutocompleteMapper.toDomain(
+      {
+        id: "4",
+        label: "O Senhor dos Anéis",
+        type: "book",
+      },
+      "aneis",
+    );
+
+    expect(result.score).toBeGreaterThan(0);
+  });
 });

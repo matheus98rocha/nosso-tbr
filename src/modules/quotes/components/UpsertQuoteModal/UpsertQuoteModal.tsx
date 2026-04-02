@@ -16,8 +16,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UpsertQuoteModalProps } from "../types/quotes.types";
-import { useUpsertQuoteModal } from "./hooks/useUpsertQuoteModal";
+import { UpsertQuoteModalProps } from "../../types/quotes.types";
+import { useUpsertQuoteModal } from "../hooks/useUpsertQuoteModal";
 import { PencilIcon } from "lucide-react";
 
 export function UpsertQuoteModal({ id: bookId, quote }: UpsertQuoteModalProps) {
