@@ -24,10 +24,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { BlurOverlay, ConfirmDialog } from "@/components/";
+import { BlurOverlay } from "@/components/";
 import { CreateBookProps } from "./bookUpsert.types";
 import { genders } from "@/constants/genders";
-import { AutocompleteInput } from "./components";
+import {
+  AutocompleteInput,
+  BookParticipationBlockedDialog,
+  FoundCatalogBookDialog,
+} from "./components";
 import AuthorUpsert from "../authors/components/authorUpsert";
 import { useBookUpsert } from "./hooks/useBookUpsert";
 import { DateUtils } from "@/utils";
@@ -42,8 +46,9 @@ export function BookUpsert(props: CreateBookProps) {
     selectedShelfId,
     setIsAddToShelfEnabled,
     setSelectedShelfId,
-    isDuplicateBookDialogOpen,
-    handleConfirmCreateBook,
+    isDiscoveryOpen,
+    isLinkingToExistingBook,
+    matchedBook,
     form,
     handleSubmit,
     control,
@@ -60,7 +65,11 @@ export function BookUpsert(props: CreateBookProps) {
     handleAuthorCreated,
     authorSearch,
     handleDialogOpenChange,
-    handleCancelDuplicateDialog,
+    handleCancelDiscoveryDialog,
+    isParticipationBlockOpen,
+    closeParticipationBlock,
+    handleLinkToExistingBook,
+    handleIgnoreAndCreateNewBook,
     handleStatusChange,
     handlePageNumberChange,
     handleChosenByFieldChange,
@@ -81,16 +90,18 @@ export function BookUpsert(props: CreateBookProps) {
         onSuccess={handleAuthorCreated}
         mode="create"
       />
-      <ConfirmDialog
-        open={isDuplicateBookDialogOpen}
-        onOpenChange={handleDialogOpenChange}
-        title="Livro Duplicado"
-        description="Um livro com este título já existe, deseja continuar?"
-        onConfirm={handleConfirmCreateBook}
-        id="duplicate-book-warning"
-        queryKeyToInvalidate="books"
-        buttonLabel="Continuar"
-        onCancel={handleCancelDuplicateDialog}
+      <BookParticipationBlockedDialog
+        open={isParticipationBlockOpen}
+        bookTitle={matchedBook?.candidate.title}
+        onDismiss={closeParticipationBlock}
+      />
+      <FoundCatalogBookDialog
+        open={isDiscoveryOpen}
+        matchedBook={matchedBook}
+        isLinkingToExisting={isLinkingToExistingBook}
+        onAddExisting={handleLinkToExistingBook}
+        onIgnoreAndCreate={handleIgnoreAndCreateNewBook}
+        onCancel={handleCancelDiscoveryDialog}
       />
       <Dialog open={props.isBookFormOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent
@@ -285,7 +296,9 @@ export function BookUpsert(props: CreateBookProps) {
                                         onCheckedChange={() => {
                                           const cur = field.value ?? [];
                                           const next = selected
-                                            ? cur.filter((id: string) => id !== value)
+                                            ? cur.filter(
+                                                (id: string) => id !== value,
+                                              )
                                             : [...cur, value];
                                           field.onChange(next);
                                         }}
@@ -486,7 +499,6 @@ export function BookUpsert(props: CreateBookProps) {
               </Form>
             </div>
 
-            {/* Sticky footer */}
             <div
               className={`shrink-0 border-t px-4 sm:px-6 py-4 bg-background ${
                 !isLoggedIn ? "pointer-events-none opacity-50" : ""

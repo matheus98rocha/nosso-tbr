@@ -23,7 +23,7 @@ export class BookUpsertMapper {
       readers: domain.readers,
       gender: domain.gender ?? null,
       image_url: resolveBookCoverUrl(domain.image_url),
-      user_id: domain.user_id ?? "",
+      user_id: domain.user_id?.trim() || null,
     };
   }
 }

@@ -28,6 +28,12 @@
 
 - **RN20 - Livro duplicado:** Ao adicionar um livro já existente, verificando pelo titulo e autor, deve aparecer um modal avisando que aquele livro já foi adicionado e se deseja duplicar
 
+- **RN49 - Descoberta na criação (título + autor):** Na **criação** de livro (não edição), se existir no catálogo um registro com o mesmo `author_id` e título equivalente após normalização:
+  - **Participação:** o usuário atual **participa** do livro se for `chosen_by` **ou** se seu id estiver em `readers` (**RN29–RN32**).
+  - **Bloqueio:** se o usuário já participa, não é permitido novo cadastro duplicado; a UI deve informar o bloqueio (modal ou equivalente).
+  - **Sugestão de inclusão na leitura:** se o usuário **não** participa, o livro existente está com **`status = not_started`** e há **mútuo seguir** (**RN39–RN40**) entre o usuário atual e o leitor de referência — prioriza-se `chosen_by` quando for terceiro; caso contrário outro participante em `readers` — deve ser oferecido o fluxo de vincular o usuário ao livro existente (modal de sugestão).
+  - **Sem sugestão:** se não houver match de título/autor, ou houver match mas o usuário não participa e **não** se cumprir `not_started` + mútuo seguir, o fluxo segue como **novo cadastro** sem modal de sugestão.
+
 - **RN20 - Usuario não logado:** Não pode navegar entre telas, não pode fazer crud de absolutamente nada na aplicação e deve ver todos os livros cadastrados.
 
 - **RN21 - Usuario não logado - filtros:** Não pode aplicar filtros e não deve ver a opção de filtros.
