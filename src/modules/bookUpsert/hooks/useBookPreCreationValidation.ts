@@ -64,6 +64,7 @@ export function useBookPreCreationValidation({
 
   const linkUserToExistingBook = useCallback(async () => {
     const candidateId = matchedBook?.candidate.id;
+
     if (!candidateId) {
       return false;
     }
@@ -71,7 +72,7 @@ export function useBookPreCreationValidation({
     await bookUpsertService.linkReaderToExistingBook(candidateId);
     clearDiscoveryState();
     return true;
-  }, [bookUpsertService, clearDiscoveryState, matchedBook?.candidate.id]);
+  }, [bookUpsertService, clearDiscoveryState, matchedBook]);
 
   const takePendingPayloadForCreation = useCallback(() => {
     const payload = pendingCreationPayload;
