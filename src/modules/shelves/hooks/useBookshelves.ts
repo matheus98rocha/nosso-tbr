@@ -13,13 +13,16 @@ import { useEffect } from "react";
 import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { QUERY_KEYS } from "@/constants/keys";
 
 export function useBookshelves({
   handleClose,
   editShelf,
+  isOpen,
 }: {
   handleClose?: (open: boolean) => void;
   editShelf?: BookshelfDomain;
+  isOpen: boolean;
 }) {
   const queryClient = useQueryClient();
   const service = new BookshelfService();
@@ -34,9 +37,12 @@ export function useBookshelves({
     error,
     isError,
   } = useQuery({
-    queryKey: ["bookshelves"],
-    queryFn: fetchBookShelves,
-    enabled: isLoggedIn,
+    queryKey: QUERY_KEYS.shelves.all,
+    queryFn: () => {
+      console.log("fetching bookshelves from useBookshelves");
+      return fetchBookShelves();
+    },
+    enabled: isLoggedIn && isOpen,
     staleTime: 1000 * 60 * 5,
   });
 

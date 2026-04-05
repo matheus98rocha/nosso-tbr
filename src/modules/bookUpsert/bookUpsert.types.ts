@@ -7,6 +7,7 @@ export type CreateBookProps = {
 };
 
 export type UseCreateBookDialog = {
+  isBookFormOpen: boolean;
   bookData: BookDomain | undefined;
   setIsBookFormOpen: (open: boolean) => void;
   chosenByOptions: {

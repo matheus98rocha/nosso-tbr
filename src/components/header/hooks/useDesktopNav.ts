@@ -22,7 +22,10 @@ export function useDesktopNav() {
         "Ver Estantes": () =>
           queryClient.prefetchQuery({
             queryKey: QUERY_KEYS.shelves.all,
-            queryFn: fetchBookShelves,
+            queryFn: () => {
+              console.log("fetching bookshelves from useDesktopNav");
+              return fetchBookShelves();
+            },
             ...commonOptions,
           }),
         Autores: () =>

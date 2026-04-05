@@ -22,6 +22,7 @@ import { LOCKED_BOOK_STATUSES } from "@/constants/bookStatuses";
 import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
 import { useRequireAuth } from "@/stores/hooks/useAuth";
 import { useBookPreCreationValidation } from "./useBookPreCreationValidation";
+import { QUERY_KEYS } from "@/constants/keys";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -34,6 +35,7 @@ const checkboxes: { id: Status; label: string }[] = [
 export function useBookDialog({
   bookData,
   setIsBookFormOpen,
+  isBookFormOpen,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -120,9 +122,12 @@ export function useBookDialog({
   }, [setIsBookFormOpen, reset, emptyDefaults]);
 
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
-    queryKey: ["bookshelves"],
-    queryFn: fetchBookShelves,
-    enabled: isLoggedIn,
+    queryKey: QUERY_KEYS.shelves.all,
+    queryFn: () => {
+      console.log("fetching bookshelves from useBookDialog");
+      return fetchBookShelves();
+    },
+    enabled: isLoggedIn && isBookFormOpen,
     staleTime: 1000 * 60 * 5,
   });
 

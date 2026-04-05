@@ -59,6 +59,7 @@ export function CreateEditBookshelves({
   const { mutate, isCreating } = useBookshelves({
     handleClose,
     editShelf,
+    isOpen,
   });
 
   function onSubmit(values: BookshelfCreateValidator) {
@@ -87,9 +88,15 @@ export function CreateEditBookshelves({
           <DialogHeader>
             <div className="flex items-center gap-2">
               {editShelf ? (
-                <Pencil className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+                <Pencil
+                  className="w-5 h-5 text-primary shrink-0"
+                  strokeWidth={1.5}
+                />
               ) : (
-                <FolderPlus className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+                <FolderPlus
+                  className="w-5 h-5 text-primary shrink-0"
+                  strokeWidth={1.5}
+                />
               )}
               <DialogTitle>
                 {editShelf ? "Editar Estante" : "Criar Nova Estante"}

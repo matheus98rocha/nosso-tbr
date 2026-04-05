@@ -11,7 +11,11 @@ import { SelectField } from "@/components/selectField";
 import { AddBookToShelfProps } from "./types/addBookToShelf.types";
 import { useAddBookToShelf } from "./hooks/useAddBookToShelf";
 
-export function AddBookToShelf({ isOpen, handleClose, bookId }: AddBookToShelfProps) {
+export function AddBookToShelf({
+  isOpen,
+  handleClose,
+  bookId,
+}: AddBookToShelfProps) {
   const {
     bookshelfOptions,
     handleSubmit,
@@ -29,7 +33,9 @@ export function AddBookToShelf({ isOpen, handleClose, bookId }: AddBookToShelfPr
         </DialogHeader>
 
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando estantes...</p>
+          <p className="text-sm text-muted-foreground">
+            Carregando estantes...
+          </p>
         ) : (
           <SelectField
             items={bookshelfOptions}

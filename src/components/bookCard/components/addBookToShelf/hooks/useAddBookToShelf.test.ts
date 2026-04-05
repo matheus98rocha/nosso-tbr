@@ -195,11 +195,21 @@ describe("useAddBookToShelf", () => {
       );
     });
 
-    it("passa enabled: true para useQuery quando está logado", () => {
+    it("passa enabled: true para useQuery quando está logado e o diálogo está aberto", () => {
       setupMocks({ isLoggedIn: true });
       renderHook(() => useAddBookToShelf(defaultProps));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it("passa enabled: false para useQuery quando está logado mas o diálogo está fechado (isOpen: false)", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() =>
+        useAddBookToShelf({ ...defaultProps, isOpen: false }),
+      );
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
       );
     });
 

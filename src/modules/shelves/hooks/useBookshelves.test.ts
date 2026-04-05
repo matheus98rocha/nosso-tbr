@@ -42,6 +42,9 @@ const mockMutate = vi.fn();
 const mockInvalidateQueries = vi.fn();
 const mockPush = vi.fn();
 
+/** UI aberto — alinhado a `enabled: isLoggedIn && isOpen` no hook */
+const shelvesWhenOpen = { isOpen: true as const };
+
 const mockShelves = [
   { id: "shelf-1", name: "Favoritos", books: [] },
   { id: "shelf-2", name: "Lidos", books: [] },
@@ -81,17 +84,25 @@ describe("useBookshelves", () => {
   describe("RN18 — guard de autenticação", () => {
     it("passa enabled: false para useQuery quando não está logado", () => {
       setupMocks({ isLoggedIn: false, data: undefined });
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: false }),
       );
     });
 
-    it("passa enabled: true para useQuery quando está logado", () => {
+    it("passa enabled: true para useQuery quando está logado e a UI está aberta", () => {
       setupMocks({ isLoggedIn: true });
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it("passa enabled: false para useQuery quando está logado mas a UI está fechada (isOpen: false)", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() => useBookshelves({ isOpen: false }));
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
       );
     });
 
@@ -108,7 +119,7 @@ describe("useBookshelves", () => {
       (useQueryClient as Mock).mockReturnValue({ invalidateQueries: vi.fn() });
       (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
 
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.bookshelves).toBeUndefined();
     });
   });
@@ -116,7 +127,7 @@ describe("useBookshelves", () => {
   describe("RN19 — staleTime em queries compartilhadas", () => {
     it("declara staleTime de 5 minutos (300000ms)", () => {
       setupMocks();
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ staleTime: 1000 * 60 * 5 }),
       );
@@ -126,7 +137,7 @@ describe("useBookshelves", () => {
   describe("queryKey", () => {
     it("usa queryKey [\"bookshelves\"]", () => {
       setupMocks();
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ queryKey: ["bookshelves"] }),
       );
@@ -136,19 +147,19 @@ describe("useBookshelves", () => {
   describe("retorno de dados", () => {
     it("expõe bookshelves quando logado e dados disponíveis", () => {
       setupMocks({ isLoggedIn: true });
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.bookshelves).toEqual(mockShelves);
     });
 
     it("expõe isFetching true enquanto carrega", () => {
       setupMocks({ isLoading: true });
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.isFetching).toBe(true);
     });
 
     it("expõe isFetched true após carga completa", () => {
       setupMocks({ isFetched: true });
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.isFetched).toBe(true);
     });
   });
@@ -156,7 +167,7 @@ describe("useBookshelves", () => {
   describe("mutação — criar / editar estante", () => {
     it("chama mutate ao criar uma estante nova", () => {
       setupMocks();
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       act(() => result.current.mutate({ name: "Nova Estante" }));
       expect(mockMutate).toHaveBeenCalledWith({ name: "Nova Estante" });
     });
@@ -181,7 +192,7 @@ describe("useBookshelves", () => {
       }));
 
       const { result } = renderHook(() =>
-        useBookshelves({ handleClose }),
+        useBookshelves({ ...shelvesWhenOpen, handleClose }),
       );
       act(() => result.current.mutate({ name: "Estante X" }));
       expect(handleClose).toHaveBeenCalledWith(false);
@@ -205,7 +216,7 @@ describe("useBookshelves", () => {
         isPending: false,
       }));
 
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       act(() => result.current.mutate({ name: "Estante Y" }));
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ["bookshelves"],
@@ -230,7 +241,7 @@ describe("useBookshelves", () => {
       });
       (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
 
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
 
       expect(toast).toHaveBeenCalledWith("Sessão expirada", {
         description: "Faça login novamente para continuar.",
