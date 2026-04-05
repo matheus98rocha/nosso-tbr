@@ -17,7 +17,7 @@ vi.mock("next/link", () => ({
   }) => <a href={href}>{children}</a>,
 }));
 
-vi.mock("./_hooks/useBookshelfBooks", () => ({
+vi.mock("./hooks/useBookshelfBooks", () => ({
   useBookshelfBooks: () => ({
     data: [],
     isLoading: false,
@@ -27,7 +27,7 @@ vi.mock("./_hooks/useBookshelfBooks", () => ({
   }),
 }));
 
-vi.mock("./_hooks/useBookshelfMeta", () => ({
+vi.mock("./hooks/useBookshelfMeta", () => ({
   useBookshelfMeta: vi.fn(() => ({
     data: { id: "shelf-1", name: "Coleção principal" },
     isLoading: false,

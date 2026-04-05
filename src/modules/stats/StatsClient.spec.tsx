@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StatsClient } from "./index";
 import type { EstatisticaAnual } from "@/modules/stats/types/stats.types";
 
-vi.mock("@/modules/stats/_hooks/useStatsClient", () => ({
+vi.mock("@/modules/stats/hooks/useStatsClient", () => ({
   STATS_CHART_PIE_FILLS: [
     "var(--a)",
     "var(--b)",
@@ -15,7 +15,7 @@ vi.mock("@/modules/stats/_hooks/useStatsClient", () => ({
   useStatsClient: vi.fn(),
 }));
 
-vi.mock("@/modules/stats/_components", () => ({
+vi.mock("@/modules/stats/components", () => ({
   ReadingRankingSection: () => <div data-testid="reading-ranking-section" />,
 }));
 
@@ -35,7 +35,7 @@ vi.mock("recharts", () => ({
   Cell: () => null,
 }));
 
-import { useStatsClient } from "@/modules/stats/_hooks/useStatsClient";
+import { useStatsClient } from "@/modules/stats/hooks/useStatsClient";
 
 const yearlyStats: EstatisticaAnual[] = [
   {

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Medal, Trophy } from "lucide-react";
 import type { ReadingLeaderboardEntryDomain } from "@/modules/stats/types/stats.types";
-import type { ReadingRankingMetric } from "@/modules/stats/_hooks/useReadingRanking";
+import type { ReadingRankingMetric } from "@/modules/stats/types/stats.types";
 
 /** Máximo de leitores exibidos no pódio (layout adapta até este limite). */
 export const LEADERBOARD_PODIUM_MAX = 5;

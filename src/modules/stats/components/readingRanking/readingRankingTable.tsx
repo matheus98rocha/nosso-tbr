@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { ReadingRankingMetric } from "@/modules/stats/_hooks/useReadingRanking";
+import type { ReadingRankingMetric } from "@/modules/stats/types/stats.types";
 import type { ReadingLeaderboardEntryDomain } from "@/modules/stats/types/stats.types";
 
 export type ReadingRankingTableProps = {

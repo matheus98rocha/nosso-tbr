@@ -43,7 +43,15 @@ function ListGridComponent<T>({
   }
 
   if (isFetched && items.length === 0 && !isLoading) {
-    return <div className="text-gray-500 text-center mt-4">{emptyMessage}</div>;
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="text-gray-500 text-center mt-4"
+      >
+        {emptyMessage}
+      </div>
+    );
   }
 
   return (

@@ -8,7 +8,7 @@ type UseStatusFiltersProps = {
   updateUrlWithFilters: (filters: FiltersOptions, search?: string) => void;
 };
 
-export function useStatusFilters({
+export default function useStatusFilters({
   filters,
   searchQuery,
   updateUrlWithFilters,
@@ -25,7 +25,10 @@ export function useStatusFilters({
         ? activeStatuses.filter((s) => s !== status)
         : [...activeStatuses, status];
 
-      updateUrlWithFilters({ ...filters, status: updatedStatuses }, searchQuery);
+      updateUrlWithFilters(
+        { ...filters, status: updatedStatuses },
+        searchQuery,
+      );
     },
     [activeStatuses, filters, searchQuery, updateUrlWithFilters],
   );

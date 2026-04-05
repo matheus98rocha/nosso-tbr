@@ -34,6 +34,8 @@ export interface CollaborationStatsDomain {
   booksRead: number;
 }
 
+export type ReadingRankingMetric = "books" | "pages";
+
 export type ReadingLeaderboardPersistence = {
   reader_id: string;
   display_name: string;

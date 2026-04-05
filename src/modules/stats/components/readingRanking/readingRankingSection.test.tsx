@@ -1,10 +1,10 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ReadingRankingSection } from "./readingRankingSection";
-import { useReadingRanking } from "@/modules/stats/_hooks/useReadingRanking";
+import { useReadingRanking } from "@/modules/stats/hooks/useReadingRanking";
 import type { ReadingLeaderboardEntryDomain } from "@/modules/stats/types/stats.types";
 
-vi.mock("@/modules/stats/_hooks/useReadingRanking", () => ({
+vi.mock("@/modules/stats/hooks/useReadingRanking", () => ({
   useReadingRanking: vi.fn(),
 }));
 

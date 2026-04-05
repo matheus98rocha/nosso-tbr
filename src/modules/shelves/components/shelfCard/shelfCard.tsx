@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, EllipsisVerticalIcon, Plus } from "lucide-react";
-import { useModal } from "@/hooks/useModal";
 import {
   BookshelfDomain,
   SelectedBookshelf,
@@ -27,6 +26,7 @@ import {
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import Link from "next/link";
 import { getBookshelfBooksPath } from "@/lib/routes/shelves";
+import { useModal } from "@/hooks";
 
 type Props = {
   shelf: BookshelfDomain;

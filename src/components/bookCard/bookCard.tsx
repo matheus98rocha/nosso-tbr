@@ -65,8 +65,9 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
               <Image
                 src={resolveBookCoverUrl(book.image_url)}
                 alt={book.title}
-                fill
-                className="object-cover"
+                width={90}
+                height={130}
+                className="object-cover size-full"
                 loading="lazy"
               />
             </div>
@@ -82,9 +83,14 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
                     isOpen={dropdownModal.isOpen}
                     onOpenChange={dropdownModal.setIsOpen}
                     trigger={
-                      <button className="flex items-center justify-center w-11 h-11 -mr-2 shrink-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 rounded-full transition-all duration-200 cursor-pointer">
+                      <button
+                        type="button"
+                        aria-label={`Mais opções para "${book.title}"`}
+                        className="flex items-center justify-center w-11 h-11 -mr-2 shrink-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 rounded-full transition-all duration-200 cursor-pointer"
+                      >
                         <EllipsisVerticalIcon
                           className="w-4 h-4 text-zinc-400"
+                          aria-hidden
                           onTouchStart={dropdownTap.handleTouchStart}
                           onTouchEnd={dropdownTap.handleTouchEnd}
                           onClick={dropdownTap.handleClick}
@@ -104,7 +110,9 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
               </div>
 
               <button
+                type="button"
                 onClick={handleNavigateToAuthor}
+                aria-label={`Autor: ${book.author} — ${book.title}`}
                 className="text-xs text-blue-600 dark:text-blue-400 hover:underline active:scale-95 truncate text-left mb-2 cursor-pointer transition-all duration-200"
               >
                 {book.author}
@@ -127,11 +135,12 @@ export function BookCard({ book: bookProp, isShelf = false }: BookCardProps) {
                     {statusDisplay.label}
                   </span>
                 )}
-
-                <div className="flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500">
-                  <Users size={10} className="shrink-0" />
-                  <span className="truncate">{book.readersDisplay}</span>
-                </div>
+                {isShelf === false && (
+                  <div className="flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500">
+                    <Users size={10} className="shrink-0" />
+                    <span className="truncate">{book.readersDisplay}</span>
+                  </div>
+                )}
 
                 {book.gender && (
                   <Badge

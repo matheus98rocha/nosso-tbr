@@ -3,9 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
-import { useModal } from "@/hooks/useModal";
 import { BookDomain } from "../../types/books.types";
-import { BookCard, DefaultPagination, ListGrid, StatusFilterChips, YearFilterChips } from "@/components";
+import {
+  BookCard,
+  DefaultPagination,
+  ListGrid,
+  StatusFilterChips,
+  YearFilterChips,
+} from "@/components";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useModal } from "@/hooks";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -247,21 +253,11 @@ export default function ClientHome() {
             </div>
 
             <div className="p-4">
-              {isLoading ? (
-                <div className="flex gap-2 flex-wrap">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton
-                      key={`year-sk-${i}`}
-                      className="h-8 w-16 rounded-full"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <YearFilterChips
-                  activeYear={filters.year}
-                  onSelect={handleSetYear}
-                />
-              )}
+              <YearFilterChips
+                activeYear={filters.year}
+                onSelect={handleSetYear}
+                isLoading={isLoading}
+              />
             </div>
           </div>
         ) : (
@@ -366,7 +362,9 @@ export default function ClientHome() {
           items={allBooks?.data ?? []}
           isLoading={isLoading}
           isFetched={isFetched}
-          renderItem={(book) => <BookCard key={book.id} book={book} />}
+          renderItem={(book) => (
+            <BookCard key={book.id} book={book} isShelf={false} />
+          )}
           emptyMessage="Nenhum livro encontrado para os filtros selecionados."
           isError={isError}
         />

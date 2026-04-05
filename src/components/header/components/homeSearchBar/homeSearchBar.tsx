@@ -2,7 +2,7 @@
 
 import { SearchBar } from "@/components/searchBar";
 import { useHomeSearchBar } from "../../hooks/useHomeSearchBar";
-import { useModal } from "@/hooks/useModal";
+import { useModal } from "@/hooks/";
 import FiltersSheet from "@/modules/home/components/filtersSheet/filters";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useMemo } from "react";

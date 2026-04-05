@@ -7,8 +7,8 @@ import { ListGrid } from "@/components/listGrid";
 import { BookCard } from "@/components/bookCard";
 import Link from "next/link";
 import { ArrowLeft, Library } from "lucide-react";
-import { useBookshelfBooks } from "./_hooks/useBookshelfBooks";
-import { useBookshelfMeta } from "./_hooks/useBookshelfMeta";
+import { useBookshelfBooks } from "./hooks/useBookshelfBooks";
+import { useBookshelfMeta } from "./hooks/useBookshelfMeta";
 import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -16,8 +16,13 @@ function ClientBookshelves() {
   const { id } = useParams();
   const bookshelfId = typeof id === "string" ? id : undefined;
 
-  const { data: books = [], isLoading, isError, isSuccess, isFetched } =
-    useBookshelfBooks(bookshelfId);
+  const {
+    data: books = [],
+    isLoading,
+    isError,
+    isSuccess,
+    isFetched,
+  } = useBookshelfBooks(bookshelfId);
 
   const {
     data: shelfMeta,
@@ -32,10 +37,7 @@ function ClientBookshelves() {
         role="status"
         aria-live="polite"
       >
-        <Library
-          className="h-12 w-12 text-muted-foreground"
-          aria-hidden
-        />
+        <Library className="h-12 w-12 text-muted-foreground" aria-hidden />
         <p className="text-base text-muted-foreground">
           Não foi possível abrir esta estante. Volte e escolha outra estante.
         </p>
@@ -69,10 +71,7 @@ function ClientBookshelves() {
           Livros na estante
         </h1>
         {isLoadingShelfMeta ? (
-          <Skeleton
-            className="h-8 w-full max-w-xs sm:max-w-md"
-            aria-hidden
-          />
+          <Skeleton className="h-8 w-full max-w-xs sm:max-w-md" aria-hidden />
         ) : shelfMeta?.name ? (
           <p
             id="bookshelf-detail-name"

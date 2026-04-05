@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { Mock, vi } from "vitest";
 import { useHome } from "./useHome";
-import { useFiltersUrl } from "@/hooks/useFiltersUrl";
+import { useFiltersUrl } from "@/hooks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
@@ -21,8 +21,17 @@ vi.mock("@/stores/hooks/useAuth", () => ({
 }));
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn((params: { queryKey?: unknown[] }) => {
-    if (Array.isArray(params?.queryKey) && params.queryKey[0] === "userSocial") {
-      return { data: [], isLoading: false, isFetching: false, isFetched: true, isError: false };
+    if (
+      Array.isArray(params?.queryKey) &&
+      params.queryKey[0] === "userSocial"
+    ) {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
     }
 
     return {
@@ -36,13 +45,17 @@ vi.mock("@tanstack/react-query", () => ({
     prefetchQuery: vi.fn(),
   })),
 }));
-vi.mock("@/hooks/useStatusFilters", () => ({
-  useStatusFilters: vi.fn(() => ({
-    activeStatuses: [],
-    handleToggleStatus: vi.fn(),
-  })),
-}));
-vi.mock("@/hooks/useFiltersUrl");
+vi.mock("@/hooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/hooks")>();
+  return {
+    ...actual,
+    useFiltersUrl: vi.fn(),
+    useStatusFilters: vi.fn(() => ({
+      activeStatuses: [],
+      handleToggleStatus: vi.fn(),
+    })),
+  };
+});
 
 const mockUpdateUrlWithFilters = vi.fn();
 const mockUsers = [
@@ -110,12 +123,28 @@ describe("useHome", () => {
       users: [],
       isLoadingUsers: false,
     });
-    (useQuery as Mock).mockImplementation((params: { queryKey?: unknown[] }) => {
-      if (Array.isArray(params?.queryKey) && params.queryKey[0] === "userSocial") {
-        return { data: [], isLoading: false, isFetching: false, isFetched: true, isError: false };
-      }
-      return { data: undefined, isFetching: false, isFetched: true, isError: false };
-    });
+    (useQuery as Mock).mockImplementation(
+      (params: { queryKey?: unknown[] }) => {
+        if (
+          Array.isArray(params?.queryKey) &&
+          params.queryKey[0] === "userSocial"
+        ) {
+          return {
+            data: [],
+            isLoading: false,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        }
+        return {
+          data: undefined,
+          isFetching: false,
+          isFetched: true,
+          isError: false,
+        };
+      },
+    );
     (useQueryClient as Mock).mockReturnValue({
       prefetchQuery: vi.fn(),
     });
@@ -230,7 +259,10 @@ describe("useHome", () => {
     });
 
     it("uses a deterministic query key for the Todos view", () => {
-      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
 
       setupHook({ view: "todos" });
 
@@ -252,8 +284,14 @@ describe("useHome", () => {
 
     it("usa relacionamento baseado em usuário atual + seguidos na query key", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
-      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
-      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
       mockQueryData(0, ["2"]);
 
       setupHook({ view: "todos" });
@@ -267,8 +305,14 @@ describe("useHome", () => {
 
     it("when logged in with no follows, relationship key is only the current user (empty feed from scoped query)", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
-      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
-      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
       mockQueryData(0, []);
 
       setupHook({ view: "todos" });
@@ -294,8 +338,14 @@ describe("useHome", () => {
   describe('"Todos" reader selection behavior', () => {
     it("marks current user and followed users as active by default in Todos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
-      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
-      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
 
       mockQueryData(0, ["2"]);
       const { result } = setupHook({ view: "todos", readers: [] });
@@ -306,8 +356,14 @@ describe("useHome", () => {
 
     it("adds additional readers in Todos when user toggles chips", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
-      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
-      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
 
       const { result } = setupHook({ view: "todos", readers: ["1"] });
 
@@ -320,12 +376,12 @@ describe("useHome", () => {
 
     it("limita leitores visíveis na visão Todos para usuário atual e seguidos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
-      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
       (useUser as Mock).mockReturnValue({
-        users: [
-          ...mockUsers,
-          { id: "3", display_name: "Nao Seguido" },
-        ],
+        users: [...mockUsers, { id: "3", display_name: "Nao Seguido" }],
         isLoadingUsers: false,
       });
       mockQueryData(0, ["2"]);
@@ -337,14 +393,36 @@ describe("useHome", () => {
 
     it("changes query key when Todos readers selection changes", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
-      (useUserStore as unknown as Mock).mockReturnValue({ id: "1", display_name: "Matheus" });
-      (useUser as Mock).mockReturnValue({ users: mockUsers, isLoadingUsers: false });
-      (useQuery as Mock).mockImplementation((params: { queryKey?: unknown[] }) => {
-        if (Array.isArray(params?.queryKey) && params.queryKey[0] === "userSocial") {
-          return { data: ["2"], isLoading: false, isFetching: false, isFetched: true, isError: false };
-        }
-        return { data: undefined, isFetching: false, isFetched: true, isError: false };
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
       });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          if (
+            Array.isArray(params?.queryKey) &&
+            params.queryKey[0] === "userSocial"
+          ) {
+            return {
+              data: ["2"],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: undefined,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        },
+      );
 
       (useFiltersUrl as Mock).mockReturnValue(
         buildFiltersUrlReturn({ view: "todos", readers: ["1"] }),
@@ -640,12 +718,12 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: ["1", "stale-unknown"], view: "joint" });
+      const { result } = setupHook({
+        readers: ["1", "stale-unknown"],
+        view: "joint",
+      });
 
-      expect(result.current.readersObj.readers).toEqual([
-        "1",
-        "stale-unknown",
-      ]);
+      expect(result.current.readersObj.readers).toEqual(["1", "stale-unknown"]);
     });
 
     it("in joint-reading mode only keeps books with more than one reader", () => {
@@ -657,9 +735,17 @@ describe("useHome", () => {
       (useQuery as Mock).mockReturnValue({
         data: {
           data: [
-            { id: "1", readerIds: ["1", "2"], readersDisplay: "Matheus e Barbara" },
+            {
+              id: "1",
+              readerIds: ["1", "2"],
+              readersDisplay: "Matheus e Barbara",
+            },
             { id: "2", readerIds: ["1"], readersDisplay: "Matheus" },
-            { id: "3", readerIds: ["2", "9"], readersDisplay: "Barbara e Carol" },
+            {
+              id: "3",
+              readerIds: ["2", "9"],
+              readersDisplay: "Barbara e Carol",
+            },
           ],
           total: 3,
         },
