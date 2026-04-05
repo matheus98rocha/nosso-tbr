@@ -33,7 +33,9 @@ function ClienteShelves() {
     [dialog],
   );
 
-  const { bookshelves, isFetching, isFetched, isError } = useBookshelves({});
+  const { bookshelves, isFetching, isFetched, isError } = useBookshelves({
+    isOpen: true,
+  });
 
   return (
     <>

@@ -9,17 +9,24 @@ import { SelectedBookshelf } from "@/modules/shelves/types/bookshelves.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { getBookshelfBooksPath } from "@/lib/routes/shelves";
+import { QUERY_KEYS } from "@/constants/keys";
 
-export function useAddBookToShelf({ bookId, handleClose }: AddBookToShelfProps) {
+export function useAddBookToShelf({
+  bookId,
+  handleClose,
+  isOpen,
+}: AddBookToShelfProps) {
   const [selectedShelfId, setSelectedShelfId] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
   const isLoggedIn = useIsLoggedIn();
 
   const { data: bookshelves = [], isLoading } = useQuery({
-    queryKey: ["bookshelves"],
-    queryFn: fetchBookShelves,
-    enabled: isLoggedIn,
+    queryKey: QUERY_KEYS.shelves.all,
+    queryFn: () => {
+      return fetchBookShelves();
+    },
+    enabled: isLoggedIn && isOpen,
     staleTime: 1000 * 60 * 5,
   });
 

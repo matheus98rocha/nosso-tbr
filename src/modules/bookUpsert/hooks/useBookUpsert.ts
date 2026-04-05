@@ -47,6 +47,7 @@ export function useBookUpsert({
     handleOnChangePageNumber,
     handleChosenByChange,
   } = useBookDialog({
+    isBookFormOpen,
     bookData,
     setIsBookFormOpen,
     chosenByOptions,

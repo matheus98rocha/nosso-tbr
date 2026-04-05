@@ -67,8 +67,10 @@ const mockShelves = [
   { id: "shelf-2", name: "Lidos" },
 ];
 
+/** Formulário visível — alinhado a `enabled: isLoggedIn && isBookFormOpen` no hook */
 const defaultProps = {
   bookData: undefined,
+  isBookFormOpen: true,
   setIsBookFormOpen: vi.fn(),
   chosenByOptions: [],
 };
@@ -114,11 +116,21 @@ describe("useBookDialog — query de estantes", () => {
       );
     });
 
-    it("passa enabled: true para useQuery quando está logado", () => {
+    it("passa enabled: true para useQuery quando está logado e o formulário está aberto", () => {
       setupMocks({ isLoggedIn: true });
       renderHook(() => useBookDialog(defaultProps));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it("passa enabled: false para useQuery quando está logado mas o formulário está fechado", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() =>
+        useBookDialog({ ...defaultProps, isBookFormOpen: false }),
+      );
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
       );
     });
 
