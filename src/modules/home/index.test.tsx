@@ -48,9 +48,16 @@ vi.mock("@/stores/userStore", () => ({
   ),
 }));
 
-vi.mock("@/hooks/useModal", () => ({
-  useModal: vi.fn(() => ({ isOpen: false, setIsOpen: mockSetBookFormOpen })),
-}));
+vi.mock("@/hooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/hooks")>();
+  return {
+    ...actual,
+    useModal: vi.fn(() => ({
+      isOpen: false,
+      setIsOpen: mockSetBookFormOpen,
+    })),
+  };
+});
 
 vi.mock("@/modules/bookUpsert", () => ({
   BookUpsert: () => null,

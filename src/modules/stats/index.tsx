@@ -30,12 +30,15 @@ import {
   YAxis,
 } from "recharts";
 import { getGenderLabel } from "@/constants/genders";
-import { ReadingRankingSection } from "@/modules/stats/_components";
+import { ReadingRankingSection } from "@/modules/stats/components";
 import {
   STATS_CHART_PIE_FILLS,
   useStatsClient,
-} from "@/modules/stats/_hooks/useStatsClient";
-import type { KpiCardProps, StatsClientProps } from "@/modules/stats/types/stats.types";
+} from "@/modules/stats/hooks/useStatsClient";
+import type {
+  KpiCardProps,
+  StatsClientProps,
+} from "@/modules/stats/types/stats.types";
 import { BookOpen, FileText, PenLine, Tag } from "lucide-react";
 
 const KpiCard = memo(function KpiCard({ title, value, icon }: KpiCardProps) {
@@ -263,4 +266,7 @@ export const StatsClient = memo(function StatsClient({
   );
 });
 
-export type { EstatisticaAnual, StatsClientProps } from "@/modules/stats/types/stats.types";
+export type {
+  EstatisticaAnual,
+  StatsClientProps,
+} from "@/modules/stats/types/stats.types";

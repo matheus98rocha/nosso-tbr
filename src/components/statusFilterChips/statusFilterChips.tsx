@@ -81,6 +81,7 @@ function StatusFilterChipsComponent({
               key={status}
               size="sm"
               variant="outline"
+              aria-pressed={isActive}
               onClick={() => onToggle(status)}
               className={cn(
                 "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
@@ -89,6 +90,7 @@ function StatusFilterChipsComponent({
             >
               <Icon
                 size={13}
+                aria-hidden
                 className={cn(
                   "mr-1.5 transition-colors",
                   isActive

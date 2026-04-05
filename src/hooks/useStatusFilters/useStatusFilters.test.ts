@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { vi } from "vitest";
-import { useStatusFilters } from "./useStatusFilters";
 import { FiltersOptions } from "@/types/filters";
+import useStatusFilters from "./useStatusFilters";
 
 const baseFilters: FiltersOptions = {
   readers: [],
@@ -90,7 +90,11 @@ describe("useStatusFilters", () => {
       };
 
       const { result } = renderHook(() =>
-        useStatusFilters({ filters, searchQuery: "senhor dos aneis", updateUrlWithFilters }),
+        useStatusFilters({
+          filters,
+          searchQuery: "senhor dos aneis",
+          updateUrlWithFilters,
+        }),
       );
 
       act(() => result.current.handleToggleStatus("abandoned"));

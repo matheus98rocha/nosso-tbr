@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-export function useSafeTap(onSafeTap: () => void) {
+export default function useSafeTap(onSafeTap: () => void) {
   const touchStartY = useRef<number | null>(null);
 
   function handleTouchStart(e: React.TouchEvent) {

@@ -1,15 +1,38 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useReadingYears } from "@/hooks/useReadingYears";
 import { YearFilterChips } from "./yearFilterChips";
+
+vi.mock("@/hooks/useReadingYears", () => ({
+  useReadingYears: vi.fn(),
+}));
+
+const mockUseReadingYears = vi.mocked(useReadingYears);
 
 const CURRENT_YEAR = new Date().getFullYear();
 const EXPECTED_YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
 
 function renderYearChips(activeYear?: number, onSelect = vi.fn()) {
-  return { onSelect, ...render(<YearFilterChips activeYear={activeYear} onSelect={onSelect} />) };
+  return {
+    onSelect,
+    ...render(
+      <YearFilterChips
+        activeYear={activeYear}
+        onSelect={onSelect}
+        isLoading={false}
+      />,
+    ),
+  };
 }
 
 describe("YearFilterChips", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseReadingYears.mockReturnValue({
+      data: EXPECTED_YEARS,
+      isLoading: false,
+    } as ReturnType<typeof useReadingYears>);
+  });
   describe("rendering", () => {
     it("renders the 'Ano' section label", () => {
       renderYearChips();
@@ -142,7 +165,13 @@ describe("YearFilterChips", () => {
 
     it("renders stably when switching active year between renders", () => {
       const { rerender, onSelect } = renderYearChips(CURRENT_YEAR);
-      rerender(<YearFilterChips activeYear={CURRENT_YEAR - 1} onSelect={onSelect} />);
+      rerender(
+        <YearFilterChips
+          activeYear={CURRENT_YEAR - 1}
+          onSelect={onSelect}
+          isLoading={false}
+        />,
+      );
       expect(screen.getAllByRole("button")).toHaveLength(6);
     });
   });

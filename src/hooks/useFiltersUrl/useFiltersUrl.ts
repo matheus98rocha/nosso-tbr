@@ -9,14 +9,16 @@ import {
   parseFiltersFromSearchParams,
 } from "@/utils";
 
-export function useFiltersUrl(defaultFiltersFactory: () => FiltersOptions) {
+export default function useFiltersUrl(
+  defaultFiltersFactory: () => FiltersOptions,
+) {
   const inputRef = useRef<InputWithButtonRef>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const defaultFilters = useMemo(
     () => defaultFiltersFactory(),
-    [defaultFiltersFactory]
+    [defaultFiltersFactory],
   );
 
   const { filters, searchQuery } = useMemo(() => {
@@ -39,7 +41,7 @@ export function useFiltersUrl(defaultFiltersFactory: () => FiltersOptions) {
       const target = qs ? `?${qs}` : window.location.pathname;
       router.replace(target);
     },
-    [router, searchParams]
+    [router, searchParams],
   );
 
   const handleOnPressEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -58,14 +60,14 @@ export function useFiltersUrl(defaultFiltersFactory: () => FiltersOptions) {
     (value: string) => {
       updateUrlWithFilters(filters, value);
     },
-    [filters, updateUrlWithFilters]
+    [filters, updateUrlWithFilters],
   );
 
   const handleSearchButtonClick = useCallback(
     (value: string) => {
       updateUrlWithFilters(filters, value);
     },
-    [filters, updateUrlWithFilters]
+    [filters, updateUrlWithFilters],
   );
 
   return {

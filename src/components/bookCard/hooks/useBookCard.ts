@@ -1,8 +1,7 @@
-import { useModal } from "@/hooks/useModal";
+import { useModal, useSafeTap } from "@/hooks";
 import { BookCardProps, StatusDisplay } from "../types/bookCard.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
-import { useSafeTap } from "@/hooks/useSafeTap";
 import { useCallback, useMemo } from "react";
 import { BookService } from "@/services/books/books.service";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";

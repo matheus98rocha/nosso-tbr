@@ -9,7 +9,7 @@ import { useBookshelves } from "./hooks/useBookshelves";
 import { ListGrid } from "../../components/listGrid";
 import { BookshelfDomain, SelectedBookshelf } from "./types/bookshelves.types";
 import { AddBookToBookshelfDialog } from "./components/addBookToBookshelfDialog";
-import { useModal } from "@/hooks/useModal";
+import { useModal } from "@/hooks/";
 import { ShelfCard } from "./components/shelfCard";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
@@ -53,7 +53,10 @@ function ClienteShelves() {
           className="group inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-md px-3 text-base font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label="Voltar para a página inicial"
         >
-          <ArrowLeft className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden />
+          <ArrowLeft
+            className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+            aria-hidden
+          />
           Voltar
         </Link>
 
@@ -69,12 +72,12 @@ function ClienteShelves() {
                 Biblioteca pessoal
               </span>
             </div>
-            <h1 className="page-title">
-              Minhas estantes
-            </h1>
+            <h1 className="page-title">Minhas estantes</h1>
             <p className="max-w-xl text-base text-muted-foreground">
               Organize seus livros em coleções personalizadas. Em cada card, use{" "}
-              <span className="font-medium text-foreground">Acessar estante</span>{" "}
+              <span className="font-medium text-foreground">
+                Acessar estante
+              </span>{" "}
               para abrir a página com todos os livros daquela estante.
             </p>
           </div>
