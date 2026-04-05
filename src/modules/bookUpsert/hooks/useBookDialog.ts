@@ -124,7 +124,6 @@ export function useBookDialog({
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
     queryKey: QUERY_KEYS.shelves.all,
     queryFn: () => {
-      console.log("fetching bookshelves from useBookDialog");
       return fetchBookShelves();
     },
     enabled: isLoggedIn && isBookFormOpen,

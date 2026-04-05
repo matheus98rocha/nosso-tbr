@@ -24,7 +24,6 @@ export function useAddBookToShelf({
   const { data: bookshelves = [], isLoading } = useQuery({
     queryKey: QUERY_KEYS.shelves.all,
     queryFn: () => {
-      console.log("fetching bookshelves from useAddBookToShelf");
       return fetchBookShelves();
     },
     enabled: isLoggedIn && isOpen,

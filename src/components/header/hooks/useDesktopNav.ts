@@ -23,7 +23,6 @@ export function useDesktopNav() {
           queryClient.prefetchQuery({
             queryKey: QUERY_KEYS.shelves.all,
             queryFn: () => {
-              console.log("fetching bookshelves from useDesktopNav");
               return fetchBookShelves();
             },
             ...commonOptions,

@@ -39,7 +39,6 @@ export function useBookshelves({
   } = useQuery({
     queryKey: QUERY_KEYS.shelves.all,
     queryFn: () => {
-      console.log("fetching bookshelves from useBookshelves");
       return fetchBookShelves();
     },
     enabled: isLoggedIn && isOpen,
