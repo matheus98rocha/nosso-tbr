@@ -10,7 +10,11 @@ import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { getBookshelfBooksPath } from "@/lib/routes/shelves";
 
-export function useAddBookToShelf({ bookId, handleClose }: AddBookToShelfProps) {
+export function useAddBookToShelf({
+  bookId,
+  handleClose,
+  isOpen,
+}: AddBookToShelfProps) {
   const [selectedShelfId, setSelectedShelfId] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -19,7 +23,7 @@ export function useAddBookToShelf({ bookId, handleClose }: AddBookToShelfProps) 
   const { data: bookshelves = [], isLoading } = useQuery({
     queryKey: ["bookshelves"],
     queryFn: fetchBookShelves,
-    enabled: isLoggedIn,
+    enabled: isLoggedIn && isOpen,
     staleTime: 1000 * 60 * 5,
   });
 

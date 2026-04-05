@@ -186,7 +186,7 @@ describe("useAddBookToShelf", () => {
     });
   });
 
-  describe("RN18 — guard de autenticação", () => {
+  describe("RN18 — guard de autenticação e diálogo", () => {
     it("passa enabled: false para useQuery quando não está logado", () => {
       setupMocks({ isLoggedIn: false });
       renderHook(() => useAddBookToShelf(defaultProps));
@@ -195,7 +195,17 @@ describe("useAddBookToShelf", () => {
       );
     });
 
-    it("passa enabled: true para useQuery quando está logado", () => {
+    it("passa enabled: false quando o diálogo está fechado", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() =>
+        useAddBookToShelf({ ...defaultProps, isOpen: false }),
+      );
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it("passa enabled: true quando logado e diálogo aberto", () => {
       setupMocks({ isLoggedIn: true });
       renderHook(() => useAddBookToShelf(defaultProps));
       expect(useQuery).toHaveBeenCalledWith(

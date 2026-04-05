@@ -95,6 +95,14 @@ describe("useBookshelves", () => {
       );
     });
 
+    it("passa enabled: false quando fetchEnabled é false", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() => useBookshelves({ fetchEnabled: false }));
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
     it("não retorna dados de estantes quando não está logado", () => {
       (useIsLoggedIn as Mock).mockReturnValue(false);
       (useQuery as Mock).mockReturnValue({

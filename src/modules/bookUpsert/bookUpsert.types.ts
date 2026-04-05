@@ -13,4 +13,6 @@ export type UseCreateBookDialog = {
     label: string;
     value: string;
   }[];
+  /** Quando false, não busca estantes (evita GET /api/shelves no primeiro paint). */
+  isBookFormOpen: boolean;
 };

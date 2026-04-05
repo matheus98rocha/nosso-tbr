@@ -104,6 +104,22 @@ describe("UserSocialService", () => {
     expect(result).toEqual([]);
   });
 
+  it("com followerId explícito não chama auth.getUser e filtra por follower_id", async () => {
+    const service = makeService();
+
+    const result = await service.getFollowingIds("user-explicit");
+
+    expect(getUser).not.toHaveBeenCalled();
+    expect(from).toHaveBeenCalledWith("user_followers");
+    const followersQuery = from.mock.results.at(-1)
+      ?.value as ThenableQuery<unknown>;
+    expect(followersQuery.eq).toHaveBeenCalledWith(
+      "follower_id",
+      "user-explicit",
+    );
+    expect(result).toEqual(["2"]);
+  });
+
   it("bloqueia follow em si mesmo", async () => {
     const service = makeService();
 

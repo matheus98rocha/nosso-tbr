@@ -36,7 +36,7 @@ export function useHome() {
   const { data: followingIdsData, isLoading: isLoadingFollowingIds } = useQuery(
     {
       queryKey: ["userSocial", "following", user?.id],
-      queryFn: () => userSocialService.getFollowingIds(),
+      queryFn: () => userSocialService.getFollowingIds(user!.id),
       enabled: isLoggedIn && !!user?.id,
       staleTime: 1000 * 60 * 2,
     },
@@ -181,6 +181,10 @@ export function useHome() {
   const relationshipKey =
     relationshipUserValues?.slice().sort().join("|") ?? "none";
 
+  /** Evita fetch com chave "none" antes de relationshipUserValues existir (reduz pares de requests com a mesma URL). */
+  const shouldDeferBooksForRelationship =
+    isLoggedIn && isAllBooksActive && relationshipKey === "none";
+
   const {
     data: rawBooks,
     isFetching: isLoadingAllBooks,
@@ -262,7 +266,9 @@ export function useHome() {
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     refetchOnMount: false,
-    enabled: !shouldWaitForUsers,
+    refetchOnWindowFocus: false,
+    enabled:
+      !shouldWaitForUsers && !shouldDeferBooksForRelationship,
   });
 
   const formattedGenres = useMemo(
@@ -486,12 +492,16 @@ export function useHome() {
     if (!isMyBooksActive) return;
 
     queryClient.prefetchQuery({
-      queryKey: QUERY_KEYS.books.list(
-        serverFilters,
-        searchQuery,
-        nextPage,
-        effectiveUserId,
-      ),
+      queryKey: [
+        ...QUERY_KEYS.books.list(
+          serverFilters,
+          searchQuery,
+          nextPage,
+          effectiveUserId,
+        ),
+        "relationship",
+        relationshipKey,
+      ],
       queryFn: () =>
         bookService.getAll({
           bookId: serverFilters.bookId,
@@ -515,6 +525,7 @@ export function useHome() {
     currentPage,
     effectiveUserId,
     relationshipUserValues,
+    relationshipKey,
     serverFilters,
     isMyBooksActive,
     queryClient,

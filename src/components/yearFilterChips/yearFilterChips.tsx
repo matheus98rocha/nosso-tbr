@@ -8,10 +8,11 @@ import { Skeleton } from "../ui/skeleton";
 
 function YearFilterChipsComponent(props: YearFilterChipsProps) {
   const { activeYear } = props;
-  const { isLoading, yearsList, handleSelect } = useYearFilterChips(props);
+  const { isLoading, yearsList, handleSelect, yearSectionRef } =
+    useYearFilterChips(props);
 
   return (
-    <>
+    <div ref={yearSectionRef} className="w-full">
       {isLoading ? (
         <div className="flex gap-2 flex-wrap">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -49,7 +50,7 @@ function YearFilterChipsComponent(props: YearFilterChipsProps) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

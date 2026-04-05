@@ -71,6 +71,7 @@ const defaultProps = {
   bookData: undefined,
   setIsBookFormOpen: vi.fn(),
   chosenByOptions: [],
+  isBookFormOpen: true,
 };
 
 function setupMocks({
@@ -114,11 +115,21 @@ describe("useBookDialog — query de estantes", () => {
       );
     });
 
-    it("passa enabled: true para useQuery quando está logado", () => {
+    it("passa enabled: true para useQuery quando está logado e o formulário está aberto", () => {
       setupMocks({ isLoggedIn: true });
       renderHook(() => useBookDialog(defaultProps));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it("passa enabled: false quando o formulário está fechado", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() =>
+        useBookDialog({ ...defaultProps, isBookFormOpen: false }),
+      );
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
       );
     });
 

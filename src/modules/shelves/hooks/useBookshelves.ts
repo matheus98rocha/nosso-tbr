@@ -17,9 +17,12 @@ import { useRouter } from "next/navigation";
 export function useBookshelves({
   handleClose,
   editShelf,
+  /** Quando false, não busca a lista (ex.: diálogo fechado no Header). Default: true (página de estantes). */
+  fetchEnabled = true,
 }: {
   handleClose?: (open: boolean) => void;
   editShelf?: BookshelfDomain;
+  fetchEnabled?: boolean;
 }) {
   const queryClient = useQueryClient();
   const service = new BookshelfService();
@@ -36,7 +39,7 @@ export function useBookshelves({
   } = useQuery({
     queryKey: ["bookshelves"],
     queryFn: fetchBookShelves,
-    enabled: isLoggedIn,
+    enabled: isLoggedIn && fetchEnabled,
     staleTime: 1000 * 60 * 5,
   });
 

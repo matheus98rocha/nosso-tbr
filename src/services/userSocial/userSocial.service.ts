@@ -45,20 +45,28 @@ export class UserSocialService {
     }
   }
 
-  async getFollowingIds(): Promise<string[]> {
-    const {
-      data: { user },
-      error: authError,
-    } = await this.supabase.auth.getUser();
+  /**
+   * @param followerId - When provided (e.g. from session/store), skips `auth.getUser()`
+   *        and avoids an extra round-trip; RLS still enforces access on `user_followers`.
+   */
+  async getFollowingIds(followerId?: string): Promise<string[]> {
+    let id = followerId;
+    if (!id) {
+      const {
+        data: { user },
+        error: authError,
+      } = await this.supabase.auth.getUser();
 
-    if (authError || !user) {
-      return [];
+      if (authError || !user) {
+        return [];
+      }
+      id = user.id;
     }
 
     const { data, error } = await this.supabase
       .from("user_followers")
       .select("following_id")
-      .eq("follower_id", user.id);
+      .eq("follower_id", id);
 
     if (error) {
       throw new RepositoryError(

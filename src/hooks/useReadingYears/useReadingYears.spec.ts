@@ -79,6 +79,19 @@ describe("useReadingYears", () => {
     );
   });
 
+  it("passa enabled: false quando options.enabled é false", () => {
+    setupSupabaseSelect({ data: [], error: null });
+
+    renderHook(() => useReadingYears({ enabled: false }));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["readingYears"],
+        enabled: false,
+      }),
+    );
+  });
+
   it("queryFn requests distinct_reading_years, maps rows to years, and sorts descending (e.g. 2026→2023)", async () => {
     const { select } = setupSupabaseSelect({
       data: [{ year: 2023 }, { year: 2026 }, { year: 2024 }, { year: 2025 }],

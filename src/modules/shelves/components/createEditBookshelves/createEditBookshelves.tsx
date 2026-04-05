@@ -59,6 +59,7 @@ export function CreateEditBookshelves({
   const { mutate, isCreating } = useBookshelves({
     handleClose,
     editShelf,
+    fetchEnabled: isOpen,
   });
 
   function onSubmit(values: BookshelfCreateValidator) {

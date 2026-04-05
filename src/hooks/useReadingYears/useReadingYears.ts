@@ -1,7 +1,14 @@
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
-function useReadingYears() {
+type UseReadingYearsOptions = {
+  /** When false, the query does not run (e.g. defer until section is visible). */
+  enabled?: boolean;
+};
+
+function useReadingYears(options?: UseReadingYearsOptions) {
+  const enabled = options?.enabled ?? true;
+
   return useQuery({
     queryKey: ["readingYears"],
     queryFn: async () => {
@@ -15,6 +22,7 @@ function useReadingYears() {
 
       return data.map((item) => item.year).sort((a, b) => b - a);
     },
+    enabled,
   });
 }
 

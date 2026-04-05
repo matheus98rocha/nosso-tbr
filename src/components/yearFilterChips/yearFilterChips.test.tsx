@@ -129,8 +129,8 @@ describe("YearFilterChips", () => {
   describe("mobile responsiveness", () => {
     it("container has flex-wrap to prevent overflow on small screens", () => {
       const { container } = renderYearChips();
-      const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper.className).toContain("flex-wrap");
+      const flexWrap = container.querySelector(".flex-wrap");
+      expect(flexWrap).not.toBeNull();
     });
 
     it("each year button has minimum height class for touch targets (h-8 = 32px)", () => {

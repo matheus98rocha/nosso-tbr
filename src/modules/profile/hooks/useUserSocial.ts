@@ -32,7 +32,7 @@ export function useUserSocial() {
 
   const { data: followingIds = [] } = useQuery({
     queryKey: followingQueryKey,
-    queryFn: () => service.getFollowingIds(),
+    queryFn: () => service.getFollowingIds(currentUser!.id),
     enabled: isClientReady && isLoggedIn && !!currentUser?.id,
     staleTime: 1000 * 60 * 2,
   });

@@ -50,6 +50,7 @@ export function useBookUpsert({
     bookData,
     setIsBookFormOpen,
     chosenByOptions,
+    isBookFormOpen,
   });
 
   const [authorSearch, setAuthorSearch] = useState("");

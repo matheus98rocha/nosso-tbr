@@ -34,6 +34,7 @@ const checkboxes: { id: Status; label: string }[] = [
 export function useBookDialog({
   bookData,
   setIsBookFormOpen,
+  isBookFormOpen,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -122,7 +123,7 @@ export function useBookDialog({
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
     queryKey: ["bookshelves"],
     queryFn: fetchBookShelves,
-    enabled: isLoggedIn,
+    enabled: isLoggedIn && isBookFormOpen,
     staleTime: 1000 * 60 * 5,
   });
 
