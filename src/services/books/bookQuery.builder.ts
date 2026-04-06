@@ -6,6 +6,24 @@ import { buildFtsQueryFromUserSearch } from "./buildFtsQueryFromUserSearch";
 export class BookQueryBuilder {
   private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
 
+  private static buildStatusOrCondition(statuses: Status[]): string {
+    const unique = [...new Set(statuses)];
+    const hasPlanned = unique.includes("planned");
+
+    if (!hasPlanned) {
+      return unique.map((status) => `status.eq.${status}`).join(",");
+    }
+
+    const nonPlanned = unique.filter((status) => status !== "planned");
+    const conditions = [
+      ...nonPlanned.map((status) => `status.eq.${status}`),
+      "status.eq.planned",
+      "and(status.eq.not_started,planned_start_date.not.is.null)",
+    ];
+
+    return conditions.join(",");
+  }
+
   private static quotePostgrestTextValue(value: string): string {
     const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
     return `"${escaped}"`;
@@ -35,7 +53,8 @@ export class BookQueryBuilder {
 
   withStatus(statuses?: Status[]): this {
     if (!statuses || statuses.length === 0) return this;
-    this.query = this.query.in("status", statuses);
+    const statusCondition = BookQueryBuilder.buildStatusOrCondition(statuses);
+    this.query = this.query.or(statusCondition);
     return this;
   }
 

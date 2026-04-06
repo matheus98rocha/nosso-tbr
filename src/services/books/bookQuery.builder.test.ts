@@ -218,16 +218,35 @@ describe("BookQueryBuilder", () => {
         .withStatus(["paused", "abandoned"])
         .build();
 
-      expect(mockQuery.in).toHaveBeenCalledWith("status", [
-        "paused",
-        "abandoned",
-      ]);
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "status.eq.paused,status.eq.abandoned",
+      );
     });
 
     it("does not apply status filter when status list is empty", () => {
       new BookQueryBuilder(supabase, mockQuery as never).withStatus([]).build();
 
-      expect(mockQuery.in).not.toHaveBeenCalled();
+      expect(mockQuery.or).not.toHaveBeenCalled();
+    });
+
+    it("applies guard for planned filter including only scheduled not_started", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withStatus(["planned"])
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "status.eq.planned,and(status.eq.not_started,planned_start_date.not.is.null)",
+      );
+    });
+
+    it("keeps other statuses when planned is combined with additional filters", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withStatus(["finished", "planned"])
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "status.eq.finished,status.eq.planned,and(status.eq.not_started,planned_start_date.not.is.null)",
+      );
     });
   });
 

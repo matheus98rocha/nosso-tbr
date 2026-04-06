@@ -86,7 +86,7 @@ describe("BookService.getAll", () => {
     expect(builderInstance.withUser).toHaveBeenCalledWith(undefined);
   });
 
-  it('expands "planned" status to include legacy "not_started" scheduled books', async () => {
+  it('keeps "planned" status and delegates compatibility guard to query builder', async () => {
     const service = new BookService();
 
     await service.getAll({
@@ -98,9 +98,6 @@ describe("BookService.getAll", () => {
       },
     });
 
-    expect(builderInstance.withStatus).toHaveBeenCalledWith([
-      "not_started",
-      "planned",
-    ]);
+    expect(builderInstance.withStatus).toHaveBeenCalledWith(["planned"]);
   });
 });

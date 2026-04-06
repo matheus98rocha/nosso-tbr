@@ -15,20 +15,6 @@ function isBookStatus(value: unknown): value is BookStatus {
   return ALLOWED_STATUSES.includes(value as BookStatus);
 }
 
-function normalizeStatusesForQuery(statuses: BookStatus[]): BookStatus[] {
-  if (!statuses.includes("planned")) return statuses;
-
-  const expanded = new Set<BookStatus>(statuses);
-  /**
-   * Compatibilidade de dados: "Vou iniciar a leitura" já foi salvo como
-   * `not_started` em parte do catálogo.
-   * Ao filtrar por "planned", buscamos ambos para não perder livros agendados.
-   */
-  expanded.add("not_started");
-
-  return Array.from(expanded).sort();
-}
-
 export class BookService {
   private supabase = createClient();
 
@@ -52,9 +38,7 @@ export class BookService {
     pageSize?: number;
   }): Promise<{ data: BookDomain[]; total: number }> {
     try {
-      const statuses = normalizeStatusesForQuery(
-        (filters?.status ?? []).filter(isBookStatus),
-      );
+      const statuses = (filters?.status ?? []).filter(isBookStatus);
 
       const query = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
