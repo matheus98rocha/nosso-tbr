@@ -6,11 +6,11 @@ export const DndContext = (props: { children: React.ReactNode }) =>
   React.createElement(React.Fragment, null, props.children);
 
 export class PointerSensor {
-  constructor(_opts?: unknown) {}
+  constructor() {}
 }
 
 export class KeyboardSensor {
-  constructor(_opts?: unknown) {}
+  constructor() {}
 }
 
 export const useSensor = () => ({});
