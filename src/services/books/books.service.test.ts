@@ -85,4 +85,22 @@ describe("BookService.getAll", () => {
     expect(builderInstance.withUserRelationship).toHaveBeenCalledWith(undefined);
     expect(builderInstance.withUser).toHaveBeenCalledWith(undefined);
   });
+
+  it('expands "planned" status to include legacy "not_started" scheduled books', async () => {
+    const service = new BookService();
+
+    await service.getAll({
+      filters: {
+        readers: [],
+        status: ["planned"],
+        gender: [],
+        view: "todos",
+      },
+    });
+
+    expect(builderInstance.withStatus).toHaveBeenCalledWith([
+      "not_started",
+      "planned",
+    ]);
+  });
 });
