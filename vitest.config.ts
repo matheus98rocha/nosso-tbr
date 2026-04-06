@@ -21,6 +21,15 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@dnd-kit/core": path.resolve(__dirname, "./src/test/stubs/dnd-kit-core.ts"),
+      "@dnd-kit/sortable": path.resolve(
+        __dirname,
+        "./src/test/stubs/dnd-kit-sortable.ts",
+      ),
+      "@dnd-kit/utilities": path.resolve(
+        __dirname,
+        "./src/test/stubs/dnd-kit-utilities.ts",
+      ),
     },
   },
 });

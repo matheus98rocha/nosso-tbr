@@ -1,11 +1,16 @@
 import { BookDomain } from "@/types/books.types";
 
-export type BookCardProps = {
-  book: BookDomain;
-  isShelf?: boolean;
-  /** Estante atual ao remover livro da estante (RN45 + API guard). */
-  shelfId?: string;
-};
+export type BookCardProps =
+  | {
+      book: BookDomain;
+      isShelf?: false;
+      shelfId?: undefined;
+    }
+  | {
+      book: BookDomain;
+      isShelf: true;
+      shelfId: string;
+    };
 
 export type StatusDisplay = {
   label: string;

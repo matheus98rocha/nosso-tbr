@@ -148,6 +148,17 @@ describe("useBookCard", () => {
       });
     });
 
+    describe("handleConfirmDelete (RN55)", () => {
+      it("when isShelf is true and shelfId is empty, throws (RN55 guard)", async () => {
+        const { result } = renderHook(() =>
+          useBookCard({ book: baseBook, isShelf: true, shelfId: "" }),
+        );
+        await expect(
+          result.current.handleConfirmDelete("1"),
+        ).rejects.toThrow(/shelfId é obrigatório/);
+      });
+    });
+
     describe("shareOnWhatsApp", () => {
       beforeEach(() => {
         vi.spyOn(window, "open").mockImplementation(() => null);

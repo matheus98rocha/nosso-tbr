@@ -17,7 +17,8 @@ export class BookshelfServiceBooks {
         )
       `,
       )
-      .eq("shelf_id", bookshelfId);
+      .eq("shelf_id", bookshelfId)
+      .order("sort_order", { ascending: true });
 
     if (error) throw new Error(error.message);
     if (!data) return [];
@@ -27,6 +28,19 @@ export class BookshelfServiceBooks {
       .map((row) =>
         BookMapper.toDomain(row.book as unknown as BookPersistence),
       );
+  }
+
+  async reorderBooksOnShelf(
+    shelfId: string,
+    orderedBookIds: string[],
+  ): Promise<void> {
+    await apiJson<{ ok: true }>(
+      `/api/shelves/${encodeURIComponent(shelfId)}/books/reorder`,
+      {
+        method: "POST",
+        body: JSON.stringify({ bookIds: orderedBookIds }),
+      },
+    );
   }
 
   async removeBookFromShelf(shelfId: string, bookId: string): Promise<void> {
