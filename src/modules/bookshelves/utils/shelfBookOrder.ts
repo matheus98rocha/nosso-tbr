@@ -66,7 +66,8 @@ export function reorderBooksByIdOrder(
       .filter((b): b is BookDomain & { id: string } => Boolean(b.id))
       .map((b) => [b.id, b]),
   );
-  return orderedIds
-    .map((id) => map.get(id))
-    .filter((b): b is BookDomain => b !== undefined);
+  return orderedIds.flatMap((id) => {
+    const book = map.get(id);
+    return book !== undefined ? [book] : [];
+  });
 }
