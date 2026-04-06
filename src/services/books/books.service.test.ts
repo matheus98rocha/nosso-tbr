@@ -85,4 +85,19 @@ describe("BookService.getAll", () => {
     expect(builderInstance.withUserRelationship).toHaveBeenCalledWith(undefined);
     expect(builderInstance.withUser).toHaveBeenCalledWith(undefined);
   });
+
+  it('keeps "planned" status and delegates compatibility guard to query builder', async () => {
+    const service = new BookService();
+
+    await service.getAll({
+      filters: {
+        readers: [],
+        status: ["planned"],
+        gender: [],
+        view: "todos",
+      },
+    });
+
+    expect(builderInstance.withStatus).toHaveBeenCalledWith(["planned"]);
+  });
 });
