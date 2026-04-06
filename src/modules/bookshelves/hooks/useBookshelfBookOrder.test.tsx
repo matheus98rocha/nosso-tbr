@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import React from "react";
 import { useBookshelfBookOrder } from "./useBookshelfBookOrder";
 import type { BookDomain } from "@/types/books.types";
+import { bookshelfBooksQueryKey } from "@/modules/bookshelves/bookshelfBooksQueryKey";
 
 const book = (id: string): BookDomain => ({
   id,
@@ -41,7 +42,7 @@ describe("useBookshelfBookOrder", () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     vi.spyOn(client, "invalidateQueries").mockResolvedValue(undefined as never);
     const books = [book("a"), book("b")];
-    client.setQueryData(["bookshelf-books", "s1"], books);
+    client.setQueryData(bookshelfBooksQueryKey("s1"), books);
 
     const { result } = renderHook(() => useBookshelfBookOrder("s1"), {
       wrapper: wrapper(client),
@@ -51,9 +52,10 @@ describe("useBookshelfBookOrder", () => {
       result.current.applyReorder(books, ["b", "a"]);
     });
 
-    expect(client.getQueryData<BookDomain[]>(["bookshelf-books", "s1"])?.map((x) => x.id)).toEqual([
-      "b",
-      "a",
-    ]);
+    expect(
+      client
+        .getQueryData<BookDomain[]>(bookshelfBooksQueryKey("s1"))
+        ?.map((x) => x.id),
+    ).toEqual(["b", "a"]);
   });
 });

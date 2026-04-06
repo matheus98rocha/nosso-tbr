@@ -69,7 +69,8 @@ function SortableShelfBookItem({
   shelfId: string;
   reorderDisabled: boolean;
 }) {
-  const id = book.id ?? "";
+  if (!book.id) return null;
+  const id = book.id;
   const {
     attributes,
     listeners,
@@ -104,9 +105,15 @@ function SortableShelfBookItem({
             "flex w-8 shrink-0 cursor-grab touch-none items-center justify-center border-r border-border/50 bg-muted/30 py-3 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             reorderDisabled && "pointer-events-none cursor-not-allowed opacity-40",
           )}
-          aria-label={`Arrastar para reordenar: ${book.title}`}
-          {...attributes}
-          {...listeners}
+          aria-label={
+            reorderDisabled
+              ? `Reordenação indisponível: ${book.title}`
+              : `Arrastar para reordenar: ${book.title}`
+          }
+          aria-disabled={reorderDisabled}
+          tabIndex={reorderDisabled ? -1 : undefined}
+          {...(reorderDisabled ? {} : attributes)}
+          {...(reorderDisabled ? {} : listeners)}
         >
           <GripVertical className="h-4 w-4 shrink-0" aria-hidden />
         </button>
@@ -128,9 +135,14 @@ export default function BookshelfBooksSortableGrid({
   onReorder,
   reorderDisabled = false,
 }: BookshelfBooksSortableGridProps) {
-  const itemIds = useMemo(
-    () => books.map((b) => b.id).filter((id): id is string => Boolean(id)),
+  const sortableBooks = useMemo(
+    () => books.filter((book): book is BookDomain & { id: string } => Boolean(book.id)),
     [books],
+  );
+
+  const itemIds = useMemo(
+    () => sortableBooks.map((b) => b.id),
+    [sortableBooks],
   );
 
   const sensors = useSensors(
@@ -151,9 +163,9 @@ export default function BookshelfBooksSortableGrid({
       const newIndex = ids.indexOf(String(over.id));
       if (oldIndex < 0 || newIndex < 0) return;
       const next = arrayMove(ids, oldIndex, newIndex);
-      onReorder(books, next);
+      onReorder(sortableBooks, next);
     },
-    [books, itemIds, onReorder],
+    [itemIds, onReorder, sortableBooks],
   );
 
   if (isError) {
@@ -199,7 +211,7 @@ export default function BookshelfBooksSortableGrid({
           role="list"
           aria-label="Livros na estante, reordenáveis por arrastar"
         >
-          {books.map((book) => (
+          {sortableBooks.map((book) => (
             <div key={book.id} role="listitem" className="min-w-0">
               <SortableShelfBookItem
                 book={book}

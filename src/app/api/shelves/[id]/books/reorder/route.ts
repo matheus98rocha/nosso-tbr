@@ -9,11 +9,11 @@ const bodySchema = z.object({
 });
 
 type Ctx = {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 };
 
 export async function POST(request: Request, ctx: Ctx) {
-  const { id: shelfId } = await ctx.params;
+  const { id: shelfId } = ctx.params;
   const supabase = await createClient();
   const auth = await requireUser(supabase);
   if (auth.errorResponse) return auth.errorResponse;
