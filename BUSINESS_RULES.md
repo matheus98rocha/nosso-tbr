@@ -93,6 +93,11 @@
   - Excluir via `BookshelfService`: Remove apenas o vínculo do livro com a estante específica (módulo Shelves).
 - **RN15 - Mobile Touch Targets:** Elementos interativos (Dropdowns, Cards) devem seguir o padrão de acessibilidade para touch. Elementos de menu (ellipsis) devem ter áreas de clique de no mínimo 44x44px.
 
+- **RN55 - `BookCard`: Biblioteca (Home) vs Estante:** O mesmo componente `BookCard` é usado na **Home** (`modules/home`, lista geral da biblioteca) e nas **estantes** (`modules/bookshelves`). O comportamento **não é intercambiável**:
+  - **Home / biblioteca:** usar `isShelf={false}` (valor padrão do componente). Não passar `shelfId`. Ações de remoção e exclusão referem-se ao **livro** no catálogo, conforme **RN14** (fluxo `BookService` / exclusão física quando aplicável).
+  - **Estante:** usar `isShelf={true}` e **`shelfId` obrigatório** (id da `custom_shelves` em contexto). A remoção pelo card desfaz apenas o **vínculo** livro–estante (`BookshelfService` / **RN14**), nunca confundir com exclusão do registro `books`.
+  - Novas telas que reutilizem `BookCard` devem declarar explicitamente esse contexto; não inferir `isShelf` a partir de rota sem passar props corretas.
+
 ## 5. Cadastro direto de usuário (link exclusivo)
 
 - **RN35 - Descoberta e layout:** A rota `/register` não faz parte da navegação principal nem do layout `(main)`; o acesso é apenas por URL direta (ou link compartilhado), sem alterar fluxos de usuários já autenticados.
@@ -124,3 +129,15 @@ As regras abaixo são aplicadas no banco (Row Level Security). A UI continua res
 - **RN47 - `authors` (catálogo compartilhado):** Leitura ampla para listagem e autocomplete. Usuários autenticados podem **criar** e **atualizar** autores. **Exclusão** de autor só é permitida quando **não** existir livro (nem vínculo em `book_authors`) referenciando esse autor, evitando apagar registro em uso por terceiros.
 
 - **RN48 - Camada de aplicação (API Routes):** Mutações destrutivas ou sensíveis (`books` criar/editar/excluir, `authors`, `quotes`, `schedule`, `custom_shelves` / vínculos) devem passar pelas rotas em `src/app/api/**`, com sessão validada e a mesma regra de participação em livros (**RN42**) aplicada no servidor antes de chamar o Supabase. Isso complementa o RLS no Postgres; leituras que podem permanecer via cliente (`getAll` de livros, autocomplete, etc.) seguem **RN17** e **RN22**.
+
+## 8. Estantes customizadas — ordenação manual de livros
+
+- **RN50 - Identificador de ordem (`book_id`):** A posição de cada livro na estante é definida em relação ao **`book_id`** (identificador do livro no catálogo `books`). A UI e a API de reordenação trabalham com a lista ordenada de `book_id`; na tabela `custom_shelf_books`, a coluna de ordem (`sort_order`) associa-se à linha cujo `book_id` corresponde àquele livro. Não se ordena pela coluna `id` da junção para exibição ou persistência da sequência.
+
+- **RN51 - Independência por estante:** Cada `custom_shelves.id` possui sua própria sequência de `sort_order`. Alterar a ordem em uma estante não altera a ordem do mesmo `book_id` em outras estantes.
+
+- **RN52 - Sobreposição à ordenação automática:** Quando a usuária reordena manualmente (drag-and-drop), essa ordem manual passa a ser a fonte da verdade para a listagem daquela estante, substituindo qualquer ordenação apenas visual por título, autor ou data que a UI puder aplicar em outros contextos.
+
+- **RN53 - Persistência e salvamento automático:** Ao concluir o gesto de soltar (drop), o sistema persiste imediatamente a nova sequência no banco, sem botão de salvar. Se a persistência falhar, a interface deve notificar o erro e restaurar a ordem anteriormente exibida.
+
+- **RN54 - Novos vínculos na estante:** Ao adicionar um livro a uma estante, o novo vínculo recebe posição ao final da sequência existente naquela estante (comportamento garantido no banco ou na API de criação do vínculo).

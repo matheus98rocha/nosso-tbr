@@ -35,12 +35,16 @@ vi.mock("./hooks/useBookshelfMeta", () => ({
   })),
 }));
 
-vi.mock("@/components/listGrid", () => ({
-  ListGrid: () => <div data-testid="list-grid" />,
+vi.mock("./hooks/useBookshelfBookOrder", () => ({
+  useBookshelfBookOrder: () => ({
+    applyReorder: vi.fn(),
+    isPending: false,
+  }),
 }));
 
-vi.mock("@/components/bookCard", () => ({
-  BookCard: () => null,
+vi.mock("./components/BookshelfBooksSortableGrid", () => ({
+  __esModule: true,
+  default: () => <div data-testid="bookshelf-sortable-grid" />,
 }));
 
 describe("ClientBookshelves", () => {

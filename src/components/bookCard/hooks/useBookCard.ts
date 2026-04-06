@@ -6,7 +6,11 @@ import { useCallback, useMemo } from "react";
 import { BookService } from "@/services/books/books.service";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 
-export function useBookCard({ book, shelfId }: BookCardProps) {
+export function useBookCard({
+  book,
+  isShelf = false,
+  shelfId,
+}: BookCardProps) {
   const dropdownModal = useModal();
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
@@ -135,19 +139,24 @@ export function useBookCard({ book, shelfId }: BookCardProps) {
     return configs[book.status ?? "not_started"] ?? null;
   }, [book.status, formattedEndDate, formattedPlannedDate]);
 
-  const handleConfirmDelete = async (id: string, isShelf?: boolean) => {
-    if (!isShelf) {
-      const service = new BookService();
-      await service.delete(id);
-    } else {
+  const handleConfirmDelete = useCallback(
+    async (id: string) => {
+      if (!isShelf) {
+        const service = new BookService();
+        await service.delete(id);
+        return;
+      }
       if (!shelfId) {
-        throw new Error("shelfId é obrigatório para remover da estante.");
+        throw new Error(
+          "shelfId é obrigatório para remover o livro da estante (RN55).",
+        );
       }
       const service = new BookshelfServiceBooks();
       await service.removeBookFromShelf(shelfId, id);
       window.location.reload();
-    }
-  };
+    },
+    [isShelf, shelfId],
+  );
 
   return {
     dropdownModal,

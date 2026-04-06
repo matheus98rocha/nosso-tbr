@@ -2,15 +2,14 @@
 
 import React from "react";
 import { useParams } from "next/navigation";
-import { BookDomain } from "@/types/books.types";
-import { ListGrid } from "@/components/listGrid";
-import { BookCard } from "@/components/bookCard";
 import Link from "next/link";
-import { ArrowLeft, Library } from "lucide-react";
+import { ArrowLeft, GripVertical, Library } from "lucide-react";
 import { useBookshelfBooks } from "./hooks/useBookshelfBooks";
+import { useBookshelfBookOrder } from "./hooks/useBookshelfBookOrder";
 import { useBookshelfMeta } from "./hooks/useBookshelfMeta";
 import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { Skeleton } from "@/components/ui/skeleton";
+import BookshelfBooksSortableGrid from "./components/BookshelfBooksSortableGrid";
 
 function ClientBookshelves() {
   const { id } = useParams();
@@ -23,6 +22,9 @@ function ClientBookshelves() {
     isSuccess,
     isFetched,
   } = useBookshelfBooks(bookshelfId);
+
+  const { applyReorder, isPending: isReorderPending } =
+    useBookshelfBookOrder(bookshelfId);
 
   const {
     data: shelfMeta,
@@ -66,41 +68,49 @@ function ClientBookshelves() {
         </Link>
       </div>
 
-      <header className="space-y-2">
-        <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-          Livros na estante
-        </h1>
-        {isLoadingShelfMeta ? (
-          <Skeleton className="h-8 w-full max-w-xs sm:max-w-md" aria-hidden />
-        ) : shelfMeta?.name ? (
-          <p
-            id="bookshelf-detail-name"
-            className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
-          >
-            {shelfMeta.name}
-          </p>
-        ) : isShelfMetaError ? null : (
-          <p className="text-base font-medium text-muted-foreground">Estante</p>
-        )}
-        <p className="text-base text-muted-foreground">
-          Os livros que você adicionou a esta estante aparecem abaixo.
-        </p>
+      <header className="space-y-5 border-b border-border/60 pb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Livros na estante
+            </p>
+            {isLoadingShelfMeta ? (
+              <Skeleton className="h-9 w-full max-w-md sm:h-10" aria-hidden />
+            ) : shelfMeta?.name ? (
+              <h1
+                id="bookshelf-detail-name"
+                className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+              >
+                {shelfMeta.name}
+              </h1>
+            ) : isShelfMetaError ? null : (
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                Estante
+              </h1>
+            )}
+          </div>
+          <div className="flex max-w-sm items-start gap-2 rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground sm:max-w-xs">
+            <GripVertical
+              className="mt-0.5 h-4 w-4 shrink-0 text-foreground/70"
+              aria-hidden
+            />
+            <span>
+              Arraste pela barra à esquerda de cada livro. A ordem fica salva
+              nesta estante.
+            </span>
+          </div>
+        </div>
       </header>
 
-      <ListGrid<BookDomain>
-        items={books}
+      <BookshelfBooksSortableGrid
+        shelfId={bookshelfId}
+        books={books}
         isLoading={isLoading}
         isFetched={isFetched && isSuccess}
         isError={isError}
         emptyMessage="Nenhum livro nesta estante. Adicione livros pela sua biblioteca ou pelas estantes."
-        renderItem={(book) => (
-          <BookCard
-            key={book.id}
-            book={book}
-            isShelf={true}
-            shelfId={bookshelfId}
-          />
-        )}
+        onReorder={applyReorder}
+        reorderDisabled={isReorderPending}
       />
     </div>
   );
