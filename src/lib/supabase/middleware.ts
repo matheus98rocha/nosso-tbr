@@ -1,6 +1,14 @@
 import { type CookieOptions, createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+function isStaleTokenError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const err = error as { __isAuthError?: boolean; name?: string };
+  return (
+    err.__isAuthError === true && err.name !== "AuthSessionMissingError"
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   const supabaseResponse = NextResponse.next({
     request,
@@ -32,7 +40,20 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  const { error } = await supabase.auth.getUser();
+
+  if (error && isStaleTokenError(error)) {
+    request.cookies.getAll().forEach((cookie) => {
+      if (cookie.name.startsWith("sb-")) {
+        supabaseResponse.cookies.set({
+          name: cookie.name,
+          value: "",
+          maxAge: 0,
+          path: "/",
+        });
+      }
+    });
+  }
 
   return supabaseResponse;
 }
