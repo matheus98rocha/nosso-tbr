@@ -250,6 +250,47 @@ describe("BookQueryBuilder", () => {
     });
   });
 
+  describe("withReread", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("applies eq filter for is_reread when isReread is true", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReread(true)
+        .build();
+
+      expect(mockQuery.eq).toHaveBeenCalledWith("is_reread", true);
+    });
+
+    it("does not apply filter when isReread is false", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReread(false)
+        .build();
+
+      expect(mockQuery.eq).not.toHaveBeenCalled();
+    });
+
+    it("does not apply filter when isReread is undefined", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReread(undefined)
+        .build();
+
+      expect(mockQuery.eq).not.toHaveBeenCalled();
+    });
+
+    it("returns the builder instance to support method chaining", () => {
+      const builder = new BookQueryBuilder(supabase, mockQuery as never);
+      const returned = builder.withReread(true);
+
+      expect(returned).toBe(builder);
+    });
+  });
+
   describe("withYear", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;

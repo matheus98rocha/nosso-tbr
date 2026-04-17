@@ -8,6 +8,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/multSelect/multiSelect";
 
 import {
@@ -47,14 +49,14 @@ export default function FiltersSheet({
   }, [localFilters, searchQuery, updateUrlWithFilters, setIsOpen]);
 
   const handleCancel = useCallback(() => {
-    const cleared = { ...filters, readers: [], gender: [], status: [] };
+    const cleared = { ...filters, readers: [], gender: [], status: [], isReread: undefined };
     setIsOpen(false);
     updateUrlWithFilters(cleared, "");
     resetLocalFilters(cleared);
   }, [filters, setIsOpen, updateUrlWithFilters, resetLocalFilters]);
 
   const handleClearAll = useCallback(() => {
-    const cleared = { ...localFilters, readers: [], gender: [], status: [] };
+    const cleared = { ...localFilters, readers: [], gender: [], status: [], isReread: undefined };
     resetLocalFilters(cleared);
   }, [localFilters, resetLocalFilters]);
 
@@ -98,6 +100,19 @@ export default function FiltersSheet({
             onChange={(values) => handleFilterChange("gender", values)}
             placeholder="Selecione os gêneros"
           />
+
+          <div className="flex items-center gap-3 min-h-[44px]">
+            <Switch
+              id="filter-reread"
+              checked={localFilters.isReread ?? false}
+              onCheckedChange={(checked) =>
+                handleFilterChange("isReread", checked || false)
+              }
+            />
+            <Label htmlFor="filter-reread" className="text-sm font-semibold text-foreground/80">
+              Apenas releituras
+            </Label>
+          </div>
         </div>
 
         <SheetFooter className="flex flex-col gap-2 mt-auto pt-4 border-t">

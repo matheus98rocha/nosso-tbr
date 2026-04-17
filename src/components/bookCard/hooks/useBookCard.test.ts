@@ -26,6 +26,7 @@ const baseBook: BookDomain = {
   gender: "Fiction",
   image_url: "https://example.com/test.jpg",
   user_id: "user-123",
+  is_reread: false,
 };
 
 const renderBookCardHook = (book = baseBook) =>

@@ -1,0 +1,2 @@
+ALTER TABLE public.books
+  ADD COLUMN is_reread BOOLEAN NOT NULL DEFAULT FALSE;

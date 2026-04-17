@@ -8,6 +8,7 @@ import {
   BookCard,
   DefaultPagination,
   ListGrid,
+  SortFilterChips,
   StatusFilterChips,
   YearFilterChips,
 } from "@/components";
@@ -15,6 +16,7 @@ import { CreateEditBookshelves } from "../shelves/components/createEditBookshelv
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  ArrowDownUp,
   BookOpen,
   BookPlus,
   LogInIcon,
@@ -47,6 +49,7 @@ export default function ClientHome() {
     handleSetAllBooks,
     handleSetJointReading,
     handleToggleReader,
+    handleSetSort,
     isMyBooksActive,
     isAllBooksActive,
     isLoggedIn,
@@ -256,6 +259,18 @@ export default function ClientHome() {
               <YearFilterChips
                 activeYear={filters.year}
                 onSelect={handleSetYear}
+                isLoading={isLoading}
+              />
+            </div>
+
+            <div className="p-4 space-y-2.5">
+              <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+                <ArrowDownUp size={11} />
+                Ordenação
+              </p>
+              <SortFilterChips
+                activeSort={filters.sort}
+                onSelect={handleSetSort}
                 isLoading={isLoading}
               />
             </div>

@@ -6,6 +6,7 @@ const buildMockBuilder = () => ({
   withStatus: vi.fn().mockReturnThis(),
   withGender: vi.fn().mockReturnThis(),
   withYear: vi.fn().mockReturnThis(),
+  withReread: vi.fn().mockReturnThis(),
   withSearchTerm: vi.fn().mockReturnThis(),
   withId: vi.fn().mockReturnThis(),
   withAuthor: vi.fn().mockReturnThis(),

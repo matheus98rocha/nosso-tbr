@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { EllipsisVerticalIcon, Users } from "lucide-react";
+import { BookOpen, EllipsisVerticalIcon, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownBook } from "./components/dropdownBook";
@@ -54,9 +54,7 @@ export function BookCard(props: BookCardProps) {
                 aria-label={`Mais opções para "${book.title}"`}
                 className={cn(
                   "flex items-center justify-center shrink-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 rounded-full transition-all duration-200 cursor-pointer",
-                  isShelf
-                    ? "w-8 h-8 -mr-1"
-                    : "w-11 h-11 -mr-2",
+                  isShelf ? "w-8 h-8 -mr-1" : "w-11 h-11 -mr-2",
                 )}
               >
                 <EllipsisVerticalIcon
@@ -119,10 +117,56 @@ export function BookCard(props: BookCardProps) {
           </span>
         )}
         {isShelf === false && (
-          <div className="flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500">
-            <Users size={10} className="shrink-0" />
-            <span className="truncate">{book.readersDisplay}</span>
+          <div className="flex items-center gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
+            {book.readersDisplay && (
+              <span className="flex items-center gap-1 shrink-0">
+                <Users size={10} className="shrink-0" />
+                <span>{book.readersDisplay}</span>
+              </span>
+            )}
+            {book.readersDisplay && book.pages && (
+              <span className="text-zinc-300 dark:text-zinc-600 select-none">
+                ·
+              </span>
+            )}
+            {book.pages && (
+              <span className="flex items-center gap-1 shrink-0">
+                <BookOpen size={10} className="shrink-0" />
+                <span>{book.pages} páginas</span>
+              </span>
+            )}
           </div>
+        )}
+
+        {isShelf === true && (
+          <div className="flex items-center gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
+            {book.readersDisplay && book.pages && (
+              <span className="text-zinc-300 dark:text-zinc-600 select-none">
+                ·
+              </span>
+            )}
+            {book.pages && (
+              <span className="flex items-center gap-1 shrink-0">
+                <BookOpen size={10} className="shrink-0" />
+                <span>{book.pages} páginas</span>
+              </span>
+            )}
+          </div>
+        )}
+
+        {book.is_reread && (
+          <Badge
+            variant="secondary"
+            className={cn(
+              "w-fit border-none font-medium uppercase",
+              isShelf
+                ? "h-4 px-1.5 text-[9px] py-0"
+                : "h-5 px-2 text-[10px] py-0",
+              "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
+            )}
+          >
+            Releitura
+          </Badge>
         )}
 
         {book.gender && (

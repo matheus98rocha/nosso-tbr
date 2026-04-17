@@ -128,7 +128,7 @@ export class BookUpsertService {
 
       const { data: booksWithSameTitle } = await duplicateCheckQuery;
 
-      return booksWithSameTitle?.length > 0;
+      return (booksWithSameTitle?.length ?? 0) > 0;
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "BookService",

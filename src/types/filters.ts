@@ -1,3 +1,5 @@
+export type SortOption = "pages_asc" | "pages_desc";
+
 export type FiltersOptions = {
   readers: string[];
   status: string[];
@@ -8,4 +10,6 @@ export type FiltersOptions = {
   authorId?: string;
   year?: number;
   myBooks?: boolean;
+  isReread?: boolean;
+  sort?: SortOption;
 };

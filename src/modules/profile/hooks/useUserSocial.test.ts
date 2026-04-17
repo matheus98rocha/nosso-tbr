@@ -39,7 +39,7 @@ describe("useUserSocial", () => {
       setQueryData: vi.fn(),
       getQueryData: vi.fn(),
     });
-    (useUserStore as Mock).mockImplementation(
+    (useUserStore as unknown as Mock).mockImplementation(
       (selector: (state: UserStoreState) => unknown) =>
         selector({ user: { id: "me", email: "me@mail.com" } }),
     );

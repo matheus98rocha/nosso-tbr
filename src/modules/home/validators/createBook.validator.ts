@@ -44,6 +44,7 @@ export const bookCreateSchema = z.object({
     }),
   user_id: z.string().optional(),
   id: z.string().optional(),
+  is_reread: z.boolean().optional(),
   status: z
     .enum([
       "reading",

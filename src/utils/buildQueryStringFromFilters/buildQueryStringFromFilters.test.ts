@@ -102,6 +102,38 @@ describe("buildQueryStringFromFilters", () => {
     });
   });
 
+  describe("isReread serialization", () => {
+    it("appends isReread param when isReread is true", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters, isReread: true });
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBe("true");
+    });
+
+    it("does not append isReread param when isReread is false", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters, isReread: false });
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBeNull();
+    });
+
+    it("does not append isReread param when isReread is undefined", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters });
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBeNull();
+    });
+
+    it("preserves other filters alongside isReread", () => {
+      const filters: FiltersOptions = {
+        ...baseFilters,
+        status: ["reading"],
+        isReread: true,
+      };
+      const result = buildQueryStringFromFilters(filters);
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBe("true");
+      expect(params.get("status")).toBe("reading");
+    });
+  });
+
   describe("existing filters without year", () => {
     it("returns empty string when all inputs are empty", () => {
       expect(buildQueryStringFromFilters(baseFilters)).toBe("");

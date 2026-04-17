@@ -10,8 +10,10 @@ function buildBook(overrides: Partial<BookDomain> & Pick<BookDomain, "id" | "tit
     pages: 0,
     readerIds: [],
     readersDisplay: "",
+    gender: null,
     image_url: "",
     user_id: "",
+    is_reread: false,
     ...overrides,
   };
 }

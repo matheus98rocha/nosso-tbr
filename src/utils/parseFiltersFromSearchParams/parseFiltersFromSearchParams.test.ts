@@ -64,6 +64,26 @@ describe("parseFiltersFromSearchParams", () => {
     });
   });
 
+  describe("isReread parsing", () => {
+    it("parses isReread=true as true", () => {
+      const params = buildParams({ isReread: "true" });
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.isReread).toBe(true);
+    });
+
+    it("returns undefined when isReread param is absent", () => {
+      const params = buildParams({});
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.isReread).toBeUndefined();
+    });
+
+    it("returns undefined for non-true isReread value", () => {
+      const params = buildParams({ isReread: "false" });
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.isReread).toBeUndefined();
+    });
+  });
+
   describe("existing fields are preserved when year is present", () => {
     it("parses status, gender and year together", () => {
       const params = buildParams({
