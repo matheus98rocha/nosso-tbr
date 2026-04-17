@@ -106,7 +106,7 @@ export default function FiltersSheet({
               id="filter-reread"
               checked={localFilters.isReread ?? false}
               onCheckedChange={(checked) =>
-                handleFilterChange("isReread", checked || false)
+                handleFilterChange("isReread", checked)
               }
             />
             <Label htmlFor="filter-reread" className="text-sm font-semibold text-foreground/80">
