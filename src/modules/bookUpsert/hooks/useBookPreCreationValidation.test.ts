@@ -58,6 +58,34 @@ describe("useBookPreCreationValidation", () => {
     expect(findCatalogBookMatch).not.toHaveBeenCalled();
   });
 
+  it("ignora verificação de duplicata e retorna create_new quando is_reread é true", async () => {
+    const findCatalogBookMatch = vi.fn();
+    const service = {
+      findCatalogBookMatch,
+      linkReaderToExistingBook: vi.fn(),
+    };
+
+    const { result } = renderHook(() =>
+      useBookPreCreationValidation({
+        isEdit: false,
+        currentUserId: "user-1",
+        bookUpsertService: service as never,
+      }),
+    );
+
+    await act(async () => {
+      const decision = await result.current.validateBeforeCreate({
+        ...basePayload,
+        is_reread: true,
+      } as never);
+      expect(decision.type).toBe("create_new");
+    });
+
+    expect(findCatalogBookMatch).not.toHaveBeenCalled();
+    expect(result.current.isParticipationBlockOpen).toBe(false);
+    expect(result.current.isDiscoveryOpen).toBe(false);
+  });
+
   it("retorna bloqueio quando encontra duplicidade e usuário já está vinculado", async () => {
     const service = {
       findCatalogBookMatch: vi.fn().mockResolvedValue(createMatch({ userAlreadyLinked: true })),

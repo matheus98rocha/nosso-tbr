@@ -8,4 +8,5 @@ export type FiltersOptions = {
   authorId?: string;
   year?: number;
   myBooks?: boolean;
+  isReread?: boolean;
 };

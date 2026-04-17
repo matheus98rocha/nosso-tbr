@@ -30,8 +30,11 @@ export const useLocalFilters = (initialFilters: FiltersOptions) => {
     useState<FiltersOptions>(initialFilters);
 
   const handleFilterChange = useCallback(
-    (key: keyof FiltersOptions, value: string | string[]) => {
+    (key: keyof FiltersOptions, value: string | string[] | boolean) => {
       setLocalFilters((prev) => {
+        if (typeof value === "boolean") {
+          return { ...prev, [key]: value };
+        }
         const values = Array.isArray(value) ? value : [value];
         return {
           ...prev,

@@ -65,6 +65,41 @@ describe("BookMapper", () => {
     expect(domain.status).toBe("not_started");
   });
 
+  it("deve mapear is_reread true quando persistence tem is_reread true", () => {
+    const persistence: BookPersistence = {
+      id: "1",
+      title: "Releitura",
+      author: { name: "Autor" },
+      author_id: "a1",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
+      pages: 200,
+      readers: ["11111111-1111-4111-8111-111111111111"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+      is_reread: true,
+    };
+
+    expect(BookMapper.toDomain(persistence).is_reread).toBe(true);
+  });
+
+  it("deve mapear is_reread false quando persistence não tem is_reread", () => {
+    const persistence: BookPersistence = {
+      id: "1",
+      title: "Livro Normal",
+      author: { name: "Autor" },
+      author_id: "a1",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
+      pages: 200,
+      readers: ["11111111-1111-4111-8111-111111111111"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+    };
+
+    expect(BookMapper.toDomain(persistence).is_reread).toBe(false);
+  });
+
   it("deve usar capa padrão quando image_url for nulo ou vazio (RN04)", () => {
     const withNull: BookPersistence = {
       id: "1",

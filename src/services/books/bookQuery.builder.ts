@@ -137,6 +137,13 @@ export class BookQueryBuilder {
     }
     return this;
   }
+  withReread(isReread?: boolean): this {
+    if (isReread) {
+      this.query = this.query.eq("is_reread", true);
+    }
+    return this;
+  }
+
   withYear(year?: number): this {
     if (!year) return this;
 

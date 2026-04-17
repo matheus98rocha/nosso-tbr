@@ -125,6 +125,21 @@ export function BookCard(props: BookCardProps) {
           </div>
         )}
 
+        {book.is_reread && (
+          <Badge
+            variant="secondary"
+            className={cn(
+              "w-fit border-none font-medium uppercase",
+              isShelf
+                ? "h-4 px-1.5 text-[9px] py-0"
+                : "h-5 px-2 text-[10px] py-0",
+              "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
+            )}
+          >
+            Releitura
+          </Badge>
+        )}
+
         {book.gender && (
           <Badge
             variant="secondary"

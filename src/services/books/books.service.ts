@@ -45,6 +45,7 @@ export class BookService {
         .withStatus(statuses)
         .withGender(filters?.gender)
         .withYear(filters?.year)
+        .withReread(filters?.isReread)
         .withSearchTerm(search)
         .withId(bookId)
         .withAuthor(authorId)

@@ -77,6 +77,7 @@ export function useBookDialog({
       chosen_by: "",
       user_id: "",
       author_id: "",
+      is_reread: false,
     }),
     [],
   );
@@ -105,6 +106,7 @@ export function useBookDialog({
         image_url: bookData.image_url ?? "",
         status: bookData.status,
         id: bookData.id,
+        is_reread: bookData.is_reread ?? false,
       });
       setSelected(bookData.status ?? null);
     } else {

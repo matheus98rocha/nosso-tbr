@@ -31,6 +31,10 @@ export function useBookPreCreationValidation({
         return { type: "create_new" };
       }
 
+      if (payload.is_reread) {
+        return { type: "create_new" };
+      }
+
       const catalogMatch = await bookUpsertService.findCatalogBookMatch({
         title: payload.title,
         authorId: payload.author_id,

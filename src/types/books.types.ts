@@ -27,6 +27,7 @@ export type BookPersistence = {
   gender: string | null;
   image_url: string | null;
   user_id: string;
+  is_reread?: boolean;
 };
 
 export type CreateBookPersistence = {
@@ -45,6 +46,7 @@ export type CreateBookPersistence = {
   image_url: string;
   /** `null` quando ausente; nunca string vazia (UUID inválido no Postgres). */
   user_id: string | null;
+  is_reread?: boolean;
 };
 export type BookCreateValidator = z.infer<typeof bookCreateSchema>;
 
@@ -64,4 +66,5 @@ export type BookDomain = {
   gender: string | null;
   image_url: string;
   user_id: string;
+  is_reread: boolean;
 };

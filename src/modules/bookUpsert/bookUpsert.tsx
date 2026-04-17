@@ -404,6 +404,25 @@ export function BookUpsert(props: CreateBookProps) {
                       />
                     )}
 
+                    <FormField
+                      control={control}
+                      name="is_reread"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center gap-3 min-h-[44px]">
+                            <Switch
+                              id="is-reread"
+                              checked={field.value ?? false}
+                              onCheckedChange={field.onChange}
+                            />
+                            <Label htmlFor="is-reread">
+                              Este livro é uma releitura?
+                            </Label>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
                     {selected !== "not_started" && selected !== null && (
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <FormField

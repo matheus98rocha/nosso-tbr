@@ -44,6 +44,7 @@ export class BookMapper {
       gender: persistence.gender ?? null,
       image_url: resolveBookCoverUrl(persistence.image_url),
       user_id: persistence.user_id,
+      is_reread: persistence.is_reread ?? false,
     };
   }
 
