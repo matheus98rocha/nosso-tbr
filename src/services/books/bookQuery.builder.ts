@@ -3,8 +3,21 @@ import { Database } from "../../../database.types";
 import { Status } from "@/types/books.types";
 import { buildFtsQueryFromUserSearch } from "./buildFtsQueryFromUserSearch";
 
+const BOOKS_SELECT = `
+  *,
+  author:authors!books_author_id_fkey (
+    name
+  )
+`;
+
+function buildBaseQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("books").select(BOOKS_SELECT, { count: "exact" });
+}
+
+type BookQuery = ReturnType<typeof buildBaseQuery>;
+
 export class BookQueryBuilder {
-  private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
+  private query: BookQuery;
 
   private static buildStatusOrCondition(statuses: Status[]): string {
     const unique = [...new Set(statuses)];
@@ -31,15 +44,7 @@ export class BookQueryBuilder {
 
   constructor(
     supabase: SupabaseClient<Database>,
-    initialQuery = supabase.from("books").select(
-      `
-      *,
-      author:authors!books_author_id_fkey (
-        name
-      )
-    `,
-      { count: "exact" },
-    ),
+    initialQuery: BookQuery = buildBaseQuery(supabase),
   ) {
     this.query = initialQuery;
   }

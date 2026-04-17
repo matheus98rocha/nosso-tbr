@@ -111,6 +111,7 @@ describe("useBookDialog — ignorar sugestão e criar novo livro", () => {
   it("handleIgnoreAndCreateNewBook chama createBook.mutate com o payload pendente", () => {
     const { result } = renderHook(() =>
       useBookDialog({
+        isBookFormOpen: false,
         bookData: undefined,
         setIsBookFormOpen: vi.fn(),
         chosenByOptions: [],
@@ -137,6 +138,7 @@ describe("useBookDialog — ignorar sugestão e criar novo livro", () => {
 
     const { result } = renderHook(() =>
       useBookDialog({
+        isBookFormOpen: false,
         bookData: undefined,
         setIsBookFormOpen: vi.fn(),
         chosenByOptions: [],

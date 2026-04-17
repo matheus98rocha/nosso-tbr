@@ -31,7 +31,7 @@ export class BookMapper {
     return {
       id: id ? id : "",
       title,
-      author: author.name || "Autor desconhecido",
+      author: author?.name || "Autor desconhecido",
       authorId: author_id || undefined,
       chosen_by,
       pages,
@@ -43,7 +43,7 @@ export class BookMapper {
       readersDisplay: BookMapper.readersDisplayFromIds(readerIds, []),
       gender: persistence.gender ?? null,
       image_url: resolveBookCoverUrl(persistence.image_url),
-      user_id: persistence.user_id,
+      user_id: persistence.user_id ?? "",
       is_reread: persistence.is_reread ?? false,
     };
   }

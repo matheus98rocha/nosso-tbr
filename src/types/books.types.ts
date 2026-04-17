@@ -14,19 +14,19 @@ export type BookPersistence = {
   title: string;
   author: {
     name: string;
-  };
-  author_id: string;
+  } | null;
+  author_id: string | null;
   chosen_by: string;
   pages: number;
   status?: Status;
   start_date?: string | null;
   planned_start_date?: string | null;
   end_date?: string | null;
-  inserted_at?: string;
+  inserted_at?: string | null;
   readers: string[];
   gender: string | null;
   image_url: string | null;
-  user_id: string;
+  user_id: string | null;
   is_reread?: boolean;
 };
 
