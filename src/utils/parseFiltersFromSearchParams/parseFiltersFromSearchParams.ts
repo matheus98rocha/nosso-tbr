@@ -1,4 +1,4 @@
-import { FiltersOptions } from "@/types/filters";
+import { FiltersOptions, SortOption } from "@/types/filters";
 
 export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   filters: FiltersOptions;
@@ -35,6 +35,9 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   const isReread = searchParams.get("isReread") === "true" || undefined;
   const viewParam = searchParams.get("view");
   const view = viewParam === "joint" ? "joint" : "todos";
+  const rawSort = searchParams.get("sort");
+  const sort: SortOption | undefined =
+    rawSort === "pages_asc" || rawSort === "pages_desc" ? rawSort : undefined;
 
   return {
     filters: {
@@ -48,6 +51,7 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
       myBooks,
       isReread,
       view,
+      sort,
     },
     searchQuery,
   };

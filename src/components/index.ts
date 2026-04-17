@@ -11,5 +11,6 @@ export { MultiSelect } from "./multSelect/multiSelect";
 export { SearchBar } from "./searchBar";
 export { default as DefaultPagination } from "./defaultPagintation/defaultPagination";
 export { SelectField } from "./selectField";
+export { SortFilterChips } from "./sortFilterChips";
 export { StatusFilterChips } from "./statusFilterChips";
 export { YearFilterChips } from "./yearFilterChips";

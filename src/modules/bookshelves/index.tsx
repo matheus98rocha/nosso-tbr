@@ -3,12 +3,14 @@
 import React from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, GripVertical, Library } from "lucide-react";
+import { ArrowDownUp, ArrowLeft, GripVertical, Library } from "lucide-react";
 import { useBookshelfBooks } from "./hooks/useBookshelfBooks";
 import { useBookshelfBookOrder } from "./hooks/useBookshelfBookOrder";
 import { useBookshelfMeta } from "./hooks/useBookshelfMeta";
+import { useBookshelfSort } from "./hooks/useBookshelfSort";
 import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SortFilterChips } from "@/components";
 import BookshelfBooksSortableGrid from "./components/BookshelfBooksSortableGrid";
 
 function ClientBookshelves() {
@@ -25,6 +27,9 @@ function ClientBookshelves() {
 
   const { applyReorder, isPending: isReorderPending } =
     useBookshelfBookOrder(bookshelfId);
+
+  const { sort, sortedBooks, isSortActive, handleSetSort } =
+    useBookshelfSort(books);
 
   const {
     data: shelfMeta,
@@ -89,28 +94,55 @@ function ClientBookshelves() {
               </h1>
             )}
           </div>
-          <div className="flex max-w-sm items-start gap-2 rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground sm:max-w-xs">
-            <GripVertical
-              className="mt-0.5 h-4 w-4 shrink-0 text-foreground/70"
-              aria-hidden
+
+          {isSortActive ? (
+            <div className="flex max-w-sm items-start gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2.5 text-sm text-violet-700 dark:border-violet-800/60 dark:bg-violet-950/30 dark:text-violet-300 sm:max-w-xs">
+              <ArrowDownUp
+                className="mt-0.5 h-4 w-4 shrink-0"
+                aria-hidden
+              />
+              <span>
+                Ordenação ativa. Remova o filtro para reordenar manualmente.
+              </span>
+            </div>
+          ) : (
+            <div className="flex max-w-sm items-start gap-2 rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground sm:max-w-xs">
+              <GripVertical
+                className="mt-0.5 h-4 w-4 shrink-0 text-foreground/70"
+                aria-hidden
+              />
+              <span>
+                Arraste pela barra à esquerda de cada livro. A ordem fica salva
+                nesta estante.
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+          <div className="p-4 space-y-2.5">
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+              <ArrowDownUp size={11} aria-hidden />
+              Ordenação
+            </p>
+            <SortFilterChips
+              activeSort={sort}
+              onSelect={handleSetSort}
+              isLoading={isLoading}
             />
-            <span>
-              Arraste pela barra à esquerda de cada livro. A ordem fica salva
-              nesta estante.
-            </span>
           </div>
         </div>
       </header>
 
       <BookshelfBooksSortableGrid
         shelfId={bookshelfId}
-        books={books}
+        books={sortedBooks}
         isLoading={isLoading}
         isFetched={isFetched && isSuccess}
         isError={isError}
         emptyMessage="Nenhum livro nesta estante. Adicione livros pela sua biblioteca ou pelas estantes."
         onReorder={applyReorder}
-        reorderDisabled={isReorderPending}
+        reorderDisabled={isReorderPending || isSortActive}
       />
     </div>
   );

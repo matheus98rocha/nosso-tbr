@@ -39,8 +39,9 @@ export class BookService {
   }): Promise<{ data: BookDomain[]; total: number }> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
+      const sort = filters?.sort;
 
-      const query = new BookQueryBuilder(this.supabase)
+      const builder = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
         .withStatus(statuses)
         .withGender(filters?.gender)
@@ -50,9 +51,14 @@ export class BookService {
         .withId(bookId)
         .withAuthor(authorId)
         .withUserRelationship(relationshipUserValues)
-        .withUser(userId)
-        .withDefaultOrdering(statuses.includes("planned"))
-        .withPagination(page, pageSize);
+        .withUser(userId);
+
+      const query =
+        sort === "pages_asc" || sort === "pages_desc"
+          ? builder.withPageOrdering(sort).withPagination(page, pageSize)
+          : builder
+              .withDefaultOrdering(statuses.includes("planned"))
+              .withPagination(page, pageSize);
 
       const { data, error, count } = await query.build();
 

@@ -82,6 +82,14 @@ export class BookQueryBuilder {
 
     return this;
   }
+
+  withPageOrdering(sort: "pages_asc" | "pages_desc"): this {
+    this.query = this.query.order("pages", {
+      ascending: sort === "pages_asc",
+      nullsFirst: false,
+    });
+    return this;
+  }
   withGender(genders?: string[]): this {
     if (!genders || genders.length === 0) return this;
     if (genders.length === 1) {

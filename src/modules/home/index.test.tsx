@@ -33,6 +33,7 @@ const { baseUseHome } = vi.hoisted(() => ({
     activeStatuses: [],
     handleToggleStatus: vi.fn(),
     handleSetYear: vi.fn(),
+    handleSetSort: vi.fn(),
     canClear: false,
     activeFilterLabels: [],
     totalPages: 0,

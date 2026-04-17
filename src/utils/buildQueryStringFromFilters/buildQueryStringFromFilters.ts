@@ -28,6 +28,7 @@ export function buildQueryStringFromFilters(
   if (newFilters.myBooks) params.set("myBooks", "true");
   if (newFilters.isReread) params.set("isReread", "true");
   if (newFilters.view === "joint") params.set("view", "joint");
+  if (newFilters.sort) params.set("sort", newFilters.sort);
 
   return params.toString();
 }

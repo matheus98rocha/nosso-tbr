@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiltersOptions } from "@/types/filters";
+import { FiltersOptions, SortOption } from "@/types/filters";
 import {
   formatGenres,
   formatReaderIds,
@@ -23,6 +23,11 @@ const PAGE_SIZE = 8;
 const JOINT_READINGS_FETCH_SIZE = 2000;
 const bookService = new BookService();
 const userSocialService = new UserSocialService();
+
+const SORT_LABEL_MAP: Record<string, string> = {
+  pages_asc: "Menos páginas",
+  pages_desc: "Mais páginas",
+};
 
 export function useHome() {
   const queryClient = useQueryClient();
@@ -211,6 +216,7 @@ export function useHome() {
             gender: serverFilters.gender,
             year: serverFilters.year,
             view: serverFilters.view,
+            sort: serverFilters.sort,
           },
           page: serverPage,
           pageSize: serverPageSize,
@@ -237,6 +243,7 @@ export function useHome() {
           gender: filters.gender,
           year: filters.year,
           view: filters.view,
+          sort: filters.sort,
         },
         page: serverPage,
         pageSize: serverPageSize,
@@ -359,6 +366,7 @@ export function useHome() {
               JSON.stringify(defaultTodosReaders)))) ||
       filters.status?.length > 0 ||
       !!filters.year ||
+      !!filters.sort ||
       filters.view === "joint" ||
       !!filters.myBooks,
     [
@@ -380,6 +388,7 @@ export function useHome() {
       labels.push(`Leitores: ${readersObj.readersDisplay}`);
     if (formattedStatus) labels.push(formattedStatus);
     if (formattedYear) labels.push(`Ano: ${formattedYear}`);
+    if (filters.sort) labels.push(`Ordem: ${SORT_LABEL_MAP[filters.sort]}`);
     return labels;
   }, [
     searchQuery,
@@ -389,6 +398,7 @@ export function useHome() {
     formattedYear,
     readersObj.readersDisplay,
     filters.myBooks,
+    filters.sort,
     isMyBooksActive,
     isAllBooksActive,
   ]);
@@ -396,6 +406,13 @@ export function useHome() {
   const handleSetYear = useCallback(
     (year: number | undefined) => {
       updateUrlWithFilters({ ...filters, year });
+    },
+    [filters, updateUrlWithFilters],
+  );
+
+  const handleSetSort = useCallback(
+    (sort: SortOption | undefined) => {
+      updateUrlWithFilters({ ...filters, sort });
     },
     [filters, updateUrlWithFilters],
   );
@@ -504,6 +521,7 @@ export function useHome() {
             gender: serverFilters.gender,
             year: serverFilters.year,
             view: serverFilters.view,
+            sort: serverFilters.sort,
           },
           page: nextPage,
           pageSize: PAGE_SIZE,
@@ -548,6 +566,7 @@ export function useHome() {
     activeStatuses,
     handleToggleStatus,
     handleSetYear,
+    handleSetSort,
     canClear,
     activeFilterLabels,
     handleToggleMyBooks,
