@@ -27,6 +27,8 @@ export function useBookLookup() {
     try {
       const results = await fetchBookCandidates(trimmed);
       setCandidates(results);
+    } catch {
+      setCandidates([]);
     } finally {
       setIsSearching(false);
       setHasSearched(true);
@@ -41,6 +43,10 @@ export function useBookLookup() {
 
   const handleLookupQueryChange = useCallback((query: string) => {
     setLookupQuery(query);
+    if (!query.trim()) {
+      setCandidates([]);
+      setHasSearched(false);
+    }
   }, []);
 
   const handleSearchBooks = useCallback(() => {

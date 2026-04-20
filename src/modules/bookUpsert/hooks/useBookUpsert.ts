@@ -1,4 +1,4 @@
-import React, { useCallback, useDeferredValue, useMemo, useState } from "react";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUser } from "@/services/users/hooks/useUsers";
@@ -67,6 +67,7 @@ export function useBookUpsert({
 
   const [authorSearch, setAuthorSearch] = useState("");
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
+  const [pendingAuthorLookup, setPendingAuthorLookup] = useState(false);
 
   const deferredAuthorSearch = useDeferredValue(authorSearch);
 
@@ -108,12 +109,14 @@ export function useBookUpsert({
     (open: boolean) => {
       if (!open) {
         reset();
-        setSelected(null);
+        setSelected("not_started");
         setAuthorSearch("");
+        clearCandidates();
+        setPendingAuthorLookup(false);
       }
       setIsBookFormOpen(open);
     },
-    [reset, setSelected, setIsBookFormOpen],
+    [reset, setSelected, setIsBookFormOpen, clearCandidates],
   );
 
   const handleCancelDiscoveryDialog = useCallback(() => {
@@ -154,13 +157,26 @@ export function useBookUpsert({
     setAuthorSearch(search);
   }, []);
 
+  useEffect(() => {
+    if (!pendingAuthorLookup || isLoadingAuthors || authors.length === 0) return;
+    const match =
+      authors.find(
+        (a) => a.name.toLowerCase() === deferredAuthorSearch.toLowerCase(),
+      ) ?? authors[0];
+    form.setValue("author_id", String(match.id));
+    setPendingAuthorLookup(false);
+  }, [pendingAuthorLookup, isLoadingAuthors, authors, deferredAuthorSearch, form]);
+
   const handleApplyCandidate = useCallback(
     (candidate: BookCandidate) => {
       form.setValue("title", candidate.title);
       if (candidate.pages) form.setValue("pages", candidate.pages);
       if (candidate.image_url) form.setValue("image_url", candidate.image_url);
       if (candidate.gender) form.setValue("gender", candidate.gender);
-      if (candidate.author_name) setAuthorSearch(candidate.author_name);
+      if (candidate.author_name) {
+        setAuthorSearch(candidate.author_name);
+        setPendingAuthorLookup(true);
+      }
       clearCandidates();
     },
     [form, clearCandidates],

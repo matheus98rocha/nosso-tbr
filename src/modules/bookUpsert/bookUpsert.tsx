@@ -73,7 +73,6 @@ export function BookUpsert(props: CreateBookProps) {
     handleIgnoreAndCreateNewBook,
     handleStatusChange,
     handlePageNumberChange,
-    handleChosenByFieldChange,
     handleAuthorSearchChange,
     plannedStartDateLabel,
     shouldShowPlannedStartDate,
@@ -337,49 +336,6 @@ export function BookUpsert(props: CreateBookProps) {
                                     </div>
                                   );
                                 })}
-                              </div>
-                            )}
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={control}
-                      name="user_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quem escolheu?</FormLabel>
-                          <FormControl>
-                            {isLoadingUsers ? (
-                              <div className="flex gap-4">
-                                {[1, 2].map((i) => (
-                                  <div
-                                    key={i}
-                                    className="h-5 w-20 animate-pulse rounded bg-muted"
-                                  />
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="flex flex-wrap gap-x-6 gap-y-1">
-                                {chosenByOptions.map(({ label, value }) => (
-                                  <div
-                                    key={value}
-                                    className="flex items-center gap-2 min-h-[44px]"
-                                  >
-                                    <Checkbox
-                                      id={`chosen-by-${value}`}
-                                      checked={field.value === value}
-                                      onCheckedChange={() =>
-                                        handleChosenByFieldChange(field, value)
-                                      }
-                                    />
-                                    <FormLabel htmlFor={`chosen-by-${value}`}>
-                                      {label}
-                                    </FormLabel>
-                                  </div>
-                                ))}
                               </div>
                             )}
                           </FormControl>
