@@ -42,7 +42,7 @@ export function useBookDialog({
   const isLoggedIn = useIsLoggedIn();
   const authUser = useRequireAuth();
 
-  const [selected, setSelected] = useState<Status | null>(null);
+  const [selected, setSelected] = useState<Status | null>("not_started");
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
   const [selectedShelfId, setSelectedShelfId] = useState("");
   const isEdit: boolean = Boolean(bookData && bookData.id);
@@ -68,18 +68,18 @@ export function useBookDialog({
   const emptyDefaults = useMemo(
     (): DefaultValues<BookCreateValidator> => ({
       title: "",
-      readers: [],
+      readers: authUser?.id ? [authUser.id] : [],
       start_date: null,
       end_date: null,
       planned_start_date: null,
       gender: "",
       image_url: "",
-      chosen_by: "",
-      user_id: "",
+      chosen_by: authUser?.id ?? "",
+      user_id: authUser?.id ?? "",
       author_id: "",
       is_reread: false,
     }),
-    [],
+    [authUser?.id],
   );
 
   const form = useForm<BookCreateValidator>({
@@ -111,14 +111,14 @@ export function useBookDialog({
       setSelected(bookData.status ?? null);
     } else {
       reset(emptyDefaults);
-      setSelected(null);
+      setSelected("not_started");
     }
   }, [bookData?.id, bookData, reset, emptyDefaults]);
 
   const handleResetForm = useCallback(() => {
     setIsBookFormOpen(false);
     reset(emptyDefaults);
-    setSelected(null);
+    setSelected("not_started");
     setIsAddToShelfEnabled(false);
     setSelectedShelfId("");
   }, [setIsBookFormOpen, reset, emptyDefaults]);

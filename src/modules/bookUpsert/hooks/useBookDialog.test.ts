@@ -1,8 +1,8 @@
-import { renderHook } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { Mock, vi } from "vitest";
 import { useBookDialog } from "./useBookDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { useIsLoggedIn, useRequireAuth } from "@/stores/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/clientJsonFetch";
@@ -206,6 +206,71 @@ describe("useBookDialog — query de estantes", () => {
       setupMocks({ isLoggedIn: true, isLoadingBookshelves: false });
       const { result } = renderHook(() => useBookDialog(defaultProps));
       expect(result.current.isLoadingBookshelves).toBe(false);
+    });
+  });
+
+  describe("status padrão", () => {
+    it("inicializa selected com 'not_started' para formulário novo", () => {
+      setupMocks({ isLoggedIn: true });
+      const { result } = renderHook(() => useBookDialog(defaultProps));
+
+      expect(result.current.selected).toBe("not_started");
+    });
+
+  });
+
+  describe("preenchimento automático — leitores e responsável", () => {
+    it("inclui o usuário logado em readers ao inicializar formulário novo", () => {
+      setupMocks({ isLoggedIn: true });
+      const { result } = renderHook(() => useBookDialog(defaultProps));
+
+      expect(result.current.reset).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: ["user-1"] }),
+      );
+    });
+
+    it("define chosen_by como o id do usuário logado nos defaults", () => {
+      setupMocks({ isLoggedIn: true });
+      const { result } = renderHook(() => useBookDialog(defaultProps));
+
+      expect(result.current.reset).toHaveBeenCalledWith(
+        expect.objectContaining({ chosen_by: "user-1" }),
+      );
+    });
+
+    it("define user_id como o id do usuário logado nos defaults", () => {
+      setupMocks({ isLoggedIn: true });
+      const { result } = renderHook(() => useBookDialog(defaultProps));
+
+      expect(result.current.reset).toHaveBeenCalledWith(
+        expect.objectContaining({ user_id: "user-1" }),
+      );
+    });
+
+    it("mantém readers, chosen_by e user_id vazios quando authUser não está disponível", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useRequireAuth as Mock).mockReturnValue(null);
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
+      (useQueryClient as Mock).mockReturnValue({
+        invalidateQueries: mockInvalidateQueries,
+      });
+      (useQuery as Mock).mockReturnValue({
+        data: mockShelves,
+        isLoading: false,
+      });
+      (useMutation as Mock).mockReturnValue({
+        mutate: mockMutate,
+        isPending: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => useBookDialog(defaultProps));
+
+      expect(result.current.reset).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: [], chosen_by: "", user_id: "" }),
+      );
     });
   });
 
