@@ -4,8 +4,10 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { CreateBookProps } from "../bookUpsert.types";
 import { useBookDialog } from "./useBookDialog";
+import { useBookLookup } from "./useBookLookup";
 import { AuthorsService } from "../../authors/services/authors.service";
 import { ComboboxOption } from "../types/authorOptions";
+import { BookCandidate } from "../types/bookCandidate.types";
 import { BookCreateValidator } from "@/types/books.types";
 import { ControllerRenderProps } from "react-hook-form";
 import { usePlannedStartDateLabel } from "./usePlannedStartDateLabel";
@@ -52,6 +54,16 @@ export function useBookUpsert({
     setIsBookFormOpen,
     chosenByOptions,
   });
+
+  const {
+    candidates: lookupCandidates,
+    isSearching: isSearchingBooks,
+    hasSearched: hasSearchedBooks,
+    lookupQuery,
+    handleLookupQueryChange,
+    handleSearchBooks,
+    clearCandidates,
+  } = useBookLookup();
 
   const [authorSearch, setAuthorSearch] = useState("");
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
@@ -142,6 +154,18 @@ export function useBookUpsert({
     setAuthorSearch(search);
   }, []);
 
+  const handleApplyCandidate = useCallback(
+    (candidate: BookCandidate) => {
+      form.setValue("title", candidate.title);
+      if (candidate.pages) form.setValue("pages", candidate.pages);
+      if (candidate.image_url) form.setValue("image_url", candidate.image_url);
+      if (candidate.gender) form.setValue("gender", candidate.gender);
+      if (candidate.author_name) setAuthorSearch(candidate.author_name);
+      clearCandidates();
+    },
+    [form, clearCandidates],
+  );
+
   const { plannedStartDateLabel } = usePlannedStartDateLabel(selected);
 
   const { shouldShowPlannedStartDate } = usePlannedStartDateFieldVisibility({
@@ -191,5 +215,12 @@ export function useBookUpsert({
     plannedStartDateLabel,
     shouldShowPlannedStartDate,
     bookData,
+    handleApplyCandidate,
+    lookupCandidates,
+    isSearchingBooks,
+    hasSearchedBooks,
+    lookupQuery,
+    handleLookupQueryChange,
+    handleSearchBooks,
   };
 }

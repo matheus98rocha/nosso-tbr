@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-const AMAZON_IMAGE_HOST_RE =
-  /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com)/;
+const ALLOWED_IMAGE_HOST_RE =
+  /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com|books\.google\.com|covers\.openlibrary\.org)/;
 
 export const bookCreateSchema = z.object({
   title: z.string().min(1, { message: "O título do livro é obrigatório" }),
@@ -35,10 +35,11 @@ export const bookCreateSchema = z.object({
         });
         return;
       }
-      if (!AMAZON_IMAGE_HOST_RE.test(trimmed)) {
+      if (!ALLOWED_IMAGE_HOST_RE.test(trimmed)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "A URL da imagem deve ser de um domínio da Amazon válido",
+          message:
+            "A URL da imagem deve ser da Amazon, Google Books ou Open Library",
         });
       }
     }),

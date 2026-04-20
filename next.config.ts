@@ -27,6 +27,18 @@ const nextConfig: NextConfig = {
         port: "",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "books.google.com",
+        port: "",
+        search: "",
+      },
+      {
+        protocol: "https",
+        hostname: "covers.openlibrary.org",
+        port: "",
+        search: "",
+      },
     ],
   },
 };

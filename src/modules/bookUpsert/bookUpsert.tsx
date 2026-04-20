@@ -30,6 +30,7 @@ import { genders } from "@/constants/genders";
 import { AuthorUpsert } from "@/modules/authors/components";
 import {
   AutocompleteInput,
+  BookLookupPanel,
   BookParticipationBlockedDialog,
   FoundCatalogBookDialog,
 } from "./components";
@@ -79,6 +80,13 @@ export function BookUpsert(props: CreateBookProps) {
     isLoadingUsers,
     chosenByOptions,
     bookData,
+    handleApplyCandidate,
+    lookupCandidates,
+    isSearchingBooks,
+    hasSearchedBooks,
+    lookupQuery,
+    handleLookupQueryChange,
+    handleSearchBooks,
   } = useBookUpsert(props);
 
   return (
@@ -143,6 +151,26 @@ export function BookUpsert(props: CreateBookProps) {
                   onSubmit={handleSubmit(onSubmit)}
                   className="grid gap-6 py-5"
                 >
+                  {!isEdit && (
+                    <>
+                      <section className="grid gap-4">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          Busca automática
+                        </p>
+                        <BookLookupPanel
+                          candidates={lookupCandidates}
+                          isSearching={isSearchingBooks}
+                          hasSearched={hasSearchedBooks}
+                          lookupQuery={lookupQuery}
+                          onQueryChange={handleLookupQueryChange}
+                          onSearch={handleSearchBooks}
+                          onSelect={handleApplyCandidate}
+                        />
+                      </section>
+                      <Separator orientation="horizontal" />
+                    </>
+                  )}
+
                   <section className="grid gap-4">
                     <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                       Sobre o livro
