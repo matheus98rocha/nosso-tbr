@@ -20,7 +20,7 @@
 - **RN09 - Limpeza de Filtros:** O botão "Limpar" deve ficar ativo apenas se houver busca ativa, filtros de gênero/status/ano selecionados ou se o filtro de leitores for diferente do padrão.
 - **RN16 - Filtro de Ano Híbrido (Query):** O filtro por ano deve retornar livros que foram **finalizados** naquele ano (`end_date`) OU que foram **planejados** para iniciar naquele ano (`planned_start_date`).
 
-- **RN17 - Exibição de Livros (Query):** Caso usuário logado, exiba os filtros conforme regras, caso contrário exiba todos os livros.
+- **RN17 - Exibição de Livros (Query):** Caso usuário logado, exiba os filtros conforme regras, caso contrário exiba todos os livros (exceto livros individuais privados conforme **RN56**).
 
 - **RN18 - Guard de Autenticação em Queries:** Todo `useQuery` que acessa uma rota autenticada (`/api/users`, `/api/shelves`) DEVE declarar `enabled: isLoggedIn`. Queries sem esse guard disparam a requisição mesmo para sessões não autenticadas, resultando em 401 e erro em cascata.
 
@@ -34,7 +34,7 @@
   - **Sugestão de inclusão na leitura:** se o usuário **não** participa, o livro existente está com **`status = not_started`** e há **mútuo seguir** (**RN39–RN40**) entre o usuário atual e o leitor de referência — prioriza-se `chosen_by` quando for terceiro; caso contrário outro participante em `readers` — deve ser oferecido o fluxo de vincular o usuário ao livro existente (modal de sugestão).
   - **Sem sugestão:** se não houver match de título/autor, ou houver match mas o usuário não participa e **não** se cumprir `not_started` + mútuo seguir, o fluxo segue como **novo cadastro** sem modal de sugestão.
 
-- **RN20 - Usuario não logado:** Não pode navegar entre telas, não pode fazer crud de absolutamente nada na aplicação e deve ver todos os livros cadastrados.
+- **RN20 - Usuario não logado:** Não pode navegar entre telas, não pode fazer crud de absolutamente nada na aplicação e deve ver todos os livros cadastrados — **exceto livros individuais privados** (conforme **RN56**).
 
 - **RN21 - Usuario não logado - filtros:** Não pode aplicar filtros e não deve ver a opção de filtros.
 - **RN22 - Busca Unificada (Autocomplete):** O autocomplete da busca inicial deve retornar resultados de **livros** e **autores** em um único fluxo de interação.
@@ -61,7 +61,7 @@
 - **RN33 - Seleção Inicial de Leitores na Visão Todos:**
   - Ao abrir a Home logado, na visão **Todos**, apenas o leitor do usuário atual deve iniciar marcado.
   - Ao selecionar outros leitores, a seleção deve acumular no filtro da visão **Todos**.
-  - O leitor padrão pode ser removido manualmente pelo usuário.
+  - O leitor do próprio usuário logado **não pode ser removido manualmente** (conforme **RN57**).
 - **RN34 - Paginação da Visão Todos:**
   - A visão **Todos** deve respeitar `PAGE_SIZE = 8` e paginação por página atual.
   - Alterações na seleção de leitores na visão **Todos** devem gerar nova query (query key distinta) para evitar stale cache.
@@ -114,7 +114,7 @@
 
 As regras abaixo são aplicadas no banco (Row Level Security). A UI continua responsável por **RN20** (visitante sem CRUD); no Postgres, o papel `anon` tem apenas **SELECT** nas tabelas necessárias para listagem e autocomplete (**RN17**, **RN22**), e **nenhuma** operação de escrita.
 
-- **RN41 - Visitante (`anon`):** Apenas `SELECT` em `books`, `authors` e demais tabelas expostas para leitura pública. `INSERT` / `UPDATE` / `DELETE` são negados para `anon` (alinhado a **RN20** e **RN21**).
+- **RN41 - Visitante (`anon`):** Apenas `SELECT` em `books`, `authors` e demais tabelas expostas para leitura pública. `INSERT` / `UPDATE` / `DELETE` são negados para `anon` (alinhado a **RN20** e **RN21**). O `SELECT` em `books` é limitado pela policy `books_select_non_solo_or_owner`: livros individuais privados (**RN56**) são invisíveis para `anon`.
 
 - **RN42 - Escrita em `books` (leitura coletiva):** Um usuário autenticado pode **inserir, atualizar ou excluir** uma linha em `books` somente se participar do livro, isto é, se `auth.uid()` for igual a `user_id` (quando preenchido), ou a `chosen_by`, ou estiver em `readers`. Assim, leitores conjuntos podem editar ou remover o registro conforme o mesmo critério de participação (alinhado a **RN29–RN32** e ao modelo de `readers` / `chosen_by`).
 
@@ -141,3 +141,23 @@ As regras abaixo são aplicadas no banco (Row Level Security). A UI continua res
 - **RN53 - Persistência e salvamento automático:** Ao concluir o gesto de soltar (drop), o sistema persiste imediatamente a nova sequência no banco, sem botão de salvar. Se a persistência falhar, a interface deve notificar o erro e restaurar a ordem anteriormente exibida.
 
 - **RN54 - Novos vínculos na estante:** Ao adicionar um livro a uma estante, o novo vínculo recebe posição ao final da sequência existente naquela estante (comportamento garantido no banco ou na API de criação do vínculo).
+
+## 9. Privacidade e visibilidade
+
+- **RN56 - Privacidade de livros individuais:** Um livro é considerado **individual/privado** quando `array_length(readers, 1) = 1 AND readers[1] = chosen_by`, ou seja, há exatamente um leitor e ele é o mesmo que escolheu o livro. Nesses casos:
+  - O livro é visível **apenas** para o próprio `chosen_by` (dono), independentemente de estar logado ou não.
+  - Usuários anônimos e qualquer outro usuário autenticado **não** recebem a linha na query de `SELECT` (enforçado via RLS policy `books_select_non_solo_or_owner`).
+  - Esta regra sobrepõe **RN20** e **RN41** para esse subconjunto de livros.
+  - O `BookCard` exibe um badge "Privado" (ícone de cadeado) quando `isSoloBook(book) && book.chosen_by === user.id`.
+  - Livros com múltiplos leitores **ou** com `readers[1] ≠ chosen_by` permanecem com visibilidade pública inalterada.
+
+- **RN57 - Leitor obrigatório nas visões "Todos" e "Leitura em conjunto":** Quando o usuário está logado e visualiza as visões **Todos** (`view="todos"`) ou **Leitura em conjunto** (`view="joint"`):
+  - O chip do próprio usuário no filtro de leitores fica **sempre marcado e desabilitado** (`disabled`).
+  - Clicar no chip do próprio usuário não tem efeito (bloqueado em `handleToggleReader`).
+  - O `aria-label` do chip indica "sempre incluído nesta visão".
+  - Mesmo que a URL contenha `readers` sem o ID do usuário logado, os memos `effectiveTodosReaders` (visão Todos) e `effectiveSelectedReaders` (visão Joint) injetam o ID de volta automaticamente.
+  - **Distinção por visão:**
+    - `todos`: não exige leitores adicionais; o usuário pode navegar sozinho.
+    - `joint`: exige **pelo menos 1 outro leitor** além do usuário logado (`needsExtraReader = true` quando apenas o próprio ID está selecionado); mensagem de aviso exibida na UI em âmbar.
+  - A regra não se aplica em `myBooks` (chips de leitor não são exibidos nessa visão).
+  - A regra não se aplica para usuários não logados (`lockedReaderId = undefined`).

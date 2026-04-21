@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { BookOpen, EllipsisVerticalIcon, Users } from "lucide-react";
+import { BookOpen, EllipsisVerticalIcon, Lock, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownBook } from "./components/dropdownBook";
@@ -30,6 +30,7 @@ export function BookCard(props: BookCardProps) {
     handleNavigateToQuotes,
     handleConfirmDelete,
     statusDisplay,
+    isOwnSoloBook,
   } = useBookCard(props);
 
   const bookBody = (
@@ -152,6 +153,26 @@ export function BookCard(props: BookCardProps) {
               </span>
             )}
           </div>
+        )}
+
+        {isOwnSoloBook && (
+          <Badge
+            variant="secondary"
+            aria-label="Livro privado — visível apenas para você"
+            className={cn(
+              "w-fit border-none font-medium uppercase",
+              isShelf
+                ? "h-4 px-1.5 text-[9px] py-0 gap-0.5"
+                : "h-5 px-2 text-[10px] py-0 gap-1",
+              "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
+            )}
+          >
+            <Lock
+              aria-hidden
+              className={cn(isShelf ? "w-2 h-2" : "w-2.5 h-2.5")}
+            />
+            Privado
+          </Badge>
         )}
 
         {book.is_reread && (

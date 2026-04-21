@@ -656,6 +656,234 @@ describe("useHome", () => {
     });
   });
 
+  describe("lockedReaderId — leitor obrigatório (RN57)", () => {
+    it("é undefined quando o usuário não está logado (todos)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+      (useUserStore as unknown as Mock).mockReturnValue(null);
+
+      const { result } = setupHook({ view: "todos" });
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("é undefined quando o usuário não está logado (joint)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+      (useUserStore as unknown as Mock).mockReturnValue(null);
+
+      const { result } = setupHook({ view: "joint" });
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("é o user.id quando logado na visão todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "todos" });
+      expect(result.current.lockedReaderId).toBe("1");
+    });
+
+    it("é o user.id quando logado na visão joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint" });
+      expect(result.current.lockedReaderId).toBe("1");
+    });
+
+    it("é undefined quando myBooks está ativo", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "todos", myBooks: true });
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("handleToggleReader ignorado quando readerId === lockedReaderId (todos)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, []);
+
+      const { result } = setupHook({ view: "todos", readers: ["1", "2"] });
+      act(() => result.current.handleToggleReader("1"));
+
+      expect(mockUpdateUrlWithFilters).not.toHaveBeenCalled();
+    });
+
+    it("handleToggleReader ignorado quando readerId === lockedReaderId (joint)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1", "2"] });
+      act(() => result.current.handleToggleReader("1"));
+
+      expect(mockUpdateUrlWithFilters).not.toHaveBeenCalled();
+    });
+
+    it("outro leitor pode ser removido normalmente mesmo com lock ativo (joint)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1", "2"] });
+      act(() => result.current.handleToggleReader("2"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: ["1"] }),
+      );
+    });
+
+    it("effectiveTodosReaders injeta lockedReaderId quando ausente", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, ["2"]);
+
+      const { result } = setupHook({ view: "todos", readers: ["2"] });
+
+      const key = (useQuery as Mock).mock.calls
+        .at(-1)?.[0]?.queryKey?.find(
+          (k: unknown) => typeof k === "string" && k.startsWith("1"),
+        );
+      expect(key).toContain("1");
+      expect(result.current.lockedReaderId).toBe("1");
+    });
+
+    it("effectiveSelectedReaders injeta lockedReaderId quando ausente na visão joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      (useQuery as Mock).mockReturnValue({
+        data: {
+          data: [
+            {
+              id: "book-1",
+              readerIds: ["1", "2"],
+              readersDisplay: "Matheus e Barbara",
+            },
+          ],
+          total: 1,
+        },
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["2"] });
+
+      expect(result.current.allBooks?.data).toHaveLength(1);
+    });
+  });
+
+  describe("needsExtraReader (RN57 — joint exige 1 leitor além do logado)", () => {
+    it("é false quando view não é joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "todos", readers: ["1"] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("é false quando filters.readers está vazio (todos selecionados por padrão)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint", readers: [] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("é false quando há outros leitores além do lockedReaderId em joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1", "2"] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("é true quando apenas lockedReaderId está selecionado em joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1"] });
+      expect(result.current.needsExtraReader).toBe(true);
+    });
+
+    it("é false quando o usuário não está logado em joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+      (useUserStore as unknown as Mock).mockReturnValue(null);
+
+      const { result } = setupHook({ view: "joint", readers: ["1"] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("cenário: Matheus(logado), Fabi e Barbara — remover Fabi+Barbara resulta em needsExtraReader=true", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "matheus-id",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({
+        view: "joint",
+        readers: ["matheus-id"],
+      });
+      expect(result.current.needsExtraReader).toBe(true);
+      expect(result.current.lockedReaderId).toBe("matheus-id");
+    });
+  });
+
   describe("joint reading readers filters", () => {
     it("keeps readers filter empty when all readers are selected by default", () => {
       (useUser as Mock).mockReturnValue({

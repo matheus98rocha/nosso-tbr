@@ -5,6 +5,8 @@ import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useCallback, useMemo } from "react";
 import { BookService } from "@/services/books/books.service";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
+import { BookMapper } from "@/services/books/books.mapper";
+import { useUserStore } from "@/stores/userStore";
 
 export function useBookCard({
   book,
@@ -18,7 +20,14 @@ export function useBookCard({
 
   const router = useRouter();
   const isLogged = useIsLoggedIn();
+  const currentUser = useUserStore((state) => state.user);
   const dropdownTap = useSafeTap(() => dropdownModal.setIsOpen(true));
+
+  const isSoloBook = useMemo(() => BookMapper.isSoloBook(book), [book]);
+  const isOwnSoloBook = useMemo(
+    () => isSoloBook && !!currentUser?.id && book.chosen_by === currentUser.id,
+    [isSoloBook, currentUser?.id, book.chosen_by],
+  );
 
   const shareOnWhatsApp = useCallback(() => {
     const baseUrl = "https://nosso-tbr.vercel.app/";
@@ -173,5 +182,6 @@ export function useBookCard({
     badgeObject,
     handleConfirmDelete,
     statusDisplay,
+    isOwnSoloBook,
   };
 }

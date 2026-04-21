@@ -55,6 +55,8 @@ export default function ClientHome() {
     isLoggedIn,
     checkIsUserActive,
     readers,
+    lockedReaderId,
+    needsExtraReader,
   } = useHome();
 
   const dialogModal = useModal();
@@ -206,26 +208,55 @@ export default function ClientHome() {
                         </Button>
                       )}
                     </div>
-                    <div className="flex gap-2 items-start justify-start w-full">
+                    <div className="flex flex-col gap-1.5 items-start justify-start w-full">
                       {!isMyBooksActive && (
-                        <div className="flex gap-2">
-                          {readers.map((user) => (
-                            <Button
-                              key={user.id}
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleToggleReader(user.id)}
-                              className={cn(
-                                "rounded-full h-8 px-3 text-xs font-medium transition-all",
-                                checkIsUserActive(user.id)
-                                  ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
-                                  : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
+                        <>
+                          <div className="flex flex-wrap gap-2">
+                            {readers.map((reader) => {
+                              const isLocked = reader.id === lockedReaderId;
+                              const isActive = checkIsUserActive(reader.id);
+                              return (
+                                <Button
+                                  key={reader.id}
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleToggleReader(reader.id)}
+                                  disabled={isLocked}
+                                  aria-pressed={isActive}
+                                  aria-label={
+                                    isLocked
+                                      ? `${reader.display_name} (sempre incluído nesta visão)`
+                                      : reader.display_name
+                                  }
+                                  className={cn(
+                                    "rounded-full h-8 px-3 text-xs font-medium transition-all",
+                                    isActive
+                                      ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                                      : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
+                                    isLocked &&
+                                      "opacity-100 cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none",
+                                  )}
+                                >
+                                  {reader.display_name}
+                                </Button>
+                              );
+                            })}
+                          </div>
+
+                          {lockedReaderId && (
+                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-snug">
+                              {needsExtraReader ? (
+                                <span className="text-amber-500 dark:text-amber-400 font-medium">
+                                  Selecione pelo menos outro(a) leitor(a) para ver leituras conjuntas.
+                                </span>
+                              ) : !isAllBooksActive ? (
+                                "Você é sempre incluído. Selecione pelo menos outro(a) leitor(a) além de você."
+                              ) : (
+                                "Você é sempre incluído. Adicione ou remova outros leitores livremente."
                               )}
-                            >
-                              {user.display_name}
-                            </Button>
-                          ))}
-                        </div>
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
