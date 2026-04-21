@@ -498,13 +498,14 @@ export function useHome() {
         return effectiveTodosReaders.includes(readerId);
       }
 
-      if (filters.readers.length === 0) {
-        return true;
-      }
-
-      return filters.readers.includes(readerId);
+      return effectiveSelectedReaders.includes(readerId);
     },
-    [filters.readers, isMyBooksActive, isAllBooksActive, effectiveTodosReaders],
+    [
+      isMyBooksActive,
+      isAllBooksActive,
+      effectiveTodosReaders,
+      effectiveSelectedReaders,
+    ],
   );
 
   const { activeStatuses, handleToggleStatus } = useStatusFilters({

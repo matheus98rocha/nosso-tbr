@@ -46,6 +46,8 @@ const { baseUseHome } = vi.hoisted(() => ({
     isLoggedIn: true,
     checkIsUserActive: vi.fn(() => false),
     readers: [],
+    lockedReaderId: undefined,
+    needsExtraReader: false,
   },
 }));
 
@@ -72,6 +74,36 @@ vi.mock("@/hooks", async (importOriginal) => {
       setIsOpen: mockSetBookFormOpen,
     })),
   };
+  it("renders the locked reader chip as active and disabled in joint view", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      filters: {
+        readers: ["2"],
+        status: [],
+        gender: [],
+        view: "joint",
+        year: undefined,
+      },
+      isAllBooksActive: false,
+      readers: [
+        { id: "1", display_name: "Matheus" },
+        { id: "2", display_name: "Barbara" },
+      ],
+      lockedReaderId: "1",
+      checkIsUserActive: vi.fn((readerId: string) =>
+        ["1", "2"].includes(readerId),
+      ),
+    } as unknown as ReturnType<typeof useHome>);
+
+    render(<ClientHome />);
+
+    const lockedChip = screen.getByRole("button", {
+      name: "Matheus (sempre incluÃ­do nesta visÃ£o)",
+    });
+
+    expect(lockedChip).toBeDisabled();
+    expect(lockedChip).toHaveAttribute("aria-pressed", "true");
+  });
 });
 
 vi.mock("@/modules/bookUpsert", () => ({

@@ -23,6 +23,10 @@ describe("BookMapper.isSoloBook", () => {
     ).toBe(false);
   });
 
+  it("retorna false quando readers é undefined", () => {
+    expect(BookMapper.isSoloBook({ chosen_by: "user-a" })).toBe(false);
+  });
+
   it("retorna false quando readers tem 1 elemento diferente de chosen_by", () => {
     expect(
       BookMapper.isSoloBook({ readerIds: ["user-a"], chosen_by: "user-b" }),

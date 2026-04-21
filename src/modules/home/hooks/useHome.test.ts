@@ -119,6 +119,8 @@ function setupHook(
 describe("useHome", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+    (useUserStore as unknown as Mock).mockReturnValue(null);
     (useUser as Mock).mockReturnValue({
       users: [],
       isLoadingUsers: false,
@@ -902,6 +904,24 @@ describe("useHome", () => {
       });
 
       const { result } = setupHook({ readers: [], view: "joint" });
+      expect(result.current.checkIsUserActive("1")).toBe(true);
+      expect(result.current.checkIsUserActive("2")).toBe(true);
+    });
+
+    it("marks locked reader as active in joint view when omitted from URL readers", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: ["2"], view: "joint" });
+
+      expect(result.current.lockedReaderId).toBe("1");
       expect(result.current.checkIsUserActive("1")).toBe(true);
       expect(result.current.checkIsUserActive("2")).toBe(true);
     });
