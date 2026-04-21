@@ -112,6 +112,12 @@ export function useHome() {
   const isAllBooksActive = filters.view !== "joint" && !filters.myBooks;
   const isMyBooksActive = !!(filters.myBooks && isLoggedIn && user?.id);
 
+  const lockedReaderId = useMemo(() => {
+    if (!isLoggedIn || !user?.id || isMyBooksActive) return undefined;
+    if (filters.view === "todos" || filters.view === "joint") return user.id;
+    return undefined;
+  }, [isLoggedIn, user?.id, isMyBooksActive, filters.view]);
+
   const readersObj = useMemo(() => {
     if (isMyBooksActive) {
       return { readers: [], readersDisplay: "" };
@@ -159,9 +165,14 @@ export function useHome() {
       defaultTodosReaders.includes(id),
     );
 
-    if (scopedReaders.length > 0) return scopedReaders;
+    if (scopedReaders.length > 0) {
+      if (lockedReaderId && !scopedReaders.includes(lockedReaderId)) {
+        return [lockedReaderId, ...scopedReaders];
+      }
+      return scopedReaders;
+    }
     return defaultTodosReaders;
-  }, [filters.readers, defaultTodosReaders]);
+  }, [filters.readers, defaultTodosReaders, lockedReaderId]);
 
   const relationshipUserValues = useMemo(() => {
     if (!isAllBooksActive || !isLoggedIn) return undefined;
@@ -287,10 +298,19 @@ export function useHome() {
   const formattedYear = useMemo(() => formatYear(filters.year), [filters.year]);
 
   const allReaderIds = useMemo(() => users.map((u) => u.id), [users]);
-  const effectiveSelectedReaders = useMemo(
-    () => (filters.readers.length > 0 ? filters.readers : allReaderIds),
-    [filters.readers, allReaderIds],
-  );
+  const effectiveSelectedReaders = useMemo(() => {
+    const base = filters.readers.length > 0 ? filters.readers : allReaderIds;
+    if (lockedReaderId && !base.includes(lockedReaderId)) {
+      return [lockedReaderId, ...base];
+    }
+    return base;
+  }, [filters.readers, allReaderIds, lockedReaderId]);
+
+  const needsExtraReader = useMemo(() => {
+    if (filters.view !== "joint" || !lockedReaderId) return false;
+    if (filters.readers.length === 0) return false;
+    return filters.readers.filter((id) => id !== lockedReaderId).length === 0;
+  }, [filters.view, filters.readers, lockedReaderId]);
 
   const booksQueryData = useMemo(() => {
     if (!rawBooks?.data) return rawBooks;
@@ -442,6 +462,8 @@ export function useHome() {
 
   const handleToggleReader = useCallback(
     (readerId: string) => {
+      if (readerId === lockedReaderId) return;
+
       const defaultReaders = isAllBooksActive
         ? defaultTodosReaders
         : allReaderIds;
@@ -464,6 +486,7 @@ export function useHome() {
       isAllBooksActive,
       defaultTodosReaders,
       effectiveTodosReaders,
+      lockedReaderId,
     ],
   );
 
@@ -579,5 +602,7 @@ export function useHome() {
     isLoggedIn,
     users,
     readers,
+    lockedReaderId,
+    needsExtraReader,
   };
 }
