@@ -48,8 +48,13 @@ export class BookMapper {
     };
   }
 
-  static isSoloBook(book: Pick<BookDomain, "readerIds" | "chosen_by">): boolean {
-    return book.readerIds.length === 1 && book.readerIds[0] === book.chosen_by;
+  static isSoloBook(
+    book: Pick<BookDomain, "chosen_by"> & {
+      readerIds?: BookDomain["readerIds"] | null;
+    },
+  ): boolean {
+    const readerIds = book.readerIds ?? [];
+    return readerIds.length === 1 && readerIds[0] === book.chosen_by;
   }
 
   static enrichReadersDisplay(book: BookDomain, users: UserLookup[]): BookDomain {
