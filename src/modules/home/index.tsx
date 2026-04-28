@@ -411,7 +411,11 @@ export default function ClientHome() {
           renderItem={(book) => (
             <BookCard key={book.id} book={book} isShelf={false} />
           )}
-          emptyMessage="Nenhum livro encontrado para os filtros selecionados."
+          emptyMessage={
+            filters.bookId?.trim()
+              ? "Não encontramos um livro com este identificador na sua lista."
+              : "Nenhum livro encontrado para os filtros selecionados."
+          }
           isError={isError}
         />
       )}

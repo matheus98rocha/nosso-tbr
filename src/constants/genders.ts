@@ -1,10 +1,11 @@
 export const genders = [
   { label: "Romance", value: "romance" },
-  { label: "Romance de época", value: "historical_romance" },
+  { label: "Romance de época", value: "time_romance" },
   {
     label: "Romance contemporâneo",
     value: "contemporary_romance",
   },
+  { label: "Romance histórico", value: "historical_romance" },
   { label: "Fantasia", value: "fantasy" },
   { label: "Romantasia", value: "romantasy" },
   { label: "Realismo mágico", value: "magical_realism" },
@@ -32,7 +33,8 @@ export const getGenderLabel = (value: string | undefined) => {
 
 export const genreColorMap: Record<string, string> = {
   romance: "bg-violet-400 text-white",
-  historical_romance: "bg-fuchsia-300 text-white",
+  time_romance: "bg-fuchsia-300 text-white",
+  historical_romance: "bg-pink-300 text-white",
   contemporary_romance: "bg-purple-500 text-white",
 
   fantasy: "bg-yellow-700 text-white",

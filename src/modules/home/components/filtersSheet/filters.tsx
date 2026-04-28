@@ -49,11 +49,9 @@ export default function FiltersSheet({
   }, [localFilters, searchQuery, updateUrlWithFilters, setIsOpen]);
 
   const handleCancel = useCallback(() => {
-    const cleared = { ...filters, readers: [], gender: [], status: [], isReread: undefined };
+    resetLocalFilters(filters);
     setIsOpen(false);
-    updateUrlWithFilters(cleared, "");
-    resetLocalFilters(cleared);
-  }, [filters, setIsOpen, updateUrlWithFilters, resetLocalFilters]);
+  }, [filters, setIsOpen, resetLocalFilters]);
 
   const handleClearAll = useCallback(() => {
     const cleared = { ...localFilters, readers: [], gender: [], status: [], isReread: undefined };
