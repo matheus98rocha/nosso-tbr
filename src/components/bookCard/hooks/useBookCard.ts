@@ -153,6 +153,7 @@ export function useBookCard({
       if (!isShelf) {
         const service = new BookService();
         await service.delete(id);
+        router.replace("/");
         return;
       }
       if (!shelfId) {
@@ -164,7 +165,7 @@ export function useBookCard({
       await service.removeBookFromShelf(shelfId, id);
       window.location.reload();
     },
-    [isShelf, shelfId],
+    [isShelf, shelfId, router],
   );
 
   return {

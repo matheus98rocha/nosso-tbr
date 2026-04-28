@@ -94,3 +94,23 @@ describe("useSyncLocalStateOnClose", () => {
     expect(syncLocalState).toHaveBeenCalledWith("date_desc");
   });
 });
+
+describe("areFiltersOptionsEqual", () => {
+  it("retorna false quando só isReread difere", () => {
+    const a: FiltersOptions = { ...baseFilters, isReread: true };
+    const b: FiltersOptions = { ...baseFilters, isReread: false };
+    expect(areFiltersOptionsEqual(a, b)).toBe(false);
+  });
+
+  it("retorna false quando só sort difere", () => {
+    const a: FiltersOptions = { ...baseFilters, sort: "pages_asc" };
+    const b: FiltersOptions = { ...baseFilters, sort: "pages_desc" };
+    expect(areFiltersOptionsEqual(a, b)).toBe(false);
+  });
+
+  it("trata undefined e ausência de sort como iguais", () => {
+    const a: FiltersOptions = { ...baseFilters };
+    const b: FiltersOptions = { ...baseFilters, sort: undefined };
+    expect(areFiltersOptionsEqual(a, b)).toBe(true);
+  });
+});

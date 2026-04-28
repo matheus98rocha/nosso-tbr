@@ -908,6 +908,49 @@ describe("useHome", () => {
       expect(result.current.checkIsUserActive("2")).toBe(true);
     });
 
+    it("em joint com URL vazia, o default de toggles segue a rede (readers), não todo o array users", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: [
+          ...mockUsers,
+          { id: "3", display_name: "Nao Seguido" },
+        ],
+        isLoadingUsers: false,
+      });
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          if (params?.queryKey?.[0] === "userSocial") {
+            return {
+              data: ["2"],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: { data: [], total: 0 },
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        },
+      );
+
+      const { result } = setupHook({ readers: [], view: "joint" });
+      expect(result.current.readers.map((r) => r.id)).toEqual(["1", "2"]);
+
+      act(() => result.current.handleToggleReader("2"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: ["1"], view: "joint" }),
+      );
+    });
+
     it("marks locked reader as active in joint view when omitted from URL readers", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({

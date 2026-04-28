@@ -28,7 +28,9 @@ export const areFiltersOptionsEqual = (
   previous.bookId === current.bookId &&
   previous.authorId === current.authorId &&
   previous.year === current.year &&
-  previous.myBooks === current.myBooks;
+  previous.myBooks === current.myBooks &&
+  previous.isReread === current.isReread &&
+  previous.sort === current.sort;
 
 export const useSyncLocalStateOnClose = <T>({
   externalState,

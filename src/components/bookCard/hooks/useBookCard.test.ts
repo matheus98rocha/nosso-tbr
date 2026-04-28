@@ -3,6 +3,7 @@ import { Mock, vi } from "vitest";
 import { useBookCard } from "./useBookCard";
 import { BookDomain } from "@/types/books.types";
 import { useRouter } from "next/navigation";
+import { BookService } from "@/services/books/books.service";
 
 vi.mock("next/navigation", () => ({ useRouter: vi.fn() }));
 vi.mock("@/services/books/books.service");
@@ -157,6 +158,29 @@ describe("useBookCard", () => {
         await expect(
           result.current.handleConfirmDelete("1"),
         ).rejects.toThrow(/shelfId é obrigatório/);
+      });
+
+      it("when not shelf, deletes book and replaces route with home listing", async () => {
+        const replaceMock = vi.fn();
+        (useRouter as Mock).mockReturnValue({
+          push: vi.fn(),
+          replace: replaceMock,
+        });
+        const deleteMock = vi.fn().mockResolvedValue(undefined);
+        vi.mocked(BookService).mockImplementation(
+          class MockBookService {
+            delete = deleteMock;
+          } as unknown as typeof BookService,
+        );
+
+        const { result } = renderBookCardHook();
+
+        await act(async () => {
+          await result.current.handleConfirmDelete("1");
+        });
+
+        expect(deleteMock).toHaveBeenCalledWith("1");
+        expect(replaceMock).toHaveBeenCalledWith("/");
       });
     });
 

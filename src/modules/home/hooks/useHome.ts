@@ -149,9 +149,9 @@ export function useHome() {
     };
   }, [filters.readers, readers, isMyBooksActive]);
 
-  const isAwaitingSpecificBook = useMemo(
-    () => !!(filters.bookId || searchQuery),
-    [filters.bookId, searchQuery],
+  const shouldThrowSyncOnEmpty = useMemo(
+    () => !!searchQuery.trim() && !filters.bookId?.trim(),
+    [searchQuery, filters.bookId],
   );
 
   const effectiveUserId = isMyBooksActive ? user!.id : undefined;
@@ -234,7 +234,7 @@ export function useHome() {
         });
 
         if (
-          isAwaitingSpecificBook &&
+          shouldThrowSyncOnEmpty &&
           (!response || response.data?.length === 0)
         ) {
           throw new Error("Sincronizando novo livro...");
@@ -260,18 +260,10 @@ export function useHome() {
         pageSize: serverPageSize,
       });
 
-      if (
-        isLoggedIn &&
-        isAwaitingSpecificBook &&
-        (!response || response.data?.length === 0)
-      ) {
-        throw new Error("Sincronizando novo livro...");
-      }
-
       return response;
     },
     retry: (failureCount) => {
-      if (isLoggedIn && isAwaitingSpecificBook && failureCount < 2) {
+      if (isLoggedIn && shouldThrowSyncOnEmpty && failureCount < 2) {
         return true;
       }
       return false;
@@ -298,13 +290,24 @@ export function useHome() {
   const formattedYear = useMemo(() => formatYear(filters.year), [filters.year]);
 
   const allReaderIds = useMemo(() => users.map((u) => u.id), [users]);
+  const networkReaderIds = useMemo(
+    () => readers.map((u) => u.id),
+    [readers],
+  );
   const effectiveSelectedReaders = useMemo(() => {
-    const base = filters.readers.length > 0 ? filters.readers : allReaderIds;
+    const defaultWhenEmpty = isAllBooksActive ? allReaderIds : networkReaderIds;
+    const base = filters.readers.length > 0 ? filters.readers : defaultWhenEmpty;
     if (lockedReaderId && !base.includes(lockedReaderId)) {
       return [lockedReaderId, ...base];
     }
     return base;
-  }, [filters.readers, allReaderIds, lockedReaderId]);
+  }, [
+    filters.readers,
+    allReaderIds,
+    networkReaderIds,
+    isAllBooksActive,
+    lockedReaderId,
+  ]);
 
   const needsExtraReader = useMemo(() => {
     if (filters.view !== "joint" || !lockedReaderId) return false;
@@ -466,7 +469,7 @@ export function useHome() {
 
       const defaultReaders = isAllBooksActive
         ? defaultTodosReaders
-        : allReaderIds;
+        : networkReaderIds;
       const currentReaders = isAllBooksActive
         ? effectiveTodosReaders
         : filters.readers.length > 0
@@ -482,11 +485,11 @@ export function useHome() {
     [
       filters,
       updateUrlWithFilters,
-      allReaderIds,
       isAllBooksActive,
       defaultTodosReaders,
       effectiveTodosReaders,
       lockedReaderId,
+      networkReaderIds,
     ],
   );
 
@@ -527,12 +530,16 @@ export function useHome() {
     if (!isMyBooksActive) return;
 
     queryClient.prefetchQuery({
-      queryKey: QUERY_KEYS.books.list(
-        serverFilters,
-        searchQuery,
-        nextPage,
-        effectiveUserId,
-      ),
+      queryKey: [
+        ...QUERY_KEYS.books.list(
+          serverFilters,
+          searchQuery,
+          nextPage,
+          effectiveUserId,
+        ),
+        "relationship",
+        relationshipKey,
+      ],
       queryFn: () =>
         bookService.getAll({
           bookId: serverFilters.bookId,
@@ -556,6 +563,7 @@ export function useHome() {
     allBooks?.total,
     currentPage,
     effectiveUserId,
+    relationshipKey,
     relationshipUserValues,
     serverFilters,
     isMyBooksActive,
