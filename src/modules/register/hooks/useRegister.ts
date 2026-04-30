@@ -10,7 +10,7 @@ import {
   registerUserFormSchema,
 } from "@/services/userRegistration/validators/userRegistration.validator";
 
-export function useRegister() {
+export function useRegister(inviteToken: string) {
   const form = useForm<RegisterUserFormValues>({
     resolver: zodResolver(registerUserFormSchema),
     defaultValues: {
@@ -18,6 +18,7 @@ export function useRegister() {
       password: "",
       password_confirm: "",
       display_name: "",
+      invite: inviteToken,
     },
   });
 

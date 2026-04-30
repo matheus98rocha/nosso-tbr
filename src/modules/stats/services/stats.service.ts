@@ -1,4 +1,8 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { createClient } from "@/lib/supabase/client";
+
+import type { Database } from "../../../../database.types";
 import { StatsMapper } from "./mappers/stats.mapper";
 import {
   CollaborationStatsDomain,
@@ -7,14 +11,19 @@ import {
 } from "../types/stats.types";
 
 export class StatsService {
-  private supabase = createClient();
+  private readonly supabase: SupabaseClient<Database>;
+
+  constructor(client?: SupabaseClient<Database>) {
+    this.supabase = client ?? createClient();
+  }
 
   async getByReader(reader: string): Promise<StatsDomain[]> {
-    const { data, error } = await this.supabase
-      .rpc("get_reading_stats_by_reader", {
+    const { data, error } = await this.supabase.rpc(
+      "get_reading_stats_by_reader",
+      {
         reader_input: reader,
-      })
-      .select("*");
+      },
+    );
 
     if (error) {
       console.error("Supabase error:", {
@@ -31,11 +40,12 @@ export class StatsService {
   async getCollaborationStats(
     reader: string
   ): Promise<CollaborationStatsDomain[]> {
-    const { data, error } = await this.supabase
-      .rpc("get_reader_collaboration_stats", {
+    const { data, error } = await this.supabase.rpc(
+      "get_reader_collaboration_stats",
+      {
         reader_input: reader,
-      })
-      .select("*");
+      },
+    );
 
     if (error) {
       console.error("Supabase error:", {

@@ -9,6 +9,7 @@ export const userRegistrationMapper = {
       email: values.email.trim(),
       password: values.password,
       display_name: values.display_name.trim(),
+      invite: values.invite.trim(),
     };
   },
 };

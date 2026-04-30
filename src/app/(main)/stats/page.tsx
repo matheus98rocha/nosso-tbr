@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import { EstatisticaAnual, StatsClient } from "@/modules/stats";
 import { StatsService } from "@/modules/stats/services/stats.service";
 import { CollaborationStatsDomain } from "@/modules/stats/types/stats.types";
@@ -10,7 +11,8 @@ export default async function StatsPage({
   const params = await searchParams;
   const reader = params.reader ?? "Matheus";
 
-  const service = new StatsService();
+  const supabase = await createClient();
+  const service = new StatsService(supabase);
 
   const [yearlyStats, collaborationStats] = await Promise.all([
     service.getByReader(reader),

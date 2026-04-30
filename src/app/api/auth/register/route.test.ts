@@ -4,6 +4,7 @@ const validPayload = {
   email: "tester@example.com",
   password: "Password123",
   display_name: "Tester",
+  invite: "test-invite-secret",
 };
 
 type SupabaseMock = {
@@ -25,13 +26,52 @@ describe("POST /api/auth/register", () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    vi.stubEnv("REGISTER_INVITE_SECRET", "test-invite-secret");
     consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
       // noop for tests
     });
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
+  });
+
+  it("returns 503 when REGISTER_INVITE_SECRET is not configured", async () => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("REGISTER_INVITE_SECRET", "");
+
+    const route = await loadRouteWithClient({
+      auth: { signUp: vi.fn() },
+      from: vi.fn(),
+    });
+
+    const response = await route.POST(
+      new Request("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(validPayload),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(503);
+  });
+
+  it("returns 403 when invite token does not match", async () => {
+    const route = await loadRouteWithClient({
+      auth: { signUp: vi.fn() },
+      from: vi.fn(),
+    });
+
+    const response = await route.POST(
+      new Request("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ ...validPayload, invite: "wrong-token" }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(403);
   });
 
   it("returns a client-safe auth error message and logs provider details", async () => {
