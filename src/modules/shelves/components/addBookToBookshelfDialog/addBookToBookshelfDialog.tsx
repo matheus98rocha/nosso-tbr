@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { QUERY_KEYS } from "@/constants/keys";
 import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
+import { bookshelfBooksQueryKey } from "@/modules/bookshelves/bookshelfBooksQueryKey";
 import { BookService } from "@/services/books/books.service";
 import { BookCombobox } from "../bookCombobox";
 import { BookshelfService } from "../../services/booksshelves.service";
@@ -51,8 +52,21 @@ export function AddBookToBookshelfDialog({
       const service = new BookshelfService();
       await service.addBookToShelf(bookshelfe.id, selectedBookId);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.shelves.all });
+    onSuccess: async () => {
+      const shelfId = bookshelfe.id;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.shelves.all }),
+        queryClient.invalidateQueries({
+          queryKey: bookshelfBooksQueryKey(shelfId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["bookshelf-meta", shelfId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.books.all,
+          exact: false,
+        }),
+      ]);
       setSelectedBookId("");
       onOpenChange(false);
     },

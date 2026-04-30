@@ -2,7 +2,6 @@ import { act, renderHook } from "@testing-library/react";
 import { Mock, vi } from "vitest";
 import { useAddBookToShelf } from "./useAddBookToShelf";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 
 vi.mock("@tanstack/react-query", () => ({
@@ -18,15 +17,10 @@ vi.mock("@/modules/shelves/services/booksshelves.service", () => ({
   })),
 }));
 
-vi.mock("next/navigation", () => ({
-  useRouter: vi.fn(),
-}));
-
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(() => true),
 }));
 
-const mockPush = vi.fn();
 const mockInvalidateQueries = vi.fn();
 const mockMutate = vi.fn();
 
@@ -48,7 +42,6 @@ function setupMocks({
   isLoggedIn?: boolean;
 } = {}) {
   (useIsLoggedIn as Mock).mockReturnValue(isLoggedIn);
-  (useRouter as Mock).mockReturnValue({ push: mockPush });
   (useQueryClient as Mock).mockReturnValue({
     invalidateQueries: mockInvalidateQueries,
   });
@@ -245,8 +238,9 @@ describe("useAddBookToShelf", () => {
         mutate: mockMutate,
         isPending: false,
       }));
-      (useRouter as Mock).mockReturnValue({ push: mockPush });
-      (useQueryClient as Mock).mockReturnValue({ invalidateQueries: mockInvalidateQueries });
+      (useQueryClient as Mock).mockReturnValue({
+        invalidateQueries: mockInvalidateQueries,
+      });
 
       const { result } = renderHook(() => useAddBookToShelf(defaultProps));
       expect(result.current.bookshelfOptions).toEqual([]);

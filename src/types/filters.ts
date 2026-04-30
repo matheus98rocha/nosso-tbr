@@ -10,7 +10,7 @@ export type FiltersOptions = {
   readers: string[];
   status: string[];
   gender: string[];
-  view: "todos" | "joint";
+  view: "todos" | "joint" | "seguindo";
   userId?: string;
   bookId?: string;
   authorId?: string;

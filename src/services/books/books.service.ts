@@ -24,6 +24,7 @@ export class BookService {
     search,
     userId,
     relationshipUserValues,
+    excludeBookParticipantUserId,
     authorId,
     page = 0,
     pageSize = 10,
@@ -32,6 +33,7 @@ export class BookService {
     search?: string;
     userId?: string;
     relationshipUserValues?: string[];
+    excludeBookParticipantUserId?: string;
     bookId?: string;
     authorId?: string;
     page?: number;
@@ -51,6 +53,7 @@ export class BookService {
         .withId(bookId)
         .withAuthor(authorId)
         .withUserRelationship(relationshipUserValues)
+        .withExcludedBookParticipant(excludeBookParticipantUserId)
         .withUser(userId);
 
       const query =

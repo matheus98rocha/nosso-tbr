@@ -56,20 +56,6 @@ export function useHome() {
     if (!isLoggedIn || !user?.id) return [] as string[];
     return [...new Set([user.id, ...followingIds])];
   }, [isLoggedIn, user?.id, followingIds]);
-
-  const readers: UserDomain[] = useMemo(() => {
-    if (isLoggedIn) {
-      const allowed = new Set(allowedTodosReaderIds);
-      const scopedUsers = users.filter((u: UserDomain) => allowed.has(u.id));
-      return sortWithPriority(
-        scopedUsers,
-        scopedUsers.find((u: UserDomain) => u.id === user?.id)?.display_name ??
-          "",
-      );
-    }
-    return users.map((u: UserDomain) => u);
-  }, [users, user?.id, isLoggedIn, allowedTodosReaderIds]);
-
   const defaultFactory = useMemo(
     () => () => {
       return {
@@ -99,6 +85,36 @@ export function useHome() {
     handleSearchButtonClick,
   } = useFiltersUrl(defaultFactory);
 
+  const readers: UserDomain[] = useMemo(() => {
+    if (isLoggedIn) {
+      let scopeIds: string[];
+      if (filters.myBooks) {
+        scopeIds = [];
+      } else if (filters.view === "seguindo") {
+        scopeIds = followingIds;
+      } else {
+        scopeIds = allowedTodosReaderIds;
+      }
+      const allowed = new Set(scopeIds);
+      const scopedUsers = users.filter((u: UserDomain) => allowed.has(u.id));
+      const priorityName =
+        filters.view === "seguindo"
+          ? (scopedUsers[0]?.display_name ?? "")
+          : (scopedUsers.find((u: UserDomain) => u.id === user?.id)
+              ?.display_name ?? "");
+      return sortWithPriority(scopedUsers, priorityName);
+    }
+    return users.map((u: UserDomain) => u);
+  }, [
+    users,
+    user?.id,
+    isLoggedIn,
+    filters.myBooks,
+    filters.view,
+    followingIds,
+    allowedTodosReaderIds,
+  ]);
+
   useEffect(() => {
     setCurrentPage(0);
   }, [filters, searchQuery]);
@@ -109,7 +125,13 @@ export function useHome() {
     }
   }, [filters.myBooks, filters.view]);
 
-  const isAllBooksActive = filters.view !== "joint" && !filters.myBooks;
+  const isFollowingFeedActive = !!(
+    isLoggedIn &&
+    filters.view === "seguindo" &&
+    !filters.myBooks
+  );
+
+  const isAllBooksActive = filters.view === "todos" && !filters.myBooks;
   const isMyBooksActive = !!(filters.myBooks && isLoggedIn && user?.id);
 
   const lockedReaderId = useMemo(() => {
@@ -155,14 +177,17 @@ export function useHome() {
   );
 
   const effectiveUserId = isMyBooksActive ? user!.id : undefined;
-  const defaultTodosReaders = useMemo(
-    () => allowedTodosReaderIds,
-    [allowedTodosReaderIds],
-  );
+  const defaultScopedReaders = useMemo(() => {
+    if (filters.myBooks) return [] as string[];
+    if (filters.view === "seguindo") {
+      return isLoggedIn ? followingIds : ([] as string[]);
+    }
+    return allowedTodosReaderIds;
+  }, [filters.myBooks, filters.view, isLoggedIn, followingIds, allowedTodosReaderIds]);
 
-  const effectiveTodosReaders = useMemo(() => {
+  const effectiveScopedReaders = useMemo(() => {
     const scopedReaders = filters.readers.filter((id) =>
-      defaultTodosReaders.includes(id),
+      defaultScopedReaders.includes(id),
     );
 
     if (scopedReaders.length > 0) {
@@ -171,14 +196,17 @@ export function useHome() {
       }
       return scopedReaders;
     }
-    return defaultTodosReaders;
-  }, [filters.readers, defaultTodosReaders, lockedReaderId]);
+    return defaultScopedReaders;
+  }, [filters.readers, defaultScopedReaders, lockedReaderId]);
+
+  const usesRelationshipScopedQuery =
+    !!isLoggedIn && (isAllBooksActive || isFollowingFeedActive);
 
   const relationshipUserValues = useMemo(() => {
-    if (!isAllBooksActive || !isLoggedIn) return undefined;
-    const ids = effectiveTodosReaders.filter(Boolean);
+    if (!usesRelationshipScopedQuery) return undefined;
+    const ids = effectiveScopedReaders.filter(Boolean);
     return ids.length > 0 ? ids : undefined;
-  }, [isAllBooksActive, isLoggedIn, effectiveTodosReaders]);
+  }, [usesRelationshipScopedQuery, effectiveScopedReaders]);
   const shouldWaitForUsers =
     !isMyBooksActive &&
     filters.readers.length === 0 &&
@@ -188,7 +216,8 @@ export function useHome() {
     () => ({ ...filters, readers: [] as string[] }),
     [filters],
   );
-  const shouldUseServerPagination = isMyBooksActive || isAllBooksActive;
+  const shouldUseServerPagination =
+    isMyBooksActive || isAllBooksActive || isFollowingFeedActive;
   const serverPage = shouldUseServerPagination ? currentPage : 0;
   const serverPageSize = shouldUseServerPagination
     ? PAGE_SIZE
@@ -196,6 +225,12 @@ export function useHome() {
 
   const relationshipKey =
     relationshipUserValues?.slice().sort().join("|") ?? "none";
+
+  const excludeBookParticipantUserId = useMemo(
+    () =>
+      isFollowingFeedActive && user?.id ? user.id : undefined,
+    [isFollowingFeedActive, user?.id],
+  );
 
   const {
     data: rawBooks,
@@ -212,8 +247,18 @@ export function useHome() {
       ),
       "relationship",
       relationshipKey,
+      "excludeParticipant",
+      excludeBookParticipantUserId ?? "none",
     ],
     queryFn: async () => {
+      if (
+        isLoggedIn &&
+        isFollowingFeedActive &&
+        relationshipUserValues == null &&
+        followingIds.length === 0
+      ) {
+        return { data: [], total: 0 };
+      }
       if (isLoggedIn) {
         const response = await bookService.getAll({
           bookId: filters.bookId,
@@ -221,6 +266,7 @@ export function useHome() {
           search: searchQuery,
           userId: effectiveUserId,
           relationshipUserValues,
+          excludeBookParticipantUserId,
           filters: {
             readers: [],
             status: serverFilters.status,
@@ -295,7 +341,8 @@ export function useHome() {
     [readers],
   );
   const effectiveSelectedReaders = useMemo(() => {
-    const defaultWhenEmpty = isAllBooksActive ? allReaderIds : networkReaderIds;
+    const defaultWhenEmpty =
+      isAllBooksActive || isFollowingFeedActive ? allReaderIds : networkReaderIds;
     const base = filters.readers.length > 0 ? filters.readers : defaultWhenEmpty;
     if (lockedReaderId && !base.includes(lockedReaderId)) {
       return [lockedReaderId, ...base];
@@ -306,6 +353,7 @@ export function useHome() {
     allReaderIds,
     networkReaderIds,
     isAllBooksActive,
+    isFollowingFeedActive,
     lockedReaderId,
   ]);
 
@@ -342,7 +390,7 @@ export function useHome() {
       return booksQueryDataWithRefinement;
     }
 
-    if (isMyBooksActive || isAllBooksActive) {
+    if (isMyBooksActive || isAllBooksActive || isFollowingFeedActive) {
       return booksQueryDataWithRefinement;
     }
 
@@ -374,6 +422,7 @@ export function useHome() {
     booksQueryDataWithRefinement,
     isMyBooksActive,
     isAllBooksActive,
+    isFollowingFeedActive,
     effectiveSelectedReaders,
     currentPage,
   ]);
@@ -382,23 +431,25 @@ export function useHome() {
     () =>
       (!!searchQuery && hasSearchParams) ||
       filters.gender?.length > 0 ||
-      (effectiveTodosReaders.length > 0 &&
+      (effectiveScopedReaders.length > 0 &&
         (hasSearchParams ||
-          (isAllBooksActive &&
-            JSON.stringify(effectiveTodosReaders) !==
-              JSON.stringify(defaultTodosReaders)))) ||
+          ((isAllBooksActive || isFollowingFeedActive) &&
+            JSON.stringify(effectiveScopedReaders) !==
+              JSON.stringify(defaultScopedReaders)))) ||
       filters.status?.length > 0 ||
       !!filters.year ||
       !!filters.sort ||
       filters.view === "joint" ||
+      filters.view === "seguindo" ||
       !!filters.myBooks,
     [
       searchQuery,
       hasSearchParams,
       filters,
       isAllBooksActive,
-      defaultTodosReaders,
-      effectiveTodosReaders,
+      isFollowingFeedActive,
+      defaultScopedReaders,
+      effectiveScopedReaders,
     ],
   );
 
@@ -407,8 +458,16 @@ export function useHome() {
     if (filters.myBooks) labels.push("Meus Livros");
     if (searchQuery) labels.push(`"${searchQuery}"`);
     if (formattedGenres) labels.push(formattedGenres);
-    if (!isMyBooksActive && !isAllBooksActive && formattedReaders)
+    if (filters.view === "joint" && !isMyBooksActive && formattedReaders) {
       labels.push(`Leitores: ${readersObj.readersDisplay}`);
+    }
+    if (filters.view === "seguindo" && !filters.myBooks) {
+      if (formattedReaders && formattedReaders.trim() !== "") {
+        labels.push(`Seguindo · ${readersObj.readersDisplay}`);
+      } else {
+        labels.push("Seguindo");
+      }
+    }
     if (formattedStatus) labels.push(formattedStatus);
     if (formattedYear) labels.push(`Ano: ${formattedYear}`);
     if (filters.sort) labels.push(`Ordem: ${SORT_LABEL_MAP[filters.sort]}`);
@@ -423,7 +482,7 @@ export function useHome() {
     filters.myBooks,
     filters.sort,
     isMyBooksActive,
-    isAllBooksActive,
+    filters.view,
   ]);
 
   const handleSetYear = useCallback(
@@ -463,15 +522,26 @@ export function useHome() {
     updateUrlWithFilters({ ...filters, myBooks: false, view: "joint" });
   }, [filters, updateUrlWithFilters]);
 
+  const handleSetFollowingFeed = useCallback(() => {
+    updateUrlWithFilters({
+      ...filters,
+      myBooks: false,
+      view: "seguindo",
+      readers: [],
+    });
+  }, [filters, updateUrlWithFilters]);
+
   const handleToggleReader = useCallback(
     (readerId: string) => {
       if (readerId === lockedReaderId) return;
 
-      const defaultReaders = isAllBooksActive
-        ? defaultTodosReaders
+      const isScopedRelationshipView =
+        isAllBooksActive || isFollowingFeedActive;
+      const defaultReaders = isScopedRelationshipView
+        ? defaultScopedReaders
         : networkReaderIds;
-      const currentReaders = isAllBooksActive
-        ? effectiveTodosReaders
+      const currentReaders = isScopedRelationshipView
+        ? effectiveScopedReaders
         : filters.readers.length > 0
           ? filters.readers
           : defaultReaders;
@@ -486,8 +556,9 @@ export function useHome() {
       filters,
       updateUrlWithFilters,
       isAllBooksActive,
-      defaultTodosReaders,
-      effectiveTodosReaders,
+      isFollowingFeedActive,
+      defaultScopedReaders,
+      effectiveScopedReaders,
       lockedReaderId,
       networkReaderIds,
     ],
@@ -497,8 +568,8 @@ export function useHome() {
     (readerId: string) => {
       if (isMyBooksActive) return false;
 
-      if (isAllBooksActive) {
-        return effectiveTodosReaders.includes(readerId);
+      if (isAllBooksActive || isFollowingFeedActive) {
+        return effectiveScopedReaders.includes(readerId);
       }
 
       return effectiveSelectedReaders.includes(readerId);
@@ -506,7 +577,8 @@ export function useHome() {
     [
       isMyBooksActive,
       isAllBooksActive,
-      effectiveTodosReaders,
+      isFollowingFeedActive,
+      effectiveScopedReaders,
       effectiveSelectedReaders,
     ],
   );
@@ -539,6 +611,8 @@ export function useHome() {
         ),
         "relationship",
         relationshipKey,
+        "excludeParticipant",
+        excludeBookParticipantUserId ?? "none",
       ],
       queryFn: () =>
         bookService.getAll({
@@ -546,6 +620,7 @@ export function useHome() {
           search: searchQuery,
           userId: effectiveUserId,
           relationshipUserValues,
+          excludeBookParticipantUserId,
           filters: {
             readers: [],
             status: serverFilters.status,
@@ -570,7 +645,16 @@ export function useHome() {
     queryClient,
     searchQuery,
     totalPages,
+    excludeBookParticipantUserId,
   ]);
+
+  const followingFeedEmpty = useMemo(
+    () =>
+      isFollowingFeedActive &&
+      !isLoadingFollowingIds &&
+      followingIds.length === 0,
+    [isFollowingFeedActive, isLoadingFollowingIds, followingIds.length],
+  );
 
   return {
     allBooks,
@@ -604,11 +688,14 @@ export function useHome() {
     handleToggleMyBooks,
     handleSetAllBooks,
     handleSetJointReading,
+    handleSetFollowingFeed,
     handleToggleReader,
     checkIsUserActive,
     isMyBooksActive,
     isAllBooksActive,
+    isFollowingFeedActive,
     isLoggedIn,
+    followingFeedEmpty,
     users,
     readers,
     lockedReaderId,

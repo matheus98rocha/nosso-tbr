@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+
 import { QUERY_KEYS } from "@/constants/keys";
 import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
-import { getBookshelfBooksPath } from "@/lib/routes/shelves";
+import { bookshelfBooksQueryKey } from "@/modules/bookshelves/bookshelfBooksQueryKey";
 import {
   BookshelfService,
   fetchBookShelves,
@@ -20,7 +20,6 @@ export function useAddBookToShelf({
 }: AddBookToShelfProps) {
   const [selectedShelfId, setSelectedShelfId] = useState("");
   const queryClient = useQueryClient();
-  const router = useRouter();
   const isLoggedIn = useIsLoggedIn();
 
   const { data: bookshelves = [], isLoading } = useQuery({
@@ -33,15 +32,28 @@ export function useAddBookToShelf({
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (shelfId: string) => {
       const service = new BookshelfService();
-      await service.addBookToShelf(selectedShelfId, bookId);
+      await service.addBookToShelf(shelfId, bookId);
+      return shelfId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.shelves.all });
+    onSuccess: async (shelfId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.shelves.all }),
+        queryClient.invalidateQueries({
+          queryKey: bookshelfBooksQueryKey(shelfId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["bookshelf-meta", shelfId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.books.all,
+          exact: false,
+        }),
+      ]);
       setSelectedShelfId("");
       handleClose(false);
-      router.push(getBookshelfBooksPath(selectedShelfId));
+      toast("Livro adicionado à estante com sucesso!");
     },
     onError: () => {
       toast(SHELF_BOOK_CANNOT_ADD_MESSAGE, { className: "toast-error" });
@@ -49,7 +61,7 @@ export function useAddBookToShelf({
   });
 
   const handleSubmit = useCallback(() => {
-    if (selectedShelfId) mutate();
+    if (selectedShelfId) mutate(selectedShelfId);
   }, [selectedShelfId, mutate]);
 
   const bookshelfOptions = useMemo(() => {

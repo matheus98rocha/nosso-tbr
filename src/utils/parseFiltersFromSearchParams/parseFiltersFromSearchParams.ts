@@ -34,7 +34,9 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   const myBooks = searchParams.get("myBooks") === "true";
   const isReread = searchParams.get("isReread") === "true" || undefined;
   const viewParam = searchParams.get("view");
-  const view = viewParam === "joint" ? "joint" : "todos";
+  let view: FiltersOptions["view"] = "todos";
+  if (viewParam === "joint") view = "joint";
+  else if (viewParam === "seguindo") view = "seguindo";
   const rawSort = searchParams.get("sort");
   const sort: SortOption | undefined =
     rawSort === "pages_asc" || rawSort === "pages_desc" ? rawSort : undefined;

@@ -20,6 +20,7 @@ import {
   BookOpen,
   BookPlus,
   LogInIcon,
+  Radar,
   Tag,
   UserPlus,
   Users,
@@ -48,10 +49,13 @@ export default function ClientHome() {
     handleToggleMyBooks,
     handleSetAllBooks,
     handleSetJointReading,
+    handleSetFollowingFeed,
     handleToggleReader,
     handleSetSort,
     isMyBooksActive,
     isAllBooksActive,
+    isFollowingFeedActive,
+    followingFeedEmpty,
     isLoggedIn,
     checkIsUserActive,
     readers,
@@ -62,6 +66,8 @@ export default function ClientHome() {
   const dialogModal = useModal();
   const createShelfDialog = useModal();
   const isLoading = isLoadingAllBooks || isLoggingOut;
+
+  const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
 
   const shouldSuggestFollowing =
     !isLoading &&
@@ -162,23 +168,48 @@ export default function ClientHome() {
                         onClick={handleSetJointReading}
                         className={cn(
                           "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
-                          !isMyBooksActive && !isAllBooksActive
+                          isJointViewActive
                             ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
                             : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
                         )}
                         aria-label="Ver leituras conjuntas"
-                        aria-pressed={!isMyBooksActive && !isAllBooksActive}
+                        aria-pressed={isJointViewActive}
                       >
                         <Users
                           size={13}
                           className={cn(
                             "mr-1.5 transition-colors",
-                            !isMyBooksActive && !isAllBooksActive
+                            isJointViewActive
                               ? "text-white"
                               : "text-zinc-400 group-hover:text-inherit",
                           )}
                         />
                         Leituras Conjuntas
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSetFollowingFeed}
+                        className={cn(
+                          "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                          isFollowingFeedActive
+                            ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                            : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
+                        )}
+                        aria-label="Ver livros de perfis que você segue"
+                        aria-pressed={isFollowingFeedActive}
+                      >
+                        <Radar
+                          size={13}
+                          className={cn(
+                            "mr-1.5 transition-colors",
+                            isFollowingFeedActive
+                              ? "text-white"
+                              : "text-zinc-400 group-hover:text-inherit",
+                          )}
+                        />
+                        Seguindo
                       </Button>
 
                       {isLoggedIn && (
@@ -212,42 +243,66 @@ export default function ClientHome() {
                       {!isMyBooksActive && (
                         <>
                           <div className="flex flex-wrap gap-2">
-                            {readers.map((reader) => {
-                              const isLocked = reader.id === lockedReaderId;
-                              const isActive = checkIsUserActive(reader.id);
-                              return (
-                                <Button
-                                  key={reader.id}
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleToggleReader(reader.id)}
-                                  disabled={isLocked}
-                                  aria-pressed={isActive}
-                                  aria-label={
-                                    isLocked
-                                      ? `${reader.display_name} (sempre incluído nesta visão)`
-                                      : reader.display_name
-                                  }
-                                  className={cn(
-                                    "rounded-full h-8 px-3 text-xs font-medium transition-all",
-                                    isActive
-                                      ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
-                                      : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
-                                    isLocked &&
-                                      "opacity-100 cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none",
-                                  )}
+                            {followingFeedEmpty ? (
+                              <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed max-w-md">
+                                Você ainda não segue ninguém. Em{" "}
+                                <Link
+                                  href="/profile"
+                                  className="text-violet-600 dark:text-violet-400 font-medium underline-offset-2 hover:underline"
                                 >
-                                  {reader.display_name}
-                                </Button>
-                              );
-                            })}
+                                  Perfil
+                                </Link>{" "}
+                                você encontra pessoas para seguir e acompanhar
+                                leituras.
+                              </p>
+                            ) : (
+                              readers.map((reader) => {
+                                const isLocked = reader.id === lockedReaderId;
+                                const isActive = checkIsUserActive(reader.id);
+                                return (
+                                  <Button
+                                    key={reader.id}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      handleToggleReader(reader.id)
+                                    }
+                                    disabled={isLocked}
+                                    aria-pressed={isActive}
+                                    aria-label={
+                                      isLocked
+                                        ? `${reader.display_name} (sempre incluído nesta visão)`
+                                        : reader.display_name
+                                    }
+                                    className={cn(
+                                      "rounded-full h-8 px-3 text-xs font-medium transition-all",
+                                      isActive
+                                        ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                                        : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
+                                      isLocked &&
+                                        "opacity-100 cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none",
+                                    )}
+                                  >
+                                    {reader.display_name}
+                                  </Button>
+                                );
+                              })
+                            )}
                           </div>
+
+                          {isFollowingFeedActive && !followingFeedEmpty && (
+                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-snug">
+                              Leituras privadas só de quem você segue não
+                              aparecem aqui.
+                            </p>
+                          )}
 
                           {lockedReaderId && (
                             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-snug">
                               {needsExtraReader ? (
                                 <span className="text-amber-500 dark:text-amber-400 font-medium">
-                                  Selecione pelo menos outro(a) leitor(a) para ver leituras conjuntas.
+                                  Selecione pelo menos outro(a) leitor(a) para
+                                  ver leituras conjuntas.
                                 </span>
                               ) : !isAllBooksActive ? (
                                 "Você é sempre incluído. Selecione pelo menos outro(a) leitor(a) além de você."
@@ -414,7 +469,9 @@ export default function ClientHome() {
           emptyMessage={
             filters.bookId?.trim()
               ? "Não encontramos um livro com este identificador na sua lista."
-              : "Nenhum livro encontrado para os filtros selecionados."
+              : followingFeedEmpty
+                ? "Siga outros leitores pelo perfil para ver livros nesta visão."
+                : "Nenhum livro encontrado para os filtros selecionados."
           }
           isError={isError}
         />
