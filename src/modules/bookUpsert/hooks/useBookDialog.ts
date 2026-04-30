@@ -23,6 +23,8 @@ import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
 import { useRequireAuth } from "@/stores/hooks/useAuth";
 import { useBookPreCreationValidation } from "./useBookPreCreationValidation";
 import { QUERY_KEYS } from "@/constants/keys";
+import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
+import { ApiError } from "@/lib/api/clientJsonFetch";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -145,24 +147,48 @@ export function useBookDialog({
     mutationFn: async (data: BookCreateValidator) => {
       if (isEdit) {
         if (!bookData || !bookData.id) throw new Error("Erro inesperado.");
-        return await bookUpsertService.edit(bookData.id, data);
-      } else {
-        const createdBook = await bookUpsertService.create(data);
-        if (isAddToShelfEnabled && createdBook?.id) {
+        await bookUpsertService.edit(bookData.id, data);
+        return { mode: "edit" as const };
+      }
+      const createdBook = await bookUpsertService.create(data);
+      let shelfDuplicate = false;
+      if (isAddToShelfEnabled && createdBook?.id && selectedShelfId) {
+        try {
           await bookshelfService.addBookToShelf(
             selectedShelfId,
             createdBook.id,
           );
+        } catch (e) {
+          if (
+            e instanceof ApiError &&
+            e.status >= 400 &&
+            e.status < 500
+          ) {
+            shelfDuplicate = true;
+          } else {
+            throw e;
+          }
         }
-        return createdBook;
       }
+      return {
+        mode: "create" as const,
+        book: createdBook,
+        shelfDuplicate,
+      };
     },
     onSuccess: async (result) => {
-      const createdBookId = isEdit ? bookData?.id : result?.id;
+      const createdBookId =
+        result.mode === "edit" ? bookData?.id : result.book.id;
 
       handleResetForm();
       closeDiscovery();
-      toast("Livro salvo com sucesso!");
+      if (result.mode === "create" && result.shelfDuplicate) {
+        toast("Livro salvo com sucesso!", {
+          description: SHELF_BOOK_CANNOT_ADD_MESSAGE,
+        });
+      } else {
+        toast("Livro salvo com sucesso!");
+      }
 
       await queryClient.invalidateQueries({
         queryKey: ["books"],

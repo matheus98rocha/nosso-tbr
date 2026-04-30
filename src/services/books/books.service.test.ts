@@ -11,6 +11,7 @@ const buildMockBuilder = () => ({
   withId: vi.fn().mockReturnThis(),
   withAuthor: vi.fn().mockReturnThis(),
   withUserRelationship: vi.fn().mockReturnThis(),
+  withExcludedBookParticipant: vi.fn().mockReturnThis(),
   withUser: vi.fn().mockReturnThis(),
   withDefaultOrdering: vi.fn().mockReturnThis(),
   withPagination: vi.fn().mockReturnThis(),

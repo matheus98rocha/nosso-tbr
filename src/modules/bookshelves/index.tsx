@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowDownUp, ArrowLeft, GripVertical, Library } from "lucide-react";
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SortFilterChips } from "@/components";
 import BookshelfBooksSortableGrid from "./components/BookshelfBooksSortableGrid";
 
-function ClientBookshelves() {
+function ClientBookshelvesInner() {
   const { id } = useParams();
   const bookshelfId = typeof id === "string" ? id : undefined;
 
@@ -129,6 +129,7 @@ function ClientBookshelves() {
               activeSort={sort}
               onSelect={handleSetSort}
               isLoading={isLoading}
+              variant="shelf"
             />
           </div>
         </div>
@@ -148,4 +149,50 @@ function ClientBookshelves() {
   );
 }
 
-export default ClientBookshelves;
+function BookshelvesLoadingShell() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-11 w-40 rounded-md" aria-hidden />
+      <header className="space-y-5 border-b border-border/60 pb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2 w-full">
+            <Skeleton className="h-3 w-40" aria-hidden />
+            <Skeleton className="h-10 max-w-md w-full" aria-hidden />
+          </div>
+          <Skeleton className="h-24 w-full max-w-sm rounded-xl" aria-hidden />
+        </div>
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+          <div className="p-4 space-y-2.5">
+            <Skeleton className="h-4 w-32" aria-hidden />
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: 6 }, (_, k) => (
+                <Skeleton
+                  key={`shelf-sort-ph-${k}`}
+                  className="h-8 w-36 rounded-full"
+                  aria-hidden
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </header>
+      <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 8 }, (_, i) => (
+          <Skeleton
+            key={`shelf-page-fb-${i}`}
+            className="h-[120px] w-full rounded-xl"
+            aria-hidden
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function ClientBookshelves() {
+  return (
+    <Suspense fallback={<BookshelvesLoadingShell />}>
+      <ClientBookshelvesInner />
+    </Suspense>
+  );
+}

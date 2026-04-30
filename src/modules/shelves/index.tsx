@@ -114,7 +114,11 @@ function ClienteShelves() {
                 key={shelf.id}
                 shelf={shelf}
                 openAddBookDialog={() =>
-                  handleOpenDialog({ id: shelf.id, name: shelf.name })
+                  handleOpenDialog({
+                    id: shelf.id,
+                    name: shelf.name,
+                    bookIdsOnShelf: shelf.books.map((b) => b.id),
+                  })
                 }
               />
             )}

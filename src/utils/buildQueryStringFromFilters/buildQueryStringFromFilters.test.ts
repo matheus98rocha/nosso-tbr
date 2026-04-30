@@ -26,6 +26,14 @@ describe("buildQueryStringFromFilters", () => {
 
       expect(params.get("view")).toBeNull();
     });
+
+    it("serializes view when seguindo is selected", () => {
+      const params = new URLSearchParams(
+        buildQueryStringFromFilters({ ...baseFilters, view: "seguindo" }),
+      );
+
+      expect(params.get("view")).toBe("seguindo");
+    });
   });
 
   describe("year serialization", () => {

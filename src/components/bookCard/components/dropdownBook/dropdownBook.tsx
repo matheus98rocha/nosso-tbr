@@ -13,6 +13,7 @@ export function DropdownBook({
   trigger,
   editBook,
   removeBook,
+  removeBookLabel,
   addToShelf,
   shareOnWhatsApp,
   schedule,
@@ -38,7 +39,7 @@ export function DropdownBook({
             <p>Editar Livro</p>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={removeBook}>
-            <p>Remover livro</p>
+            <p>{removeBookLabel}</p>
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={shareOnWhatsApp}>

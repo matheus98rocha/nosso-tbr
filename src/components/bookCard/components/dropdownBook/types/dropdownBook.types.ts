@@ -6,6 +6,7 @@ export type DropdownMenuWrapperProps = {
   trigger: ReactNode;
   editBook: () => void;
   removeBook: () => void;
+  removeBookLabel: string;
   addToShelf: () => void;
   shareOnWhatsApp: () => void;
   schedule?: () => void;

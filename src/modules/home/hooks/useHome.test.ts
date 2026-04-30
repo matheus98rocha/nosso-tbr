@@ -279,6 +279,8 @@ describe("useHome", () => {
             ),
             "relationship",
             "none",
+            "excludeParticipant",
+            "none",
           ],
         }),
       );

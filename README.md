@@ -119,7 +119,10 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 
 ### 🏠 Home (`/`)
 
-- Lista de **todos os livros** cadastrados.
+- Lista de **todos os livros** cadastrados para visitantes e, para usuários logados, visões combinadas pela seção **Visão** na própria home.
+- Abas **`Todos`** / **`Leituras conjuntas`** / **`Seguindo`** (`?view=` `todos` \| `joint` \| `seguindo`) usando `router.replace` na query string (**SPA**, sem reload de página inteira): ao alternar, o React Query dispara nova busca pela chave atualizada.
+- **`Seguindo`**: lista livros relacionados apenas a **`following_id`** em `user_followers` para o usuário atual (consulta restrita aos IDs obtidos pelo `UserSocialService.getFollowingIds`), **excluindo** livros em que o próprio usuário aparece em **`readers`** ou é **`chosen_by`**. Leituras **individuais privadas** (modelo RN56 — `books_select_non_solo_or_owner`) continuam ocultas via RLS; não aparecem na rede nem nesta visão.
+- **`Todos`** (usuário logado): continua unindo você e perfis que você segue nos chips de leitor.
 - **Filtros avançados** usando `BookQueryBuilder`:
   - Gênero (`gender`)
   - Leitores (ex.: “Matheus”, “Fabi”, “Barbara”)
@@ -129,6 +132,7 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 - Ações principais:
   - **Criar/editar livro** via modal `BookUpsert`.
   - **Criar/editar estante** via modal `CreateEditBookshelves`.
+  - **Adicionar livro à estante** a partir do card (`AddBookToShelf`): persiste na API e exibe toast de confirmação **sem redirecionar** para `/bookshelves/[id]`; o acesso à tela de estantes continua pelo menu ou links explícitos.
 
 ### 📖 Minhas Leituras (`/my-books`)
 
@@ -144,10 +148,12 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 - **`/shelves`** – gestão de estantes:
   - Lista de estantes (`ListGrid<BookshelfDomain>`).
   - Criação/edição de estantes (`CreateEditBookshelves`).
-  - Adição de livros a uma estante via `AddBookToBookshelfDialog`.
+  - Adição de livros a uma estante via `AddBookToBookshelfDialog` (o mesmo livro não pode ser associado duas vezes à mesma estante: validação na API `POST /api/shelves/[id]/books/[bookId]`, índice único `(shelf_id, book_id)` e feedback genérico *Não é possível adicionar o livro.* quando a ação não é permitida).
 - **`/bookshelves/[id]`** – livros de uma estante específica:
   - Carrega livros de uma estante com `BookshelfServiceBooks`.
+  - Chips de ordenação (`SortFilterChips` com `variant="shelf"`): por **data de início** e **data de finalização** da leitura (`start_date_*` / `end_date_*`, mais antigo ↔ mais recente) e por **páginas**; escolha sincronizada à query `?sort=...` para persistir ao recarregar.
   - Renderiza os livros usando `BookCard` com contexto de estante (`isShelf`).
+  - Remover pelo menu do card tira só o vínculo com aquela estante (confirmação deixa explícito que o livro não é excluído da biblioteca); a lista atualiza via invalidação da query `bookshelf-books`.
 
 ### ✍️ Autores (`/authors`)
 

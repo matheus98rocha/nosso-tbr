@@ -1,7 +1,8 @@
+import { ApiError, apiJson } from "@/lib/api/clientJsonFetch";
 import { createClient } from "@/lib/supabase/client";
-import { apiJson } from "@/lib/api/clientJsonFetch";
-import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
 import { ErrorHandler } from "@/services/errors/error";
+import { BookshelfDomain } from "../types/bookshelves.types";
+import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
 
 export class BookshelfService {
   private supabase = createClient();
@@ -43,6 +44,9 @@ export class BookshelfService {
         { method: "POST" },
       );
     } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
       const normalizedError = ErrorHandler.normalize(error, {
         service: "booksshelves",
         method: "create",
@@ -53,7 +57,7 @@ export class BookshelfService {
   }
 }
 
-export async function fetchBookShelves() {
+export async function fetchBookShelves(): Promise<BookshelfDomain[]> {
   const res = await fetch("/api/shelves", {
     next: { tags: ["shelves"] },
   });
@@ -62,5 +66,5 @@ export async function fetchBookShelves() {
     throw new Error("Failed to fetch shelves");
   }
 
-  return res.json();
+  return res.json() as Promise<BookshelfDomain[]>;
 }

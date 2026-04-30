@@ -111,6 +111,16 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withExcludedBookParticipant(participantUserId?: string): this {
+    const id = participantUserId?.trim();
+    if (!id) return this;
+    const quoted = BookQueryBuilder.quotePostgrestTextValue(id);
+    this.query = this.query
+      .neq("chosen_by", id)
+      .not("readers", "cs", `{${quoted}}`);
+    return this;
+  }
+
   withUserRelationship(userValues?: string | string[]): this {
     const values = Array.isArray(userValues)
       ? userValues.filter((value) => !!value?.trim())
@@ -120,16 +130,16 @@ export class BookQueryBuilder {
 
     if (values.length === 0) return this;
 
-    const uniqueValues = [...new Set(values)];
-    const orConditions = uniqueValues.flatMap((value) => {
-      const quotedValue = BookQueryBuilder.quotePostgrestTextValue(value);
-      return [
-        `readers.cs.{${quotedValue}}`,
-        `chosen_by.eq.${quotedValue}`,
-      ];
-    });
+    const uniqueValues = [...new Set(values)].map((v) => v.trim());
+    const quotedValues = uniqueValues.map((value) =>
+      BookQueryBuilder.quotePostgrestTextValue(value),
+    );
+    const listForOv = quotedValues.join(",");
+    const listForIn = quotedValues.join(",");
 
-    this.query = this.query.or(orConditions.join(","));
+    this.query = this.query.or(
+      `readers.ov.{${listForOv}},chosen_by.in.(${listForIn})`,
+    );
 
     return this;
   }

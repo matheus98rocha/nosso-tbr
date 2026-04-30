@@ -40,9 +40,12 @@ const { baseUseHome } = vi.hoisted(() => ({
     handleToggleMyBooks: vi.fn(),
     handleSetAllBooks: vi.fn(),
     handleSetJointReading: vi.fn(),
+    handleSetFollowingFeed: vi.fn(),
     handleToggleReader: vi.fn(),
     isMyBooksActive: false,
     isAllBooksActive: true,
+    isFollowingFeedActive: false,
+    followingFeedEmpty: false,
     isLoggedIn: true,
     checkIsUserActive: vi.fn(() => false),
     readers: [],
@@ -74,36 +77,6 @@ vi.mock("@/hooks", async (importOriginal) => {
       setIsOpen: mockSetBookFormOpen,
     })),
   };
-  it("renders the locked reader chip as active and disabled in joint view", () => {
-    vi.mocked(useHome).mockReturnValueOnce({
-      ...baseUseHome,
-      filters: {
-        readers: ["2"],
-        status: [],
-        gender: [],
-        view: "joint",
-        year: undefined,
-      },
-      isAllBooksActive: false,
-      readers: [
-        { id: "1", display_name: "Matheus" },
-        { id: "2", display_name: "Barbara" },
-      ],
-      lockedReaderId: "1",
-      checkIsUserActive: vi.fn((readerId: string) =>
-        ["1", "2"].includes(readerId),
-      ),
-    } as unknown as ReturnType<typeof useHome>);
-
-    render(<ClientHome />);
-
-    const lockedChip = screen.getByRole("button", {
-      name: "Matheus (sempre incluÃ­do nesta visÃ£o)",
-    });
-
-    expect(lockedChip).toBeDisabled();
-    expect(lockedChip).toHaveAttribute("aria-pressed", "true");
-  });
 });
 
 vi.mock("@/modules/bookUpsert", () => ({
@@ -136,6 +109,44 @@ vi.mock("@/components/statusFilterChips", () => ({
 vi.mock("@/components/yearFilterChips", () => ({
   YearFilterChips: () => <div>year-chips</div>,
 }));
+
+describe("ClientHome joint view reader chips", () => {
+  beforeEach(() => {
+    mockSetBookFormOpen.mockClear();
+    vi.mocked(useHome).mockImplementation(() => ({ ...baseUseHome }));
+  });
+
+  it("renders the locked reader chip as active and disabled in joint view", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      filters: {
+        readers: ["2"],
+        status: [],
+        gender: [],
+        view: "joint",
+        year: undefined,
+      },
+      isAllBooksActive: false,
+      readers: [
+        { id: "1", display_name: "Matheus" },
+        { id: "2", display_name: "Barbara" },
+      ],
+      lockedReaderId: "1",
+      checkIsUserActive: vi.fn((readerId: string) =>
+        ["1", "2"].includes(readerId),
+      ),
+    } as unknown as ReturnType<typeof useHome>);
+
+    render(<ClientHome />);
+
+    const lockedChip = screen.getByRole("button", {
+      name: "Matheus (sempre incluído nesta visão)",
+    });
+
+    expect(lockedChip).toBeDisabled();
+    expect(lockedChip).toHaveAttribute("aria-pressed", "true");
+  });
+});
 
 describe("ClientHome book suggestions (empty network)", () => {
   beforeEach(() => {

@@ -15,6 +15,13 @@ describe("parseFiltersFromSearchParams", () => {
       const { filters } = parseFiltersFromSearchParams(buildParams({ view: "joint" }));
       expect(filters.view).toBe("joint");
     });
+
+    it('parses view=seguindo when explicitly informed', () => {
+      const { filters } = parseFiltersFromSearchParams(
+        buildParams({ view: "seguindo" }),
+      );
+      expect(filters.view).toBe("seguindo");
+    });
   });
 
   describe("year parsing", () => {

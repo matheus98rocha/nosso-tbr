@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { Mock, vi } from "vitest";
 import { useBookDialog } from "./useBookDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
