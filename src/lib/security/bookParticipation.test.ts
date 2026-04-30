@@ -4,8 +4,8 @@ import { canUserParticipateInBook } from "./bookParticipation";
 const uid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const other = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 
-describe("canUserParticipateInBook", () => {
-  it("returns true when user_id matches", () => {
+describe("canUserParticipateInBook (RN42)", () => {
+  it("retorna true quando user_id confere", () => {
     expect(
       canUserParticipateInBook(uid, {
         user_id: uid,
@@ -15,7 +15,7 @@ describe("canUserParticipateInBook", () => {
     ).toBe(true);
   });
 
-  it("returns true when chosen_by matches", () => {
+  it("retorna true quando chosen_by confere", () => {
     expect(
       canUserParticipateInBook(uid, {
         user_id: null,
@@ -25,7 +25,7 @@ describe("canUserParticipateInBook", () => {
     ).toBe(true);
   });
 
-  it("returns true when user is in readers", () => {
+  it("retorna true quando o usuário está em readers", () => {
     expect(
       canUserParticipateInBook(uid, {
         user_id: other,
@@ -35,7 +35,7 @@ describe("canUserParticipateInBook", () => {
     ).toBe(true);
   });
 
-  it("returns false for unrelated user", () => {
+  it("retorna false para usuário sem vínculo ao livro", () => {
     expect(
       canUserParticipateInBook(uid, {
         user_id: other,
@@ -43,5 +43,49 @@ describe("canUserParticipateInBook", () => {
         readers: [other],
       }),
     ).toBe(false);
+  });
+
+  it("ignora user_id só com espaços e avalia demais campos", () => {
+    expect(
+      canUserParticipateInBook(uid, {
+        user_id: "  \t  ",
+        chosen_by: other,
+        readers: [uid],
+      }),
+    ).toBe(true);
+    expect(
+      canUserParticipateInBook(uid, {
+        user_id: "  ",
+        chosen_by: other,
+        readers: [],
+      }),
+    ).toBe(false);
+  });
+
+  it("trata readers ausente como lista vazia", () => {
+    expect(
+      canUserParticipateInBook(uid, {
+        user_id: other,
+        chosen_by: other,
+        readers: undefined,
+      }),
+    ).toBe(false);
+    expect(
+      canUserParticipateInBook(uid, {
+        user_id: other,
+        chosen_by: other,
+        readers: null,
+      }),
+    ).toBe(false);
+  });
+
+  it("ignora chosen_by vazio e usa readers", () => {
+    expect(
+      canUserParticipateInBook(uid, {
+        user_id: other,
+        chosen_by: "",
+        readers: [uid],
+      }),
+    ).toBe(true);
   });
 });

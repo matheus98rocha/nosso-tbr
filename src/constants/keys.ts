@@ -18,7 +18,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
  * Útil para garantir que a Query Key do React Query seja idêntica
  * mesmo que as propriedades do objeto de filtros mudem de ordem no estado.
  */
-function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
+export function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
     return obj;
   }
