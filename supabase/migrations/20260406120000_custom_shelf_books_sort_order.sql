@@ -1,4 +1,4 @@
--- Ordenação manual de livros nas estantes (BUSINESS_RULES RN50–RN54).
+-- Ordenação manual de livros nas estantes (Second Brain: business-rules.md RN50–RN54).
 -- Índice em (shelf_id, sort_order) para listagem ordenada (query performance).
 
 ALTER TABLE public.custom_shelf_books
