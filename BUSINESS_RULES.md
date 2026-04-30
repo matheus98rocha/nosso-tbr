@@ -96,6 +96,7 @@
 - **RN55 - `BookCard`: Biblioteca (Home) vs Estante:** O mesmo componente `BookCard` é usado na **Home** (`modules/home`, lista geral da biblioteca) e nas **estantes** (`modules/bookshelves`). O comportamento **não é intercambiável**:
   - **Home / biblioteca:** usar `isShelf={false}` (valor padrão do componente). Não passar `shelfId`. Ações de remoção e exclusão referem-se ao **livro** no catálogo, conforme **RN14** (fluxo `BookService` / exclusão física quando aplicável).
   - **Estante:** usar `isShelf={true}` e **`shelfId` obrigatório** (id da `custom_shelves` em contexto). A remoção pelo card desfaz apenas o **vínculo** livro–estante (`BookshelfService` / **RN14**), nunca confundir com exclusão do registro `books`.
+  - **UI na estante:** menu e confirmação usam textos do tipo «Remover livro da estante» / «Remover da estante» e deixam explícito que o livro permanece na biblioteca; após remover, a lista atualiza com invalidação da query `bookshelf-books`.
   - Novas telas que reutilizem `BookCard` devem declarar explicitamente esse contexto; não inferir `isShelf` a partir de rota sem passar props corretas.
 
 ## 5. Cadastro direto de usuário (link exclusivo)

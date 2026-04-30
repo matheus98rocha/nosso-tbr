@@ -144,10 +144,12 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 - **`/shelves`** – gestão de estantes:
   - Lista de estantes (`ListGrid<BookshelfDomain>`).
   - Criação/edição de estantes (`CreateEditBookshelves`).
-  - Adição de livros a uma estante via `AddBookToBookshelfDialog`.
+  - Adição de livros a uma estante via `AddBookToBookshelfDialog` (o mesmo livro não pode ser associado duas vezes à mesma estante: validação na API `POST /api/shelves/[id]/books/[bookId]`, índice único `(shelf_id, book_id)` e feedback genérico *Não é possível adicionar o livro.* quando a ação não é permitida).
 - **`/bookshelves/[id]`** – livros de uma estante específica:
   - Carrega livros de uma estante com `BookshelfServiceBooks`.
+  - Chips de ordenação (`SortFilterChips` com `variant="shelf"`): por **data de início** e **data de finalização** da leitura (`start_date_*` / `end_date_*`, mais antigo ↔ mais recente) e por **páginas**; escolha sincronizada à query `?sort=...` para persistir ao recarregar.
   - Renderiza os livros usando `BookCard` com contexto de estante (`isShelf`).
+  - Remover pelo menu do card tira só o vínculo com aquela estante (confirmação deixa explícito que o livro não é excluído da biblioteca); a lista atualiza via invalidação da query `bookshelf-books`.
 
 ### ✍️ Autores (`/authors`)
 
