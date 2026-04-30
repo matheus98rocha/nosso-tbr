@@ -5,6 +5,9 @@ import { vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "shelf-1" }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => "/bookshelves/shelf-1",
+  useRouter: () => ({ replace: vi.fn() }),
 }));
 
 vi.mock("next/link", () => ({

@@ -1,5 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BookPlus } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { BookPlus } from "lucide-react";
+import { QUERY_KEYS } from "@/constants/keys";
+import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
 import { BookService } from "@/services/books/books.service";
 import { BookCombobox } from "../bookCombobox";
 import { BookshelfService } from "../../services/booksshelves.service";
@@ -37,15 +40,24 @@ export function AddBookToBookshelfDialog({
     },
   });
 
+  const booksForCombobox = useMemo(() => {
+    const ids = new Set(bookshelfe.bookIdsOnShelf ?? []);
+    if (ids.size === 0) return books;
+    return books.filter((b) => b.id != null && !ids.has(b.id));
+  }, [books, bookshelfe.bookIdsOnShelf]);
+
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const service = new BookshelfService();
       await service.addBookToShelf(bookshelfe.id, selectedBookId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookshelves"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.shelves.all });
       setSelectedBookId("");
       onOpenChange(false);
+    },
+    onError: () => {
+      toast(SHELF_BOOK_CANNOT_ADD_MESSAGE, { className: "toast-error" });
     },
   });
 
@@ -78,13 +90,12 @@ export function AddBookToBookshelfDialog({
             </p>
           ) : (
             <BookCombobox
-              books={books}
+              books={booksForCombobox}
               value={selectedBookId}
               onChange={setSelectedBookId}
             />
           )}
         </div>
-
         <DialogFooter className="gap-2">
           <Button
             variant="outline"

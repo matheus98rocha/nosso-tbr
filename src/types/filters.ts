@@ -1,4 +1,10 @@
-export type SortOption = "pages_asc" | "pages_desc";
+export type SortOption =
+  | "pages_asc"
+  | "pages_desc"
+  | "start_date_asc"
+  | "start_date_desc"
+  | "end_date_asc"
+  | "end_date_desc";
 
 export type FiltersOptions = {
   readers: string[];

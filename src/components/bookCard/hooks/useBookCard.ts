@@ -163,7 +163,6 @@ export function useBookCard({
       }
       const service = new BookshelfServiceBooks();
       await service.removeBookFromShelf(shelfId, id);
-      window.location.reload();
     },
     [isShelf, shelfId, router],
   );

@@ -72,6 +72,9 @@ export function BookCard(props: BookCardProps) {
             }
             editBook={() => dialogEditModal.setIsOpen(true)}
             removeBook={() => dialogDeleteModal.setIsOpen(true)}
+            removeBookLabel={
+              isShelf ? "Remover livro da estante" : "Remover livro"
+            }
             addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
             shareOnWhatsApp={shareOnWhatsApp}
             schedule={handleNavigateToSchedule}
@@ -217,13 +220,15 @@ export function BookCard(props: BookCardProps) {
       />
 
       <ConfirmDialog
-        title="Excluir livro"
-        buttonLabel={!isShelf ? "Deletar" : "Remover"}
+        title={isShelf ? "Remover livro da estante" : "Excluir livro"}
+        buttonLabel={isShelf ? "Remover da estante" : "Deletar"}
         description={
-          !isShelf ? "Deseja excluir este livro?" : "Remover da estante?"
+          isShelf
+            ? `O livro "${book.title}" será retirado somente desta estante. Ele continua na sua biblioteca e não é excluído permanentemente.`
+            : "Deseja excluir este livro?"
         }
         id={String(book.id)}
-        queryKeyToInvalidate="books"
+        queryKeyToInvalidate={isShelf ? "bookshelf-books" : "books"}
         onConfirm={handleConfirmDelete}
         open={dialogDeleteModal.isOpen}
         onOpenChange={dialogDeleteModal.setIsOpen}

@@ -4,6 +4,7 @@ import { useBookCard } from "./useBookCard";
 import { BookDomain } from "@/types/books.types";
 import { useRouter } from "next/navigation";
 import { BookService } from "@/services/books/books.service";
+import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 
 vi.mock("next/navigation", () => ({ useRouter: vi.fn() }));
 vi.mock("@/services/books/books.service");
@@ -181,6 +182,33 @@ describe("useBookCard", () => {
 
         expect(deleteMock).toHaveBeenCalledWith("1");
         expect(replaceMock).toHaveBeenCalledWith("/");
+      });
+
+      it("when isShelf and shelfId is set, removes book from shelf only", async () => {
+        const removeBookFromShelf = vi.fn().mockResolvedValue(undefined);
+        vi.mocked(BookshelfServiceBooks).mockImplementation(
+          class MockBookshelfBooks {
+            removeBookFromShelf = removeBookFromShelf;
+          } as unknown as typeof BookshelfServiceBooks,
+        );
+        (useRouter as Mock).mockReturnValue({
+          push: vi.fn(),
+          replace: vi.fn(),
+        });
+
+        const { result } = renderHook(() =>
+          useBookCard({
+            book: baseBook,
+            isShelf: true,
+            shelfId: "shelf-abc",
+          }),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirmDelete("1");
+        });
+
+        expect(removeBookFromShelf).toHaveBeenCalledWith("shelf-abc", "1");
       });
     });
 

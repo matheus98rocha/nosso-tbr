@@ -37,7 +37,11 @@ function setupMocks({
   mutateImpl = mockMutate,
   isLoggedIn = true,
 }: {
-  bookshelves?: { id: string; name: string }[];
+  bookshelves?: {
+    id: string;
+    name: string;
+    books?: { id: string; imageUrl: string }[];
+  }[];
   isLoading?: boolean;
   isPending?: boolean;
   mutateImpl?: Mock;
@@ -97,9 +101,9 @@ describe("useAddBookToShelf", () => {
 
     it("maps multiple shelves preserving order", () => {
       const shelves = [
-        { id: "a", name: "Alpha" },
-        { id: "b", name: "Beta" },
-        { id: "c", name: "Gamma" },
+        { id: "a", name: "Alpha", books: [] },
+        { id: "b", name: "Beta", books: [] },
+        { id: "c", name: "Gamma", books: [] },
       ];
       setupMocks({ bookshelves: shelves });
       const { result } = renderHook(() => useAddBookToShelf(defaultProps));
@@ -108,6 +112,27 @@ describe("useAddBookToShelf", () => {
         label: "Gamma",
         value: "c",
       });
+    });
+
+    it("omite estantes que ja contem o livro do select", () => {
+      setupMocks({
+        bookshelves: [
+          {
+            id: "shelf-keep",
+            name: "Livre",
+            books: [],
+          },
+          {
+            id: "shelf-has-book",
+            name: "Cheia",
+            books: [{ id: "book-abc", imageUrl: "" }],
+          },
+        ],
+      });
+      const { result } = renderHook(() => useAddBookToShelf(defaultProps));
+      expect(result.current.bookshelfOptions).toEqual([
+        { label: "Livre", value: "shelf-keep" },
+      ]);
     });
   });
 

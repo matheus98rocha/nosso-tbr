@@ -5,6 +5,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -44,7 +45,14 @@ export async function apiJson<T>(
       typeof (body as { error: unknown }).error === "string"
         ? (body as { error: string }).error
         : res.statusText;
-    throw new ApiError(msg, res.status);
+    const code =
+      typeof body === "object" &&
+      body !== null &&
+      "code" in body &&
+      typeof (body as { code: unknown }).code === "string"
+        ? (body as { code: string }).code
+        : undefined;
+    throw new ApiError(msg, res.status, code);
   }
 
   return body as T;
