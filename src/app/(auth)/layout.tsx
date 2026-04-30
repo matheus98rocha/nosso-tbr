@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-  return <section>{children}</section>;
+  return <section aria-label="Autenticação">{children}</section>;
 }
