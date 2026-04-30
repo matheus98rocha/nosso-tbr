@@ -105,6 +105,19 @@ function mockQueryData(total: number, followingIds: string[] = []) {
     });
 }
 
+function lastBooksListRelationshipKey(): string | undefined {
+  const calls = (useQuery as Mock).mock.calls;
+  for (let i = calls.length - 1; i >= 0; i--) {
+    const queryKey = calls[i]?.[0]?.queryKey as unknown[] | undefined;
+    if (!Array.isArray(queryKey) || queryKey[0] !== "books") continue;
+    const relIdx = queryKey.indexOf("relationship");
+    if (relIdx !== -1 && relIdx + 1 < queryKey.length) {
+      return String(queryKey[relIdx + 1]);
+    }
+  }
+  return undefined;
+}
+
 function setupHook(
   filtersOverride: Partial<FiltersOptions> = {},
   searchQuery = "",
@@ -286,7 +299,7 @@ describe("useHome", () => {
       );
     });
 
-    it("usa relacionamento baseado em usuário atual + seguidos na query key", () => {
+    it("usa apenas o usuário logado na query key da visão Todos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -302,7 +315,7 @@ describe("useHome", () => {
 
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: expect.arrayContaining(["relationship", "1|2"]),
+          queryKey: expect.arrayContaining(["relationship", "1"]),
         }),
       );
     });
@@ -340,7 +353,7 @@ describe("useHome", () => {
   });
 
   describe('"Todos" reader selection behavior', () => {
-    it("marks current user and followed users as active by default in Todos", () => {
+    it("mantém apenas o usuário atual na seleção efetiva da visão Todos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -355,10 +368,10 @@ describe("useHome", () => {
       const { result } = setupHook({ view: "todos", readers: [] });
 
       expect(result.current.checkIsUserActive("1")).toBe(true);
-      expect(result.current.checkIsUserActive("2")).toBe(true);
+      expect(result.current.checkIsUserActive("2")).toBe(false);
     });
 
-    it("adds additional readers in Todos when user toggles chips", () => {
+    it("não altera a URL ao alternar leitor na visão Todos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -373,12 +386,10 @@ describe("useHome", () => {
 
       act(() => result.current.handleToggleReader("2"));
 
-      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
-        expect.objectContaining({ readers: ["1", "2"] }),
-      );
+      expect(mockUpdateUrlWithFilters).not.toHaveBeenCalled();
     });
 
-    it("limita leitores visíveis na visão Todos para usuário atual e seguidos", () => {
+    it("na visão Todos só lista o usuário logado como opção de leitor", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -392,10 +403,10 @@ describe("useHome", () => {
 
       const { result } = setupHook({ view: "todos", readers: [] });
 
-      expect(result.current.readers.map((r) => r.id)).toEqual(["1", "2"]);
+      expect(result.current.readers.map((r) => r.id)).toEqual(["1"]);
     });
 
-    it("changes query key when Todos readers selection changes", () => {
+    it("na visão Todos a relationship key permanece só com o usuário mesmo se readers na URL mudar", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -433,16 +444,14 @@ describe("useHome", () => {
       );
       const { rerender } = renderHook(() => useHome());
 
-      const firstCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
+      expect(lastBooksListRelationshipKey()).toBe("1");
 
       (useFiltersUrl as Mock).mockReturnValue(
         buildFiltersUrlReturn({ view: "todos", readers: ["2"] }),
       );
       rerender();
 
-      const secondCall = (useQuery as Mock).mock.calls.at(-1)?.[0]?.queryKey;
-
-      expect(JSON.stringify(firstCall)).not.toBe(JSON.stringify(secondCall));
+      expect(lastBooksListRelationshipKey()).toBe("1");
     });
   });
 
@@ -677,7 +686,7 @@ describe("useHome", () => {
       expect(result.current.lockedReaderId).toBeUndefined();
     });
 
-    it("é o user.id quando logado na visão todos", () => {
+    it("é undefined quando logado na visão todos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -685,7 +694,7 @@ describe("useHome", () => {
       });
 
       const { result } = setupHook({ view: "todos" });
-      expect(result.current.lockedReaderId).toBe("1");
+      expect(result.current.lockedReaderId).toBeUndefined();
     });
 
     it("é o user.id quando logado na visão joint", () => {
@@ -710,7 +719,7 @@ describe("useHome", () => {
       expect(result.current.lockedReaderId).toBeUndefined();
     });
 
-    it("handleToggleReader ignorado quando readerId === lockedReaderId (todos)", () => {
+    it("handleToggleReader não atualiza URL na visão todos", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -764,7 +773,7 @@ describe("useHome", () => {
       );
     });
 
-    it("effectiveTodosReaders injeta lockedReaderId quando ausente", () => {
+    it("visão Todos: query usa só o usuário logado mesmo se readers na URL citar outros", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "1",
@@ -783,7 +792,7 @@ describe("useHome", () => {
           (k: unknown) => typeof k === "string" && k.startsWith("1"),
         );
       expect(key).toContain("1");
-      expect(result.current.lockedReaderId).toBe("1");
+      expect(result.current.lockedReaderId).toBeUndefined();
     });
 
     it("effectiveSelectedReaders injeta lockedReaderId quando ausente na visão joint", () => {

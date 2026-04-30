@@ -92,6 +92,8 @@ export function useHome() {
         scopeIds = [];
       } else if (filters.view === "seguindo") {
         scopeIds = followingIds;
+      } else if (filters.view === "todos") {
+        scopeIds = user?.id ? [user.id] : [];
       } else {
         scopeIds = allowedTodosReaderIds;
       }
@@ -136,7 +138,7 @@ export function useHome() {
 
   const lockedReaderId = useMemo(() => {
     if (!isLoggedIn || !user?.id || isMyBooksActive) return undefined;
-    if (filters.view === "todos" || filters.view === "joint") return user.id;
+    if (filters.view === "joint") return user.id;
     return undefined;
   }, [isLoggedIn, user?.id, isMyBooksActive, filters.view]);
 
@@ -182,8 +184,18 @@ export function useHome() {
     if (filters.view === "seguindo") {
       return isLoggedIn ? followingIds : ([] as string[]);
     }
+    if (filters.view === "todos") {
+      return isLoggedIn && user?.id ? [user.id] : allowedTodosReaderIds;
+    }
     return allowedTodosReaderIds;
-  }, [filters.myBooks, filters.view, isLoggedIn, followingIds, allowedTodosReaderIds]);
+  }, [
+    filters.myBooks,
+    filters.view,
+    isLoggedIn,
+    followingIds,
+    allowedTodosReaderIds,
+    user?.id,
+  ]);
 
   const effectiveScopedReaders = useMemo(() => {
     const scopedReaders = filters.readers.filter((id) =>
@@ -210,7 +222,10 @@ export function useHome() {
   const shouldWaitForUsers =
     !isMyBooksActive &&
     filters.readers.length === 0 &&
-    (isLoadingUsers || isLoadingFollowingIds);
+    (isLoadingUsers ||
+      (isLoadingFollowingIds &&
+        !isAllBooksActive &&
+        (filters.view === "seguindo" || filters.view === "joint")));
 
   const serverFilters = useMemo(
     () => ({ ...filters, readers: [] as string[] }),
@@ -533,6 +548,7 @@ export function useHome() {
 
   const handleToggleReader = useCallback(
     (readerId: string) => {
+      if (isAllBooksActive) return;
       if (readerId === lockedReaderId) return;
 
       const isScopedRelationshipView =
