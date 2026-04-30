@@ -240,7 +240,7 @@ export default function ClientHome() {
                       )}
                     </div>
                     <div className="flex flex-col gap-1.5 items-start justify-start w-full">
-                      {!isMyBooksActive && (
+                      {!isMyBooksActive && !isAllBooksActive && (
                         <>
                           <div className="flex flex-wrap gap-2">
                             {followingFeedEmpty ? (
@@ -304,10 +304,8 @@ export default function ClientHome() {
                                   Selecione pelo menos outro(a) leitor(a) para
                                   ver leituras conjuntas.
                                 </span>
-                              ) : !isAllBooksActive ? (
-                                "Você é sempre incluído. Selecione pelo menos outro(a) leitor(a) além de você."
                               ) : (
-                                "Você é sempre incluído. Adicione ou remova outros leitores livremente."
+                                "Você é sempre incluído. Selecione pelo menos outro(a) leitor(a) além de você."
                               )}
                             </p>
                           )}

@@ -152,13 +152,8 @@ As regras abaixo são aplicadas no banco (Row Level Security). A UI continua res
   - O `BookCard` exibe um badge "Privado" (ícone de cadeado) quando `isSoloBook(book) && book.chosen_by === user.id`.
   - Livros com múltiplos leitores **ou** com `readers[1] ≠ chosen_by` permanecem com visibilidade pública inalterada.
 
-- **RN57 - Leitor obrigatório nas visões "Todos" e "Leitura em conjunto":** Quando o usuário está logado e visualiza as visões **Todos** (`view="todos"`) ou **Leitura em conjunto** (`view="joint"`):
-  - O chip do próprio usuário no filtro de leitores fica **sempre marcado e desabilitado** (`disabled`).
-  - Clicar no chip do próprio usuário não tem efeito (bloqueado em `handleToggleReader`).
-  - O `aria-label` do chip indica "sempre incluído nesta visão".
-  - Mesmo que a URL contenha `readers` sem o ID do usuário logado, os memos `effectiveTodosReaders` (visão Todos) e `effectiveSelectedReaders` (visão Joint) injetam o ID de volta automaticamente.
-  - **Distinção por visão:**
-    - `todos`: não exige leitores adicionais; o usuário pode navegar sozinho.
-    - `joint`: exige **pelo menos 1 outro leitor** além do usuário logado (`needsExtraReader = true` quando apenas o próprio ID está selecionado); mensagem de aviso exibida na UI em âmbar.
-  - A regra não se aplica em `myBooks` (chips de leitor não são exibidos nessa visão).
-  - A regra não se aplica para usuários não logados (`lockedReaderId = undefined`).
+- **RN57 - Filtro de leitores por visão (Todos vs Leitura em conjunto):**
+  - **Todos** (`view="todos"`): com usuário logado, a lista usa **apenas o próprio usuário** como escopo (`relationshipUserValues`); não há chips de leitor nem aviso de inclusão na home; o sheet de filtros não mostra a seção "Leitores" (exceto quando `myBooks` está ativo); `handleToggleReader` não altera a URL nesta visão.
+  - **Leitura em conjunto** (`view="joint"`), usuário logado: o chip do próprio usuário fica **sempre marcado e desabilitado** (`disabled`); clicar nele não tem efeito (`handleToggleReader`); `aria-label` com "sempre incluído nesta visão"; se a URL tiver `readers` sem o ID do usuário, os memos reinjetam o ID; exige **pelo menos 1 outro leitor** (`needsExtraReader`) com mensagem de aviso em âmbar quando faltar.
+  - Em **myBooks** continuam sem chips de leitor na home.
+  - Usuário não logado: `lockedReaderId = undefined`; lock só existe em `joint` quando logado.

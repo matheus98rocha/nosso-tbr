@@ -73,15 +73,16 @@ export default function FiltersSheet({
         </SheetHeader>
 
         <div className="flex flex-col gap-6 p-3 overflow-y-auto mt-4">
-          {pathname === "/" && (
-            <FilterSection
-              title="Leitores"
-              options={readerOptions}
-              selected={localFilters.readers}
-              onChange={(values) => handleFilterChange("readers", values)}
-              placeholder="Selecione os leitores"
-            />
-          )}
+          {pathname === "/" &&
+            !(localFilters.view === "todos" && !localFilters.myBooks) && (
+              <FilterSection
+                title="Leitores"
+                options={readerOptions}
+                selected={localFilters.readers}
+                onChange={(values) => handleFilterChange("readers", values)}
+                placeholder="Selecione os leitores"
+              />
+            )}
 
           <FilterSection
             title="Status"
