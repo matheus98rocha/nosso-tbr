@@ -1,5 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Check, X } from "lucide-react";
+import { useWatch } from "react-hook-form";
+
 import LogoIcon from "@/assets/icons/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,16 +23,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { useRegister } from "@/modules/register/hooks/useRegister";
 import {
   PASSWORD_RULE_LABELS,
   type PasswordRuleKey,
   getPasswordRuleStatuses,
 } from "@/utils/passwordRules";
-import { cn } from "@/lib/utils";
-import { Check, X } from "lucide-react";
-import Link from "next/link";
-import { useWatch } from "react-hook-form";
 
 const PASSWORD_RULE_ORDER: PasswordRuleKey[] = [
   "minLength",
@@ -35,9 +37,13 @@ const PASSWORD_RULE_ORDER: PasswordRuleKey[] = [
   "hasNumber",
 ];
 
-export default function ClientRegister() {
+type RegisterFormProps = {
+  inviteToken: string;
+};
+
+function RegisterForm({ inviteToken }: RegisterFormProps) {
   const { form, onSubmit, isPending, isError, error, isSuccess } =
-    useRegister();
+    useRegister(inviteToken);
 
   const password = useWatch({ control: form.control, name: "password" });
   const passwordConfirm = useWatch({
@@ -75,6 +81,7 @@ export default function ClientRegister() {
               className="space-y-4"
               aria-busy={isPending}
             >
+              <input type="hidden" {...form.register("invite")} />
               <FormField
                 control={form.control}
                 name="display_name"
@@ -188,8 +195,12 @@ export default function ClientRegister() {
                     </FormControl>
                     <p
                       id="register-password-match-hint"
-                      role={(passwordConfirm?.length ?? 0) > 0 ? "status" : undefined}
-                      aria-live={(passwordConfirm?.length ?? 0) > 0 ? "polite" : undefined}
+                      role={
+                        (passwordConfirm?.length ?? 0) > 0 ? "status" : undefined
+                      }
+                      aria-live={
+                        (passwordConfirm?.length ?? 0) > 0 ? "polite" : undefined
+                      }
                       className={cn(
                         "text-sm",
                         (passwordConfirm?.length ?? 0) > 0 &&
@@ -256,13 +267,52 @@ export default function ClientRegister() {
               className="h-11 min-h-11 cursor-pointer px-2"
               asChild
             >
-              <Link href="/auth">
-                Já tem conta? Entrar
-              </Link>
+              <Link href="/auth">Já tem conta? Entrar</Link>
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
+}
+
+function RegisterMissingInvite() {
+  return (
+    <div className="flex min-h-screen w-screen items-center justify-center bg-muted p-4">
+      <Card className="bg-card mx-auto w-full max-w-sm border-border text-card-foreground shadow-sm md:w-96 lg:w-[400px]">
+        <CardHeader className="space-y-2">
+          <CardTitle className="flex items-center gap-2 text-2xl font-bold">
+            <span
+              className="inline-flex size-12 shrink-0 [&>svg]:size-full"
+              aria-hidden
+            >
+              <LogoIcon />
+            </span>
+            Cadastro fechado
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            O cadastro só é possível com um link de convite válido na URL
+            (parâmetro invite). Peça a quem administra o Nosso TBR um novo
+            convite se precisar de acesso.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button className="h-11 w-full min-h-11" asChild variant="secondary">
+            <Link href="/auth">Ir para entrar</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default function ClientRegister() {
+  const searchParams = useSearchParams();
+  const invite = searchParams.get("invite")?.trim() ?? "";
+
+  if (!invite) {
+    return <RegisterMissingInvite />;
+  }
+
+  return <RegisterForm key={invite} inviteToken={invite} />;
 }

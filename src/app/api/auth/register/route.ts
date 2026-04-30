@@ -1,3 +1,4 @@
+import registerInvite from "@/lib/auth/registerInvite";
 import { createClient } from "@/lib/supabase/server";
 import { registerUserBodySchema } from "@/services/userRegistration/validators/userRegistration.validator";
 import { NextResponse } from "next/server";
@@ -15,6 +16,16 @@ function mapAuthErrorToClientMessage(errorCode?: string): string {
 }
 
 export async function POST(request: Request) {
+  if (!registerInvite.secretConfigured()) {
+    return NextResponse.json(
+      {
+        error:
+          "Cadastro por convite não está configurado no servidor. Defina REGISTER_INVITE_SECRET.",
+      },
+      { status: 503 },
+    );
+  }
+
   let json: unknown;
   try {
     json = await request.json();
@@ -27,6 +38,16 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Invalid input", details: parsed.error.flatten() },
       { status: 400 },
+    );
+  }
+
+  if (!registerInvite.tokenValid(parsed.data.invite)) {
+    return NextResponse.json(
+      {
+        error:
+          "Convite inválido ou expirado. Peça um novo link de cadastro.",
+      },
+      { status: 403 },
     );
   }
 
