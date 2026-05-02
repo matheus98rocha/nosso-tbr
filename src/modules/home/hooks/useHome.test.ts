@@ -33,6 +33,18 @@ vi.mock("@tanstack/react-query", () => ({
         isError: false,
       };
     }
+    if (
+      Array.isArray(params?.queryKey) &&
+      params.queryKey[0] === "bookFavorites"
+    ) {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
 
     return {
       data: undefined,
@@ -91,6 +103,13 @@ function mockQueryData(total: number, followingIds: string[] = []) {
       isError: false,
     })
     .mockReturnValueOnce({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    })
+    .mockReturnValueOnce({
       data: {
         data: Array.from({ length: total }, (_, index) => ({
           id: String(index + 1),
@@ -143,6 +162,18 @@ describe("useHome", () => {
         if (
           Array.isArray(params?.queryKey) &&
           params.queryKey[0] === "userSocial"
+        ) {
+          return {
+            data: [],
+            isLoading: false,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        }
+        if (
+          Array.isArray(params?.queryKey) &&
+          params.queryKey[0] === "bookFavorites"
         ) {
           return {
             data: [],
@@ -424,6 +455,18 @@ describe("useHome", () => {
           ) {
             return {
               data: ["2"],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          if (
+            Array.isArray(params?.queryKey) &&
+            params.queryKey[0] === "bookFavorites"
+          ) {
+            return {
+              data: [],
               isLoading: false,
               isFetching: false,
               isFetched: true,
@@ -806,21 +849,44 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      (useQuery as Mock).mockReturnValue({
-        data: {
-          data: [
-            {
-              id: "book-1",
-              readerIds: ["1", "2"],
-              readersDisplay: "Matheus e Barbara",
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          const k0 = params?.queryKey?.[0];
+          if (k0 === "userSocial") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          if (k0 === "bookFavorites") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: {
+              data: [
+                {
+                  id: "book-1",
+                  readerIds: ["1", "2"],
+                  readersDisplay: "Matheus e Barbara",
+                },
+              ],
+              total: 1,
             },
-          ],
-          total: 1,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
         },
-        isFetching: false,
-        isFetched: true,
-        isError: false,
-      });
+      );
 
       const { result } = setupHook({ view: "joint", readers: ["2"] });
 
@@ -943,6 +1009,15 @@ describe("useHome", () => {
               isError: false,
             };
           }
+          if (params?.queryKey?.[0] === "bookFavorites") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
           return {
             data: { data: [], total: 0 },
             isFetching: false,
@@ -1034,27 +1109,50 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      (useQuery as Mock).mockReturnValue({
-        data: {
-          data: [
-            {
-              id: "1",
-              readerIds: ["1", "2"],
-              readersDisplay: "Matheus e Barbara",
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          const k0 = params?.queryKey?.[0];
+          if (k0 === "userSocial") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          if (k0 === "bookFavorites") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: {
+              data: [
+                {
+                  id: "1",
+                  readerIds: ["1", "2"],
+                  readersDisplay: "Matheus e Barbara",
+                },
+                { id: "2", readerIds: ["1"], readersDisplay: "Matheus" },
+                {
+                  id: "3",
+                  readerIds: ["2", "9"],
+                  readersDisplay: "Barbara e Carol",
+                },
+              ],
+              total: 3,
             },
-            { id: "2", readerIds: ["1"], readersDisplay: "Matheus" },
-            {
-              id: "3",
-              readerIds: ["2", "9"],
-              readersDisplay: "Barbara e Carol",
-            },
-          ],
-          total: 3,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
         },
-        isFetching: false,
-        isFetched: true,
-        isError: false,
-      });
+      );
 
       const { result } = setupHook({ readers: [], view: "joint" });
 

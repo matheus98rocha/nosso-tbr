@@ -9,10 +9,13 @@ import AuthPage from "./page";
 
 const loginActionSpy = vi.hoisted(() =>
   vi.fn(
-    async (): Promise<LoginState> => ({
-      error: null,
-      message: null,
-    }),
+    async (...args: [LoginState, FormData]): Promise<LoginState> => {
+      void args;
+      return {
+        error: null,
+        message: null,
+      };
+    },
   ),
 );
 
@@ -65,10 +68,12 @@ describe("AuthPage", () => {
       expect(loginActionSpy).toHaveBeenCalled();
     });
 
-    const [, formData] = loginActionSpy.mock.calls[0] ?? [];
+    const first = loginActionSpy.mock.calls[0];
+    expect(first?.length).toBeGreaterThanOrEqual(2);
+    const formData = first![1];
     expect(formData).toBeInstanceOf(FormData);
-    expect((formData as FormData).get("email")).toBe("leitor@example.com");
-    expect((formData as FormData).get("password")).toBe("senhaSegura8");
+    expect(formData.get("email")).toBe("leitor@example.com");
+    expect(formData.get("password")).toBe("senhaSegura8");
   });
 
   it("exibe mensagem de erro retornada por loginAction", async () => {

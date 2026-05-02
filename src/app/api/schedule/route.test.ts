@@ -134,7 +134,6 @@ describe("/api/schedule", () => {
       }));
       const insert = vi.fn().mockResolvedValue({ error: null });
 
-      let step = 0;
       const client: Client = {
         auth: {
           getUser: vi.fn().mockResolvedValue({
@@ -144,7 +143,6 @@ describe("/api/schedule", () => {
         },
         from: vi.fn((table: string) => {
           if (table === "books") {
-            step += 1;
             return { select };
           }
           if (table === "schedule") {

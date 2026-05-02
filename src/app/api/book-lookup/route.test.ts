@@ -4,20 +4,19 @@ import { NextRequest } from "next/server";
 describe("GET /api/book-lookup", () => {
   const originalFetch = globalThis.fetch;
   let prevUrl: string | undefined;
-  let prevNodeEnv: string | undefined;
 
   beforeEach(() => {
     prevUrl = process.env.TBR_BOOK_PROVIDER_URL;
-    prevNodeEnv = process.env.NODE_ENV;
     delete process.env.TBR_BOOK_PROVIDER_URL;
+    vi.unstubAllEnvs();
     vi.resetModules();
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     globalThis.fetch = originalFetch;
     if (prevUrl === undefined) delete process.env.TBR_BOOK_PROVIDER_URL;
     else process.env.TBR_BOOK_PROVIDER_URL = prevUrl;
-    if (prevNodeEnv !== undefined) process.env.NODE_ENV = prevNodeEnv;
   });
 
   describe("RN integração book provider — proxy seguro sem rede nos defaults", () => {
@@ -33,7 +32,7 @@ describe("GET /api/book-lookup", () => {
     });
 
     it("retorna 503 em produção sem TBR_BOOK_PROVIDER_URL", async () => {
-      process.env.NODE_ENV = "production";
+      vi.stubEnv("NODE_ENV", "production");
       vi.resetModules();
       const { GET } = await import("./route");
       const req = new NextRequest("http://localhost/api/book-lookup?q=ab");

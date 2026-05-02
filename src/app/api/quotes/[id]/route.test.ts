@@ -58,7 +58,6 @@ describe("/api/quotes/[id]", () => {
         },
         error: null,
       });
-      let tableCalls = 0;
       const client: Client = {
         auth: {
           getUser: vi.fn().mockResolvedValue({
@@ -67,7 +66,6 @@ describe("/api/quotes/[id]", () => {
           }),
         },
         from: vi.fn((table: string) => {
-          tableCalls += 1;
           if (table === "quotes") {
             return {
               select: vi.fn(() => ({

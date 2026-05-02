@@ -62,7 +62,14 @@ const baseBook: BookDomain = {
 };
 
 function modalState(isOpen: boolean) {
-  return { isOpen, setIsOpen: vi.fn() };
+  const setIsOpen = vi.fn();
+  return {
+    isOpen,
+    setIsOpen,
+    open: vi.fn(),
+    close: vi.fn(),
+    toggle: vi.fn(),
+  };
 }
 
 function tapStub() {
@@ -73,7 +80,7 @@ function tapStub() {
   };
 }
 
-type ModalMock = { isOpen: boolean; setIsOpen: ReturnType<typeof vi.fn> };
+type ModalMock = ReturnType<typeof modalState>;
 
 function presetUseBookCard(
   book: BookDomain,
@@ -91,7 +98,7 @@ function presetUseBookCard(
       colorClass: string;
       dotClass: string;
     } | null;
-    handleNavigateToAuthor: ReturnType<typeof vi.fn>;
+    handleNavigateToAuthor: () => void;
   }> = {},
 ) {
   const {
@@ -130,7 +137,7 @@ function presetUseBookCard(
     showFavoriteToggle: patch.showFavoriteToggle ?? false,
     handleFavoriteClick: vi.fn(),
     isFavoritePending: false,
-  });
+  } as unknown as ReturnType<typeof useBookCard>);
 }
 
 describe("BookCard", () => {
@@ -251,7 +258,7 @@ describe("BookCard", () => {
   it("RN55: no menu da estante, a remoção é «Remover livro da estante»", () => {
     const shelfBook = { ...baseBook, id: "s-3" };
     presetUseBookCard(shelfBook, {
-      dropdownModal: { isOpen: true, setIsOpen: vi.fn() },
+      dropdownModal: modalState(true),
     });
     render(<BookCard book={shelfBook} isShelf shelfId="shelf-42" />);
 
@@ -264,8 +271,8 @@ describe("BookCard", () => {
     const user = userEvent.setup();
     const setEditOpen = vi.fn();
     presetUseBookCard(baseBook, {
-      dialogEditModal: { isOpen: false, setIsOpen: setEditOpen },
-      dropdownModal: { isOpen: true, setIsOpen: vi.fn() },
+      dialogEditModal: { ...modalState(false), setIsOpen: setEditOpen },
+      dropdownModal: modalState(true),
     });
     render(<BookCard book={baseBook} />);
 
@@ -278,8 +285,8 @@ describe("BookCard", () => {
     const user = userEvent.setup();
     const setAddShelfOpen = vi.fn();
     presetUseBookCard(baseBook, {
-      dialogAddShelfModal: { isOpen: false, setIsOpen: setAddShelfOpen },
-      dropdownModal: { isOpen: true, setIsOpen: vi.fn() },
+      dialogAddShelfModal: { ...modalState(false), setIsOpen: setAddShelfOpen },
+      dropdownModal: modalState(true),
     });
     render(<BookCard book={baseBook} />);
 
@@ -294,8 +301,8 @@ describe("BookCard", () => {
     const user = userEvent.setup();
     const setDeleteOpen = vi.fn();
     presetUseBookCard(baseBook, {
-      dialogDeleteModal: { isOpen: false, setIsOpen: setDeleteOpen },
-      dropdownModal: { isOpen: true, setIsOpen: vi.fn() },
+      dialogDeleteModal: { ...modalState(false), setIsOpen: setDeleteOpen },
+      dropdownModal: modalState(true),
     });
     render(<BookCard book={baseBook} />);
 
