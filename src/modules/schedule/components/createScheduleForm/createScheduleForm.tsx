@@ -58,7 +58,8 @@ export function CreateScheduleForm({ id: bookId }: ClientScheduleProps) {
                   <FormControl>
                     <Input
                       id="totalChapters"
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       className="h-11 rounded-xl border-zinc-200 dark:border-zinc-800"
                       {...field}
                       value={field.value ?? ""}
@@ -81,7 +82,8 @@ export function CreateScheduleForm({ id: bookId }: ClientScheduleProps) {
                   <FormControl>
                     <Input
                       id="chaptersPerDay"
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       className="h-11 rounded-xl border-zinc-200 dark:border-zinc-800"
                       {...field}
                       value={field.value ?? ""}
