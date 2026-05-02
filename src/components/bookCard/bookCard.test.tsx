@@ -58,6 +58,7 @@ const baseBook: BookDomain = {
   image_url: "/book-cover-placeholder.svg",
   user_id: "11111111-1111-4111-8111-111111111111",
   is_reread: false,
+  is_favorite: false,
 };
 
 function modalState(isOpen: boolean) {
@@ -84,6 +85,7 @@ function presetUseBookCard(
     dialogDeleteModal: ModalMock;
     dialogEditModal: ModalMock;
     dropdownModal: ModalMock;
+    showFavoriteToggle: boolean;
     statusDisplay: {
       label: string;
       colorClass: string;
@@ -125,6 +127,9 @@ function presetUseBookCard(
     handleConfirmDelete: vi.fn(),
     statusDisplay,
     isOwnSoloBook,
+    showFavoriteToggle: patch.showFavoriteToggle ?? false,
+    handleFavoriteClick: vi.fn(),
+    isFavoritePending: false,
   });
 }
 

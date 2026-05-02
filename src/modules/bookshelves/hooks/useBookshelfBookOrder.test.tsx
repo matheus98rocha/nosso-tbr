@@ -17,6 +17,7 @@ const book = (id: string): BookDomain => ({
   image_url: "/x.svg",
   user_id: "u",
   is_reread: false,
+  is_favorite: false,
 });
 
 vi.mock("sonner", () => ({

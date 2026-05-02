@@ -39,6 +39,7 @@ describe("INITIAL_FILTERS", () => {
       authorId: "",
       year: undefined,
       myBooks: false,
+      focusReaderId: "",
     });
   });
 });

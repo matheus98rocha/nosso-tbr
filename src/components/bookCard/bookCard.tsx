@@ -1,9 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { BookOpen, EllipsisVerticalIcon, Lock, Users } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { BookOpen, EllipsisVerticalIcon, Heart, Lock, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DropdownBook } from "./components/dropdownBook";
 import { BookUpsert } from "@/modules/bookUpsert";
 import { ConfirmDialog } from "@/components/confirmDialog";
@@ -15,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { resolveBookCoverUrl } from "@/constants/bookCover";
 
 export function BookCard(props: BookCardProps) {
-  const { isShelf = false } = props;
+  const { isShelf = false, hideInteractions = false } = props;
   const {
     book,
     dialogAddShelfModal,
@@ -31,57 +36,115 @@ export function BookCard(props: BookCardProps) {
     handleConfirmDelete,
     statusDisplay,
     isOwnSoloBook,
+    showFavoriteToggle,
+    handleFavoriteClick,
+    isFavoritePending,
   } = useBookCard(props);
+
+  const showTopActions =
+    showFavoriteToggle || (isLogged && !hideInteractions);
 
   const bookBody = (
     <>
-      <div className="mb-0.5 flex items-start justify-between gap-1">
-        <p
-          className={cn(
-            "font-semibold leading-snug line-clamp-2 text-zinc-900 dark:text-zinc-100",
-            isShelf ? "text-xs" : "text-sm",
-          )}
-        >
-          {book.title}
-        </p>
-
-        {isLogged && (
-          <DropdownBook
-            isOpen={dropdownModal.isOpen}
-            onOpenChange={dropdownModal.setIsOpen}
-            trigger={
+      <div
+        className={cn(
+          "flex min-w-0 gap-2",
+          showTopActions ? "items-start" : "items-stretch",
+          isShelf ? "mb-0.5" : "mb-1",
+        )}
+      >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p
+              className={cn(
+                "min-w-0 flex-1 cursor-default font-semibold leading-snug line-clamp-2 text-left text-zinc-900 dark:text-zinc-100",
+                isShelf ? "text-xs pr-1" : "text-sm pr-1",
+              )}
+            >
+              {book.title}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4} className="max-w-xs text-pretty">
+            {book.title}
+          </TooltipContent>
+        </Tooltip>
+        {showTopActions && (
+          <div className="flex shrink-0 items-center gap-0.5 pt-px">
+            {showFavoriteToggle && (
               <button
                 type="button"
-                aria-label={`Mais opções para "${book.title}"`}
+                onClick={handleFavoriteClick}
+                disabled={isFavoritePending}
+                title={
+                  book.is_favorite
+                    ? "Remover dos favoritos (também no menu ⋮)"
+                    : "Marcar como favorito (também no menu ⋮)"
+                }
+                aria-label={
+                  book.is_favorite
+                    ? `Remover "${book.title}" dos favoritos`
+                    : `Marcar "${book.title}" como favorito`
+                }
+                aria-pressed={book.is_favorite}
                 className={cn(
-                  "flex items-center justify-center shrink-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 rounded-full transition-all duration-200 cursor-pointer",
-                  isShelf ? "w-8 h-8 -mr-1" : "w-11 h-11 -mr-2",
+                  "flex items-center justify-center rounded-full border transition-colors duration-200 cursor-pointer disabled:opacity-60",
+                  isShelf ? "w-7 h-7" : "w-9 h-9",
+                  book.is_favorite
+                    ? "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/60"
+                    : "border-zinc-200 bg-zinc-50/80 text-zinc-400 hover:border-rose-200 hover:text-rose-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:border-rose-800 dark:hover:text-rose-400",
                 )}
               >
-                <EllipsisVerticalIcon
+                <Heart
                   className={cn(
-                    "text-zinc-400",
-                    isShelf ? "w-3.5 h-3.5" : "w-4 h-4",
+                    isShelf ? "w-3 h-3" : "w-4 h-4",
+                    book.is_favorite && "fill-current",
                   )}
                   aria-hidden
-                  onTouchStart={dropdownTap.handleTouchStart}
-                  onTouchEnd={dropdownTap.handleTouchEnd}
-                  onClick={dropdownTap.handleClick}
                 />
               </button>
-            }
-            editBook={() => dialogEditModal.setIsOpen(true)}
-            removeBook={() => dialogDeleteModal.setIsOpen(true)}
-            removeBookLabel={
-              isShelf ? "Remover livro da estante" : "Remover livro"
-            }
-            addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
-            shareOnWhatsApp={shareOnWhatsApp}
-            schedule={handleNavigateToSchedule}
-            quotes={handleNavigateToQuotes}
-            isFinishedReading={book.status === "finished"}
-            quotesDisabled={book.status !== "not_started"}
-          />
+            )}
+            {isLogged && !hideInteractions && (
+              <DropdownBook
+                isOpen={dropdownModal.isOpen}
+                onOpenChange={dropdownModal.setIsOpen}
+                onToggleFavorite={() => handleFavoriteClick()}
+                isFavorite={book.is_favorite}
+                favoriteActionBusy={isFavoritePending}
+                trigger={
+                  <button
+                    type="button"
+                    aria-label={`Mais opções para "${book.title}"`}
+                    className={cn(
+                      "flex shrink-0 items-center justify-center rounded-full transition-colors duration-200 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 active:opacity-70",
+                      isShelf ? "h-8 w-8" : "h-11 w-11",
+                    )}
+                  >
+                    <EllipsisVerticalIcon
+                      className={cn(
+                        "text-zinc-400",
+                        isShelf ? "size-3.5" : "size-4",
+                      )}
+                      aria-hidden
+                      onTouchStart={dropdownTap.handleTouchStart}
+                      onTouchEnd={dropdownTap.handleTouchEnd}
+                      onClick={dropdownTap.handleClick}
+                    />
+                  </button>
+                }
+                editBook={() => dialogEditModal.setIsOpen(true)}
+                removeBook={() => dialogDeleteModal.setIsOpen(true)}
+                removeBookLabel={
+                  isShelf ? "Remover livro da estante" : "Remover livro"
+                }
+                addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
+                shareOnWhatsApp={shareOnWhatsApp}
+                schedule={handleNavigateToSchedule}
+                quotes={handleNavigateToQuotes}
+                isFinishedReading={book.status === "finished"}
+                quotesDisabled={book.status !== "not_started"}
+              />
+            )}
+          </div>
         )}
       </div>
 
@@ -90,7 +153,7 @@ export function BookCard(props: BookCardProps) {
         onClick={handleNavigateToAuthor}
         aria-label={`Autor: ${book.author} — ${book.title}`}
         className={cn(
-          "text-blue-600 dark:text-blue-400 hover:underline active:scale-95 truncate text-left cursor-pointer transition-all duration-200",
+          "text-blue-600 dark:text-blue-400 truncate text-left cursor-pointer underline-offset-2 transition-colors duration-200 hover:underline active:opacity-70",
           isShelf ? "text-[11px] mb-1" : "text-xs mb-2",
         )}
       >
@@ -144,13 +207,19 @@ export function BookCard(props: BookCardProps) {
 
         {isShelf === true && (
           <div className="flex items-center gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
+            {book.readersDisplay && (
+              <span className="flex shrink-0 items-center gap-1">
+                <Users size={10} className="shrink-0" />
+                <span>{book.readersDisplay}</span>
+              </span>
+            )}
             {book.readersDisplay && book.pages && (
-              <span className="text-zinc-300 dark:text-zinc-600 select-none">
+              <span className="select-none text-zinc-300 dark:text-zinc-600">
                 ·
               </span>
             )}
             {book.pages && (
-              <span className="flex items-center gap-1 shrink-0">
+              <span className="flex shrink-0 items-center gap-1">
                 <BookOpen size={10} className="shrink-0" />
                 <span>{book.pages} páginas</span>
               </span>
@@ -242,10 +311,10 @@ export function BookCard(props: BookCardProps) {
 
       <Card
         className={cn(
-          "group overflow-hidden",
+          "group gap-0 overflow-hidden py-0",
           isShelf
             ? "h-full border-0 bg-transparent shadow-none transition-colors duration-200"
-            : "border-zinc-200 dark:border-zinc-800 hover:shadow-md transition-shadow duration-200",
+            : "border-zinc-200 bg-zinc-50/30 dark:border-zinc-800 dark:bg-zinc-900/40 transition-shadow duration-200 hover:shadow-md",
         )}
       >
         <CardContent className={cn(isShelf ? "p-2" : "p-3")}>
@@ -278,7 +347,9 @@ export function BookCard(props: BookCardProps) {
                 />
               </div>
 
-              <div className="flex flex-col flex-1 min-w-0">{bookBody}</div>
+              <div className="flex min-h-[130px] min-w-0 flex-1 flex-col">
+                {bookBody}
+              </div>
             </div>
           )}
         </CardContent>

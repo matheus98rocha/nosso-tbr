@@ -13,6 +13,12 @@ vi.mock("@/hooks/useModal", () => ({
   useModal: () => ({ setIsOpen: vi.fn() }),
 }));
 vi.mock("@/stores/hooks/useAuth", () => ({ useIsLoggedIn: () => true }));
+vi.mock("@/services/bookFavorites/hooks/useToggleBookFavorite", () => ({
+  useToggleBookFavorite: () => ({
+    toggle: vi.fn(),
+    isPending: false,
+  }),
+}));
 vi.mock("@/hooks/useSafeTap", () => ({ useSafeTap: (fn: () => void) => fn }));
 
 const baseBook: BookDomain = {
@@ -29,6 +35,7 @@ const baseBook: BookDomain = {
   image_url: "https://example.com/test.jpg",
   user_id: "user-123",
   is_reread: false,
+  is_favorite: false,
 };
 
 const renderBookCardHook = (book = baseBook) =>

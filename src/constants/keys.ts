@@ -11,6 +11,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
   authorId: "",
   year: undefined,
   myBooks: false,
+  focusReaderId: "",
 };
 
 /**
@@ -70,6 +71,10 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.stats.all, "collaboration", reader] as const,
     leaderboard: (year: number | "all") =>
       [...QUERY_KEYS.stats.all, "leaderboard", year] as const,
+  },
+  bookFavorites: {
+    all: ["bookFavorites"] as const,
+    byUser: (userId: string) => ["bookFavorites", userId] as const,
   },
   search: {
     all: ["search"] as const,

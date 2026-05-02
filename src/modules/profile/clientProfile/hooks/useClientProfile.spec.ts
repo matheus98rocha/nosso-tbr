@@ -1,4 +1,6 @@
-import { renderHook } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useClientProfile } from "./useClientProfile";
 import { useUserStore } from "@/stores/userStore";
@@ -12,6 +14,20 @@ vi.mock("@/modules/profile/hooks", () => ({
   useUserSocial: vi.fn(),
 }));
 
+vi.mock("@/services/userSocial/userSocial.service", () => {
+  const getUserById = vi.fn().mockResolvedValue({
+    id: "1",
+    displayName: "Reader Public",
+    email: "reader@tbr.com",
+    joinedAt: null,
+  });
+  return {
+    UserSocialService: class {
+      getUserById = getUserById;
+    },
+  };
+});
+
 type UserStoreState = {
   user: {
     id: string;
@@ -20,6 +36,15 @@ type UserStoreState = {
     last_sign_in_at: string | null;
   } | null;
 };
+
+function createWrapper() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client }, children);
+  };
+}
 
 describe("useClientProfile", () => {
   beforeEach(() => {
@@ -44,23 +69,31 @@ describe("useClientProfile", () => {
       toggleFollow: vi.fn(),
       isTogglePending: true,
       pendingUserId: "2",
+      followingCount: 3,
     });
   });
 
-  it("deriva displayName pela parte local do email", () => {
-    const { result } = renderHook(() => useClientProfile());
-    expect(result.current?.displayName).toBe("reader");
+  it("usa display_name público quando disponível", async () => {
+    const { result } = renderHook(() => useClientProfile(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current?.displayName).toBe("Reader Public");
+    });
   });
 
   it("retorna null quando não há sessão de usuário", () => {
     (useUserStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: UserStoreState) => unknown) => selector({ user: null }),
     );
-    const { result } = renderHook(() => useClientProfile());
+    const { result } = renderHook(() => useClientProfile(), {
+      wrapper: createWrapper(),
+    });
     expect(result.current).toBeNull();
   });
 
-  it("expõe linhas da comunidade com estado de toggle quando há membros", () => {
+  it("expõe contagens e linhas da comunidade com estado de toggle quando há membros", async () => {
     (useUserSocial as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       searchQuery: "",
       handleSearchChange: vi.fn(),
@@ -77,9 +110,18 @@ describe("useClientProfile", () => {
       toggleFollow: vi.fn(),
       isTogglePending: false,
       pendingUserId: null,
+      followingCount: 5,
     });
 
-    const { result } = renderHook(() => useClientProfile());
+    const { result } = renderHook(() => useClientProfile(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current?.displayName).toBe("Reader Public");
+    });
+
+    expect(result.current?.followingCount).toBe(5);
     expect(result.current?.communityRows).toHaveLength(1);
     expect(result.current?.communityRows[0]?.isFollowing).toBe(true);
     expect(result.current?.communityRows[0]?.memberId).toBe("u2");

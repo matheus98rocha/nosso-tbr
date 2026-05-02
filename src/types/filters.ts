@@ -18,4 +18,5 @@ export type FiltersOptions = {
   myBooks?: boolean;
   isReread?: boolean;
   sort?: SortOption;
+  focusReaderId?: string;
 };

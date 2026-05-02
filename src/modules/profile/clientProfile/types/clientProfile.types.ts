@@ -15,6 +15,7 @@ export type ClientProfileViewModel = {
   avatarInitials: string;
   formattedAccountCreated: string;
   formattedLastSignIn: string;
+  followingCount: number;
   searchQuery: string;
   onCommunitySearchChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onClearCommunitySearch: () => void;

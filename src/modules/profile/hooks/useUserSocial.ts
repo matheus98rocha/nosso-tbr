@@ -80,5 +80,6 @@ export function useUserSocial() {
     toggleFollow,
     isTogglePending,
     pendingUserId,
+    followingCount: followingIds.length,
   };
 }
