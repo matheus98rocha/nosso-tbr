@@ -11,6 +11,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
   authorId: "",
   year: undefined,
   myBooks: false,
+  focusReaderId: "",
 };
 
 /**
@@ -18,7 +19,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
  * Útil para garantir que a Query Key do React Query seja idêntica
  * mesmo que as propriedades do objeto de filtros mudem de ordem no estado.
  */
-function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
+export function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
     return obj;
   }
@@ -70,6 +71,10 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.stats.all, "collaboration", reader] as const,
     leaderboard: (year: number | "all") =>
       [...QUERY_KEYS.stats.all, "leaderboard", year] as const,
+  },
+  bookFavorites: {
+    all: ["bookFavorites"] as const,
+    byUser: (userId: string) => ["bookFavorites", userId] as const,
   },
   search: {
     all: ["search"] as const,

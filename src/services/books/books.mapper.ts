@@ -45,6 +45,15 @@ export class BookMapper {
       image_url: resolveBookCoverUrl(persistence.image_url),
       user_id: persistence.user_id ?? "",
       is_reread: persistence.is_reread ?? false,
+      is_favorite: false,
+    };
+  }
+
+  static enrichFavorite(book: BookDomain, favoriteIds: Set<string>): BookDomain {
+    const id = book.id ?? "";
+    return {
+      ...book,
+      is_favorite: id.length > 0 && favoriteIds.has(id),
     };
   }
 

@@ -91,7 +91,8 @@ export function UpsertQuoteModal({ id: bookId, quote }: UpsertQuoteModalProps) {
               render={({ field }) => (
                 <Input
                   id="page"
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Número da página"
                   value={field.value ?? ""}
                   onChange={(e) => {

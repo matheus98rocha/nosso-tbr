@@ -40,6 +40,7 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   const rawSort = searchParams.get("sort");
   const sort: SortOption | undefined =
     rawSort === "pages_asc" || rawSort === "pages_desc" ? rawSort : undefined;
+  const focusReaderId = searchParams.get("reader") ?? "";
 
   return {
     filters: {
@@ -54,6 +55,7 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
       isReread,
       view,
       sort,
+      focusReaderId,
     },
     searchQuery,
   };

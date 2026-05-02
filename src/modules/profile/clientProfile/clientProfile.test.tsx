@@ -10,6 +10,7 @@ const baseViewModel: ClientProfileViewModel = {
   avatarInitials: "R",
   formattedAccountCreated: "15 de janeiro de 2024",
   formattedLastSignIn: "1 de junho de 2024",
+  followingCount: 2,
   searchQuery: "",
   onCommunitySearchChange: vi.fn(),
   onClearCommunitySearch: vi.fn(),
@@ -37,12 +38,13 @@ describe("ClientProfile", () => {
     expect(screen.getByRole("heading", { name: /perfil/i })).toBeInTheDocument();
     expect(screen.getByText("reader@tbr.com")).toBeInTheDocument();
     expect(screen.getByText("Conta criada")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
   });
 
   it("chama onClearCommunitySearch ao limpar busca na lista vazia", async () => {
     const user = userEvent.setup();
     render(<ClientProfile />);
-    await user.click(screen.getByRole("button", { name: /clear people search/i }));
+    await user.click(screen.getByRole("button", { name: /limpar busca de pessoas/i }));
     expect(baseViewModel.onClearCommunitySearch).toHaveBeenCalled();
   });
 });

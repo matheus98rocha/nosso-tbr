@@ -9,6 +9,7 @@ describe("CommunityMemberFollowRow", () => {
     const user = userEvent.setup();
     render(
       <CommunityMemberFollowRow
+        memberId="11111111-1111-4111-8111-111111111111"
         displayName="Ana"
         email="ana@mail.com"
         isFollowing={false}

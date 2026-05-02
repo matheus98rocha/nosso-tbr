@@ -266,7 +266,7 @@ export function BookUpsert(props: CreateBookProps) {
                               <FormLabel>Páginas</FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
+                                  type="text"
                                   inputMode="numeric"
                                   {...field}
                                   value={value ?? ""}

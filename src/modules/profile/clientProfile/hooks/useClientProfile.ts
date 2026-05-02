@@ -1,7 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
 import { type ChangeEvent, useCallback, useMemo } from "react";
+
 import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/types/clientProfile.types";
 import { useUserSocial } from "@/modules/profile/hooks";
-import { formatJoinedDate, initialsFromEmail } from "@/modules/profile/utils";
+import { useClientMounted } from "@/modules/profile/hooks/useClientMounted";
+import {
+  formatJoinedDate,
+  initialsFromDisplayName,
+  initialsFromEmail,
+} from "@/modules/profile/utils";
+import { UserSocialService } from "@/services/userSocial/userSocial.service";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
 
 function emailLocalPart(email: string) {
@@ -9,8 +18,19 @@ function emailLocalPart(email: string) {
   return at > 0 ? email.slice(0, at) : email;
 }
 
+const service = new UserSocialService();
+
 export function useClientProfile(): ClientProfileViewModel | null {
   const user = useUserStore((state) => state.user);
+  const isClientReady = useClientMounted();
+  const isLoggedIn = useIsLoggedIn();
+
+  const { data: ownRow } = useQuery({
+    queryKey: ["userSocial", "user", user?.id],
+    queryFn: () => service.getUserById(user!.id),
+    enabled: isClientReady && isLoggedIn && !!user?.id,
+    staleTime: 1000 * 60 * 2,
+  });
 
   const {
     searchQuery,
@@ -21,6 +41,7 @@ export function useClientProfile(): ClientProfileViewModel | null {
     toggleFollow,
     isTogglePending,
     pendingUserId,
+    followingCount,
   } = useUserSocial();
 
   const onCommunitySearchChange = useCallback(
@@ -67,12 +88,19 @@ export function useClientProfile(): ClientProfileViewModel | null {
       return null;
     }
 
+    const displayName =
+      ownRow?.displayName?.trim() || emailLocalPart(user.email);
+    const avatarInitials = ownRow?.displayName?.trim()
+      ? initialsFromDisplayName(ownRow.displayName)
+      : initialsFromEmail(user.email);
+
     return {
-      displayName: emailLocalPart(user.email),
+      displayName,
       userEmail: user.email,
-      avatarInitials: initialsFromEmail(user.email),
+      avatarInitials,
       formattedAccountCreated: formatJoinedDate(user.created_at),
       formattedLastSignIn: formatJoinedDate(user.last_sign_in_at),
+      followingCount,
       searchQuery,
       onCommunitySearchChange,
       onClearCommunitySearch,
@@ -82,6 +110,8 @@ export function useClientProfile(): ClientProfileViewModel | null {
     };
   }, [
     user,
+    ownRow?.displayName,
+    followingCount,
     searchQuery,
     onCommunitySearchChange,
     onClearCommunitySearch,

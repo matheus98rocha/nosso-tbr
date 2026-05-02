@@ -1,4 +1,4 @@
--- RLS aligned with BUSINESS_RULES.md §7 (RN41–RN47).
+-- RLS alinhado a Second Brain: 01-Projetos/nosso-tbr/business-rules.md seção 7 (RN41–RN47).
 -- Replaces permissive grants for anon writes; secures books, quotes, schedule, shelves, users, authors, book_authors.
 
 -- ---------------------------------------------------------------------------

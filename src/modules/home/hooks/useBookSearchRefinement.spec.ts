@@ -14,6 +14,7 @@ function buildBook(overrides: Partial<BookDomain> & Pick<BookDomain, "id" | "tit
     image_url: "",
     user_id: "",
     is_reread: false,
+    is_favorite: false,
     ...overrides,
   };
 }

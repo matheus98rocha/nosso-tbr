@@ -18,6 +18,7 @@ import { useFiltersUrl, useStatusFilters } from "@/hooks";
 import { sortWithPriority } from "../utils";
 import { UserSocialService } from "@/services/userSocial/userSocial.service";
 import { useBookSearchRefinement } from "./useBookSearchRefinement";
+import { useBookFavoriteIds } from "@/services/bookFavorites/hooks/useBookFavoriteIds";
 
 const PAGE_SIZE = 8;
 const JOINT_READINGS_FETCH_SIZE = 2000;
@@ -52,6 +53,8 @@ export function useHome() {
     [followingIdsData],
   );
 
+  const { favoriteIdSet } = useBookFavoriteIds(user?.id);
+
   const allowedTodosReaderIds = useMemo(() => {
     if (!isLoggedIn || !user?.id) return [] as string[];
     return [...new Set([user.id, ...followingIds])];
@@ -68,6 +71,7 @@ export function useHome() {
         authorId: "",
         year: undefined,
         myBooks: false,
+        focusReaderId: "",
       } as FiltersOptions;
     },
     [],
@@ -198,6 +202,10 @@ export function useHome() {
   ]);
 
   const effectiveScopedReaders = useMemo(() => {
+    const focus = filters.focusReaderId?.trim();
+    if (focus) {
+      return [focus];
+    }
     const scopedReaders = filters.readers.filter((id) =>
       defaultScopedReaders.includes(id),
     );
@@ -209,7 +217,12 @@ export function useHome() {
       return scopedReaders;
     }
     return defaultScopedReaders;
-  }, [filters.readers, defaultScopedReaders, lockedReaderId]);
+  }, [
+    filters.focusReaderId,
+    filters.readers,
+    defaultScopedReaders,
+    lockedReaderId,
+  ]);
 
   const usesRelationshipScopedQuery =
     !!isLoggedIn && (isAllBooksActive || isFollowingFeedActive);
@@ -382,9 +395,14 @@ export function useHome() {
     if (!rawBooks?.data) return rawBooks;
     return {
       ...rawBooks,
-      data: rawBooks.data.map((b) => BookMapper.enrichReadersDisplay(b, users)),
+      data: rawBooks.data.map((b) =>
+        BookMapper.enrichReadersDisplay(
+          BookMapper.enrichFavorite(b, favoriteIdSet),
+          users,
+        ),
+      ),
     };
-  }, [rawBooks, users]);
+  }, [rawBooks, users, favoriteIdSet]);
 
   const { refinedBooks } = useBookSearchRefinement({
     books: booksQueryData?.data ?? [],
@@ -456,7 +474,8 @@ export function useHome() {
       !!filters.sort ||
       filters.view === "joint" ||
       filters.view === "seguindo" ||
-      !!filters.myBooks,
+      !!filters.myBooks ||
+      !!filters.focusReaderId?.trim(),
     [
       searchQuery,
       hasSearchParams,
@@ -486,6 +505,12 @@ export function useHome() {
     if (formattedStatus) labels.push(formattedStatus);
     if (formattedYear) labels.push(`Ano: ${formattedYear}`);
     if (filters.sort) labels.push(`Ordem: ${SORT_LABEL_MAP[filters.sort]}`);
+    if (filters.focusReaderId?.trim()) {
+      const name =
+        users.find((u) => u.id === filters.focusReaderId)?.display_name ??
+        "Leitor";
+      labels.push(`Livros: ${name}`);
+    }
     return labels;
   }, [
     searchQuery,
@@ -498,6 +523,8 @@ export function useHome() {
     filters.sort,
     isMyBooksActive,
     filters.view,
+    filters.focusReaderId,
+    users,
   ]);
 
   const handleSetYear = useCallback(

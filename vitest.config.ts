@@ -11,7 +11,7 @@ export default defineConfig({
     env: {
       TZ: "America/Sao_Paulo",
     },
-    setupFiles: "./vitest.setup.ts",
+    setupFiles: path.resolve(__dirname, "vitest.setup.ts"),
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     alias: {
       "@": path.resolve(__dirname, "./src"),

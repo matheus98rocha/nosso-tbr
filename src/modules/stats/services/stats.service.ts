@@ -63,7 +63,7 @@ export class StatsService {
     year?: number | null
   ): Promise<Omit<ReadingLeaderboardEntryDomain, "rank">[]> {
     const { data, error } = await this.supabase.rpc("get_reading_leaderboard", {
-      year_input: year ?? null,
+      year_input: year ?? undefined,
     });
 
     if (error) {

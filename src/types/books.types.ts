@@ -67,4 +67,5 @@ export type BookDomain = {
   image_url: string;
   user_id: string;
   is_reread: boolean;
+  is_favorite: boolean;
 };

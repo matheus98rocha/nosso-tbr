@@ -27,6 +27,9 @@ export function buildQueryStringFromFilters(
   if (newFilters.year) params.set("year", String(newFilters.year));
   if (newFilters.myBooks) params.set("myBooks", "true");
   if (newFilters.isReread) params.set("isReread", "true");
+  if (newFilters.focusReaderId?.trim()) {
+    params.set("reader", newFilters.focusReaderId.trim());
+  }
   if (newFilters.view === "joint") params.set("view", "joint");
   else if (newFilters.view === "seguindo") params.set("view", "seguindo");
   if (newFilters.sort) params.set("sort", newFilters.sort);

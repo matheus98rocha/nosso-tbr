@@ -13,4 +13,7 @@ export type DropdownMenuWrapperProps = {
   quotes?: () => void;
   isFinishedReading?: boolean;
   quotesDisabled?: boolean;
+  onToggleFavorite?: () => void;
+  isFavorite?: boolean;
+  favoriteActionBusy?: boolean;
 };

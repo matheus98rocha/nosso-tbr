@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BookMapper } from "../books.mapper";
-import { BookPersistence } from "@/types/books.types";
+import { BookPersistence, type BookDomain } from "@/types/books.types";
 import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
 describe("BookMapper", () => {
@@ -24,6 +24,7 @@ describe("BookMapper", () => {
     expect(domain.title).toBe("O Hobbit");
     expect(domain.author).toBe("J.R.R. Tolkien");
     expect(domain.status).toBe("not_started");
+    expect(domain.is_favorite).toBe(false);
   });
 
   it("deve usar status paused sem inferir por datas", () => {
@@ -125,6 +126,29 @@ describe("BookMapper", () => {
 
     expect(BookMapper.toDomain(withEmpty).image_url).toBe(
       BOOK_COVER_PLACEHOLDER_SRC,
+    );
+  });
+
+  it("enrichFavorite reflete ids no conjunto de favoritos", () => {
+    const book: BookDomain = {
+      id: "b1",
+      title: "T",
+      author: "A",
+      chosen_by: "u",
+      pages: 1,
+      readerIds: [],
+      readersDisplay: "",
+      gender: null,
+      image_url: "/x.svg",
+      user_id: "u",
+      is_reread: false,
+      is_favorite: false,
+    };
+    expect(BookMapper.enrichFavorite(book, new Set(["b1"])).is_favorite).toBe(
+      true,
+    );
+    expect(BookMapper.enrichFavorite(book, new Set()).is_favorite).toBe(
+      false,
     );
   });
 });

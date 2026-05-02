@@ -3,15 +3,18 @@ import { BookCardProps, StatusDisplay } from "../types/bookCard.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useCallback, useMemo } from "react";
+import type { MouseEvent } from "react";
 import { BookService } from "@/services/books/books.service";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 import { BookMapper } from "@/services/books/books.mapper";
 import { useUserStore } from "@/stores/userStore";
+import { useToggleBookFavorite } from "@/services/bookFavorites/hooks/useToggleBookFavorite";
 
 export function useBookCard({
   book,
   isShelf = false,
   shelfId,
+  hideInteractions = false,
 }: BookCardProps) {
   const dropdownModal = useModal();
   const dialogEditModal = useModal();
@@ -22,6 +25,8 @@ export function useBookCard({
   const isLogged = useIsLoggedIn();
   const currentUser = useUserStore((state) => state.user);
   const dropdownTap = useSafeTap(() => dropdownModal.setIsOpen(true));
+  const { toggle: toggleFavorite, isPending: isFavoritePending } =
+    useToggleBookFavorite();
 
   const isSoloBook = useMemo(() => BookMapper.isSoloBook(book), [book]);
   const isOwnSoloBook = useMemo(
@@ -167,6 +172,19 @@ export function useBookCard({
     [isShelf, shelfId, router],
   );
 
+  const showFavoriteToggle =
+    !hideInteractions && isLogged && book.status === "finished";
+
+  const handleFavoriteClick = useCallback(
+    (event?: MouseEvent<HTMLButtonElement>) => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      if (!book.id || isFavoritePending) return;
+      toggleFavorite(book.id, !book.is_favorite);
+    },
+    [book.id, book.is_favorite, isFavoritePending, toggleFavorite],
+  );
+
   return {
     dropdownModal,
     dialogEditModal,
@@ -183,5 +201,8 @@ export function useBookCard({
     handleConfirmDelete,
     statusDisplay,
     isOwnSoloBook,
+    showFavoriteToggle,
+    handleFavoriteClick,
+    isFavoritePending,
   };
 }

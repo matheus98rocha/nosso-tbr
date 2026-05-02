@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React, { Suspense, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowDownUp, ArrowLeft, GripVertical, Library } from "lucide-react";
@@ -12,6 +12,9 @@ import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SortFilterChips } from "@/components";
 import BookshelfBooksSortableGrid from "./components/BookshelfBooksSortableGrid";
+import { useUserStore } from "@/stores/userStore";
+import { useBookFavoriteIds } from "@/services/bookFavorites/hooks/useBookFavoriteIds";
+import { BookMapper } from "@/services/books/books.mapper";
 
 function ClientBookshelvesInner() {
   const { id } = useParams();
@@ -30,6 +33,15 @@ function ClientBookshelvesInner() {
 
   const { sort, sortedBooks, isSortActive, handleSetSort } =
     useBookshelfSort(books);
+
+  const sessionUser = useUserStore((s) => s.user);
+  const { favoriteIdSet } = useBookFavoriteIds(sessionUser?.id);
+
+  const sortedBooksWithFavorites = useMemo(
+    () =>
+      sortedBooks.map((b) => BookMapper.enrichFavorite(b, favoriteIdSet)),
+    [sortedBooks, favoriteIdSet],
+  );
 
   const {
     data: shelfMeta,
@@ -137,7 +149,7 @@ function ClientBookshelvesInner() {
 
       <BookshelfBooksSortableGrid
         shelfId={bookshelfId}
-        books={sortedBooks}
+        books={sortedBooksWithFavorites}
         isLoading={isLoading}
         isFetched={isFetched && isSuccess}
         isError={isError}

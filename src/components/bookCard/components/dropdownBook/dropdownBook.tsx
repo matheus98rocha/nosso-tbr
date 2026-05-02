@@ -6,6 +6,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuWrapperProps } from "./types/dropdownBook.types";
+import { Heart } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function DropdownBook({
   isOpen,
@@ -20,6 +22,9 @@ export function DropdownBook({
   quotes,
   quotesDisabled,
   isFinishedReading,
+  onToggleFavorite,
+  isFavorite = false,
+  favoriteActionBusy = false,
 }: DropdownMenuWrapperProps) {
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
@@ -31,6 +36,28 @@ export function DropdownBook({
         sideOffset={8}
       >
         <DropdownMenuGroup>
+          {isFinishedReading && onToggleFavorite && (
+            <DropdownMenuItem
+              onClick={() => {
+                onOpenChange(false);
+                onToggleFavorite();
+              }}
+              disabled={favoriteActionBusy}
+              className="cursor-pointer"
+            >
+              <Heart
+                className={cn(
+                  "mr-2 size-4 shrink-0",
+                  isFavorite && "fill-rose-500 text-rose-500",
+                )}
+                aria-hidden
+              />
+              <p>
+                {isFavorite ? "Remover dos favoritos" : "Marcar como favorito"}
+              </p>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem onClick={addToShelf}>
             <p>Adicionar Livro a Estante</p>
           </DropdownMenuItem>

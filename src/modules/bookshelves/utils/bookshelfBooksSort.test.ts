@@ -14,6 +14,7 @@ const base = (over: Partial<BookDomain> & { id: string }): BookDomain => ({
   image_url: "",
   user_id: "u1",
   is_reread: false,
+  is_favorite: false,
   start_date: over.start_date ?? null,
   end_date: over.end_date ?? null,
 });

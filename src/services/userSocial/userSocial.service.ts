@@ -45,6 +45,39 @@ export class UserSocialService {
     }
   }
 
+  async getUserById(id: string): Promise<DirectoryUser | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from("users")
+        .select("id, display_name, email")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) {
+        throw new RepositoryError(
+          "Failed to load user",
+          undefined,
+          undefined,
+          error,
+          { id },
+        );
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      return UserSocialMapper.toDirectoryUser(data);
+    } catch (error) {
+      const normalized = ErrorHandler.normalize(error, {
+        service: "UserSocialService",
+        method: "getUserById",
+      });
+      ErrorHandler.log(normalized);
+      throw normalized;
+    }
+  }
+
   async getFollowingIds(): Promise<string[]> {
     const {
       data: { user },
