@@ -154,6 +154,94 @@ export type Database = {
           },
         ]
       }
+      collective_reading_comments: {
+        Row: {
+          book_id: string
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collective_reading_comments_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collective_reading_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collective_reading_comment_reactions: {
+        Row: {
+          book_id: string
+          comment_id: string
+          created_at: string
+          id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          comment_id: string
+          created_at?: string
+          id?: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          comment_id?: string
+          created_at?: string
+          id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collective_reading_comment_reactions_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collective_reading_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "collective_reading_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collective_reading_comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_shelf_books: {
         Row: {
           book_id: string | null

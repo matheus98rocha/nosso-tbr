@@ -54,3 +54,20 @@ describe("BookMapper.isSoloBook", () => {
     ).toBe(false);
   });
 });
+
+describe("BookMapper.isCollectiveReadingBook", () => {
+  it("retorna true quando há mais de um leitor", () => {
+    expect(
+      BookMapper.isCollectiveReadingBook({
+        readerIds: ["a", "b"],
+      }),
+    ).toBe(true);
+  });
+
+  it("retorna false quando há zero ou um leitor", () => {
+    expect(BookMapper.isCollectiveReadingBook({ readerIds: [] })).toBe(false);
+    expect(BookMapper.isCollectiveReadingBook({ readerIds: ["a"] })).toBe(
+      false,
+    );
+  });
+});

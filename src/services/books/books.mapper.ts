@@ -66,6 +66,12 @@ export class BookMapper {
     return readerIds.length === 1 && readerIds[0] === book.chosen_by;
   }
 
+  static isCollectiveReadingBook(
+    book: Pick<BookDomain, "readerIds">,
+  ): boolean {
+    return (book.readerIds?.length ?? 0) > 1;
+  }
+
   static enrichReadersDisplay(book: BookDomain, users: UserLookup[]): BookDomain {
     const ids = book.readerIds ?? [];
     return {
