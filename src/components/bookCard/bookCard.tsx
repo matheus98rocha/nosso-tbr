@@ -1,24 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { BookOpen, EllipsisVerticalIcon, Heart, Lock, Users } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { EllipsisVerticalIcon, Heart, Users } from "lucide-react";
+
+import BookCardDetailsModal from "./components/bookCardDetailsModal";
+import { AddBookToShelf } from "./components/addBookToShelf";
+import { DropdownBook } from "./components/dropdownBook";
+import { BookUpsert } from "@/modules/bookUpsert";
+import { ConfirmDialog } from "@/components/confirmDialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DropdownBook } from "./components/dropdownBook";
-import { BookUpsert } from "@/modules/bookUpsert";
-import { ConfirmDialog } from "@/components/confirmDialog";
-import { AddBookToShelf } from "./components/addBookToShelf";
+import { Card, CardContent } from "@/components/ui/card";
 import { useBookCard } from "./hooks/useBookCard";
 import { BookCardProps } from "./types/bookCard.types";
-import { getGenderLabel, getGenreBadgeColor } from "@/constants/genders";
-import { cn } from "@/lib/utils";
 import { resolveBookCoverUrl } from "@/constants/bookCover";
+import { cn } from "@/lib/utils";
 
 export function BookCard(props: BookCardProps) {
   const { isShelf = false, hideInteractions = false } = props;
@@ -28,12 +27,17 @@ export function BookCard(props: BookCardProps) {
     dialogDeleteModal,
     dialogEditModal,
     dropdownModal,
+    bookDetailsModal,
+    handleOpenBookDetails,
+    handleAuthorSearchFromDetails,
+    handleCollectiveReadingFromDetails,
+    handleScheduleFromDetails,
+    handleQuotesFromDetails,
     dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
-    handleNavigateToAuthor,
-    isLogged,
     handleNavigateToQuotes,
+    isLogged,
     handleConfirmDelete,
     statusDisplay,
     isOwnSoloBook,
@@ -41,27 +45,49 @@ export function BookCard(props: BookCardProps) {
     handleFavoriteClick,
     isFavoritePending,
     canAccessCollectiveReading,
-    collectiveReadingHref,
   } = useBookCard(props);
 
   const showTopActions =
     showFavoriteToggle || (isLogged && !hideInteractions);
+  const showReadersOnCard =
+    isLogged && Boolean(book.readersDisplay?.trim());
 
-  const bookBody = (
-    <>
+  const coverSizes = isShelf
+    ? { width: 56, height: 92, className: "relative h-[92px] w-14 shrink-0 overflow-hidden rounded-md bg-muted/20 shadow-sm" }
+    : { width: 90, height: 130, className: "relative h-[130px] w-[90px] shrink-0 overflow-hidden rounded-md shadow-sm" };
+
+  const bookMain = (
+    <button
+      type="button"
+      onClick={handleOpenBookDetails}
+      className={cn(
+        "flex min-w-0 flex-1 cursor-pointer gap-3 rounded-md border-0 bg-transparent p-0 text-left transition-opacity duration-200 hover:opacity-95 active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950",
+        isShelf ? "gap-2.5" : "gap-3",
+      )}
+      aria-label={`Ver detalhes: ${book.title}`}
+    >
+      <div className={coverSizes.className}>
+        <Image
+          src={resolveBookCoverUrl(book.image_url)}
+          alt=""
+          width={coverSizes.width}
+          height={coverSizes.height}
+          className="size-full object-cover"
+          loading="lazy"
+        />
+      </div>
       <div
         className={cn(
-          "flex min-w-0 gap-2",
-          showTopActions ? "items-start" : "items-stretch",
-          isShelf ? "mb-0.5" : "mb-1",
+          "flex min-w-0 flex-1 flex-col",
+          isShelf ? "min-h-[92px] gap-1" : "min-h-[130px] gap-1.5",
         )}
       >
         <Tooltip>
           <TooltipTrigger asChild>
             <p
               className={cn(
-                "min-w-0 flex-1 cursor-default font-semibold leading-snug line-clamp-2 text-left text-zinc-900 dark:text-zinc-100",
-                isShelf ? "text-xs pr-1" : "text-sm pr-1",
+                "min-w-0 font-semibold leading-snug text-zinc-900 line-clamp-2 dark:text-zinc-100",
+                isShelf ? "text-xs" : "text-sm",
               )}
             >
               {book.title}
@@ -71,232 +97,73 @@ export function BookCard(props: BookCardProps) {
             {book.title}
           </TooltipContent>
         </Tooltip>
-        {showTopActions && (
-          <div className="flex shrink-0 items-center gap-0.5 pt-px">
-            {showFavoriteToggle && (
-              <button
-                type="button"
-                onClick={handleFavoriteClick}
-                disabled={isFavoritePending}
-                title={
-                  book.is_favorite
-                    ? "Remover dos favoritos (também no menu ⋮)"
-                    : "Marcar como favorito (também no menu ⋮)"
-                }
-                aria-label={
-                  book.is_favorite
-                    ? `Remover "${book.title}" dos favoritos`
-                    : `Marcar "${book.title}" como favorito`
-                }
-                aria-pressed={book.is_favorite}
+
+        <p
+          className={cn(
+            "truncate text-zinc-600 dark:text-zinc-400",
+            isShelf ? "text-[11px]" : "text-xs",
+          )}
+        >
+          {book.author}
+        </p>
+
+        {(showReadersOnCard || statusDisplay) && (
+          <div
+            className={cn(
+              "mt-auto flex min-w-0 flex-col",
+              isShelf ? "gap-1" : "gap-1.5",
+            )}
+          >
+            {showReadersOnCard && (
+              <span className="flex min-w-0 items-center gap-1 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                <Users aria-hidden className="size-2.5 shrink-0" />
+                <span className="truncate">{book.readersDisplay}</span>
+              </span>
+            )}
+            {statusDisplay && (
+              <span
                 className={cn(
-                  "flex items-center justify-center rounded-full border transition-colors duration-200 cursor-pointer disabled:opacity-60",
-                  isShelf ? "w-7 h-7" : "w-9 h-9",
-                  book.is_favorite
-                    ? "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/60"
-                    : "border-zinc-200 bg-zinc-50/80 text-zinc-400 hover:border-rose-200 hover:text-rose-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:border-rose-800 dark:hover:text-rose-400",
+                  "inline-flex w-fit items-center gap-1 rounded-full font-semibold",
+                  isShelf
+                    ? "h-4 gap-0.5 px-1.5 py-0 text-[9px]"
+                    : "px-2 py-0.5 text-[10px]",
+                  statusDisplay.colorClass,
                 )}
               >
-                <Heart
+                <span
                   className={cn(
-                    isShelf ? "w-3 h-3" : "w-4 h-4",
-                    book.is_favorite && "fill-current",
+                    "shrink-0 rounded-full",
+                    isShelf ? "h-1 w-1" : "h-1.5 w-1.5",
+                    statusDisplay.dotClass,
                   )}
-                  aria-hidden
                 />
-              </button>
-            )}
-            {isLogged && !hideInteractions && (
-              <DropdownBook
-                isOpen={dropdownModal.isOpen}
-                onOpenChange={dropdownModal.setIsOpen}
-                onToggleFavorite={() => handleFavoriteClick()}
-                isFavorite={book.is_favorite}
-                favoriteActionBusy={isFavoritePending}
-                trigger={
-                  <button
-                    type="button"
-                    aria-label={`Mais opções para "${book.title}"`}
-                    className={cn(
-                      "flex shrink-0 items-center justify-center rounded-full transition-colors duration-200 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 active:opacity-70",
-                      isShelf ? "h-8 w-8" : "h-11 w-11",
-                    )}
-                  >
-                    <EllipsisVerticalIcon
-                      className={cn(
-                        "text-zinc-400",
-                        isShelf ? "size-3.5" : "size-4",
-                      )}
-                      aria-hidden
-                      onTouchStart={dropdownTap.handleTouchStart}
-                      onTouchEnd={dropdownTap.handleTouchEnd}
-                      onClick={dropdownTap.handleClick}
-                    />
-                  </button>
-                }
-                editBook={() => dialogEditModal.setIsOpen(true)}
-                removeBook={() => dialogDeleteModal.setIsOpen(true)}
-                removeBookLabel={
-                  isShelf ? "Remover livro da estante" : "Remover livro"
-                }
-                addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
-                shareOnWhatsApp={shareOnWhatsApp}
-                schedule={handleNavigateToSchedule}
-                quotes={handleNavigateToQuotes}
-                isFinishedReading={book.status === "finished"}
-                quotesDisabled={book.status !== "not_started"}
-              />
+                {statusDisplay.label}
+              </span>
             )}
           </div>
         )}
       </div>
-
-      <button
-        type="button"
-        onClick={handleNavigateToAuthor}
-        aria-label={`Autor: ${book.author} — ${book.title}`}
-        className={cn(
-          "text-blue-600 dark:text-blue-400 truncate text-left cursor-pointer underline-offset-2 transition-colors duration-200 hover:underline active:opacity-70",
-          isShelf ? "text-[11px] mb-1" : "text-xs mb-2",
-        )}
-      >
-        {book.author}
-      </button>
-
-      <div
-        className={cn("flex flex-col mt-auto", isShelf ? "gap-1" : "gap-1.5")}
-      >
-        {statusDisplay && (
-          <span
-            className={cn(
-              "inline-flex w-fit items-center gap-1 rounded-full font-semibold",
-              isShelf
-                ? "h-4 gap-0.5 px-1.5 text-[9px] py-0"
-                : "px-2 py-0.5 text-[10px]",
-              statusDisplay.colorClass,
-            )}
-          >
-            <span
-              className={cn(
-                "shrink-0 rounded-full",
-                isShelf ? "h-1 w-1" : "w-1.5 h-1.5",
-                statusDisplay.dotClass,
-              )}
-            />
-            {statusDisplay.label}
-          </span>
-        )}
-        {isShelf === false && (
-          <div className="flex items-center gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
-            {book.readersDisplay && (
-              <span className="flex items-center gap-1 shrink-0">
-                <Users size={10} className="shrink-0" />
-                <span>{book.readersDisplay}</span>
-              </span>
-            )}
-            {book.readersDisplay && book.pages && (
-              <span className="text-zinc-300 dark:text-zinc-600 select-none">
-                ·
-              </span>
-            )}
-            {book.pages && (
-              <span className="flex items-center gap-1 shrink-0">
-                <BookOpen size={10} className="shrink-0" />
-                <span>{book.pages} páginas</span>
-              </span>
-            )}
-          </div>
-        )}
-
-        {isShelf === true && (
-          <div className="flex items-center gap-2 text-[11px] text-zinc-400 dark:text-zinc-500">
-            {book.readersDisplay && (
-              <span className="flex shrink-0 items-center gap-1">
-                <Users size={10} className="shrink-0" />
-                <span>{book.readersDisplay}</span>
-              </span>
-            )}
-            {book.readersDisplay && book.pages && (
-              <span className="select-none text-zinc-300 dark:text-zinc-600">
-                ·
-              </span>
-            )}
-            {book.pages && (
-              <span className="flex shrink-0 items-center gap-1">
-                <BookOpen size={10} className="shrink-0" />
-                <span>{book.pages} páginas</span>
-              </span>
-            )}
-          </div>
-        )}
-
-        {canAccessCollectiveReading && (
-          <Link
-            href={collectiveReadingHref}
-            className={cn(
-              "w-fit text-xs font-medium text-violet-600 underline-offset-2 hover:underline dark:text-violet-400 cursor-pointer",
-              isShelf ? "mt-0.5" : "mt-1",
-            )}
-          >
-            Leitura coletiva
-          </Link>
-        )}
-
-        {isOwnSoloBook && (
-          <Badge
-            variant="secondary"
-            aria-label="Livro privado — visível apenas para você"
-            className={cn(
-              "w-fit border-none font-medium uppercase",
-              isShelf
-                ? "h-4 px-1.5 text-[9px] py-0 gap-0.5"
-                : "h-5 px-2 text-[10px] py-0 gap-1",
-              "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
-            )}
-          >
-            <Lock
-              aria-hidden
-              className={cn(isShelf ? "w-2 h-2" : "w-2.5 h-2.5")}
-            />
-            Privado
-          </Badge>
-        )}
-
-        {book.is_reread && (
-          <Badge
-            variant="secondary"
-            className={cn(
-              "w-fit border-none font-medium uppercase",
-              isShelf
-                ? "h-4 px-1.5 text-[9px] py-0"
-                : "h-5 px-2 text-[10px] py-0",
-              "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
-            )}
-          >
-            Releitura
-          </Badge>
-        )}
-
-        {book.gender && (
-          <Badge
-            variant="secondary"
-            className={cn(
-              "w-fit border-none font-medium uppercase",
-              isShelf
-                ? "h-4 px-1.5 text-[9px] py-0"
-                : "h-5 px-2 text-[10px] py-0",
-              getGenreBadgeColor(book.gender),
-            )}
-          >
-            {getGenderLabel(book.gender)}
-          </Badge>
-        )}
-      </div>
-    </>
+    </button>
   );
 
   return (
     <>
+      <BookCardDetailsModal
+        open={bookDetailsModal.isOpen}
+        onOpenChange={bookDetailsModal.setIsOpen}
+        book={book}
+        statusDisplay={statusDisplay}
+        isLogged={isLogged}
+        isOwnSoloBook={isOwnSoloBook}
+        canAccessCollectiveReading={canAccessCollectiveReading}
+        scheduleDisabled={book.status === "finished"}
+        quotesDisabled={book.status === "not_started"}
+        onAuthorSearch={handleAuthorSearchFromDetails}
+        onCollectiveReading={handleCollectiveReadingFromDetails}
+        onOpenSchedule={handleScheduleFromDetails}
+        onOpenQuotes={handleQuotesFromDetails}
+      />
+
       <AddBookToShelf
         isOpen={dialogAddShelfModal.isOpen}
         handleClose={dialogAddShelfModal.setIsOpen}
@@ -333,40 +200,96 @@ export function BookCard(props: BookCardProps) {
         )}
       >
         <CardContent className={cn(isShelf ? "p-2" : "p-3")}>
-          {isShelf ? (
-            <div className="flex gap-2.5">
-              <div className="relative h-[92px] w-14 shrink-0 overflow-hidden rounded-md bg-muted/20 shadow-sm">
-                <Image
-                  src={resolveBookCoverUrl(book.image_url)}
-                  alt={book.title}
-                  width={56}
-                  height={92}
-                  className="object-cover size-full"
-                  loading="lazy"
-                />
+          <div
+            className={cn("flex min-w-0", isShelf ? "gap-2.5" : "gap-3")}
+          >
+            {bookMain}
+            {showTopActions && (
+              <div
+                className={cn(
+                  "flex shrink-0 flex-col items-end gap-0.5",
+                  isShelf ? "pt-px" : "pt-px",
+                )}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                {showFavoriteToggle && (
+                  <button
+                    type="button"
+                    onClick={handleFavoriteClick}
+                    disabled={isFavoritePending}
+                    title={
+                      book.is_favorite
+                        ? "Remover dos favoritos (também no menu ⋮)"
+                        : "Marcar como favorito (também no menu ⋮)"
+                    }
+                    aria-label={
+                      book.is_favorite
+                        ? `Remover "${book.title}" dos favoritos`
+                        : `Marcar "${book.title}" como favorito`
+                    }
+                    aria-pressed={book.is_favorite}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-center rounded-full border transition-colors duration-200 disabled:opacity-60",
+                      isShelf ? "h-7 w-7" : "h-9 w-9",
+                      book.is_favorite
+                        ? "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/60"
+                        : "border-zinc-200 bg-zinc-50/80 text-zinc-400 hover:border-rose-200 hover:text-rose-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:border-rose-800 dark:hover:text-rose-400",
+                    )}
+                  >
+                    <Heart
+                      className={cn(
+                        isShelf ? "h-3 w-3" : "h-4 w-4",
+                        book.is_favorite && "fill-current",
+                      )}
+                      aria-hidden
+                    />
+                  </button>
+                )}
+                {isLogged && !hideInteractions && (
+                  <DropdownBook
+                    isOpen={dropdownModal.isOpen}
+                    onOpenChange={dropdownModal.setIsOpen}
+                    onToggleFavorite={() => handleFavoriteClick()}
+                    isFavorite={book.is_favorite}
+                    favoriteActionBusy={isFavoritePending}
+                    trigger={
+                      <button
+                        type="button"
+                        aria-label={`Mais opções para "${book.title}"`}
+                        className={cn(
+                          "flex shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 hover:bg-zinc-100 active:opacity-70 dark:hover:bg-zinc-800",
+                          isShelf ? "h-8 w-8" : "h-11 w-11",
+                        )}
+                      >
+                        <EllipsisVerticalIcon
+                          className={cn(
+                            "text-zinc-400",
+                            isShelf ? "size-3.5" : "size-4",
+                          )}
+                          aria-hidden
+                          onTouchStart={dropdownTap.handleTouchStart}
+                          onTouchEnd={dropdownTap.handleTouchEnd}
+                          onClick={dropdownTap.handleClick}
+                        />
+                      </button>
+                    }
+                    editBook={() => dialogEditModal.setIsOpen(true)}
+                    removeBook={() => dialogDeleteModal.setIsOpen(true)}
+                    removeBookLabel={
+                      isShelf ? "Remover livro da estante" : "Remover livro"
+                    }
+                    addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
+                    shareOnWhatsApp={shareOnWhatsApp}
+                    schedule={handleNavigateToSchedule}
+                    quotes={handleNavigateToQuotes}
+                    isFinishedReading={book.status === "finished"}
+                    quotesDisabled={book.status !== "not_started"}
+                  />
+                )}
               </div>
-              <div className="flex min-h-[92px] min-w-0 flex-1 flex-col">
-                {bookBody}
-              </div>
-            </div>
-          ) : (
-            <div className="flex gap-3">
-              <div className="relative shrink-0 w-[90px] h-[130px] rounded-md overflow-hidden shadow-sm">
-                <Image
-                  src={resolveBookCoverUrl(book.image_url)}
-                  alt={book.title}
-                  width={90}
-                  height={130}
-                  className="object-cover size-full"
-                  loading="lazy"
-                />
-              </div>
-
-              <div className="flex min-h-[130px] min-w-0 flex-1 flex-col">
-                {bookBody}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
     </>

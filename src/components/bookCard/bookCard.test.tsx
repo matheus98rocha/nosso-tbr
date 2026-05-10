@@ -92,13 +92,20 @@ function presetUseBookCard(
     dialogDeleteModal: ModalMock;
     dialogEditModal: ModalMock;
     dropdownModal: ModalMock;
+    bookDetailsModal: ModalMock;
     showFavoriteToggle: boolean;
+    canAccessCollectiveReading: boolean;
     statusDisplay: {
       label: string;
       colorClass: string;
       dotClass: string;
     } | null;
     handleNavigateToAuthor: () => void;
+    handleOpenBookDetails: () => void;
+    handleAuthorSearchFromDetails: () => void;
+    handleCollectiveReadingFromDetails: () => void;
+    handleScheduleFromDetails: () => void;
+    handleQuotesFromDetails: () => void;
   }> = {},
 ) {
   const {
@@ -111,6 +118,11 @@ function presetUseBookCard(
       dotClass: "bg-amber-500",
     },
     handleNavigateToAuthor = vi.fn(),
+    handleOpenBookDetails = vi.fn(),
+    handleAuthorSearchFromDetails = vi.fn(),
+    handleCollectiveReadingFromDetails = vi.fn(),
+    handleScheduleFromDetails = vi.fn(),
+    handleQuotesFromDetails = vi.fn(),
   } = patch;
 
   const dialogDeleteModal =
@@ -118,6 +130,7 @@ function presetUseBookCard(
   const dialogEditModal = patch.dialogEditModal ?? modalState(false);
   const dialogAddShelfModal = patch.dialogAddShelfModal ?? modalState(false);
   const dropdownModal = patch.dropdownModal ?? modalState(false);
+  const bookDetailsModal = patch.bookDetailsModal ?? modalState(false);
 
   mockedUseBookCard.mockReturnValue({
     book,
@@ -125,6 +138,12 @@ function presetUseBookCard(
     dialogDeleteModal,
     dialogEditModal,
     dropdownModal,
+    bookDetailsModal,
+    handleOpenBookDetails,
+    handleAuthorSearchFromDetails,
+    handleCollectiveReadingFromDetails,
+    handleScheduleFromDetails,
+    handleQuotesFromDetails,
     dropdownTap: tapStub(),
     shareOnWhatsApp: vi.fn(),
     handleNavigateToSchedule: vi.fn(),
@@ -137,6 +156,13 @@ function presetUseBookCard(
     showFavoriteToggle: patch.showFavoriteToggle ?? false,
     handleFavoriteClick: vi.fn(),
     isFavoritePending: false,
+    canAccessCollectiveReading: patch.canAccessCollectiveReading ?? false,
+    collectiveReadingHref: "/collective-reading/book-1/Mem%C3%B3rias%20P%C3%B3stumas",
+    handleNavigateToCollectiveReading: vi.fn(),
+    badgeObject: {
+      bookStatusClass: "bg-green-800 text-white",
+      bookStatusText: "Já iniciei a leitura",
+    },
   } as unknown as ReturnType<typeof useBookCard>);
 }
 
@@ -150,12 +176,20 @@ describe("BookCard", () => {
     render(<BookCard book={baseBook} />);
 
     expect(screen.getByText("Memórias Póstumas")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", {
-        name: "Autor: Machado de Assis — Memórias Póstumas",
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Machado de Assis")).toBeInTheDocument();
     expect(screen.getByText("Lendo agora")).toBeInTheDocument();
+  });
+
+  it("clique no alvo principal do card chama abertura do modal de detalhes", () => {
+    const handleOpenBookDetails = vi.fn();
+    presetUseBookCard(baseBook, { handleOpenBookDetails });
+    render(<BookCard book={baseBook} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Ver detalhes: Memórias Póstumas/i }),
+    );
+
+    expect(handleOpenBookDetails).toHaveBeenCalledTimes(1);
   });
 
   it("RN20: sem sessão, não exibe o menu de mais opções", () => {
@@ -169,6 +203,19 @@ describe("BookCard", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("sem sessão, não exibe nomes de leitores mesmo se readersDisplay vier preenchido", () => {
+    const book = {
+      ...baseBook,
+      readersDisplay: "be1cb368-a253-489b-8615-c88d06c0ff00",
+    };
+    presetUseBookCard(book, { isLogged: false });
+    render(<BookCard book={book} />);
+
+    expect(
+      screen.queryByText("be1cb368-a253-489b-8615-c88d06c0ff00"),
+    ).not.toBeInTheDocument();
+  });
+
   it("com sessão, exibe o menu de mais opções (alvo tocável ampliado)", () => {
     presetUseBookCard(baseBook, { isLogged: true });
     const { container } = render(<BookCard book={baseBook} />);
@@ -179,7 +226,7 @@ describe("BookCard", () => {
     expect(moreBtn).toBeInTheDocument();
     expect(moreBtn.className).toMatch(/w-11/);
     expect(moreBtn.className).toMatch(/h-11/);
-    expect(container.querySelector('img[alt="Memórias Póstumas"]')).toBeTruthy();
+    expect(container.querySelector("img")).toBeTruthy();
   });
 
   it("RN55: na estante, o diálogo de remoção descreve apenas o vínculo com a estante", () => {
@@ -206,28 +253,17 @@ describe("BookCard", () => {
     expect(screen.getByText("Deseja excluir este livro?")).toBeInTheDocument();
   });
 
-  it("RN56: exibe selo Privado quando o hook indica livro individual do usuário", () => {
-    presetUseBookCard(baseBook, { isOwnSoloBook: true });
+  it("RN56: exibe selo Privado no modal de detalhes quando o hook indica livro individual", () => {
+    presetUseBookCard(baseBook, {
+      isOwnSoloBook: true,
+      bookDetailsModal: modalState(true),
+    });
     render(<BookCard book={baseBook} />);
 
     expect(
       screen.getByLabelText("Livro privado — visível apenas para você"),
     ).toBeInTheDocument();
     expect(screen.getByText("Privado")).toBeInTheDocument();
-  });
-
-  it("dispara navegação ao autor ao clicar no botão do autor", () => {
-    const handleNavigateToAuthor = vi.fn();
-    presetUseBookCard(baseBook, { handleNavigateToAuthor });
-    render(<BookCard book={baseBook} />);
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Autor: Machado de Assis — Memórias Póstumas",
-      }),
-    );
-
-    expect(handleNavigateToAuthor).toHaveBeenCalledTimes(1);
   });
 
   it("no contexto de estante, reduz o alvo tocável do menu (RN15 contexto denso)", () => {
@@ -242,13 +278,13 @@ describe("BookCard", () => {
     expect(moreBtn.className).toMatch(/h-8/);
   });
 
-  it("exibe selo Releitura e chip de gênero quando o livro traz esses campos", () => {
+  it("exibe selo Releitura e chip de gênero no modal quando o livro traz esses campos", () => {
     const book = {
       ...baseBook,
       is_reread: true,
       gender: "romance" as const,
     };
-    presetUseBookCard(book);
+    presetUseBookCard(book, { bookDetailsModal: modalState(true) });
     render(<BookCard book={book} />);
 
     expect(screen.getByText("Releitura")).toBeInTheDocument();

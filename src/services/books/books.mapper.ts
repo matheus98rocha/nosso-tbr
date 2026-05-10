@@ -86,9 +86,10 @@ export class BookMapper {
     users: UserLookup[],
   ): string {
     if (!readerIds.length) return "";
-    const labels = readerIds.map(
-      (id) => users.find((u) => u.id === id)?.display_name ?? id,
-    );
+    const labels = readerIds
+      .map((id) => users.find((u) => u.id === id)?.display_name?.trim())
+      .filter((label): label is string => Boolean(label?.length));
+    if (!labels.length) return "";
     return formatList(labels);
   }
 }

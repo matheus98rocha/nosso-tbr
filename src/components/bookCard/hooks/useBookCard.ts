@@ -21,6 +21,7 @@ export function useBookCard({
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
   const dialogAddShelfModal = useModal();
+  const bookDetailsModal = useModal();
 
   const router = useRouter();
   const isLogged = useIsLoggedIn();
@@ -71,6 +72,34 @@ export function useBookCard({
   const handleNavigateToQuotes = useCallback(() => {
     router.push(`/quotes/${book.title}/${book.id}`);
   }, [router, book.title, book.id]);
+
+  const handleNavigateToCollectiveReading = useCallback(() => {
+    router.push(collectiveReadingHref);
+  }, [router, collectiveReadingHref]);
+
+  const handleOpenBookDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(true);
+  }, [bookDetailsModal.setIsOpen]);
+
+  const handleAuthorSearchFromDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(false);
+    handleNavigateToAuthor();
+  }, [bookDetailsModal.setIsOpen, handleNavigateToAuthor]);
+
+  const handleCollectiveReadingFromDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(false);
+    handleNavigateToCollectiveReading();
+  }, [bookDetailsModal.setIsOpen, handleNavigateToCollectiveReading]);
+
+  const handleScheduleFromDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(false);
+    handleNavigateToSchedule();
+  }, [bookDetailsModal.setIsOpen, handleNavigateToSchedule]);
+
+  const handleQuotesFromDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(false);
+    handleNavigateToQuotes();
+  }, [bookDetailsModal.setIsOpen, handleNavigateToQuotes]);
 
   const statusMap = {
     not_started: {
@@ -207,6 +236,12 @@ export function useBookCard({
     dialogEditModal,
     dialogDeleteModal,
     dialogAddShelfModal,
+    bookDetailsModal,
+    handleOpenBookDetails,
+    handleAuthorSearchFromDetails,
+    handleCollectiveReadingFromDetails,
+    handleScheduleFromDetails,
+    handleQuotesFromDetails,
     isLogged,
     dropdownTap,
     shareOnWhatsApp,
@@ -223,5 +258,6 @@ export function useBookCard({
     isFavoritePending,
     canAccessCollectiveReading,
     collectiveReadingHref,
+    handleNavigateToCollectiveReading,
   };
 }
