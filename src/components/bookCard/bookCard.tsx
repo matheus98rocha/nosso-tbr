@@ -18,6 +18,7 @@ import { useBookCard } from "./hooks/useBookCard";
 import { BookCardProps } from "./types/bookCard.types";
 import { resolveBookCoverUrl } from "@/constants/bookCover";
 import { cn } from "@/lib/utils";
+import { formatBookPagesLabel } from "@/utils/formatters";
 
 export function BookCard(props: BookCardProps) {
   const { isShelf = false, hideInteractions = false } = props;
@@ -55,6 +56,8 @@ export function BookCard(props: BookCardProps) {
   const coverSizes = isShelf
     ? { width: 56, height: 92, className: "relative h-[92px] w-14 shrink-0 overflow-hidden rounded-md bg-muted/20 shadow-sm" }
     : { width: 90, height: 130, className: "relative h-[130px] w-[90px] shrink-0 overflow-hidden rounded-md shadow-sm" };
+
+  const pagesLabel = formatBookPagesLabel(book.pages);
 
   const bookMain = (
     <button
@@ -98,14 +101,31 @@ export function BookCard(props: BookCardProps) {
           </TooltipContent>
         </Tooltip>
 
-        <p
-          className={cn(
-            "truncate text-zinc-600 dark:text-zinc-400",
-            isShelf ? "text-[11px]" : "text-xs",
-          )}
-        >
-          {book.author}
-        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p
+              className={cn(
+                "min-w-0 text-zinc-600 dark:text-zinc-400",
+                isShelf ? "line-clamp-1 text-[11px]" : "line-clamp-2 text-xs leading-snug",
+              )}
+            >
+              {book.author}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4} className="max-w-xs text-pretty">
+            {book.author}
+          </TooltipContent>
+        </Tooltip>
+        {pagesLabel && (
+          <p
+            className={cn(
+              "shrink-0 tabular-nums text-zinc-500 dark:text-zinc-500",
+              isShelf ? "text-[10px] leading-tight" : "text-[11px] leading-tight",
+            )}
+          >
+            {pagesLabel}
+          </p>
+        )}
 
         {(showReadersOnCard || statusDisplay) && (
           <div

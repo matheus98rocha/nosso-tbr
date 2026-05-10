@@ -47,3 +47,7 @@ export function formatYear(year?: number | null) {
   if (!year) return null;
   return String(year);
 }
+
+export function formatBookPagesLabel(pages?: number | null): string | null {
+  return pages ? `${pages} pág.` : null;
+}
