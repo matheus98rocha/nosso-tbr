@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Loader2, Search, SearchX, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { formatBookPagesLabel } from "@/utils/formatters";
 import { BookLookupPanelProps } from "./bookLookupPanel.types";
 import { BookCandidate } from "../../types/bookCandidate.types";
 
@@ -81,7 +82,9 @@ const BookLookupPanel = memo(function BookLookupPanel({
 
       {!isSearching && candidates.length > 0 && (
         <div className="grid gap-2">
-          {candidates.map((candidate, index) => (
+          {candidates.map((candidate, index) => {
+            const pagesLine = formatBookPagesLabel(candidate.pages);
+            return (
             <button
               key={`${candidate.isbn ?? candidate.title}-${index}`}
               type="button"
@@ -106,17 +109,21 @@ const BookLookupPanel = memo(function BookLookupPanel({
                 <p className="text-sm font-medium leading-tight truncate">
                   {candidate.title}
                 </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {[candidate.author_name, candidate.pages ? `${candidate.pages} pág.` : null]
-                    .filter(Boolean)
-                    .join(" · ")}
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-snug">
+                  {candidate.author_name}
                 </p>
+                {pagesLine ? (
+                  <p className="text-[11px] tabular-nums text-muted-foreground">
+                    {pagesLine}
+                  </p>
+                ) : null}
                 <span className="mt-1 inline-flex w-fit items-center rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   {SOURCE_LABEL[candidate.source]}
                 </span>
               </div>
             </button>
-          ))}
+          );
+          })}
         </div>
       )}
     </div>

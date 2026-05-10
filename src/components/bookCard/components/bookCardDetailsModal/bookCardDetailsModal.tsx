@@ -23,6 +23,7 @@ import {
 import { getGenderLabel, getGenreBadgeColor } from "@/constants/genders";
 import { resolveBookCoverUrl } from "@/constants/bookCover";
 import { cn } from "@/lib/utils";
+import { formatBookPagesLabel } from "@/utils/formatters";
 
 import type { BookCardDetailsModalProps } from "./types/bookCardDetailsModal.types";
 
@@ -61,6 +62,8 @@ export default function BookCardDetailsModal({
 
   const showReaders = isLogged && Boolean(book.readersDisplay?.trim());
 
+  const pagesLabel = formatBookPagesLabel(book.pages);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -72,8 +75,17 @@ export default function BookCardDetailsModal({
             <DialogTitle className="text-balance pr-8 text-base leading-snug sm:text-lg">
               {book.title}
             </DialogTitle>
-            <DialogDescription className="text-left text-zinc-600 dark:text-zinc-400">
-              {book.author}
+            <DialogDescription asChild>
+              <div className="flex flex-col gap-0.5 text-left">
+                <span className="text-balance text-zinc-600 dark:text-zinc-400">
+                  {book.author}
+                </span>
+                {pagesLabel ? (
+                  <span className="text-sm tabular-nums text-zinc-500 dark:text-zinc-500">
+                    {pagesLabel}
+                  </span>
+                ) : null}
+              </div>
             </DialogDescription>
           </DialogHeader>
 
