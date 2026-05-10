@@ -129,6 +129,34 @@ describe("BookMapper", () => {
     );
   });
 
+  it("enrichReadersDisplay não usa id como rótulo quando não há display_name", () => {
+    const book: BookDomain = {
+      id: "b1",
+      title: "T",
+      author: "A",
+      chosen_by: "u1",
+      pages: 1,
+      readerIds: ["11111111-1111-4111-8111-111111111111"],
+      readersDisplay: "x",
+      gender: null,
+      image_url: "/x.svg",
+      user_id: "u",
+      is_reread: false,
+      is_favorite: false,
+    };
+    expect(
+      BookMapper.enrichReadersDisplay(book, []).readersDisplay,
+    ).toBe("");
+    expect(
+      BookMapper.enrichReadersDisplay(book, [
+        {
+          id: "11111111-1111-4111-8111-111111111111",
+          display_name: "Ana",
+        },
+      ]).readersDisplay,
+    ).toBe("Ana");
+  });
+
   it("enrichFavorite reflete ids no conjunto de favoritos", () => {
     const book: BookDomain = {
       id: "b1",
