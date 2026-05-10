@@ -94,6 +94,7 @@ Gera os tipos do banco em `src/types/supabase.ts` a partir do projeto configurad
 - **Módulos de funcionalidade**
   - Local: `src/modules/<feature>/`.
   - Cada módulo concentra **componentes de tela**, **hooks**, **tipos** e, às vezes, **services específicos da feature**.
+  - Ex.: leitura coletiva em `src/modules/collectiveReading` (rota `(main)/collective-reading/...`, API `collective-reading-comments`).
 
 - **Serviços de domínio**
   - Exemplo: `src/services/books/` com:
@@ -177,6 +178,12 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
   - Cards por citação (`Card` + `CardDescription`).
   - Indicação de página (`quote.page`).
   - Esqueleton loading enquanto carrega.
+
+### 👥 Leitura coletiva (`/collective-reading/[id]/[title]`)
+
+- Espaço para livros com **mais de um leitor** em `readers`, acessível pelo link no `BookCard` (usuário logado e participante do livro).
+- Exibe o **próximo dia do cronograma** do usuário atual (primeira linha não concluída; se tudo concluído, último dia; sem cronograma, convite para criar em `/schedule/...`).
+- **Comentários** persistidos em `collective_reading_comments`; criação via `POST /api/collective-reading-comments` e remoção pelo autor via `DELETE /api/collective-reading-comments/[id]` (**RN59** no Obsidian). **Curtir / não curtir** por comentário: tabela `collective_reading_comment_reactions`, `POST /api/collective-reading-comment-reactions` (um voto por utilizador, comutável). Atualização **em tempo real** entre clientes via Supabase **Realtime** (`postgres_changes` em comentários e reações).
 
 ### 📅 Cronograma de Leitura (`/schedule/[id]/[title]`)
 

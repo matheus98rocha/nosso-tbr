@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { canUserParticipateInBook } from "./bookParticipation";
+import {
+  canUserParticipateInBook,
+  isCollectiveReadingBook,
+} from "./bookParticipation";
 
 const uid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const other = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
@@ -87,5 +90,18 @@ describe("canUserParticipateInBook (RN42)", () => {
         readers: [uid],
       }),
     ).toBe(true);
+  });
+});
+
+describe("isCollectiveReadingBook (RN59)", () => {
+  it("retorna true com mais de um reader", () => {
+    expect(isCollectiveReadingBook(["a", "b"])).toBe(true);
+  });
+
+  it("retorna false com zero ou um reader", () => {
+    expect(isCollectiveReadingBook([])).toBe(false);
+    expect(isCollectiveReadingBook(["a"])).toBe(false);
+    expect(isCollectiveReadingBook(undefined)).toBe(false);
+    expect(isCollectiveReadingBook(null)).toBe(false);
   });
 });

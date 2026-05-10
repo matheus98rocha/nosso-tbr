@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { BookOpen, EllipsisVerticalIcon, Heart, Lock, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +40,8 @@ export function BookCard(props: BookCardProps) {
     showFavoriteToggle,
     handleFavoriteClick,
     isFavoritePending,
+    canAccessCollectiveReading,
+    collectiveReadingHref,
   } = useBookCard(props);
 
   const showTopActions =
@@ -225,6 +228,18 @@ export function BookCard(props: BookCardProps) {
               </span>
             )}
           </div>
+        )}
+
+        {canAccessCollectiveReading && (
+          <Link
+            href={collectiveReadingHref}
+            className={cn(
+              "w-fit text-xs font-medium text-violet-600 underline-offset-2 hover:underline dark:text-violet-400 cursor-pointer",
+              isShelf ? "mt-0.5" : "mt-1",
+            )}
+          >
+            Leitura coletiva
+          </Link>
         )}
 
         {isOwnSoloBook && (

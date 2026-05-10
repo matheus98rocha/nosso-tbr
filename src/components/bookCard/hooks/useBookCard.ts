@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useCallback, useMemo } from "react";
 import type { MouseEvent } from "react";
-import { BookService } from "@/services/books/books.service";
+import { canUserParticipateInBook } from "@/lib/security/bookParticipation";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
+import { BookService } from "@/services/books/books.service";
 import { BookMapper } from "@/services/books/books.mapper";
 import { useUserStore } from "@/stores/userStore";
 import { useToggleBookFavorite } from "@/services/bookFavorites/hooks/useToggleBookFavorite";
@@ -32,6 +33,22 @@ export function useBookCard({
   const isOwnSoloBook = useMemo(
     () => isSoloBook && !!currentUser?.id && book.chosen_by === currentUser.id,
     [isSoloBook, currentUser?.id, book.chosen_by],
+  );
+
+  const canAccessCollectiveReading = useMemo(() => {
+    if (!isLogged || !BookMapper.isCollectiveReadingBook(book)) return false;
+    if (!currentUser?.id) return false;
+    return canUserParticipateInBook(currentUser.id, {
+      user_id: book.user_id,
+      chosen_by: book.chosen_by,
+      readers: book.readerIds,
+    });
+  }, [book, currentUser?.id, isLogged]);
+
+  const collectiveReadingHref = useMemo(
+    () =>
+      `/collective-reading/${book.id}/${encodeURIComponent(book.title)}`,
+    [book.id, book.title],
   );
 
   const shareOnWhatsApp = useCallback(() => {
@@ -204,5 +221,7 @@ export function useBookCard({
     showFavoriteToggle,
     handleFavoriteClick,
     isFavoritePending,
+    canAccessCollectiveReading,
+    collectiveReadingHref,
   };
 }
