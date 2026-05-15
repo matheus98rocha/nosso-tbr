@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BookUpsert } from "@/modules/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
@@ -28,6 +29,11 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useModal } from "@/hooks";
+import {
+  AiRecommendationDialog,
+  AiRecommendationFab,
+} from "@/modules/aiRecommendation";
+import type { BookSuggestion } from "@/modules/aiRecommendation";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -65,6 +71,8 @@ export default function ClientHome() {
 
   const dialogModal = useModal();
   const createShelfDialog = useModal();
+  const aiRecommendationModal = useModal();
+  const [aiPrefilledTitle, setAiPrefilledTitle] = useState<string | null>(null);
   const isLoading = isLoadingAllBooks || isLoggingOut;
 
   const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
@@ -77,16 +85,41 @@ export default function ClientHome() {
     isAllBooksActive &&
     (allBooks?.total ?? 0) === 0;
 
+  const handleBookFormOpenChange = useCallback(
+    (open: boolean) => {
+      dialogModal.setIsOpen(open);
+      if (!open) setAiPrefilledTitle(null);
+    },
+    [dialogModal],
+  );
+
+  const handlePickAiSuggestion = useCallback(
+    (suggestion: BookSuggestion) => {
+      setAiPrefilledTitle(suggestion.title);
+      dialogModal.setIsOpen(true);
+    },
+    [dialogModal],
+  );
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">
       <BookUpsert
         isBookFormOpen={dialogModal.isOpen}
-        setIsBookFormOpen={dialogModal.setIsOpen}
+        setIsBookFormOpen={handleBookFormOpenChange}
+        initialLookupQuery={aiPrefilledTitle}
       />
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
       />
+      <AiRecommendationDialog
+        isOpen={aiRecommendationModal.isOpen}
+        onOpenChange={aiRecommendationModal.setIsOpen}
+        onPickSuggestion={handlePickAiSuggestion}
+      />
+      {isLoggedIn && (
+        <AiRecommendationFab onClick={() => aiRecommendationModal.open()} />
+      )}
 
       <header className="flex flex-col gap-4 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
