@@ -1,20 +1,22 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { vi, Mock, beforeEach, describe, it, expect } from "vitest";
-import { useBookUpsert } from "./useBookUpsert";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { useQuery } from "@tanstack/react-query";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUser } from "@/services/users/hooks/useUsers";
+
+import { BookLookupData } from "../types/bookLookup.types";
 import { useBookDialog } from "./useBookDialog";
-import { useBookLookup } from "./useBookLookup";
-import { usePlannedStartDateLabel } from "./usePlannedStartDateLabel";
+import { useBookLookupV2 } from "./useBookLookupV2";
+import { useBookUpsert } from "./useBookUpsert";
 import { usePlannedStartDateFieldVisibility } from "./usePlannedStartDateFieldVisibility";
-import { BookCandidate } from "../types/bookCandidate.types";
+import { usePlannedStartDateLabel } from "./usePlannedStartDateLabel";
 
 vi.mock("@tanstack/react-query", () => ({ useQuery: vi.fn() }));
 vi.mock("@/stores/hooks/useAuth", () => ({ useIsLoggedIn: vi.fn() }));
 vi.mock("@/services/users/hooks/useUsers", () => ({ useUser: vi.fn() }));
 vi.mock("./useBookDialog", () => ({ useBookDialog: vi.fn() }));
-vi.mock("./useBookLookup", () => ({ useBookLookup: vi.fn() }));
+vi.mock("./useBookLookupV2", () => ({ useBookLookupV2: vi.fn() }));
 vi.mock("./usePlannedStartDateLabel", () => ({
   usePlannedStartDateLabel: vi.fn(),
 }));
@@ -30,7 +32,7 @@ vi.mock("../../authors/services/authors.service", () => ({
 const mockSetValue = vi.fn();
 const mockReset = vi.fn();
 const mockSetSelected = vi.fn();
-const mockClearCandidates = vi.fn();
+const mockClearV2 = vi.fn();
 const mockSetIsBookFormOpen = vi.fn();
 
 const mockForm = {
@@ -71,14 +73,18 @@ const defaultDialogReturn = {
   handleChosenByChange: vi.fn(),
 };
 
-const defaultLookupReturn = {
-  candidates: [],
-  isSearching: false,
-  hasSearched: false,
-  lookupQuery: "",
-  handleLookupQueryChange: vi.fn(),
-  handleSearchBooks: vi.fn(),
-  clearCandidates: mockClearCandidates,
+const defaultLookupV2Return: {
+  book: BookLookupData | null;
+  isLoading: boolean;
+  error: string | null;
+  lookup: ReturnType<typeof vi.fn>;
+  clear: ReturnType<typeof vi.fn>;
+} = {
+  book: null,
+  isLoading: false,
+  error: null,
+  lookup: vi.fn(),
+  clear: mockClearV2,
 };
 
 const defaultProps = {
@@ -87,14 +93,23 @@ const defaultProps = {
   setIsBookFormOpen: mockSetIsBookFormOpen,
 };
 
-function setupMocks(overrides: {
-  authors?: { id: string; name: string }[];
-  isLoadingAuthors?: boolean;
-} = {}) {
+function setupMocks(
+  overrides: {
+    authors?: { id: string; name: string }[];
+    isLoadingAuthors?: boolean;
+    lookupV2?: Partial<typeof defaultLookupV2Return>;
+  } = {},
+) {
   (useIsLoggedIn as Mock).mockReturnValue(true);
-  (useUser as Mock).mockReturnValue({ chosenByOptions: [], isLoadingUsers: false });
+  (useUser as Mock).mockReturnValue({
+    chosenByOptions: [],
+    isLoadingUsers: false,
+  });
   (useBookDialog as Mock).mockReturnValue(defaultDialogReturn);
-  (useBookLookup as Mock).mockReturnValue(defaultLookupReturn);
+  (useBookLookupV2 as Mock).mockReturnValue({
+    ...defaultLookupV2Return,
+    ...overrides.lookupV2,
+  });
   (usePlannedStartDateLabel as Mock).mockReturnValue({
     plannedStartDateLabel: "",
   });
@@ -107,16 +122,17 @@ function setupMocks(overrides: {
   });
 }
 
-const makeCandidate = (partial: Partial<BookCandidate> = {}): BookCandidate => ({
-  title: "Dom Quixote",
-  author_name: "Miguel de Cervantes",
-  pages: 863,
-  image_url: null,
-  gender: "Fiction",
-  publisher: null,
-  published_date: null,
-  isbn: null,
-  source: "google_books",
+const makeBookLookupData = (
+  partial: Partial<BookLookupData> = {},
+): BookLookupData => ({
+  nome_do_livro: "Dom Quixote",
+  autor: "Miguel de Cervantes",
+  paginas: 863,
+  url_capa: null,
+  genero: "Fiction",
+  isbn_13: null,
+  isbn_10: null,
+  fonte: "google_books",
   ...partial,
 });
 
@@ -125,7 +141,7 @@ beforeEach(() => {
 });
 
 describe("useBookUpsert — handleDialogOpenChange", () => {
-  it("chama clearCandidates ao fechar o modal", () => {
+  it("chama clear ao fechar o modal", () => {
     setupMocks();
     const { result } = renderHook(() => useBookUpsert(defaultProps));
 
@@ -133,7 +149,7 @@ describe("useBookUpsert — handleDialogOpenChange", () => {
       result.current.handleDialogOpenChange(false);
     });
 
-    expect(mockClearCandidates).toHaveBeenCalledTimes(1);
+    expect(mockClearV2).toHaveBeenCalledTimes(1);
   });
 
   it("chama reset e setSelected('not_started') ao fechar o modal", () => {
@@ -148,7 +164,7 @@ describe("useBookUpsert — handleDialogOpenChange", () => {
     expect(mockSetSelected).toHaveBeenCalledWith("not_started");
   });
 
-  it("não chama clearCandidates ao abrir o modal", () => {
+  it("não chama clear ao abrir o modal", () => {
     setupMocks();
     const { result } = renderHook(() => useBookUpsert(defaultProps));
 
@@ -156,7 +172,7 @@ describe("useBookUpsert — handleDialogOpenChange", () => {
       result.current.handleDialogOpenChange(true);
     });
 
-    expect(mockClearCandidates).not.toHaveBeenCalled();
+    expect(mockClearV2).not.toHaveBeenCalled();
   });
 
   it("chama setIsBookFormOpen com o valor correto ao abrir e fechar", () => {
@@ -175,94 +191,97 @@ describe("useBookUpsert — handleDialogOpenChange", () => {
   });
 });
 
-describe("useBookUpsert — handleApplyCandidate", () => {
-  it("define o título do livro no formulário", () => {
-    setupMocks();
-    const { result } = renderHook(() => useBookUpsert(defaultProps));
-    const candidate = makeCandidate({ title: "Dom Quixote", author_name: null });
-
-    act(() => {
-      result.current.handleApplyCandidate(candidate);
+describe("useBookUpsert — efeito de foundBook", () => {
+  it("define o título do livro no formulário quando foundBook chega", async () => {
+    setupMocks({
+      lookupV2: { book: makeBookLookupData({ nome_do_livro: "Dom Quixote", autor: null }) },
     });
+    renderHook(() => useBookUpsert(defaultProps));
 
-    expect(mockSetValue).toHaveBeenCalledWith("title", "Dom Quixote");
+    await waitFor(() => {
+      expect(mockSetValue).toHaveBeenCalledWith("title", "Dom Quixote");
+    });
   });
 
-  it("define páginas, image_url e gender quando presentes", () => {
-    setupMocks();
-    const { result } = renderHook(() => useBookUpsert(defaultProps));
-    const candidate = makeCandidate({
-      pages: 500,
-      image_url: "https://img.com/cover.jpg",
-      gender: "Fiction",
+  it("define páginas, url_capa e genero quando presentes", async () => {
+    setupMocks({
+      lookupV2: {
+        book: makeBookLookupData({
+          paginas: 500,
+          url_capa: "https://img.com/cover.jpg",
+          genero: "Ficção",
+          autor: null,
+        }),
+      },
     });
+    renderHook(() => useBookUpsert(defaultProps));
 
-    act(() => {
-      result.current.handleApplyCandidate(candidate);
-    });
-
-    expect(mockSetValue).toHaveBeenCalledWith("pages", 500);
-    expect(mockSetValue).toHaveBeenCalledWith("image_url", "https://img.com/cover.jpg");
-    expect(mockSetValue).toHaveBeenCalledWith("gender", "Fiction");
-  });
-
-  it("chama clearCandidates após aplicar candidato", () => {
-    setupMocks();
-    const { result } = renderHook(() => useBookUpsert(defaultProps));
-
-    act(() => {
-      result.current.handleApplyCandidate(makeCandidate());
-    });
-
-    expect(mockClearCandidates).toHaveBeenCalledTimes(1);
-  });
-
-  it("não define author_id imediatamente ao aplicar candidato com autor", () => {
-    setupMocks({ authors: [] });
-    const { result } = renderHook(() => useBookUpsert(defaultProps));
-
-    act(() => {
-      result.current.handleApplyCandidate(makeCandidate({ author_name: "Cervantes" }));
-    });
-
-    expect(mockSetValue).not.toHaveBeenCalledWith("author_id", expect.anything());
-  });
-
-  it("expõe authorSearch com o nome do autor após aplicar candidato", () => {
-    setupMocks({ authors: [] });
-    const { result } = renderHook(() => useBookUpsert(defaultProps));
-
-    act(() => {
-      result.current.handleApplyCandidate(
-        makeCandidate({ author_name: "Miguel de Cervantes" }),
+    await waitFor(() => {
+      expect(mockSetValue).toHaveBeenCalledWith("pages", 500);
+      expect(mockSetValue).toHaveBeenCalledWith(
+        "image_url",
+        "https://img.com/cover.jpg",
       );
+      expect(mockSetValue).toHaveBeenCalledWith("gender", "Ficção");
     });
-
-    expect(result.current.authorSearch).toBe("Miguel de Cervantes");
   });
 
-  it("não altera authorSearch quando o candidato não tem autor", () => {
-    setupMocks();
+  it("não define author_id imediatamente quando foundBook tem autor", async () => {
+    setupMocks({
+      authors: [],
+      lookupV2: { book: makeBookLookupData({ autor: "Cervantes" }) },
+    });
+    renderHook(() => useBookUpsert(defaultProps));
+
+    await waitFor(() => {
+      expect(mockSetValue).toHaveBeenCalledWith("title", "Dom Quixote");
+    });
+    expect(mockSetValue).not.toHaveBeenCalledWith(
+      "author_id",
+      expect.anything(),
+    );
+  });
+
+  it("expõe authorSearch com o nome do autor após foundBook chegar", async () => {
+    setupMocks({
+      authors: [],
+      lookupV2: { book: makeBookLookupData({ autor: "Miguel de Cervantes" }) },
+    });
     const { result } = renderHook(() => useBookUpsert(defaultProps));
 
-    act(() => {
-      result.current.handleApplyCandidate(makeCandidate({ author_name: null }));
+    await waitFor(() => {
+      expect(result.current.authorSearch).toBe("Miguel de Cervantes");
     });
+  });
 
+  it("não altera authorSearch quando foundBook não tem autor", async () => {
+    setupMocks({
+      lookupV2: { book: makeBookLookupData({ autor: null }) },
+    });
+    const { result } = renderHook(() => useBookUpsert(defaultProps));
+
+    await waitFor(() => {
+      expect(mockSetValue).toHaveBeenCalledWith("title", "Dom Quixote");
+    });
     expect(result.current.authorSearch).toBe("");
+  });
+
+  it("não dispara efeito quando foundBook é null", () => {
+    setupMocks({ lookupV2: { book: null } });
+    renderHook(() => useBookUpsert(defaultProps));
+
+    expect(mockSetValue).not.toHaveBeenCalled();
   });
 });
 
 describe("useBookUpsert — auto-seleção de autor", () => {
-  it("define author_id quando autores carregam após candidato ser aplicado", async () => {
-    setupMocks({ authors: [], isLoadingAuthors: false });
-    const { result, rerender } = renderHook(() => useBookUpsert(defaultProps));
-
-    act(() => {
-      result.current.handleApplyCandidate(
-        makeCandidate({ author_name: "Miguel de Cervantes" }),
-      );
+  it("define author_id quando autores carregam após foundBook chegar", async () => {
+    setupMocks({
+      authors: [],
+      isLoadingAuthors: true,
+      lookupV2: { book: makeBookLookupData({ autor: "Miguel de Cervantes" }) },
     });
+    const { rerender } = renderHook(() => useBookUpsert(defaultProps));
 
     (useQuery as Mock).mockReturnValue({
       data: [{ id: "author-42", name: "Miguel de Cervantes" }],
@@ -277,14 +296,12 @@ describe("useBookUpsert — auto-seleção de autor", () => {
   });
 
   it("usa o primeiro autor disponível quando não há correspondência exata", async () => {
-    setupMocks({ authors: [], isLoadingAuthors: false });
-    const { result, rerender } = renderHook(() => useBookUpsert(defaultProps));
-
-    act(() => {
-      result.current.handleApplyCandidate(
-        makeCandidate({ author_name: "Nome Diferente" }),
-      );
+    setupMocks({
+      authors: [],
+      isLoadingAuthors: true,
+      lookupV2: { book: makeBookLookupData({ autor: "Nome Diferente" }) },
     });
+    const { rerender } = renderHook(() => useBookUpsert(defaultProps));
 
     (useQuery as Mock).mockReturnValue({
       data: [
@@ -301,15 +318,13 @@ describe("useBookUpsert — auto-seleção de autor", () => {
     });
   });
 
-  it("não define author_id enquanto autores ainda estão carregando", () => {
-    setupMocks({ authors: [], isLoadingAuthors: true });
-    const { result, rerender } = renderHook(() => useBookUpsert(defaultProps));
-
-    act(() => {
-      result.current.handleApplyCandidate(
-        makeCandidate({ author_name: "Cervantes" }),
-      );
+  it("não define author_id enquanto autores ainda estão carregando", async () => {
+    setupMocks({
+      authors: [],
+      isLoadingAuthors: true,
+      lookupV2: { book: makeBookLookupData({ autor: "Cervantes" }) },
     });
+    const { rerender } = renderHook(() => useBookUpsert(defaultProps));
 
     (useQuery as Mock).mockReturnValue({
       data: [{ id: "author-1", name: "Cervantes" }],
@@ -318,36 +333,37 @@ describe("useBookUpsert — auto-seleção de autor", () => {
 
     rerender();
 
-    expect(mockSetValue).not.toHaveBeenCalledWith("author_id", expect.anything());
+    expect(mockSetValue).not.toHaveBeenCalledWith(
+      "author_id",
+      expect.anything(),
+    );
   });
 
-  it("não define author_id quando authors está vazio após candidato aplicado", () => {
-    setupMocks({ authors: [], isLoadingAuthors: false });
+  it("abre o modal de criar autor quando autor não é encontrado no banco", async () => {
+    setupMocks({
+      authors: [],
+      isLoadingAuthors: true,
+      lookupV2: { book: makeBookLookupData({ autor: "Autor Desconhecido" }) },
+    });
     const { result, rerender } = renderHook(() => useBookUpsert(defaultProps));
 
-    act(() => {
-      result.current.handleApplyCandidate(
-        makeCandidate({ author_name: "Autor Desconhecido" }),
-      );
-    });
-
-    (useQuery as Mock).mockReturnValue({
-      data: [],
-      isLoading: false,
-    });
+    (useQuery as Mock).mockReturnValue({ data: [], isLoading: false });
 
     rerender();
 
+    await waitFor(() => {
+      expect(result.current.isAuthorModalOpen).toBe(true);
+    });
     expect(mockSetValue).not.toHaveBeenCalledWith("author_id", expect.anything());
   });
 
-  it("não auto-seleciona autor quando candidato não tem author_name", () => {
-    setupMocks({ authors: [], isLoadingAuthors: false });
-    const { result, rerender } = renderHook(() => useBookUpsert(defaultProps));
-
-    act(() => {
-      result.current.handleApplyCandidate(makeCandidate({ author_name: null }));
+  it("não auto-seleciona autor quando foundBook não tem autor", async () => {
+    setupMocks({
+      authors: [],
+      isLoadingAuthors: false,
+      lookupV2: { book: makeBookLookupData({ autor: null }) },
     });
+    const { rerender } = renderHook(() => useBookUpsert(defaultProps));
 
     (useQuery as Mock).mockReturnValue({
       data: [{ id: "author-1", name: "Qualquer Autor" }],
@@ -356,6 +372,9 @@ describe("useBookUpsert — auto-seleção de autor", () => {
 
     rerender();
 
-    expect(mockSetValue).not.toHaveBeenCalledWith("author_id", expect.anything());
+    expect(mockSetValue).not.toHaveBeenCalledWith(
+      "author_id",
+      expect.anything(),
+    );
   });
 });

@@ -1,17 +1,24 @@
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUser } from "@/services/users/hooks/useUsers";
-import { CreateBookProps } from "../bookUpsert.types";
-import { useBookDialog } from "./useBookDialog";
-import { useBookLookup } from "./useBookLookup";
-import { AuthorsService } from "../../authors/services/authors.service";
-import { ComboboxOption } from "../types/authorOptions";
-import { BookCandidate } from "../types/bookCandidate.types";
 import { BookCreateValidator } from "@/types/books.types";
 import { ControllerRenderProps } from "react-hook-form";
-import { usePlannedStartDateLabel } from "./usePlannedStartDateLabel";
+
+import { AuthorsService } from "../../authors/services/authors.service";
+import { CreateBookProps } from "../bookUpsert.types";
+import { ComboboxOption } from "../types/authorOptions";
+import { useBookDialog } from "./useBookDialog";
+import { useBookLookupV2 } from "./useBookLookupV2";
 import { usePlannedStartDateFieldVisibility } from "./usePlannedStartDateFieldVisibility";
+import { usePlannedStartDateLabel } from "./usePlannedStartDateLabel";
+
+function detectLookupType(query: string): "isbn" | "title" {
+  const digits = query.replace(/[\s\-]/g, "");
+  if (/^\d{10}$/.test(digits) || /^\d{13}$/.test(digits)) return "isbn";
+  return "title";
+}
 
 export function useBookUpsert({
   bookData,
@@ -56,15 +63,14 @@ export function useBookUpsert({
   });
 
   const {
-    candidates: lookupCandidates,
-    isSearching: isSearchingBooks,
-    hasSearched: hasSearchedBooks,
-    lookupQuery,
-    handleLookupQueryChange,
-    handleSearchBooks,
-    clearCandidates,
-  } = useBookLookup();
+    book: foundBook,
+    isLoading: isSearchingBooks,
+    error: lookupError,
+    lookup,
+    clear: clearBookLookup,
+  } = useBookLookupV2();
 
+  const [lookupQuery, setLookupQuery] = useState("");
   const [authorSearch, setAuthorSearch] = useState("");
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
   const [pendingAuthorLookup, setPendingAuthorLookup] = useState(false);
@@ -111,12 +117,13 @@ export function useBookUpsert({
         reset();
         setSelected("not_started");
         setAuthorSearch("");
-        clearCandidates();
+        setLookupQuery("");
+        clearBookLookup();
         setPendingAuthorLookup(false);
       }
       setIsBookFormOpen(open);
     },
-    [reset, setSelected, setIsBookFormOpen, clearCandidates],
+    [reset, setSelected, setIsBookFormOpen, clearBookLookup],
   );
 
   const handleCancelDiscoveryDialog = useCallback(() => {
@@ -157,8 +164,32 @@ export function useBookUpsert({
     setAuthorSearch(search);
   }, []);
 
+  const handleLookupQueryChange = useCallback(
+    (query: string) => {
+      setLookupQuery(query);
+      if (!query.trim()) clearBookLookup();
+    },
+    [clearBookLookup],
+  );
+
+  const handleSearchBooks = useCallback(() => {
+    const trimmed = lookupQuery.trim();
+    if (!trimmed) return;
+    const type = detectLookupType(trimmed);
+    lookup(
+      type === "isbn"
+        ? { type: "isbn", value: trimmed }
+        : { type: "title", value: trimmed },
+    );
+  }, [lookupQuery, lookup]);
+
   useEffect(() => {
-    if (!pendingAuthorLookup || isLoadingAuthors || authors.length === 0) return;
+    if (!pendingAuthorLookup || isLoadingAuthors || !deferredAuthorSearch) return;
+    if (authors.length === 0) {
+      setPendingAuthorLookup(false);
+      setIsAuthorModalOpen(true);
+      return;
+    }
     const match =
       authors.find(
         (a) => a.name.toLowerCase() === deferredAuthorSearch.toLowerCase(),
@@ -167,20 +198,17 @@ export function useBookUpsert({
     setPendingAuthorLookup(false);
   }, [pendingAuthorLookup, isLoadingAuthors, authors, deferredAuthorSearch, form]);
 
-  const handleApplyCandidate = useCallback(
-    (candidate: BookCandidate) => {
-      form.setValue("title", candidate.title);
-      if (candidate.pages) form.setValue("pages", candidate.pages);
-      if (candidate.image_url) form.setValue("image_url", candidate.image_url);
-      if (candidate.gender) form.setValue("gender", candidate.gender);
-      if (candidate.author_name) {
-        setAuthorSearch(candidate.author_name);
-        setPendingAuthorLookup(true);
-      }
-      clearCandidates();
-    },
-    [form, clearCandidates],
-  );
+  useEffect(() => {
+    if (!foundBook) return;
+    form.setValue("title", foundBook.nome_do_livro);
+    if (foundBook.paginas) form.setValue("pages", foundBook.paginas);
+    if (foundBook.url_capa) form.setValue("image_url", foundBook.url_capa);
+    if (foundBook.genero) form.setValue("gender", foundBook.genero);
+    if (foundBook.autor) {
+      setAuthorSearch(foundBook.autor);
+      setPendingAuthorLookup(true);
+    }
+  }, [foundBook, form]);
 
   const { plannedStartDateLabel } = usePlannedStartDateLabel(selected);
 
@@ -231,10 +259,9 @@ export function useBookUpsert({
     plannedStartDateLabel,
     shouldShowPlannedStartDate,
     bookData,
-    handleApplyCandidate,
-    lookupCandidates,
+    foundBook,
     isSearchingBooks,
-    hasSearchedBooks,
+    lookupError,
     lookupQuery,
     handleLookupQueryChange,
     handleSearchBooks,
