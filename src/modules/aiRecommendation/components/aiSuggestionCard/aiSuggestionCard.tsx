@@ -43,10 +43,10 @@ function AiSuggestionCard({ suggestion, onAdd }: AiSuggestionCardProps) {
         size="sm"
         onClick={() => onAdd(suggestion)}
         className="w-full justify-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white"
-        aria-label={`Adicionar ${suggestion.title} à minha estante`}
+        aria-label={`Adicionar ${suggestion.title} à minha biblioteca`}
       >
         <BookPlus className="size-4" aria-hidden />
-        Adicionar à minha estante
+        Adicionar à minha biblioteca
       </Button>
     </article>
   );

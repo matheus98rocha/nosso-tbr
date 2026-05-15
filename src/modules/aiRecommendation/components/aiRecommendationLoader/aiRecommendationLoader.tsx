@@ -7,7 +7,7 @@ const ROTATING_MESSAGES = [
   "Analisando seu perfil de leitura…",
   "Garimpando livros que combinam com você…",
   "Cruzando autores e gêneros favoritos…",
-  "Descartando livros que já estão na sua estante…",
+  "Descartando livros que já estão na sua biblioteca…",
   "Quase lá, montando suas indicações…",
 ];
 

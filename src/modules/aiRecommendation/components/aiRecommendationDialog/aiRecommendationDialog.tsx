@@ -10,7 +10,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { useAiRecommendationDialog, useRecommendationOptions } from "../../hooks";
+import {
+  useAiRecommendationDialog,
+  useRecommendationOptions,
+} from "../../hooks";
 import type { AiRecommendationDialogProps } from "../../types";
 import AiRecommendationLoader from "../aiRecommendationLoader";
 import AiRecommendationOptionList from "../aiRecommendationOptionList";
@@ -55,7 +58,7 @@ function AiRecommendationDialog({
           <DialogDescription id="ai-recommendation-description">
             Escolha em que perfil você quer basear a recomendação. A IA usa o
             seu histórico real do app e nunca sugere livros que já estão na sua
-            estante.
+            biblioteca.
           </DialogDescription>
         </DialogHeader>
 
