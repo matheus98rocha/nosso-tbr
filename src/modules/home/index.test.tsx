@@ -1,5 +1,7 @@
+import type { ReactElement } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClientHome from "./index";
 import { useHome } from "@/modules/home/hooks/useHome";
@@ -67,6 +69,20 @@ vi.mock("@/stores/userStore", () => ({
     selector({ isLoggingOut: false }),
   ),
 }));
+
+function renderWithQueryClient(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, staleTime: Infinity },
+      mutations: { retry: false },
+    },
+  });
+  return render(ui, {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+}
 
 vi.mock("@/hooks", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/hooks")>();
@@ -137,7 +153,7 @@ describe("ClientHome joint view reader chips", () => {
       ),
     } as unknown as ReturnType<typeof useHome>);
 
-    render(<ClientHome />);
+    renderWithQueryClient(<ClientHome />);
 
     const lockedChip = screen.getByRole("button", {
       name: "Matheus (sempre incluído nesta visão)",
@@ -155,7 +171,7 @@ describe("ClientHome book suggestions (empty network)", () => {
   });
 
   it("shows guidance copy and both paths when logged-in Todos view has zero books", () => {
-    render(<ClientHome />);
+    renderWithQueryClient(<ClientHome />);
 
     expect(
       screen.getByRole("heading", { name: "Ainda não há livros por aqui" }),
@@ -181,7 +197,7 @@ describe("ClientHome book suggestions (empty network)", () => {
 
   it("opens add-book flow when choosing Registrar suas leituras CTA", async () => {
     const user = userEvent.setup();
-    render(<ClientHome />);
+    renderWithQueryClient(<ClientHome />);
 
     await user.click(
       screen.getByRole("button", {
@@ -198,7 +214,7 @@ describe("ClientHome book suggestions (empty network)", () => {
       allBooks: { data: [{ id: "b1" } as never], total: 1 },
     } as unknown as ReturnType<typeof useHome>);
 
-    render(<ClientHome />);
+    renderWithQueryClient(<ClientHome />);
 
     expect(
       screen.queryByRole("heading", { name: "Ainda não há livros por aqui" }),

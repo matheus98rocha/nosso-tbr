@@ -1,4 +1,4 @@
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
@@ -24,6 +24,7 @@ export function useBookUpsert({
   bookData,
   isBookFormOpen,
   setIsBookFormOpen,
+  initialLookupQuery,
 }: CreateBookProps) {
   const isLoggedIn = useIsLoggedIn();
   const { chosenByOptions, isLoadingUsers } = useUser();
@@ -209,6 +210,23 @@ export function useBookUpsert({
       setPendingAuthorLookup(true);
     }
   }, [foundBook, form]);
+
+  const lastAppliedInitialQuery = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isBookFormOpen) {
+      lastAppliedInitialQuery.current = null;
+      return;
+    }
+    if (isEdit) return;
+    const query = initialLookupQuery?.trim();
+    if (!query) return;
+    if (lastAppliedInitialQuery.current === query) return;
+    lastAppliedInitialQuery.current = query;
+    setLookupQuery(query);
+    form.setValue("title", query);
+    lookup({ type: "title", value: query });
+  }, [isBookFormOpen, initialLookupQuery, isEdit, form, lookup]);
 
   const { plannedStartDateLabel } = usePlannedStartDateLabel(selected);
 

@@ -4,6 +4,7 @@ export type CreateBookProps = {
   bookData?: BookDomain;
   isBookFormOpen: boolean;
   setIsBookFormOpen: (open: boolean) => void;
+  initialLookupQuery?: string | null;
 };
 
 export type UseCreateBookDialog = {
