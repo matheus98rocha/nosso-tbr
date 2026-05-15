@@ -29,16 +29,21 @@ export const useLocalFilters = (initialFilters: FiltersOptions) => {
   const [localFilters, setLocalFilters] =
     useState<FiltersOptions>(initialFilters);
 
+  type FiltersValue<K extends keyof FiltersOptions> = FiltersOptions[K];
+
   const handleFilterChange = useCallback(
-    (key: keyof FiltersOptions, value: string | string[] | boolean) => {
+    <K extends keyof FiltersOptions>(key: K, value: FiltersValue<K>) => {
       setLocalFilters((prev) => {
-        if (typeof value === "boolean") {
-          return { ...prev, [key]: value };
+        if (Array.isArray(value)) {
+          return {
+            ...prev,
+            [key]: value.filter(Boolean),
+          };
         }
-        const values = Array.isArray(value) ? value : [value];
+
         return {
           ...prev,
-          [key]: values.filter(Boolean),
+          [key]: value,
         };
       });
     },
