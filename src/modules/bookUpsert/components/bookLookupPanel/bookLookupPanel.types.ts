@@ -1,11 +1,10 @@
-import { BookCandidate } from "../../types/bookCandidate.types";
+import { BookLookupData } from "../../types/bookLookup.types";
 
 export interface BookLookupPanelProps {
-  candidates: BookCandidate[];
   isSearching: boolean;
-  hasSearched: boolean;
+  error: string | null;
+  foundBook: BookLookupData | null;
   lookupQuery: string;
   onQueryChange: (query: string) => void;
   onSearch: () => void;
-  onSelect: (candidate: BookCandidate) => void;
 }

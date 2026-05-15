@@ -79,10 +79,9 @@ export function BookUpsert(props: CreateBookProps) {
     isLoadingUsers,
     chosenByOptions,
     bookData,
-    handleApplyCandidate,
-    lookupCandidates,
+    foundBook,
     isSearchingBooks,
-    hasSearchedBooks,
+    lookupError,
     lookupQuery,
     handleLookupQueryChange,
     handleSearchBooks,
@@ -157,13 +156,12 @@ export function BookUpsert(props: CreateBookProps) {
                           Busca automática
                         </p>
                         <BookLookupPanel
-                          candidates={lookupCandidates}
                           isSearching={isSearchingBooks}
-                          hasSearched={hasSearchedBooks}
+                          error={lookupError}
+                          foundBook={foundBook}
                           lookupQuery={lookupQuery}
                           onQueryChange={handleLookupQueryChange}
                           onSearch={handleSearchBooks}
-                          onSelect={handleApplyCandidate}
                         />
                       </section>
                       <Separator orientation="horizontal" />

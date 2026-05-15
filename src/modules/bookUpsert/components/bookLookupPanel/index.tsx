@@ -1,26 +1,20 @@
 "use client";
 
 import { memo } from "react";
-import { Loader2, Search, SearchX, BookOpen } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { formatBookPagesLabel } from "@/utils/formatters";
-import { BookLookupPanelProps } from "./bookLookupPanel.types";
-import { BookCandidate } from "../../types/bookCandidate.types";
+import { BookOpen, CheckCircle2, Loader2, Search, SearchX } from "lucide-react";
 
-const SOURCE_LABEL: Record<BookCandidate["source"], string> = {
-  google_books: "Google Books",
-  open_library: "Open Library",
-};
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+import { BookLookupPanelProps } from "./bookLookupPanel.types";
 
 const BookLookupPanel = memo(function BookLookupPanel({
-  candidates,
   isSearching,
-  hasSearched,
+  error,
+  foundBook,
   lookupQuery,
   onQueryChange,
   onSearch,
-  onSelect,
 }: BookLookupPanelProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -73,57 +67,45 @@ const BookLookupPanel = memo(function BookLookupPanel({
         </div>
       )}
 
-      {!isSearching && hasSearched && candidates.length === 0 && (
+      {!isSearching && error && (
         <div className="flex flex-col items-center justify-center gap-2 py-6 text-muted-foreground">
           <SearchX className="size-8" />
-          <p className="text-sm">Nenhum resultado para &ldquo;{lookupQuery}&rdquo;</p>
+          <p className="text-sm">{error}</p>
         </div>
       )}
 
-      {!isSearching && candidates.length > 0 && (
-        <div className="grid gap-2">
-          {candidates.map((candidate, index) => {
-            const pagesLine = formatBookPagesLabel(candidate.pages);
-            return (
-            <button
-              key={`${candidate.isbn ?? candidate.title}-${index}`}
-              type="button"
-              onClick={() => onSelect(candidate)}
-              className="flex gap-3 rounded-lg border border-border p-2 text-left cursor-pointer transition-colors duration-150 hover:bg-muted/60 hover:border-violet-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[44px] dark:hover:border-violet-800"
-            >
-              <div className="h-14 w-10 shrink-0 overflow-hidden rounded bg-muted">
-                {candidate.image_url ? (
-                  <img
-                    src={candidate.image_url}
-                    alt={`Capa de ${candidate.title}`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <BookOpen className="size-4 text-muted-foreground" />
-                  </div>
-                )}
+      {!isSearching && foundBook && (
+        <div className="flex gap-3 rounded-lg border border-green-200 bg-green-50/50 p-2 dark:border-green-900 dark:bg-green-950/20">
+          <div className="h-14 w-10 shrink-0 overflow-hidden rounded bg-muted">
+            {foundBook.url_capa ? (
+              <img
+                src={foundBook.url_capa}
+                alt={`Capa de ${foundBook.nome_do_livro}`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <BookOpen className="size-4 text-muted-foreground" />
               </div>
+            )}
+          </div>
 
-              <div className="flex flex-1 flex-col justify-center gap-0.5 min-w-0">
-                <p className="text-sm font-medium leading-tight truncate">
-                  {candidate.title}
-                </p>
-                <p className="text-xs text-muted-foreground line-clamp-2 leading-snug">
-                  {candidate.author_name}
-                </p>
-                {pagesLine ? (
-                  <p className="text-[11px] tabular-nums text-muted-foreground">
-                    {pagesLine}
-                  </p>
-                ) : null}
-                <span className="mt-1 inline-flex w-fit items-center rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  {SOURCE_LABEL[candidate.source]}
-                </span>
-              </div>
-            </button>
-          );
-          })}
+          <div className="flex flex-1 flex-col justify-center gap-0.5 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 shrink-0 text-green-600 dark:text-green-500" />
+              <p className="text-xs font-medium text-green-700 dark:text-green-500">
+                Preenchido automaticamente
+              </p>
+            </div>
+            <p className="text-sm font-medium leading-tight truncate">
+              {foundBook.nome_do_livro}
+            </p>
+            {foundBook.autor && (
+              <p className="text-xs text-muted-foreground truncate">
+                {foundBook.autor}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
