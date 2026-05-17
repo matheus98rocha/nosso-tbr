@@ -1,6 +1,7 @@
 "use client";
 
 import { CreateScheduleForm } from "./components/createScheduleForm";
+import { PageReadingProgressIndicator } from "./components/readingProgressIndicator";
 import { useSchedule } from "./hooks";
 import { ClientScheduleProps } from "./types/schedule.types";
 import { ScheduleTable } from "./components/scheduleTable";
@@ -60,18 +61,21 @@ export default function ClientSchedule({ id, title }: ClientScheduleProps) {
       </header>
 
       {shouldDisplayScheduleTable ? (
-        <ScheduleTable
-          schedule={schedule}
-          updateIsCompleted={updateIsCompleted}
-          deleteSchedule={async (scheduleBookId: string) =>
-            deleteSchedule({
-              id: scheduleBookId,
-            })
-          }
-          bookId={id}
-          isReadTogglePending={isReadTogglePending}
-          pendingScheduleId={pendingScheduleId}
-        />
+        <>
+          <PageReadingProgressIndicator bookId={id} schedule={schedule} />
+          <ScheduleTable
+            schedule={schedule}
+            updateIsCompleted={updateIsCompleted}
+            deleteSchedule={async (scheduleBookId: string) =>
+              deleteSchedule({
+                id: scheduleBookId,
+              })
+            }
+            bookId={id}
+            isReadTogglePending={isReadTogglePending}
+            pendingScheduleId={pendingScheduleId}
+          />
+        </>
       ) : (
         <CreateScheduleForm id={id} title={title} />
       )}

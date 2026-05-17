@@ -13,6 +13,7 @@ import {
   StatusFilterChips,
   YearFilterChips,
 } from "@/components";
+import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
 import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -67,6 +68,7 @@ export default function ClientHome() {
     readers,
     lockedReaderId,
     needsExtraReader,
+    readingProgressBatch,
   } = useHome();
 
   const dialogModal = useModal();
@@ -490,22 +492,24 @@ export default function ClientHome() {
           </div>
         </div>
       ) : (
-        <ListGrid<BookDomain>
-          items={allBooks?.data ?? []}
-          isLoading={isLoading}
-          isFetched={isFetched}
-          renderItem={(book) => (
-            <BookCard key={book.id} book={book} isShelf={false} />
-          )}
-          emptyMessage={
-            filters.bookId?.trim()
-              ? "Não encontramos um livro com este identificador na sua lista."
-              : followingFeedEmpty
-                ? "Siga outros leitores pelo perfil para ver livros nesta visão."
-                : "Nenhum livro encontrado para os filtros selecionados."
-          }
-          isError={isError}
-        />
+        <ScheduleProgressBatchContext.Provider value={readingProgressBatch}>
+          <ListGrid<BookDomain>
+            items={allBooks?.data ?? []}
+            isLoading={isLoading}
+            isFetched={isFetched}
+            renderItem={(book) => (
+              <BookCard key={book.id} book={book} isShelf={false} />
+            )}
+            emptyMessage={
+              filters.bookId?.trim()
+                ? "Não encontramos um livro com este identificador na sua lista."
+                : followingFeedEmpty
+                  ? "Siga outros leitores pelo perfil para ver livros nesta visão."
+                  : "Nenhum livro encontrado para os filtros selecionados."
+            }
+            isError={isError}
+          />
+        </ScheduleProgressBatchContext.Provider>
       )}
 
       {!isLoading && totalPages > 1 && (

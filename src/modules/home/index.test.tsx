@@ -53,6 +53,12 @@ const { baseUseHome } = vi.hoisted(() => ({
     readers: [],
     lockedReaderId: undefined,
     needsExtraReader: false,
+    readingProgressBatch: {
+      readingBookIds: [],
+      progressByBookId: new Map(),
+      isLoading: false,
+      isError: false,
+    },
   },
 }));
 

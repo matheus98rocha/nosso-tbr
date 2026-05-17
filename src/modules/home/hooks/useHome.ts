@@ -19,6 +19,7 @@ import { sortWithPriority } from "../utils";
 import { UserSocialService } from "@/services/userSocial/userSocial.service";
 import { useBookSearchRefinement } from "./useBookSearchRefinement";
 import { useBookFavoriteIds } from "@/services/bookFavorites/hooks/useBookFavoriteIds";
+import { useHomeReadingProgressBatch } from "./useHomeReadingProgressBatch";
 
 const PAGE_SIZE = 8;
 const JOINT_READINGS_FETCH_SIZE = 2000;
@@ -699,6 +700,8 @@ export function useHome() {
     [isFollowingFeedActive, isLoadingFollowingIds, followingIds.length],
   );
 
+  const readingProgressBatch = useHomeReadingProgressBatch(allBooks?.data);
+
   return {
     allBooks,
     isLoadingAllBooks: isLoadingData,
@@ -743,5 +746,6 @@ export function useHome() {
     readers,
     lockedReaderId,
     needsExtraReader,
+    readingProgressBatch,
   };
 }

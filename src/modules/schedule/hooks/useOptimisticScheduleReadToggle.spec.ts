@@ -148,4 +148,38 @@ describe("useOptimisticScheduleReadToggle", () => {
       });
     });
   });
+
+  it("invalida também o cache aggregated many de progresso de leitura", async () => {
+    const { queryClient, wrapper, invalidateQueries } = makeTestContext();
+    queryClient.setQueryData(scheduleKey, [
+      {
+        id: "row-1",
+        owner: userId,
+        date: "2024-01-01",
+        chapters: "1",
+        completed: false,
+      },
+    ]);
+
+    const { result } = renderHook(
+      () => useOptimisticScheduleReadToggle(bookId, userId),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.updateRead("row-1", true);
+    });
+
+    await waitFor(() => {
+      const predicateCalls = invalidateQueries.mock.calls.filter(
+        ([arg]) => typeof (arg as { predicate?: unknown }).predicate === "function",
+      );
+      expect(predicateCalls.length).toBeGreaterThanOrEqual(1);
+      const predicate = (predicateCalls[0][0] as {
+        predicate: (q: { queryKey: unknown }) => boolean;
+      }).predicate;
+      expect(predicate({ queryKey: ["schedule", "progress", "many", "x", userId] })).toBe(true);
+      expect(predicate({ queryKey: ["schedule", bookId, userId] })).toBe(false);
+    });
+  });
 });
