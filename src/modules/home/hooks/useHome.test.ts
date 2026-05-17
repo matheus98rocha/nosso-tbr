@@ -830,10 +830,16 @@ describe("useHome", () => {
 
       const { result } = setupHook({ view: "todos", readers: ["2"] });
 
-      const key = (useQuery as Mock).mock.calls
-        .at(-1)?.[0]?.queryKey?.find(
-          (k: unknown) => typeof k === "string" && k.startsWith("1"),
-        );
+      const booksCall = (useQuery as Mock).mock.calls
+        .map((call) => call[0]?.queryKey as unknown[] | undefined)
+        .filter(
+          (queryKey): queryKey is unknown[] =>
+            Array.isArray(queryKey) && queryKey[0] === "books",
+        )
+        .at(-1);
+      const key = booksCall?.find(
+        (k: unknown) => typeof k === "string" && k.startsWith("1"),
+      );
       expect(key).toContain("1");
       expect(result.current.lockedReaderId).toBeUndefined();
     });

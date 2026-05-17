@@ -4,6 +4,7 @@ import {
   ScheduleReadToggleMutationContext,
   ScheduleReadToggleVariables,
 } from "@/modules/schedule/types/scheduleReadToggle.types";
+import { invalidateReadingProgressManyCaches } from "@/modules/schedule/utils/readingProgressQueryKey";
 import {
   getScheduleBookQueryFilterKey,
   getScheduleQueryKey,
@@ -55,9 +56,12 @@ export function useOptimisticScheduleReadToggle(
       }
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: getScheduleBookQueryFilterKey(bookId),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getScheduleBookQueryFilterKey(bookId),
+        }),
+        invalidateReadingProgressManyCaches(queryClient),
+      ]);
     },
   });
 

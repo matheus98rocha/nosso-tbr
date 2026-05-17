@@ -221,6 +221,9 @@ export function useBookCard({
   const showFavoriteToggle =
     !hideInteractions && isLogged && book.status === "finished";
 
+  const showReadingProgress =
+    isLogged && !isShelf && book.status === "reading";
+
   const handleFavoriteClick = useCallback(
     (event?: MouseEvent<HTMLButtonElement>) => {
       event?.preventDefault();
@@ -259,5 +262,6 @@ export function useBookCard({
     canAccessCollectiveReading,
     collectiveReadingHref,
     handleNavigateToCollectiveReading,
+    showReadingProgress,
   };
 }

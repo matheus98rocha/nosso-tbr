@@ -7,6 +7,7 @@ import BookCardDetailsModal from "./components/bookCardDetailsModal";
 import { AddBookToShelf } from "./components/addBookToShelf";
 import { DropdownBook } from "./components/dropdownBook";
 import { BookUpsert } from "@/modules/bookUpsert";
+import { CardReadingProgressIndicator } from "@/modules/schedule/components/readingProgressIndicator";
 import { ConfirmDialog } from "@/components/confirmDialog";
 import {
   Tooltip,
@@ -46,16 +47,25 @@ export function BookCard(props: BookCardProps) {
     handleFavoriteClick,
     isFavoritePending,
     canAccessCollectiveReading,
+    showReadingProgress,
   } = useBookCard(props);
 
-  const showTopActions =
-    showFavoriteToggle || (isLogged && !hideInteractions);
-  const showReadersOnCard =
-    isLogged && Boolean(book.readersDisplay?.trim());
+  const showTopActions = showFavoriteToggle || (isLogged && !hideInteractions);
+  const showReadersOnCard = isLogged && Boolean(book.readersDisplay?.trim());
 
   const coverSizes = isShelf
-    ? { width: 56, height: 92, className: "relative h-[92px] w-14 shrink-0 overflow-hidden rounded-md bg-muted/20 shadow-sm" }
-    : { width: 90, height: 130, className: "relative h-[130px] w-[90px] shrink-0 overflow-hidden rounded-md shadow-sm" };
+    ? {
+        width: 56,
+        height: 92,
+        className:
+          "relative h-[92px] w-14 shrink-0 overflow-hidden rounded-md bg-muted/20 shadow-sm",
+      }
+    : {
+        width: 90,
+        height: 130,
+        className:
+          "relative h-[130px] w-[90px] shrink-0 overflow-hidden rounded-md shadow-sm",
+      };
 
   const pagesLabel = formatBookPagesLabel(book.pages);
 
@@ -106,7 +116,9 @@ export function BookCard(props: BookCardProps) {
             <p
               className={cn(
                 "min-w-0 text-zinc-600 dark:text-zinc-400",
-                isShelf ? "line-clamp-1 text-[11px]" : "line-clamp-2 text-xs leading-snug",
+                isShelf
+                  ? "line-clamp-1 text-[11px]"
+                  : "line-clamp-2 text-xs leading-snug",
               )}
             >
               {book.author}
@@ -120,7 +132,9 @@ export function BookCard(props: BookCardProps) {
           <p
             className={cn(
               "shrink-0 tabular-nums text-zinc-500 dark:text-zinc-500",
-              isShelf ? "text-[10px] leading-tight" : "text-[11px] leading-tight",
+              isShelf
+                ? "text-[10px] leading-tight"
+                : "text-[11px] leading-tight",
             )}
           >
             {pagesLabel}
@@ -130,8 +144,10 @@ export function BookCard(props: BookCardProps) {
         {(showReadersOnCard || statusDisplay) && (
           <div
             className={cn(
-              "mt-auto flex min-w-0 flex-col",
+              "flex min-w-0 flex-col",
               isShelf ? "gap-1" : "gap-1.5",
+              !(showReadingProgress && !isShelf) && "mt-auto",
+              showReadingProgress && !isShelf && "mt-1",
             )}
           >
             {showReadersOnCard && (
@@ -219,94 +235,112 @@ export function BookCard(props: BookCardProps) {
             : "border-zinc-200 bg-zinc-50/30 dark:border-zinc-800 dark:bg-zinc-900/40 transition-shadow duration-200 hover:shadow-md",
         )}
       >
-        <CardContent className={cn(isShelf ? "p-2" : "p-3")}>
+        <CardContent
+          className={cn(
+            isShelf ? "p-2" : "p-3",
+            showReadingProgress && !isShelf && "pb-3 pt-3",
+          )}
+        >
           <div
-            className={cn("flex min-w-0", isShelf ? "gap-2.5" : "gap-3")}
+            className={cn(
+              "flex min-w-0 flex-col",
+              showReadingProgress && !isShelf ? "gap-2.5" : "gap-0",
+            )}
           >
-            {bookMain}
-            {showTopActions && (
-              <div
-                className={cn(
-                  "flex shrink-0 flex-col items-end gap-0.5",
-                  isShelf ? "pt-px" : "pt-px",
-                )}
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-              >
-                {showFavoriteToggle && (
-                  <button
-                    type="button"
-                    onClick={handleFavoriteClick}
-                    disabled={isFavoritePending}
-                    title={
-                      book.is_favorite
-                        ? "Remover dos favoritos (também no menu ⋮)"
-                        : "Marcar como favorito (também no menu ⋮)"
-                    }
-                    aria-label={
-                      book.is_favorite
-                        ? `Remover "${book.title}" dos favoritos`
-                        : `Marcar "${book.title}" como favorito`
-                    }
-                    aria-pressed={book.is_favorite}
-                    className={cn(
-                      "flex cursor-pointer items-center justify-center rounded-full border transition-colors duration-200 disabled:opacity-60",
-                      isShelf ? "h-7 w-7" : "h-9 w-9",
-                      book.is_favorite
-                        ? "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/60"
-                        : "border-zinc-200 bg-zinc-50/80 text-zinc-400 hover:border-rose-200 hover:text-rose-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:border-rose-800 dark:hover:text-rose-400",
-                    )}
-                  >
-                    <Heart
+            <div className={cn("flex min-w-0", isShelf ? "gap-2.5" : "gap-3")}>
+              {bookMain}
+              {showTopActions && (
+                <div
+                  className={cn(
+                    "flex shrink-0 flex-col items-end gap-0.5",
+                    isShelf ? "pt-px" : "pt-px",
+                  )}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  {showFavoriteToggle && (
+                    <button
+                      type="button"
+                      onClick={handleFavoriteClick}
+                      disabled={isFavoritePending}
+                      title={
+                        book.is_favorite
+                          ? "Remover dos favoritos (também no menu ⋮)"
+                          : "Marcar como favorito (também no menu ⋮)"
+                      }
+                      aria-label={
+                        book.is_favorite
+                          ? `Remover "${book.title}" dos favoritos`
+                          : `Marcar "${book.title}" como favorito`
+                      }
+                      aria-pressed={book.is_favorite}
                       className={cn(
-                        isShelf ? "h-3 w-3" : "h-4 w-4",
-                        book.is_favorite && "fill-current",
+                        "flex cursor-pointer items-center justify-center rounded-full border transition-colors duration-200 disabled:opacity-60",
+                        isShelf ? "h-7 w-7" : "h-9 w-9",
+                        book.is_favorite
+                          ? "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/60"
+                          : "border-zinc-200 bg-zinc-50/80 text-zinc-400 hover:border-rose-200 hover:text-rose-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:border-rose-800 dark:hover:text-rose-400",
                       )}
-                      aria-hidden
-                    />
-                  </button>
-                )}
-                {isLogged && !hideInteractions && (
-                  <DropdownBook
-                    isOpen={dropdownModal.isOpen}
-                    onOpenChange={dropdownModal.setIsOpen}
-                    onToggleFavorite={() => handleFavoriteClick()}
-                    isFavorite={book.is_favorite}
-                    favoriteActionBusy={isFavoritePending}
-                    trigger={
-                      <button
-                        type="button"
-                        aria-label={`Mais opções para "${book.title}"`}
+                    >
+                      <Heart
                         className={cn(
-                          "flex shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 hover:bg-zinc-100 active:opacity-70 dark:hover:bg-zinc-800",
-                          isShelf ? "h-8 w-8" : "h-11 w-11",
+                          isShelf ? "h-3 w-3" : "h-4 w-4",
+                          book.is_favorite && "fill-current",
                         )}
-                      >
-                        <EllipsisVerticalIcon
+                        aria-hidden
+                      />
+                    </button>
+                  )}
+                  {isLogged && !hideInteractions && (
+                    <DropdownBook
+                      isOpen={dropdownModal.isOpen}
+                      onOpenChange={dropdownModal.setIsOpen}
+                      onToggleFavorite={() => handleFavoriteClick()}
+                      isFavorite={book.is_favorite}
+                      favoriteActionBusy={isFavoritePending}
+                      trigger={
+                        <button
+                          type="button"
+                          aria-label={`Mais opções para "${book.title}"`}
                           className={cn(
-                            "text-zinc-400",
-                            isShelf ? "size-3.5" : "size-4",
+                            "flex shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 hover:bg-zinc-100 active:opacity-70 dark:hover:bg-zinc-800",
+                            isShelf ? "h-8 w-8" : "h-11 w-11",
                           )}
-                          aria-hidden
-                          onTouchStart={dropdownTap.handleTouchStart}
-                          onTouchEnd={dropdownTap.handleTouchEnd}
-                          onClick={dropdownTap.handleClick}
-                        />
-                      </button>
-                    }
-                    editBook={() => dialogEditModal.setIsOpen(true)}
-                    removeBook={() => dialogDeleteModal.setIsOpen(true)}
-                    removeBookLabel={
-                      isShelf ? "Remover livro da estante" : "Remover livro"
-                    }
-                    addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
-                    shareOnWhatsApp={shareOnWhatsApp}
-                    schedule={handleNavigateToSchedule}
-                    quotes={handleNavigateToQuotes}
-                    isFinishedReading={book.status === "finished"}
-                    quotesDisabled={book.status !== "not_started"}
-                  />
-                )}
+                        >
+                          <EllipsisVerticalIcon
+                            className={cn(
+                              "text-zinc-400",
+                              isShelf ? "size-3.5" : "size-4",
+                            )}
+                            aria-hidden
+                            onTouchStart={dropdownTap.handleTouchStart}
+                            onTouchEnd={dropdownTap.handleTouchEnd}
+                            onClick={dropdownTap.handleClick}
+                          />
+                        </button>
+                      }
+                      editBook={() => dialogEditModal.setIsOpen(true)}
+                      removeBook={() => dialogDeleteModal.setIsOpen(true)}
+                      removeBookLabel={
+                        isShelf ? "Remover livro da estante" : "Remover livro"
+                      }
+                      addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
+                      shareOnWhatsApp={shareOnWhatsApp}
+                      schedule={handleNavigateToSchedule}
+                      quotes={handleNavigateToQuotes}
+                      isFinishedReading={book.status === "finished"}
+                      quotesDisabled={book.status !== "not_started"}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+            {showReadingProgress && !isShelf && (
+              <div className="min-w-0 border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800/80">
+                <CardReadingProgressIndicator
+                  bookId={book.id}
+                  onNavigateToSchedule={handleNavigateToSchedule}
+                />
               </div>
             )}
           </div>
