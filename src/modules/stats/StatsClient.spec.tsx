@@ -50,8 +50,7 @@ const yearlyStats: EstatisticaAnual[] = [
 describe("StatsClient", () => {
   beforeEach(() => {
     vi.mocked(useStatsClient).mockReturnValue({
-      selectedReader: "Matheus",
-      readerOptions: ["Matheus", "Fabi", "Barbara"],
+      selectedReader: "reader-matheus",
       handleReaderChange: vi.fn(),
       totalPagesAcrossYears: 900,
       primaryYearMostReadGenre: "fiction",
@@ -76,6 +75,12 @@ describe("StatsClient", () => {
         yearlyStats={yearlyStats}
         collaborators={[{ readerName: "Fabi", booksRead: 2 }]}
         totalBooks={5}
+        readerOptions={[
+          { id: "reader-matheus", label: "Matheus" },
+          { id: "reader-fabi", label: "Fabi" },
+          { id: "reader-barbara", label: "Barbara" },
+        ]}
+        selectedReaderId="reader-matheus"
       />,
     );
 

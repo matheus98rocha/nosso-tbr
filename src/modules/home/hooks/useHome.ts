@@ -20,6 +20,7 @@ import { UserSocialService } from "@/services/userSocial/userSocial.service";
 import { useBookSearchRefinement } from "./useBookSearchRefinement";
 import { useBookFavoriteIds } from "@/services/bookFavorites/hooks/useBookFavoriteIds";
 import { useHomeReadingProgressBatch } from "./useHomeReadingProgressBatch";
+import { useHomeReadingRatingsBatch } from "./useHomeReadingRatingsBatch";
 
 const PAGE_SIZE = 8;
 const JOINT_READINGS_FETCH_SIZE = 2000;
@@ -461,6 +462,20 @@ export function useHome() {
     currentPage,
   ]);
 
+  const readingProgressBatch = useHomeReadingProgressBatch(allBooks?.data);
+
+  const readingRatingsBatch = useHomeReadingRatingsBatch(allBooks?.data);
+
+  const allBooksWithRatings = useMemo(() => {
+    if (!allBooks?.data) return allBooks;
+    return {
+      ...allBooks,
+      data: allBooks.data.map((b) =>
+        BookMapper.enrichReadingRating(b, readingRatingsBatch.starsByBookId),
+      ),
+    };
+  }, [allBooks, readingRatingsBatch.starsByBookId]);
+
   const canClear = useMemo(
     () =>
       (!!searchQuery && hasSearchParams) ||
@@ -700,10 +715,8 @@ export function useHome() {
     [isFollowingFeedActive, isLoadingFollowingIds, followingIds.length],
   );
 
-  const readingProgressBatch = useHomeReadingProgressBatch(allBooks?.data);
-
   return {
-    allBooks,
+    allBooks: allBooksWithRatings,
     isLoadingAllBooks: isLoadingData,
     totalPages,
     isFetched,

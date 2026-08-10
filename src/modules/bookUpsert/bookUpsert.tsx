@@ -36,6 +36,7 @@ import {
 } from "./components";
 import { useBookUpsert } from "./hooks/useBookUpsert";
 import { DateUtils } from "@/utils";
+import { FinishedReadingRatingDialog } from "@/modules/bookRating";
 
 export function BookUpsert(props: CreateBookProps) {
   const {
@@ -85,10 +86,17 @@ export function BookUpsert(props: CreateBookProps) {
     lookupQuery,
     handleLookupQueryChange,
     handleSearchBooks,
+    ratingPromptBookId,
+    handleDismissRatingPrompt,
   } = useBookUpsert(props);
 
   return (
     <>
+      <FinishedReadingRatingDialog
+        bookId={ratingPromptBookId}
+        open={Boolean(ratingPromptBookId)}
+        onDismiss={handleDismissRatingPrompt}
+      />
       <AuthorUpsert
         isOpen={isAuthorModalOpen}
         onOpenChange={handleAuthorModalOpenChange}

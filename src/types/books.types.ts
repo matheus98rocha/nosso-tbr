@@ -68,4 +68,5 @@ export type BookDomain = {
   user_id: string;
   is_reread: boolean;
   is_favorite: boolean;
+  reading_rating_stars?: number | null;
 };

@@ -66,10 +66,11 @@ export const StatsClient = memo(function StatsClient({
   yearlyStats,
   collaborators,
   totalBooks,
+  readerOptions,
+  selectedReaderId,
 }: StatsClientProps) {
   const {
     selectedReader,
-    readerOptions,
     handleReaderChange,
     totalPagesAcrossYears,
     primaryYearMostReadGenre,
@@ -80,7 +81,12 @@ export const StatsClient = memo(function StatsClient({
     collaborationPieLabelFormatter,
     hasYearlyChartData,
     hasCollaborationChartData,
-  } = useStatsClient({ yearlyStats, collaborators });
+  } = useStatsClient({
+    yearlyStats,
+    collaborators,
+    readerOptions,
+    selectedReaderId,
+  });
 
   return (
     <div className="space-y-10 md:space-y-12">
@@ -102,9 +108,9 @@ export const StatsClient = memo(function StatsClient({
               <SelectValue placeholder="Selecione um leitor" />
             </SelectTrigger>
             <SelectContent>
-              {readerOptions.map((readerName) => (
-                <SelectItem key={readerName} value={readerName}>
-                  {readerName}
+              {readerOptions.map((reader) => (
+                <SelectItem key={reader.id} value={reader.id}>
+                  {reader.label}
                 </SelectItem>
               ))}
             </SelectContent>

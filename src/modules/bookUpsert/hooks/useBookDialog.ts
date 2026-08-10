@@ -47,6 +47,14 @@ export function useBookDialog({
   const [selected, setSelected] = useState<Status | null>("not_started");
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
   const [selectedShelfId, setSelectedShelfId] = useState("");
+  const [ratingPromptBookId, setRatingPromptBookId] = useState<string | null>(
+    null,
+  );
+
+  const handleDismissRatingPrompt = useCallback(() => {
+    setRatingPromptBookId(null);
+  }, []);
+
   const isEdit: boolean = Boolean(bookData && bookData.id);
 
   const bookUpsertService = useMemo(() => new BookUpsertService(), []);
@@ -176,9 +184,21 @@ export function useBookDialog({
         shelfDuplicate,
       };
     },
-    onSuccess: async (result) => {
+    onSuccess: async (result, variables) => {
       const createdBookId =
         result.mode === "edit" ? bookData?.id : result.book.id;
+
+      const transitioningToFinished = variables.status === "finished";
+      const wasAlreadyFinished = Boolean(
+        isEdit && bookData?.status === "finished",
+      );
+      const promptTargetId =
+        result.mode === "edit" ? (bookData?.id ?? null) : result.book.id;
+      const shouldOpenRatingPrompt = Boolean(
+        transitioningToFinished &&
+          !wasAlreadyFinished &&
+          promptTargetId?.length,
+      );
 
       handleResetForm();
       closeDiscovery();
@@ -197,6 +217,10 @@ export function useBookDialog({
 
       if (!isEdit && createdBookId) {
         router.replace(`/?bookId=${createdBookId}`);
+      }
+
+      if (shouldOpenRatingPrompt && promptTargetId) {
+        setRatingPromptBookId(promptTargetId);
       }
     },
     onError: (error) => {
@@ -369,5 +393,8 @@ export function useBookDialog({
     handleOnChangePageNumber,
     handleChosenByChange,
     handleStatusChange,
+
+    ratingPromptBookId,
+    handleDismissRatingPrompt,
   };
 }

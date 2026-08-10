@@ -179,4 +179,39 @@ describe("BookMapper", () => {
       false,
     );
   });
+
+  it("enrichReadingRating só aplica quando status finished", () => {
+    const reading: BookDomain = {
+      id: "bid",
+      title: "T",
+      author: "A",
+      chosen_by: "u",
+      pages: 1,
+      readerIds: [],
+      readersDisplay: "",
+      gender: null,
+      image_url: "/x.svg",
+      user_id: "u",
+      is_reread: false,
+      is_favorite: false,
+      status: "reading",
+    };
+    expect(
+      BookMapper.enrichReadingRating(
+        reading,
+        new Map([["bid", 5]]),
+      ).reading_rating_stars,
+    ).toBeUndefined();
+
+    const finished = { ...reading, status: "finished" as const };
+    expect(
+      BookMapper.enrichReadingRating(
+        finished,
+        new Map([["bid", 4]]),
+      ).reading_rating_stars,
+    ).toBe(4);
+    expect(
+      BookMapper.enrichReadingRating(finished, new Map()).reading_rating_stars,
+    ).toBeNull();
+  });
 });

@@ -9,6 +9,10 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "update-types": "mkdir -p src/types && npx supabase gen types typescript --project-id xmekizajjewqituvnrgk > src/types/supabase.ts || (powershell -Command \"New-Item -ItemType Directory -Path src/types -Force; npx supabase gen types typescript --project-id xmekizajjewqituvnrgk > src/types/supabase.ts\")",
+    "supabase": "npx supabase",
+    "db:query": "npx supabase db query --linked",
+    "db:migrate:stats-rpc": "npx supabase db query --linked -f supabase/migrations/20260810120000_stats_rpc_security_definer.sql",
+    "db:migrate:followers-books": "npx supabase db query --linked -f supabase/migrations/20260810130000_books_visible_to_followers.sql",
     "test": "vitest --coverage",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui"

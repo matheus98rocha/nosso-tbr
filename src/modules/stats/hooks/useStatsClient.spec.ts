@@ -1,9 +1,12 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useStatsClient } from "./useStatsClient";
+
 import type { EstatisticaAnual } from "@/modules/stats/types/stats.types";
 
+import { useStatsClient } from "./useStatsClient";
+
 const routerPushMock = vi.fn();
+const routerRefreshMock = vi.fn();
 const useSearchParamsMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
@@ -11,6 +14,7 @@ vi.mock("next/navigation", () => ({
     push: routerPushMock,
     replace: vi.fn(),
     prefetch: vi.fn(),
+    refresh: routerRefreshMock,
   }),
   useSearchParams: () => useSearchParamsMock(),
 }));
@@ -25,6 +29,12 @@ const baseYearlyStats: EstatisticaAnual[] = [
   },
 ];
 
+const readerOptions = [
+  { id: "reader-matheus", label: "Matheus" },
+  { id: "reader-fabi", label: "Fabi" },
+  { id: "reader-barbara", label: "Barbara" },
+];
+
 describe("useStatsClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -32,16 +42,20 @@ describe("useStatsClient", () => {
   });
 
   it("defaults selected reader from query or first option", () => {
-    useSearchParamsMock.mockReturnValue(new URLSearchParams("reader=Fabi"));
+    useSearchParamsMock.mockReturnValue(
+      new URLSearchParams("reader=reader-fabi"),
+    );
 
     const { result } = renderHook(() =>
       useStatsClient({
         yearlyStats: baseYearlyStats,
         collaborators: [{ readerName: "Matheus", booksRead: 2 }],
+        readerOptions,
+        selectedReaderId: "reader-fabi",
       }),
     );
 
-    expect(result.current.selectedReader).toBe("Fabi");
+    expect(result.current.selectedReader).toBe("reader-fabi");
   });
 
   it("computes total pages across years", () => {
@@ -58,6 +72,8 @@ describe("useStatsClient", () => {
           },
         ],
         collaborators: [],
+        readerOptions,
+        selectedReaderId: "reader-matheus",
       }),
     );
 
@@ -69,14 +85,19 @@ describe("useStatsClient", () => {
       useStatsClient({
         yearlyStats: baseYearlyStats,
         collaborators: [],
+        readerOptions,
+        selectedReaderId: "reader-matheus",
       }),
     );
 
     act(() => {
-      result.current.handleReaderChange("Barbara");
+      result.current.handleReaderChange("reader-barbara");
     });
 
-    expect(routerPushMock).toHaveBeenCalledWith("/stats?reader=Barbara");
+    expect(routerPushMock).toHaveBeenCalledWith(
+      "/stats?reader=reader-barbara",
+    );
+    expect(routerRefreshMock).toHaveBeenCalled();
   });
 
   it("exposes chart availability flags", () => {
@@ -84,6 +105,8 @@ describe("useStatsClient", () => {
       useStatsClient({
         yearlyStats: [],
         collaborators: [],
+        readerOptions,
+        selectedReaderId: "reader-matheus",
       }),
     );
 
@@ -94,6 +117,8 @@ describe("useStatsClient", () => {
       useStatsClient({
         yearlyStats: baseYearlyStats,
         collaborators: [{ readerName: "X", booksRead: 1 }],
+        readerOptions,
+        selectedReaderId: "reader-matheus",
       }),
     );
 

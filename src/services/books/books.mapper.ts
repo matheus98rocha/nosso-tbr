@@ -57,6 +57,20 @@ export class BookMapper {
     };
   }
 
+  static enrichReadingRating(
+    book: BookDomain,
+    starsByBookId: Map<string, number>,
+  ): BookDomain {
+    if (book.status !== "finished") return book;
+    const id = book.id ?? "";
+    if (!id) return book;
+    const v = starsByBookId.get(id);
+    return {
+      ...book,
+      reading_rating_stars: v ?? null,
+    };
+  }
+
   static isSoloBook(
     book: Pick<BookDomain, "chosen_by"> & {
       readerIds?: BookDomain["readerIds"] | null;

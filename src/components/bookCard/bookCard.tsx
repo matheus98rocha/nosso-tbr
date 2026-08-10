@@ -8,6 +8,7 @@ import { AddBookToShelf } from "./components/addBookToShelf";
 import { DropdownBook } from "./components/dropdownBook";
 import { BookUpsert } from "@/modules/bookUpsert";
 import { CardReadingProgressIndicator } from "@/modules/schedule/components/readingProgressIndicator";
+import { CardReadingRatingButton } from "@/modules/bookRating";
 import { ConfirmDialog } from "@/components/confirmDialog";
 import {
   Tooltip,
@@ -74,8 +75,8 @@ export function BookCard(props: BookCardProps) {
       type="button"
       onClick={handleOpenBookDetails}
       className={cn(
-        "flex min-w-0 flex-1 cursor-pointer gap-3 rounded-md border-0 bg-transparent p-0 text-left transition-opacity duration-200 hover:opacity-95 active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950",
-        isShelf ? "gap-2.5" : "gap-3",
+        "flex min-w-0 flex-1 cursor-pointer gap-3 rounded-md border-0 bg-transparent p-0 transition-opacity duration-200 hover:opacity-95 active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950",
+        isShelf ? "gap-2.5 text-left" : "gap-3 text-center",
       )}
       aria-label={`Ver detalhes: ${book.title}`}
     >
@@ -93,6 +94,7 @@ export function BookCard(props: BookCardProps) {
         className={cn(
           "flex min-w-0 flex-1 flex-col",
           isShelf ? "min-h-[92px] gap-1" : "min-h-[130px] gap-1.5",
+          !isShelf && "items-center text-center",
         )}
       >
         <Tooltip>
@@ -146,12 +148,17 @@ export function BookCard(props: BookCardProps) {
             className={cn(
               "flex min-w-0 flex-col",
               isShelf ? "gap-1" : "gap-1.5",
+              !isShelf && "items-center",
               !(showReadingProgress && !isShelf) && "mt-auto",
               showReadingProgress && !isShelf && "mt-1",
             )}
           >
             {showReadersOnCard && (
-              <span className="flex min-w-0 items-center gap-1 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <span
+                className={cn(
+                  "flex max-w-full min-w-0 items-center justify-center gap-1 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400",
+                )}
+              >
                 <Users aria-hidden className="size-2.5 shrink-0" />
                 <span className="truncate">{book.readersDisplay}</span>
               </span>
@@ -159,7 +166,7 @@ export function BookCard(props: BookCardProps) {
             {statusDisplay && (
               <span
                 className={cn(
-                  "inline-flex w-fit items-center gap-1 rounded-full font-semibold",
+                  "mx-auto inline-flex w-fit items-center gap-1 rounded-full font-semibold",
                   isShelf
                     ? "h-4 gap-0.5 px-1.5 py-0 text-[9px]"
                     : "px-2 py-0.5 text-[10px]",
@@ -336,12 +343,15 @@ export function BookCard(props: BookCardProps) {
               )}
             </div>
             {showReadingProgress && !isShelf && (
-              <div className="min-w-0 border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800/80">
+              <div className="flex min-w-0 w-full flex-col items-center border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800/80">
                 <CardReadingProgressIndicator
                   bookId={book.id}
                   onNavigateToSchedule={handleNavigateToSchedule}
                 />
               </div>
+            )}
+            {!isShelf && book.status === "finished" && (
+              <CardReadingRatingButton book={book} />
             )}
           </div>
         </CardContent>

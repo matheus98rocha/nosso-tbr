@@ -76,6 +76,11 @@ export const QUERY_KEYS = {
     all: ["bookFavorites"] as const,
     byUser: (userId: string) => ["bookFavorites", userId] as const,
   },
+  bookReadingRatings: {
+    all: ["bookReadingRatings"] as const,
+    batch: (userId: string, sortedBookIds: string[]) =>
+      ["bookReadingRatings", userId, sortedBookIds.join(",")] as const,
+  },
   search: {
     all: ["search"] as const,
     autocomplete: (term: string) =>

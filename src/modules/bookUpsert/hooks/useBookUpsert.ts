@@ -56,6 +56,8 @@ export function useBookUpsert({
     closeParticipationBlock,
     handleOnChangePageNumber,
     handleChosenByChange,
+    ratingPromptBookId,
+    handleDismissRatingPrompt,
   } = useBookDialog({
     isBookFormOpen,
     bookData,
@@ -283,5 +285,7 @@ export function useBookUpsert({
     lookupQuery,
     handleLookupQueryChange,
     handleSearchBooks,
+    ratingPromptBookId,
+    handleDismissRatingPrompt,
   };
 }

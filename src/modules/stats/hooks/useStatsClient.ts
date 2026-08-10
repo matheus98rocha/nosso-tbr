@@ -3,12 +3,12 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PieLabelRenderProps } from "recharts";
+
 import type {
   CollaborationStatsDomain,
   EstatisticaAnual,
 } from "@/modules/stats/types/stats.types";
-
-export const STATS_READER_OPTIONS = ["Matheus", "Fabi", "Barbara"] as const;
+import type { StatsReaderOption } from "@/modules/stats/utils/normalizeStatsReaderOptions";
 
 export const STATS_CHART_PIE_FILLS = [
   "var(--stats-chart-pie-1)",
@@ -21,24 +21,35 @@ export const STATS_CHART_PIE_FILLS = [
 export type UseStatsClientArgs = {
   yearlyStats: EstatisticaAnual[];
   collaborators: CollaborationStatsDomain[];
+  readerOptions: StatsReaderOption[];
+  selectedReaderId: string;
 };
 
 export function useStatsClient({
   yearlyStats,
   collaborators,
+  readerOptions,
+  selectedReaderId,
 }: UseStatsClientArgs) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const readerFromQuery = searchParams.get("reader") ?? STATS_READER_OPTIONS[0];
-  const [selectedReader, setSelectedReader] = useState(readerFromQuery);
+  const defaultReaderId = readerOptions[0]?.id ?? "";
+  const readerFromQuery = searchParams.get("reader");
+  const resolvedReaderId =
+    readerFromQuery && readerOptions.some((reader) => reader.id === readerFromQuery)
+      ? readerFromQuery
+      : selectedReaderId || defaultReaderId;
+  const [selectedReader, setSelectedReader] = useState(resolvedReaderId);
 
   useEffect(() => {
-    setSelectedReader(readerFromQuery);
-  }, [readerFromQuery]);
+    setSelectedReader(resolvedReaderId);
+  }, [resolvedReaderId]);
 
   const handleReaderChange = useCallback(
-    (nextReader: string) => {
-      router.push(`/stats?reader=${nextReader}`);
+    (nextReaderId: string) => {
+      const query = new URLSearchParams({ reader: nextReaderId }).toString();
+      router.push(`/stats?${query}`);
+      router.refresh();
     },
     [router],
   );
@@ -93,15 +104,9 @@ export function useStatsClient({
     [collaborators],
   );
 
-  const readerOptions = useMemo(
-    () => [...STATS_READER_OPTIONS],
-    [],
-  );
-
   return useMemo(
     () => ({
       selectedReader,
-      readerOptions,
       handleReaderChange,
       totalPagesAcrossYears,
       primaryYearMostReadGenre,
@@ -115,7 +120,6 @@ export function useStatsClient({
     }),
     [
       selectedReader,
-      readerOptions,
       handleReaderChange,
       totalPagesAcrossYears,
       primaryYearMostReadGenre,

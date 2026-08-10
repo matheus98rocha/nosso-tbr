@@ -106,17 +106,22 @@ export function ReadingRankingSection() {
                   Todo o período
                 </Button>
                 {yearOptions.map((year) => {
-                  const isActive = selectedYear === year;
+                  const yearNumber = Number(year);
+                  if (!Number.isFinite(yearNumber)) {
+                    return null;
+                  }
+
+                  const isActive = selectedYear === yearNumber;
                   return (
                     <Button
-                      key={year}
+                      key={`rank-year-${yearNumber}`}
                       type="button"
                       size="sm"
                       variant="outline"
                       aria-pressed={isActive}
-                      aria-label={`Ranking do ano ${year}`}
+                      aria-label={`Ranking do ano ${yearNumber}`}
                       onClick={() =>
-                        handleSelectYear(isActive ? undefined : year)
+                        handleSelectYear(isActive ? undefined : yearNumber)
                       }
                       className={cn(
                         "min-h-11 cursor-pointer rounded-full px-3 text-xs font-medium transition-all sm:h-8 sm:min-h-0",
@@ -125,7 +130,7 @@ export function ReadingRankingSection() {
                           : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
                       )}
                     >
-                      {year}
+                      {yearNumber}
                     </Button>
                   );
                 })}
