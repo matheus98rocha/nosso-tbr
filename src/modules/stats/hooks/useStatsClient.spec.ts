@@ -31,8 +31,7 @@ const baseYearlyStats: EstatisticaAnual[] = [
 
 const readerOptions = [
   { id: "reader-matheus", label: "Matheus" },
-  { id: "reader-fabi", label: "Fabi" },
-  { id: "reader-barbara", label: "Barbara" },
+  { id: "reader-john-doe", label: "John Doe" },
 ];
 
 describe("useStatsClient", () => {
@@ -43,7 +42,7 @@ describe("useStatsClient", () => {
 
   it("defaults selected reader from query or first option", () => {
     useSearchParamsMock.mockReturnValue(
-      new URLSearchParams("reader=reader-fabi"),
+      new URLSearchParams("reader=reader-john-doe"),
     );
 
     const { result } = renderHook(() =>
@@ -51,11 +50,11 @@ describe("useStatsClient", () => {
         yearlyStats: baseYearlyStats,
         collaborators: [{ readerName: "Matheus", booksRead: 2 }],
         readerOptions,
-        selectedReaderId: "reader-fabi",
+        selectedReaderId: "reader-john-doe",
       }),
     );
 
-    expect(result.current.selectedReader).toBe("reader-fabi");
+    expect(result.current.selectedReader).toBe("reader-john-doe");
   });
 
   it("computes total pages across years", () => {
@@ -91,11 +90,11 @@ describe("useStatsClient", () => {
     );
 
     act(() => {
-      result.current.handleReaderChange("reader-barbara");
+      result.current.handleReaderChange("reader-john-doe");
     });
 
     expect(routerPushMock).toHaveBeenCalledWith(
-      "/stats?reader=reader-barbara",
+      "/stats?reader=reader-john-doe",
     );
     expect(routerRefreshMock).toHaveBeenCalled();
   });

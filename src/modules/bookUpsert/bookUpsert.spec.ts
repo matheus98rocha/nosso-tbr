@@ -54,8 +54,7 @@ function invokeHandleChosenByChange(
 
 const defaultChosenByOptions: ChosenByOption[] = [
   { label: "Matheus", value: "user-matheus" },
-  { label: "Fabi", value: "user-fabi" },
-  { label: "Barbara", value: "user-barbara" },
+  { label: "John Doe", value: "user-john-doe" },
 ];
 
 describe("handleChosenByChange - lógica de seleção/deseleção", () => {
@@ -102,11 +101,11 @@ describe("handleChosenByChange - lógica de seleção/deseleção", () => {
       field,
       setValue,
       defaultChosenByOptions,
-      "user-fabi",
+      "user-john-doe",
     );
 
-    expect(field.onChange).toHaveBeenCalledWith("user-fabi");
-    expect(setValue).toHaveBeenCalledWith("chosen_by", "user-fabi", {
+    expect(field.onChange).toHaveBeenCalledWith("user-john-doe");
+    expect(setValue).toHaveBeenCalledWith("chosen_by", "user-john-doe", {
       shouldValidate: true,
     });
   });
@@ -129,14 +128,14 @@ describe("handleChosenByChange - lógica de seleção/deseleção", () => {
   });
 
   it("não deve chamar onChange uma segunda vez no fluxo de deseleção", () => {
-    const field = buildChosenByField("user-barbara");
+    const field = buildChosenByField("user-john-doe");
     const setValue = buildFormSetValue();
 
     invokeHandleChosenByChange(
       field,
       setValue,
       defaultChosenByOptions,
-      "user-barbara",
+      "user-john-doe",
     );
 
     expect(field.onChange).toHaveBeenCalledTimes(1);

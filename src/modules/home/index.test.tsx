@@ -151,7 +151,7 @@ describe("ClientHome joint view reader chips", () => {
       isAllBooksActive: false,
       readers: [
         { id: "1", display_name: "Matheus" },
-        { id: "2", display_name: "Barbara" },
+        { id: "2", display_name: "John Doe" },
       ],
       lockedReaderId: "1",
       checkIsUserActive: vi.fn((readerId: string) =>

@@ -73,12 +73,11 @@ describe("StatsClient", () => {
     render(
       <StatsClient
         yearlyStats={yearlyStats}
-        collaborators={[{ readerName: "Fabi", booksRead: 2 }]}
+        collaborators={[{ readerName: "John Doe", booksRead: 2 }]}
         totalBooks={5}
         readerOptions={[
           { id: "reader-matheus", label: "Matheus" },
-          { id: "reader-fabi", label: "Fabi" },
-          { id: "reader-barbara", label: "Barbara" },
+          { id: "reader-john-doe", label: "John Doe" },
         ]}
         selectedReaderId="reader-matheus"
       />,

@@ -18,7 +18,7 @@ vi.mock("../service/getUsers.service", () => ({
 
 const mockUsers = [
   { id: "1", display_name: "Matheus" },
-  { id: "2", display_name: "Barbara" },
+  { id: "2", display_name: "John Doe" },
 ];
 
 function setupQuery({
@@ -83,7 +83,7 @@ describe("useUser", () => {
       const { result } = renderHook(() => useUser());
       expect(result.current.chosenByOptions).toEqual([
         { label: "Matheus", value: "1" },
-        { label: "Barbara", value: "2" },
+        { label: "John Doe", value: "2" },
       ]);
     });
 

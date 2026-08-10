@@ -28,7 +28,7 @@ const baseBook: BookDomain = {
   chosen_by: "11111111-1111-4111-8111-111111111111",
   pages: 300,
   readerIds: ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"],
-  readersDisplay: "Matheus e Barbara",
+  readersDisplay: "Matheus e John Doe",
   start_date: "2024-01-01",
   end_date: null,
   gender: "Fiction",

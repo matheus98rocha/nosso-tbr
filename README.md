@@ -126,7 +126,7 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 - **`Todos`** (usuário logado): continua unindo você e perfis que você segue nos chips de leitor.
 - **Filtros avançados** usando `BookQueryBuilder`:
   - Gênero (`gender`)
-  - Leitores (ex.: “Matheus”, “Fabi”, “Barbara”)
+  - Leitores (ex.: “Matheus”, “John Doe”)
   - Status da leitura (`not_started`, `reading`, `finished`)
   - Busca textual (título, autor, etc.).
 - **Paginação** com tamanho de página fixo.

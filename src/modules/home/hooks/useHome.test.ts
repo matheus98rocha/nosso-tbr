@@ -72,7 +72,7 @@ vi.mock("@/hooks", async (importOriginal) => {
 const mockUpdateUrlWithFilters = vi.fn();
 const mockUsers = [
   { id: "1", display_name: "Matheus" },
-  { id: "2", display_name: "Barbara" },
+  { id: "2", display_name: "John Doe" },
 ];
 
 function buildFiltersUrlReturn(
@@ -114,7 +114,7 @@ function mockQueryData(total: number, followingIds: string[] = []) {
         data: Array.from({ length: total }, (_, index) => ({
           id: String(index + 1),
           readerIds: ["1", "2"],
-          readersDisplay: "Matheus e Barbara",
+          readersDisplay: "Matheus e John Doe",
         })),
         total,
       },
@@ -882,7 +882,7 @@ describe("useHome", () => {
                 {
                   id: "book-1",
                   readerIds: ["1", "2"],
-                  readersDisplay: "Matheus e Barbara",
+                  readersDisplay: "Matheus e John Doe",
                 },
               ],
               total: 1,
@@ -953,7 +953,7 @@ describe("useHome", () => {
       expect(result.current.needsExtraReader).toBe(false);
     });
 
-    it("cenário: Matheus(logado), Fabi e Barbara — remover Fabi+Barbara resulta em needsExtraReader=true", () => {
+    it("cenário: Matheus(logado) sozinho na URL joint resulta em needsExtraReader=true", () => {
       (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
       (useUserStore as unknown as Mock).mockReturnValue({
         id: "matheus-id",
@@ -1142,13 +1142,13 @@ describe("useHome", () => {
                 {
                   id: "1",
                   readerIds: ["1", "2"],
-                  readersDisplay: "Matheus e Barbara",
+                  readersDisplay: "Matheus e John Doe",
                 },
                 { id: "2", readerIds: ["1"], readersDisplay: "Matheus" },
                 {
                   id: "3",
                   readerIds: ["2", "9"],
-                  readersDisplay: "Barbara e Carol",
+                  readersDisplay: "John Doe e Carol",
                 },
               ],
               total: 3,
