@@ -1,4 +1,5 @@
 import { Status } from "@/types/books.types";
+import { DateUtils } from "@/utils";
 
 type NormalizeDatesForTransitionParams = {
   currentStatus?: Status;
@@ -7,7 +8,23 @@ type NormalizeDatesForTransitionParams = {
   nextStatus?: Status;
   nextStartDate?: string | null;
   nextEndDate?: string | null;
+  referenceDateIso?: string;
 };
+
+export function resolveFinishedEndDate(
+  nextEndDate?: string | null,
+  currentEndDate?: string | null,
+  referenceDateIso = DateUtils.toISOString(new Date()),
+): string {
+  const resolved =
+    nextEndDate ?? currentEndDate ?? referenceDateIso ?? DateUtils.toISOString(new Date());
+
+  if (DateUtils.isValid(resolved)) {
+    return DateUtils.toISOString(resolved);
+  }
+
+  return DateUtils.toISOString(new Date());
+}
 
 export function normalizeDatesForTransition({
   currentStatus,
@@ -16,6 +33,7 @@ export function normalizeDatesForTransition({
   nextStatus,
   nextStartDate,
   nextEndDate,
+  referenceDateIso = DateUtils.toISOString(new Date()),
 }: NormalizeDatesForTransitionParams) {
   if (nextStatus === "abandoned") {
     return {
@@ -42,6 +60,17 @@ export function normalizeDatesForTransition({
     return {
       start_date: nextStartDate ?? null,
       end_date: null,
+    };
+  }
+
+  if (nextStatus === "finished") {
+    return {
+      start_date: nextStartDate ?? currentStartDate ?? null,
+      end_date: resolveFinishedEndDate(
+        nextEndDate,
+        currentEndDate,
+        referenceDateIso,
+      ),
     };
   }
 

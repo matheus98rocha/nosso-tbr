@@ -156,7 +156,9 @@ export function useBookCard({
   const statusDisplay = useMemo((): StatusDisplay => {
     const configs: Record<string, StatusDisplay> = {
       finished: {
-        label: `Finalizado em ${formattedEndDate}`,
+        label: formattedEndDate
+          ? `Finalizado em ${formattedEndDate}`
+          : "Leitura finalizada",
         colorClass:
           "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
         dotClass: "bg-emerald-500",

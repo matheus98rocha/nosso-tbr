@@ -16,6 +16,7 @@ import { DatePicker } from "@/components/datePicker";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -459,6 +460,10 @@ export function BookUpsert(props: CreateBookProps) {
                                     }
                                   />
                                 </FormControl>
+                                <FormDescription>
+                                  Se não informar, usaremos a data de hoje como
+                                  data de término.
+                                </FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}

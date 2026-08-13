@@ -126,6 +126,24 @@ describe("useBookCard", () => {
         );
       });
 
+      it("should show fallback label when finished without end_date", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "finished",
+          end_date: null,
+        });
+        expect(result.current.statusDisplay?.label).toBe("Leitura finalizada");
+      });
+
+      it("should show formatted end date when finished with end_date", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "finished",
+          end_date: "2024-06-15T12:00:00.000Z",
+        });
+        expect(result.current.statusDisplay?.label).toMatch(/^Finalizado em /);
+      });
+
       it("should fallback to not_started for undefined status", () => {
         const { result } = renderBookCardHook({
           ...baseBook,

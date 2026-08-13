@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { BookUpsertMapper } from "@/modules/bookUpsert/services/mappers/bookUpsert.mapper";
+import { normalizeDatesForTransition } from "@/modules/bookUpsert/services/bookStatusTransition";
 import { ensureCreatableStatus } from "@/modules/bookUpsert/services/bookUpsert.validation";
 import { canUserParticipateInBook } from "@/lib/security/bookParticipation";
 import { requireUser } from "@/app/api/_utils/requireUser";
@@ -52,6 +53,13 @@ export async function POST(request: Request) {
   }
 
   const payload = BookUpsertMapper.toPersistence(parsed.data);
+  const normalizedDates = normalizeDatesForTransition({
+    nextStatus: parsed.data.status,
+    nextStartDate: parsed.data.start_date,
+    nextEndDate: parsed.data.end_date,
+  });
+  payload.start_date = normalizedDates.start_date;
+  payload.end_date = normalizedDates.end_date;
 
   const { data, error } = await supabase
     .from("books")

@@ -26,21 +26,20 @@ export default async function StatsPage({
       ? params.reader
       : defaultReaderId;
 
-  const selectedUser = users.find((user) => user.id === selectedReaderId);
-  const selectedReaderName = selectedUser?.display_name ?? "";
-
   const [yearlyStats, collaborationStats] = await Promise.all([
     service.getByReader(selectedReaderId),
     service.getCollaborationStats(selectedReaderId),
   ]);
 
-  const totalBooks =
-    collaborationStats.find((s) => s.readerName === selectedReaderName)
-      ?.booksRead ?? 0;
+  const safeYearlyStats = yearlyStats ?? [];
+  const safeCollaborationStats = collaborationStats ?? [];
 
-  const collaborators = collaborationStats.filter(
-    (s) => s.readerName !== selectedReaderName,
+  const totalBooks = safeYearlyStats.reduce(
+    (acc, row) => acc + (row.totalBooks ?? 0),
+    0,
   );
+
+  const collaborators = safeCollaborationStats.slice(1);
 
   return (
     <main className="mx-auto w-full max-w-7xl">
@@ -54,7 +53,7 @@ export default async function StatsPage({
 
       <StatsClient
         key={selectedReaderId}
-        yearlyStats={yearlyStats as EstatisticaAnual[]}
+        yearlyStats={safeYearlyStats as EstatisticaAnual[]}
         collaborators={collaborators as CollaborationStatsDomain[]}
         totalBooks={totalBooks}
         readerOptions={readerOptions}

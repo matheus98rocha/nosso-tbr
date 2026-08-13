@@ -65,4 +65,45 @@ describe("normalizeDatesForTransition", () => {
       end_date: null,
     });
   });
+
+  it("defaults end_date when marking as finished without a date", () => {
+    const result = normalizeDatesForTransition({
+      currentStatus: "reading",
+      currentStartDate: "2025-01-10",
+      currentEndDate: null,
+      nextStatus: "finished",
+      nextStartDate: null,
+      nextEndDate: null,
+      referenceDateIso: "2026-08-13",
+    });
+
+    expect(result).toEqual({
+      start_date: "2025-01-10",
+      end_date: "2026-08-13",
+    });
+  });
+
+  it("keeps provided end_date when finishing", () => {
+    const result = normalizeDatesForTransition({
+      nextStatus: "finished",
+      nextStartDate: "2025-01-10",
+      nextEndDate: "2025-06-01",
+      referenceDateIso: "2026-08-13",
+    });
+
+    expect(result).toEqual({
+      start_date: "2025-01-10",
+      end_date: "2025-06-01",
+    });
+  });
+
+  it("falls back to today when finished end_date inputs are invalid", () => {
+    const result = normalizeDatesForTransition({
+      nextStatus: "finished",
+      nextEndDate: "invalid-date",
+      referenceDateIso: "",
+    });
+
+    expect(result.end_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
 });
