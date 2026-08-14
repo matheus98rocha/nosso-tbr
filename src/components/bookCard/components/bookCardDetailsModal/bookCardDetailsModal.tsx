@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   BookMarked,
   CalendarDays,
@@ -11,6 +10,7 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 
+import { BookCover } from "@/components/bookCover";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getGenderLabel, getGenreBadgeColor } from "@/constants/genders";
-import { resolveBookCoverUrl } from "@/constants/bookCover";
 import { cn } from "@/lib/utils";
 import { formatBookPagesLabel } from "@/utils/formatters";
 
@@ -90,16 +89,13 @@ export default function BookCardDetailsModal({
           </DialogHeader>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <div className="relative mx-auto shrink-0 overflow-hidden rounded-md shadow-sm sm:mx-0">
-              <Image
-                src={resolveBookCoverUrl(book.image_url)}
-                alt={book.title}
-                width={120}
-                height={173}
-                className="object-cover"
-                loading="lazy"
-              />
-            </div>
+            <BookCover
+              src={book.image_url}
+              alt={book.title}
+              width={120}
+              height={173}
+              containerClassName="mx-auto shrink-0 rounded-md shadow-sm sm:mx-0"
+            />
 
             <div className="flex min-w-0 flex-1 flex-col gap-3">
               {statusDisplay && (
