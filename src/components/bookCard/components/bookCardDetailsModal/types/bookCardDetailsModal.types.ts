@@ -16,4 +16,9 @@ export type BookCardDetailsModalProps = {
   onCollectiveReading: () => void;
   onOpenSchedule: () => void;
   onOpenQuotes: () => void;
+  onStartReading?: () => void;
+  onFinishReading?: () => void;
+  onPauseReading?: () => void;
+  onAbandonReading?: () => void;
+  isStatusPending?: boolean;
 };

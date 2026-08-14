@@ -125,7 +125,7 @@ export default function ClientHome() {
         <AiRecommendationFab onClick={() => aiRecommendationModal.open()} />
       )}
 
-      <header className="flex flex-col gap-4 mb-8">
+      <header className="flex flex-col gap-4 mb-5">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div className="space-y-1">
             {isLoading ? (
@@ -398,8 +398,6 @@ export default function ClientHome() {
           </CollapsibleBookFilters>
         ) : null}
 
-        {isLoggedIn && <ReadingNow />}
-
         {!isLoggedIn ? (
           <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-2 text-center flex flex-col items-center gap-2">
             <div className="space-y-1">
@@ -427,6 +425,8 @@ export default function ClientHome() {
           </div>
         ) : null}
       </header>
+
+      {isLoggedIn && <ReadingNow className="mb-5 max-w-2xl" />}
 
       {shouldSuggestFollowing ? (
         <div

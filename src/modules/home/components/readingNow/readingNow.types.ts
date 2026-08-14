@@ -33,6 +33,10 @@ export type ReadingNowBookDetailsModalProps = {
   book: BookDomain & { id: string };
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onFinishReading: () => void;
+  onPauseReading: () => void;
+  onAbandonReading: () => void;
+  isStatusPending: boolean;
 };
 
 export type ReadingNowStatusActionsProps = {
@@ -43,7 +47,20 @@ export type ReadingNowStatusActionsProps = {
   className?: string;
 };
 
+export type ReadingNowStatusTransitionStatus = Extract<
+  Status,
+  "finished" | "paused" | "abandoned"
+>;
+
 export type ReadingNowStatusTransitionTarget = {
   book: BookDomain & { id: string };
-  nextStatus: Status;
+  nextStatus: ReadingNowStatusTransitionStatus;
+};
+
+export type ReadingNowStatusConfirmationDialogProps = {
+  target: ReadingNowStatusTransitionTarget | null;
+  open: boolean;
+  isPending: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
 };

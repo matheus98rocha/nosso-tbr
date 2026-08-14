@@ -9,6 +9,10 @@ export default function ReadingNowBookDetailsModal({
   book,
   open,
   onOpenChange,
+  onFinishReading,
+  onPauseReading,
+  onAbandonReading,
+  isStatusPending,
 }: ReadingNowBookDetailsModalProps) {
   const {
     statusDisplay,
@@ -36,6 +40,10 @@ export default function ReadingNowBookDetailsModal({
       onCollectiveReading={handleCollectiveReadingFromDetails}
       onOpenSchedule={handleScheduleFromDetails}
       onOpenQuotes={handleQuotesFromDetails}
+      onFinishReading={onFinishReading}
+      onPauseReading={onPauseReading}
+      onAbandonReading={onAbandonReading}
+      isStatusPending={isStatusPending}
     />
   );
 }

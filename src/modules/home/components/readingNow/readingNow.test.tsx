@@ -26,6 +26,9 @@ const mockOpenBookDetails = vi.fn();
 const mockFinishReading = vi.fn();
 const mockPauseReading = vi.fn();
 const mockAbandonReading = vi.fn();
+const mockRequestStatusTransition = vi.fn();
+const mockCancelStatusTransition = vi.fn();
+const mockConfirmStatusTransition = vi.fn();
 
 const sampleItem: ReadingNowBookItem = {
   book: {
@@ -91,6 +94,10 @@ const baseHookReturn = {
   finishReading: mockFinishReading,
   pauseReading: mockPauseReading,
   abandonReading: mockAbandonReading,
+  pendingStatusTransition: null,
+  requestStatusTransition: mockRequestStatusTransition,
+  cancelStatusTransition: mockCancelStatusTransition,
+  confirmStatusTransition: mockConfirmStatusTransition,
   isStatusPending: false,
   transitioningBookId: null,
   ratingPromptBookId: null,
@@ -135,13 +142,78 @@ describe("ReadingNow", () => {
     expect(mockOpenBookDetails).toHaveBeenCalledWith(sampleItem.book);
 
     await user.click(screen.getByRole("button", { name: "Finalizar" }));
-    expect(mockFinishReading).toHaveBeenCalledWith(sampleItem.book);
+    expect(mockRequestStatusTransition).toHaveBeenCalledWith(sampleItem.book, "finished");
 
     await user.click(screen.getByRole("button", { name: "Pausar" }));
-    expect(mockPauseReading).toHaveBeenCalledWith(sampleItem.book);
+    expect(mockRequestStatusTransition).toHaveBeenCalledWith(sampleItem.book, "paused");
 
     await user.click(screen.getByRole("button", { name: "Abandonar" }));
-    expect(mockAbandonReading).toHaveBeenCalledWith(sampleItem.book);
+    expect(mockRequestStatusTransition).toHaveBeenCalledWith(sampleItem.book, "abandoned");
+  });
+
+  it("shows confirmation dialog when a status transition is pending", async () => {
+    mockedUseReadingNow.mockReturnValue({
+      ...baseHookReturn,
+      items: [sampleItem],
+      activeItem: sampleItem,
+      shouldRender: true,
+      pendingStatusTransition: {
+        book: sampleItem.book,
+        nextStatus: "finished",
+      },
+    });
+
+    render(<ReadingNow />);
+
+    expect(screen.getByText("Finalizar leitura?")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Você está prestes a marcar “O Hobbit” como lido/),
+    ).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Finalizar leitura" }));
+    expect(mockConfirmStatusTransition).toHaveBeenCalled();
+  });
+
+  it("shows pause confirmation dialog with correct content", () => {
+    mockedUseReadingNow.mockReturnValue({
+      ...baseHookReturn,
+      items: [sampleItem],
+      activeItem: sampleItem,
+      shouldRender: true,
+      pendingStatusTransition: {
+        book: sampleItem.book,
+        nextStatus: "paused",
+      },
+    });
+
+    render(<ReadingNow />);
+
+    expect(screen.getByText("Pausar leitura?")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Você está prestes a pausar “O Hobbit”/),
+    ).toBeInTheDocument();
+  });
+
+  it("shows abandon confirmation dialog with correct content", async () => {
+    mockedUseReadingNow.mockReturnValue({
+      ...baseHookReturn,
+      items: [sampleItem],
+      activeItem: sampleItem,
+      shouldRender: true,
+      pendingStatusTransition: {
+        book: sampleItem.book,
+        nextStatus: "abandoned",
+      },
+    });
+
+    const user = userEvent.setup();
+
+    render(<ReadingNow />);
+
+    expect(screen.getByText("Abandonar leitura?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Abandonar leitura" }));
+    expect(mockConfirmStatusTransition).toHaveBeenCalled();
   });
 
   it("shows carousel controls when multiple books are reading", async () => {

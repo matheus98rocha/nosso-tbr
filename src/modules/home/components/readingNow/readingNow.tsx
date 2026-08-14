@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import ReadingNowBookDetailsModal from "./components/readingNowBookDetailsModal";
 import ReadingNowBookSlide from "./components/readingNowBookSlide";
 import ReadingNowCarouselDots from "./components/readingNowCarouselDots";
+import ReadingNowStatusConfirmationDialog from "./components/readingNowStatusConfirmationDialog";
 import { useReadingNow } from "./hooks";
 import type { ReadingNowProps } from "./readingNow.types";
 
@@ -45,9 +46,11 @@ export default function ReadingNow({ className }: ReadingNowProps) {
     detailsModalOpen,
     openBookDetails,
     handleDetailsOpenChange,
-    finishReading,
-    pauseReading,
     abandonReading,
+    pendingStatusTransition,
+    requestStatusTransition,
+    cancelStatusTransition,
+    confirmStatusTransition,
     isStatusPending,
     transitioningBookId,
     ratingPromptBookId,
@@ -65,6 +68,10 @@ export default function ReadingNow({ className }: ReadingNowProps) {
           book={detailsBook}
           open={detailsModalOpen}
           onOpenChange={handleDetailsOpenChange}
+          onFinishReading={() => requestStatusTransition(detailsBook, "finished")}
+          onPauseReading={() => requestStatusTransition(detailsBook, "paused")}
+          onAbandonReading={() => abandonReading(detailsBook)}
+          isStatusPending={isStatusPending}
         />
       ) : null}
 
@@ -72,6 +79,16 @@ export default function ReadingNow({ className }: ReadingNowProps) {
         bookId={ratingPromptBookId}
         open={ratingPromptBookId !== null}
         onDismiss={dismissRatingPrompt}
+      />
+
+      <ReadingNowStatusConfirmationDialog
+        target={pendingStatusTransition}
+        open={pendingStatusTransition !== null}
+        isPending={isStatusPending}
+        onOpenChange={(open) => {
+          if (!open) cancelStatusTransition();
+        }}
+        onConfirm={confirmStatusTransition}
       />
 
       <motion.section
@@ -82,21 +99,21 @@ export default function ReadingNow({ className }: ReadingNowProps) {
           ease: sectionTransition.ease,
         }}
         className={cn(
-          "overflow-hidden rounded-2xl border border-zinc-200 bg-linear-to-br from-amber-50/50 via-white to-emerald-50/40 shadow-sm",
-          "dark:border-zinc-800 dark:from-amber-950/25 dark:via-zinc-900/50 dark:to-emerald-950/20",
+          "overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-none",
+          "dark:border-zinc-800 dark:bg-zinc-900/70",
           className,
         )}
         aria-label="Lendo agora"
       >
-        <div className="flex flex-col gap-2 border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800">
+        <div className="flex flex-col gap-1.5 border-b border-zinc-200/70 px-3 py-2.5 dark:border-zinc-800/80">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                <BookOpen size={11} aria-hidden className="text-amber-600 dark:text-amber-400" />
+              <p className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
+                <BookOpen size={13} aria-hidden className="text-zinc-400 dark:text-zinc-500" />
                 Lendo agora
               </p>
               {!isLoading && items.length > 0 && (
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+                <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                   {items.length}
                 </span>
               )}
@@ -136,7 +153,7 @@ export default function ReadingNow({ className }: ReadingNowProps) {
               {!isLoading && activeScheduleHref && (
                 <Link
                   href={activeScheduleHref}
-                  className="ml-1 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600"
+                  className="ml-1 rounded-md px-2 py-1 text-[10px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                 >
                   Registrar progresso
                 </Link>
@@ -163,7 +180,7 @@ export default function ReadingNow({ className }: ReadingNowProps) {
             </div>
           </div>
         ) : isError ? (
-          <div className="px-4 py-4 text-center">
+          <div className="px-3 py-3 text-center">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Não foi possível carregar seus livros em leitura.
             </p>
@@ -195,9 +212,9 @@ export default function ReadingNow({ className }: ReadingNowProps) {
                   onNavigateToQuotes={() =>
                     navigateToQuotes(item.book.id, item.book.title)
                   }
-                  onFinishReading={() => finishReading(item.book)}
-                  onPauseReading={() => pauseReading(item.book)}
-                  onAbandonReading={() => abandonReading(item.book)}
+                  onFinishReading={() => requestStatusTransition(item.book, "finished")}
+                  onPauseReading={() => requestStatusTransition(item.book, "paused")}
+                  onAbandonReading={() => requestStatusTransition(item.book, "abandoned")}
                 />
               ))}
             </div>

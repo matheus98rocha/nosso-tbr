@@ -6,9 +6,14 @@ import {
   Heart,
   Lock,
   MessageSquareQuote,
+  Ban,
+  CheckCircle2,
+  PauseCircle,
+  PlayCircle,
   Users,
 } from "lucide-react";
 import { useMemo } from "react";
+import { useState } from "react";
 
 import { BookCover } from "@/components/bookCover";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +56,13 @@ export default function BookCardDetailsModal({
   onCollectiveReading,
   onOpenSchedule,
   onOpenQuotes,
+  onStartReading,
+  onFinishReading,
+  onPauseReading,
+  onAbandonReading,
+  isStatusPending = false,
 }: BookCardDetailsModalProps) {
+  const [abandonConfirmationOpen, setAbandonConfirmationOpen] = useState(false);
   const plannedLabel = useMemo(
     () => formatPtDate(book.planned_start_date),
     [book.planned_start_date],
@@ -64,7 +75,8 @@ export default function BookCardDetailsModal({
   const pagesLabel = formatBookPagesLabel(book.pages);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
         className="max-h-[min(85vh,calc(100dvh-2rem))] gap-0 overflow-y-auto p-0 sm:max-w-lg"
@@ -194,6 +206,85 @@ export default function BookCardDetailsModal({
               </dl>
 
               <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap">
+                {isLogged && (book.status === "not_started" || book.status === "planned") && onStartReading && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isStatusPending}
+                    className="w-full cursor-pointer gap-1.5 bg-emerald-600 text-white transition-colors duration-200 hover:bg-emerald-700 sm:w-auto"
+                    onClick={onStartReading}
+                  >
+                    <PlayCircle aria-hidden className="size-3.5" />
+                    Iniciar leitura
+                  </Button>
+                )}
+                {isLogged && book.status === "abandoned" && onStartReading && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isStatusPending}
+                    className="w-full cursor-pointer gap-1.5 bg-emerald-600 text-white transition-colors duration-200 hover:bg-emerald-700 sm:w-auto"
+                    onClick={onStartReading}
+                  >
+                    <PlayCircle aria-hidden className="size-3.5" />
+                    Retomar leitura
+                  </Button>
+                )}
+                {isLogged && book.status === "paused" && onStartReading && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isStatusPending}
+                    className="w-full cursor-pointer gap-1.5 bg-emerald-600 text-white transition-colors duration-200 hover:bg-emerald-700 sm:w-auto"
+                    onClick={onStartReading}
+                  >
+                    <PlayCircle aria-hidden className="size-3.5" />
+                    Retomar leitura
+                  </Button>
+                )}
+                {isLogged && book.status === "reading" && (
+                  <>
+                    {onFinishReading && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isStatusPending}
+                        className="w-full cursor-pointer gap-1.5 sm:w-auto"
+                        onClick={onFinishReading}
+                      >
+                        <CheckCircle2 aria-hidden className="size-3.5" />
+                        Finalizar leitura
+                      </Button>
+                    )}
+                    {onPauseReading && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isStatusPending}
+                        className="w-full cursor-pointer gap-1.5 sm:w-auto"
+                        onClick={onPauseReading}
+                      >
+                        <PauseCircle aria-hidden className="size-3.5" />
+                        Pausar leitura
+                      </Button>
+                    )}
+                    {onAbandonReading && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isStatusPending}
+                        className="w-full cursor-pointer gap-1.5 sm:w-auto"
+                        onClick={() => setAbandonConfirmationOpen(true)}
+                      >
+                        <Ban aria-hidden className="size-3.5" />
+                        Abandonar leitura
+                      </Button>
+                    )}
+                  </>
+                )}
                 <Button
                   type="button"
                   variant="outline"
@@ -255,6 +346,42 @@ export default function BookCardDetailsModal({
           </div>
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      <Dialog
+        open={abandonConfirmationOpen}
+        onOpenChange={setAbandonConfirmationOpen}
+      >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Abandonar leitura?</DialogTitle>
+          <DialogDescription>
+            “{book.title}” deixará de aparecer como uma leitura em andamento,
+            mas continuará na sua biblioteca.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setAbandonConfirmationOpen(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isStatusPending}
+            onClick={() => {
+              onAbandonReading?.();
+              setAbandonConfirmationOpen(false);
+            }}
+          >
+            Abandonar leitura
+          </Button>
+        </div>
+      </DialogContent>
+      </Dialog>
+    </>
   );
 }

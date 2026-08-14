@@ -1,4 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement, type ReactNode } from "react";
 import { Mock, vi } from "vitest";
 import { useBookCard } from "./useBookCard";
 import { BookDomain } from "@/types/books.types";
@@ -13,6 +15,13 @@ vi.mock("@/hooks/useModal", () => ({
   useModal: () => ({ setIsOpen: vi.fn() }),
 }));
 vi.mock("@/stores/hooks/useAuth", () => ({ useIsLoggedIn: () => true }));
+vi.mock("@/stores/userStore", () => ({
+  useUserStore: vi.fn((selector: (state: unknown) => unknown) =>
+    selector({
+      user: { id: "user-123" },
+    }),
+  ),
+}));
 vi.mock("@/services/bookFavorites/hooks/useToggleBookFavorite", () => ({
   useToggleBookFavorite: () => ({
     toggle: vi.fn(),
@@ -20,6 +29,29 @@ vi.mock("@/services/bookFavorites/hooks/useToggleBookFavorite", () => ({
   }),
 }));
 vi.mock("@/hooks/useSafeTap", () => ({ useSafeTap: (fn: () => void) => fn }));
+vi.mock("@/modules/bookUpsert/services/bookUpsert.service", () => ({
+  BookUpsertService: vi.fn(function BookUpsertServiceMock() {
+    return {
+      edit: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
+}));
+
+function createWrapper() {
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0, staleTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+
+  return {
+    client,
+    Wrapper({ children }: { children: ReactNode }) {
+      return createElement(QueryClientProvider, { client }, children);
+    },
+  };
+}
 
 const baseBook: BookDomain = {
   id: "1",
@@ -38,8 +70,13 @@ const baseBook: BookDomain = {
   is_favorite: false,
 };
 
-const renderBookCardHook = (book = baseBook) =>
-  renderHook(() => useBookCard({ book }));
+const renderBookCardHook = (
+  book = baseBook,
+  options?: { isShelf?: boolean; shelfId?: string },
+) => {
+  const { Wrapper } = createWrapper();
+  return renderHook(() => useBookCard({ book, ...options }), { wrapper: Wrapper });
+};
 
 describe("useBookCard", () => {
   beforeEach(() => {
@@ -178,9 +215,10 @@ describe("useBookCard", () => {
 
     describe("handleConfirmDelete (RN55)", () => {
       it("when isShelf is true and shelfId is empty, throws (RN55 guard)", async () => {
-        const { result } = renderHook(() =>
-          useBookCard({ book: baseBook, isShelf: true, shelfId: "" }),
-        );
+        const { result } = renderBookCardHook(baseBook, {
+          isShelf: true,
+          shelfId: "",
+        });
         await expect(
           result.current.handleConfirmDelete("1"),
         ).rejects.toThrow(/shelfId é obrigatório/);
@@ -221,13 +259,10 @@ describe("useBookCard", () => {
           replace: vi.fn(),
         });
 
-        const { result } = renderHook(() =>
-          useBookCard({
-            book: baseBook,
-            isShelf: true,
-            shelfId: "shelf-abc",
-          }),
-        );
+        const { result } = renderBookCardHook(baseBook, {
+          isShelf: true,
+          shelfId: "shelf-abc",
+        });
 
         await act(async () => {
           await result.current.handleConfirmDelete("1");
@@ -245,9 +280,7 @@ describe("useBookCard", () => {
         vi.restoreAllMocks();
       });
       it("deve abrir o link correto no WhatsApp", () => {
-        const { result } = renderHook(() =>
-          useBookCard({ book: { ...baseBook } }),
-        );
+        const { result } = renderBookCardHook();
 
         act(() => {
           result.current.shareOnWhatsApp();
