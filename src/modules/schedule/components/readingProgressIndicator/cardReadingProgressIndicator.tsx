@@ -2,6 +2,10 @@
 
 import { CalendarPlus } from "lucide-react";
 
+import {
+  cardFooterActionButtonClassName,
+  cardFooterActionButtonIconClassName,
+} from "@/components/bookCard/constants/cardFooterActionButton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -40,17 +44,14 @@ function CardReadingProgressIndicator({
         type="button"
         variant="outline"
         size="sm"
-        className={cn(
-          "h-8 w-full cursor-pointer gap-1.5 border-emerald-200/80 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-100/80 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-200 dark:hover:bg-emerald-950/50",
-          className,
-        )}
+        className={cn(cardFooterActionButtonClassName, className)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           onNavigateToSchedule();
         }}
       >
-        <CalendarPlus className="size-3.5 shrink-0" aria-hidden />
+        <CalendarPlus className={cardFooterActionButtonIconClassName} aria-hidden />
         Criar cronograma
       </Button>
     );

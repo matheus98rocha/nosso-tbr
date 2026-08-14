@@ -41,6 +41,12 @@ vi.mock("@/components/confirmDialog", () => ({
 
 vi.mock("./hooks/useBookCard");
 
+vi.mock("@/modules/schedule/components/readingProgressIndicator", () => ({
+  CardReadingProgressIndicator: () => (
+    <div data-testid="card-reading-progress">Progresso</div>
+  ),
+}));
+
 const mockedUseBookCard = vi.mocked(useBookCard);
 
 const baseBook: BookDomain = {
@@ -106,6 +112,13 @@ function presetUseBookCard(
     handleCollectiveReadingFromDetails: () => void;
     handleScheduleFromDetails: () => void;
     handleQuotesFromDetails: () => void;
+    showReadingProgress?: boolean;
+    showStartReadingAction?: boolean;
+    showResumeReadingAction?: boolean;
+    showCardFooterAction?: boolean;
+    cardReadingActionLabel?: string;
+    onStartReading?: () => void;
+    isStatusPending?: boolean;
   }> = {},
 ) {
   const {
@@ -123,6 +136,16 @@ function presetUseBookCard(
     handleCollectiveReadingFromDetails = vi.fn(),
     handleScheduleFromDetails = vi.fn(),
     handleQuotesFromDetails = vi.fn(),
+    showReadingProgress = book.status === "reading",
+    showStartReadingAction =
+      book.status === "not_started" || book.status === "planned",
+    showResumeReadingAction = book.status === "paused",
+    showCardFooterAction =
+      showReadingProgress || showStartReadingAction || showResumeReadingAction,
+    cardReadingActionLabel =
+      book.status === "paused" ? "Reiniciar leitura" : "Iniciar leitura",
+    onStartReading = vi.fn(),
+    isStatusPending = false,
   } = patch;
 
   const dialogDeleteModal =
@@ -159,6 +182,16 @@ function presetUseBookCard(
     canAccessCollectiveReading: patch.canAccessCollectiveReading ?? false,
     collectiveReadingHref: "/collective-reading/book-1/Mem%C3%B3rias%20P%C3%B3stumas",
     handleNavigateToCollectiveReading: vi.fn(),
+    showReadingProgress,
+    showStartReadingAction,
+    showResumeReadingAction,
+    showCardFooterAction,
+    cardReadingActionLabel,
+    onStartReading,
+    onFinishReading: vi.fn(),
+    onPauseReading: vi.fn(),
+    onAbandonReading: vi.fn(),
+    isStatusPending,
     badgeObject: {
       bookStatusClass: "bg-green-800 text-white",
       bookStatusText: "Já iniciei a leitura",
@@ -301,6 +334,54 @@ describe("BookCard", () => {
     expect(
       screen.getByRole("menuitem", { name: "Remover livro da estante" }),
     ).toBeInTheDocument();
+  });
+
+  it("exibe botão Iniciar leitura no rodapé para livros em status Vou ler", () => {
+    const plannedBook = { ...baseBook, status: "planned" as const };
+    const onStartReading = vi.fn();
+    presetUseBookCard(plannedBook, {
+      statusDisplay: {
+        label: "Vou ler",
+        colorClass: "bg-blue-100",
+        dotClass: "bg-blue-500",
+      },
+      onStartReading,
+    });
+
+    render(<BookCard book={plannedBook} />);
+
+    const startButton = screen.getByRole("button", { name: "Iniciar leitura" });
+    expect(startButton).toBeInTheDocument();
+
+    fireEvent.click(startButton);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Iniciar leitura", hidden: false }),
+    );
+    expect(onStartReading).toHaveBeenCalledTimes(1);
+  });
+
+  it("exibe botão Reiniciar leitura no rodapé para livros com leitura pausada", () => {
+    const pausedBook = { ...baseBook, status: "paused" as const };
+    const onStartReading = vi.fn();
+    presetUseBookCard(pausedBook, {
+      statusDisplay: {
+        label: "Leitura pausada",
+        colorClass: "bg-violet-100",
+        dotClass: "bg-violet-500",
+      },
+      onStartReading,
+    });
+
+    render(<BookCard book={pausedBook} />);
+
+    const resumeButton = screen.getByRole("button", { name: "Reiniciar leitura" });
+    expect(resumeButton).toBeInTheDocument();
+
+    fireEvent.click(resumeButton);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Reiniciar leitura", hidden: false }),
+    );
+    expect(onStartReading).toHaveBeenCalledTimes(1);
   });
 
   it("ao acionar Editar Livro no menu, abre o fluxo de edição (setIsOpen true)", async () => {

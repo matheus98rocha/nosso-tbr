@@ -272,6 +272,64 @@ describe("useBookCard", () => {
       });
     });
 
+    describe("card footer actions", () => {
+      it("exibe ação de iniciar leitura para livros em not_started", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "not_started",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(true);
+        expect(result.current.showReadingProgress).toBe(false);
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("exibe ação de iniciar leitura para livros em planned", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "planned",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(true);
+        expect(result.current.showReadingProgress).toBe(false);
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("exibe ação de reiniciar leitura para livros em paused", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "paused",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(false);
+        expect(result.current.showResumeReadingAction).toBe(true);
+        expect(result.current.showReadingProgress).toBe(false);
+        expect(result.current.cardReadingActionLabel).toBe("Reiniciar leitura");
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("exibe progresso de leitura para livros em reading", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "reading",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(false);
+        expect(result.current.showReadingProgress).toBe(true);
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("oculta ações do rodapé na estante", () => {
+        const { result } = renderBookCardHook(
+          { ...baseBook, status: "not_started" },
+          { isShelf: true, shelfId: "shelf-abc" },
+        );
+
+        expect(result.current.showStartReadingAction).toBe(false);
+        expect(result.current.showCardFooterAction).toBe(false);
+      });
+    });
+
     describe("shareOnWhatsApp", () => {
       beforeEach(() => {
         vi.spyOn(window, "open").mockImplementation(() => null);

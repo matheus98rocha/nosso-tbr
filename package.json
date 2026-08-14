@@ -16,7 +16,8 @@
     "db:migrate:followers-books": "npx supabase db query --linked -f supabase/migrations/20260810130000_books_visible_to_followers.sql",
     "test": "vitest --coverage",
     "test:watch": "vitest --watch",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:integration": "vitest run integration --coverage=false"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -68,6 +69,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

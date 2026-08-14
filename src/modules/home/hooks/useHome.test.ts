@@ -8,6 +8,7 @@ import { FiltersOptions } from "@/types/filters";
 import { useUser } from "@/services/users/hooks/useUsers";
 import { useUserStore } from "@/stores/userStore";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { BookService } from "@/services/books/books.service";
 
 vi.mock("@/services/books/books.service");
 vi.mock("@/services/users/hooks/useUsers", () => ({
@@ -75,6 +76,8 @@ const mockUsers = [
   { id: "2", display_name: "John Doe" },
 ];
 
+const mockGetAll = vi.fn().mockResolvedValue({ data: [], total: 0 });
+
 function buildFiltersUrlReturn(
   filtersOverride: Partial<FiltersOptions> = {},
   searchQuery = "",
@@ -137,6 +140,62 @@ function lastBooksListRelationshipKey(): string | undefined {
   return undefined;
 }
 
+function getBooksQueryConfig() {
+  const calls = (useQuery as Mock).mock.calls;
+  for (let i = calls.length - 1; i >= 0; i--) {
+    const config = calls[i]?.[0];
+    const queryKey = config?.queryKey as unknown[] | undefined;
+    if (Array.isArray(queryKey) && queryKey[0] === "books") {
+      return config;
+    }
+  }
+  throw new Error("books query config not found");
+}
+
+function mockNonLoggedBooksQuery(total = 20) {
+  (useQuery as Mock).mockImplementation((params: { queryKey?: unknown[] }) => {
+    if (params?.queryKey?.[0] === "userSocial") {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+    if (params?.queryKey?.[0] === "bookFavorites") {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+    if (params?.queryKey?.[0] === "books") {
+      return {
+        data: {
+          data: Array.from({ length: total }, (_, index) => ({
+            id: String(index + 1),
+            readerIds: ["1", "2"],
+            readersDisplay: "Matheus e Barbara",
+          })),
+          total,
+        },
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+    return {
+      data: undefined,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    };
+  });
+}
+
 function setupHook(
   filtersOverride: Partial<FiltersOptions> = {},
   searchQuery = "",
@@ -194,6 +253,7 @@ describe("useHome", () => {
     (useQueryClient as Mock).mockReturnValue({
       prefetchQuery: vi.fn(),
     });
+    vi.spyOn(BookService.prototype, "getAll").mockImplementation(mockGetAll);
   });
 
   describe("totalPages — PAGE_SIZE = 8", () => {
@@ -966,6 +1026,149 @@ describe("useHome", () => {
       });
       expect(result.current.needsExtraReader).toBe(true);
       expect(result.current.lockedReaderId).toBe("matheus-id");
+    });
+  });
+
+  describe("pagination behavior for non-logged users", () => {
+    it("keeps current page when rerender happens with identical filters", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockNonLoggedBooksQuery();
+
+      (useFiltersUrl as Mock).mockReturnValue(buildFiltersUrlReturn({}, "", false));
+      const { result, rerender } = renderHook(() => useHome());
+
+      act(() => result.current.setCurrentPage(1));
+      expect(result.current.currentPage).toBe(1);
+
+      (useFiltersUrl as Mock).mockReturnValue(buildFiltersUrlReturn({}, "", false));
+      rerender();
+
+      expect(result.current.currentPage).toBe(1);
+    });
+
+    it("returns second page slice when currentPage is 1", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockNonLoggedBooksQuery();
+
+      const { result } = setupHook({ view: "joint", readers: [] });
+
+      act(() => result.current.setCurrentPage(1));
+
+      expect(result.current.allBooks?.data.map((book) => book.id)).toEqual([
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+      ]);
+    });
+  });
+
+  describe("collective year filter business rule", () => {
+    it("sends year filter for logged collective view without forcing user scope", async () => {
+      const { useIsLoggedIn } = await import("@/stores/hooks/useAuth");
+      const { useUserStore } = await import("@/stores/userStore");
+
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as Mock).mockReturnValue({ id: "user-1", display_name: "Matheus" });
+      mockGetAll.mockResolvedValue({
+        data: [{ id: "book-1", readerIds: ["user-1"], readersDisplay: "Matheus" }],
+        total: 1,
+      });
+
+      setupHook({ myBooks: false, year: 2024, view: "joint" }, "hobbit");
+
+      const queryConfig = getBooksQueryConfig();
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 0,
+          pageSize: 2000,
+          search: "hobbit",
+          bookId: "",
+          authorId: "",
+          filters: expect.objectContaining({
+            readers: [],
+            status: [],
+            gender: [],
+            year: 2024,
+          }),
+        }),
+      );
+    });
+
+    it("forwards authorId filter to service query", async () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "user-1",
+        display_name: "Matheus",
+      });
+      mockGetAll.mockResolvedValue({
+        data: [{ id: "book-1", readerIds: ["user-1"], readersDisplay: "Matheus" }],
+        total: 1,
+      });
+
+      setupHook({ authorId: "author-42", view: "joint" }, "tolkien");
+
+      const queryConfig = getBooksQueryConfig();
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          search: "tolkien",
+          authorId: "author-42",
+        }),
+      );
+    });
+  });
+
+  describe("non-logged business rule", () => {
+    it("does not send search or filters when user is not logged in", async () => {
+      const { useIsLoggedIn } = await import("@/stores/hooks/useAuth");
+      (useIsLoggedIn as Mock).mockReturnValue(false);
+
+      setupHook(
+        {
+          bookId: "book-1",
+          authorId: "author-42",
+          readers: ["Matheus"],
+          status: ["reading"],
+          gender: ["Fantasia"],
+          year: 2025,
+        },
+        "tolkien",
+        true,
+      );
+
+      const queryConfig = getBooksQueryConfig();
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 0,
+          pageSize: 8,
+        }),
+      );
+      expect(mockGetAll).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          search: "tolkien",
+        }),
+      );
+      expect(mockGetAll).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.anything(),
+        }),
+      );
     });
   });
 

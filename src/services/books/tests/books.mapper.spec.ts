@@ -214,4 +214,17 @@ describe("BookMapper", () => {
       BookMapper.enrichReadingRating(finished, new Map()).reading_rating_stars,
     ).toBeNull();
   });
+
+  it('deve mapear "Autor desconhecido" quando o relacionamento author vier nulo', () => {
+    const persistence: Partial<BookPersistence> = {
+      id: "book-1",
+      title: "Livro sem autor",
+      author: undefined as unknown as { name: string },
+      readers: ["Matheus"],
+    };
+
+    const domain = BookMapper.toDomain(persistence as BookPersistence);
+
+    expect(domain.author).toBe("Autor desconhecido");
+  });
 });

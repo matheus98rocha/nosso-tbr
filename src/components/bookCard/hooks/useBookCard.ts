@@ -290,6 +290,21 @@ export function useBookCard({
   const showReadingProgress =
     isLogged && !isShelf && book.status === "reading";
 
+  const showStartReadingAction =
+    isLogged &&
+    !isShelf &&
+    (book.status === "not_started" || book.status === "planned");
+
+  const showResumeReadingAction =
+    isLogged && !isShelf && book.status === "paused";
+
+  const cardReadingActionLabel = showResumeReadingAction
+    ? "Reiniciar leitura"
+    : "Iniciar leitura";
+
+  const showCardFooterAction =
+    showReadingProgress || showStartReadingAction || showResumeReadingAction;
+
   const handleFavoriteClick = useCallback(
     (event?: MouseEvent<HTMLButtonElement>) => {
       event?.preventDefault();
@@ -334,5 +349,9 @@ export function useBookCard({
     collectiveReadingHref,
     handleNavigateToCollectiveReading,
     showReadingProgress,
+    showStartReadingAction,
+    showResumeReadingAction,
+    cardReadingActionLabel,
+    showCardFooterAction,
   };
 }
