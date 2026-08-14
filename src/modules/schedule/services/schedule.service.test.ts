@@ -41,7 +41,14 @@ vi.mock("./mappers/schedule.mapper", () => ({
   },
 }));
 
+vi.mock("@/lib/api/clientJsonFetch", () => ({
+  apiJson: vi.fn(),
+}));
+
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import { ScheduleUpsertService } from "./schedule.service";
+
+const apiJsonMock = vi.mocked(apiJson);
 
 describe("ScheduleUpsertService", () => {
   beforeEach(() => {
@@ -57,26 +64,36 @@ describe("ScheduleUpsertService", () => {
     }));
   });
 
-  it("creates many schedules using mapper payload", async () => {
+  it("creates many schedules via API route", async () => {
     const input = [
       { book_id: "book-1", owner: "user-1", date: new Date(), chapters: "1-2" },
     ];
-    mockToPersistence.mockReturnValue({ mapped: true });
-    mockInsert.mockResolvedValue({ error: null });
+    apiJsonMock.mockResolvedValue({ ok: true });
 
     const service = new ScheduleUpsertService();
     await service.createMany(input as never);
 
-    expect(mockToPersistence).toHaveBeenCalledWith(input[0]);
-    expect(mockInsert).toHaveBeenCalledWith([{ mapped: true }]);
+    expect(apiJsonMock).toHaveBeenCalledWith("/api/schedule", {
+      method: "POST",
+      body: JSON.stringify({
+        schedules: [
+          {
+            book_id: "book-1",
+            owner: "user-1",
+            date: input[0].date.toISOString(),
+            chapters: "1-2",
+            completed: undefined,
+          },
+        ],
+      }),
+    });
   });
 
   it("normalizes and rethrows when createMany fails", async () => {
     const input = [
       { book_id: "book-1", owner: "user-1", date: new Date(), chapters: "1-2" },
     ];
-    mockToPersistence.mockReturnValue({ mapped: true });
-    mockInsert.mockResolvedValue({ error: { message: "db fail" } });
+    apiJsonMock.mockRejectedValue(new Error("db fail"));
 
     const service = new ScheduleUpsertService();
 
@@ -108,28 +125,26 @@ describe("ScheduleUpsertService", () => {
     );
   });
 
-  it("updates read status scoped by owner", async () => {
-    const eqOwner = vi.fn().mockResolvedValue({ error: null });
-    const eqId = vi.fn(() => ({ eq: eqOwner }));
-    mockUpdate.mockReturnValue({ eq: eqId });
+  it("updates read status via API route", async () => {
+    apiJsonMock.mockResolvedValue({ ok: true });
 
     const service = new ScheduleUpsertService();
     await service.updateIsRead("schedule-1", true, "user-1");
 
-    expect(mockUpdate).toHaveBeenCalledWith({ completed: true });
-    expect(eqId).toHaveBeenCalledWith("id", "schedule-1");
-    expect(eqOwner).toHaveBeenCalledWith("owner", "user-1");
+    expect(apiJsonMock).toHaveBeenCalledWith("/api/schedule/schedule-1", {
+      method: "PATCH",
+      body: JSON.stringify({ completed: true }),
+    });
   });
 
-  it("deletes schedule by book and owner", async () => {
-    const eqOwner = vi.fn().mockResolvedValue({ error: null });
-    const eqBook = vi.fn(() => ({ eq: eqOwner }));
-    mockDelete.mockReturnValue({ eq: eqBook });
+  it("deletes schedule via API route", async () => {
+    apiJsonMock.mockResolvedValue({ ok: true });
 
     const service = new ScheduleUpsertService();
     await service.deleteSchedule("book-1", "user-1");
 
-    expect(eqBook).toHaveBeenCalledWith("book_id", "book-1");
-    expect(eqOwner).toHaveBeenCalledWith("owner", "user-1");
+    expect(apiJsonMock).toHaveBeenCalledWith("/api/schedule?bookId=book-1", {
+      method: "DELETE",
+    });
   });
 });

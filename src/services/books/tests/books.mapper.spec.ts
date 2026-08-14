@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { BookMapper } from "../books.mapper";
-import { BookPersistence } from "@/types/books.types";
+import { BookPersistence, type BookDomain } from "@/types/books.types";
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
 describe("BookMapper", () => {
   it("deve mapear corretamente os dados de persistência para o domínio", () => {
@@ -9,12 +10,13 @@ describe("BookMapper", () => {
       title: "O Hobbit",
       author: { name: "J.R.R. Tolkien" },
       author_id: "auth-123",
-      chosen_by: "Matheus",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
       pages: 300,
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
       gender: "Fantasia",
       image_url: "https://amazon.com/hobbit.jpg",
       user_id: "user-456",
+      status: "not_started",
     };
 
     const domain = BookMapper.toDomain(persistence);
@@ -22,30 +24,195 @@ describe("BookMapper", () => {
     expect(domain.title).toBe("O Hobbit");
     expect(domain.author).toBe("J.R.R. Tolkien");
     expect(domain.status).toBe("not_started");
+    expect(domain.is_favorite).toBe(false);
   });
 
-  it('deve definir o status como "reading" quando houver start_date e não houver end_date', () => {
+  it("deve usar status paused sem inferir por datas", () => {
     const persistence: Partial<BookPersistence> = {
+      status: "paused",
       start_date: "2024-01-01",
       end_date: null,
       author: { name: "Autor" },
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
     };
 
     const domain = BookMapper.toDomain(persistence as BookPersistence);
-    expect(domain.status).toBe("reading");
+    expect(domain.status).toBe("paused");
   });
 
-  it('deve definir o status como "finished" quando houver end_date', () => {
+  it("deve usar status abandoned sem inferir por datas", () => {
     const persistence: Partial<BookPersistence> = {
+      status: "abandoned",
+      start_date: "2024-01-01",
+      end_date: null,
+      author: { name: "Autor" },
+      readers: ["11111111-1111-4111-8111-111111111111"],
+    };
+
+    const domain = BookMapper.toDomain(persistence as BookPersistence);
+    expect(domain.status).toBe("abandoned");
+  });
+
+  it("deve cair para not_started quando status vier vazio", () => {
+    const persistence: Partial<BookPersistence> = {
+      status: undefined,
       start_date: "2024-01-01",
       end_date: "2024-01-10",
       author: { name: "Autor" },
-      readers: ["Matheus"],
+      readers: ["11111111-1111-4111-8111-111111111111"],
     };
 
     const domain = BookMapper.toDomain(persistence as BookPersistence);
-    expect(domain.status).toBe("finished");
+    expect(domain.status).toBe("not_started");
+  });
+
+  it("deve mapear is_reread true quando persistence tem is_reread true", () => {
+    const persistence: BookPersistence = {
+      id: "1",
+      title: "Releitura",
+      author: { name: "Autor" },
+      author_id: "a1",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
+      pages: 200,
+      readers: ["11111111-1111-4111-8111-111111111111"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+      is_reread: true,
+    };
+
+    expect(BookMapper.toDomain(persistence).is_reread).toBe(true);
+  });
+
+  it("deve mapear is_reread false quando persistence não tem is_reread", () => {
+    const persistence: BookPersistence = {
+      id: "1",
+      title: "Livro Normal",
+      author: { name: "Autor" },
+      author_id: "a1",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
+      pages: 200,
+      readers: ["11111111-1111-4111-8111-111111111111"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+    };
+
+    expect(BookMapper.toDomain(persistence).is_reread).toBe(false);
+  });
+
+  it("deve usar capa padrão quando image_url for nulo ou vazio (RN04)", () => {
+    const withNull: BookPersistence = {
+      id: "1",
+      title: "Livro",
+      author: { name: "Autor" },
+      author_id: "a1",
+      chosen_by: "11111111-1111-4111-8111-111111111111",
+      pages: 100,
+      readers: ["11111111-1111-4111-8111-111111111111"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+    };
+
+    expect(BookMapper.toDomain(withNull).image_url).toBe(
+      BOOK_COVER_PLACEHOLDER_SRC,
+    );
+
+    const withEmpty: BookPersistence = {
+      ...withNull,
+      image_url: "",
+    };
+
+    expect(BookMapper.toDomain(withEmpty).image_url).toBe(
+      BOOK_COVER_PLACEHOLDER_SRC,
+    );
+  });
+
+  it("enrichReadersDisplay não usa id como rótulo quando não há display_name", () => {
+    const book: BookDomain = {
+      id: "b1",
+      title: "T",
+      author: "A",
+      chosen_by: "u1",
+      pages: 1,
+      readerIds: ["11111111-1111-4111-8111-111111111111"],
+      readersDisplay: "x",
+      gender: null,
+      image_url: "/x.svg",
+      user_id: "u",
+      is_reread: false,
+      is_favorite: false,
+    };
+    expect(
+      BookMapper.enrichReadersDisplay(book, []).readersDisplay,
+    ).toBe("");
+    expect(
+      BookMapper.enrichReadersDisplay(book, [
+        {
+          id: "11111111-1111-4111-8111-111111111111",
+          display_name: "Ana",
+        },
+      ]).readersDisplay,
+    ).toBe("Ana");
+  });
+
+  it("enrichFavorite reflete ids no conjunto de favoritos", () => {
+    const book: BookDomain = {
+      id: "b1",
+      title: "T",
+      author: "A",
+      chosen_by: "u",
+      pages: 1,
+      readerIds: [],
+      readersDisplay: "",
+      gender: null,
+      image_url: "/x.svg",
+      user_id: "u",
+      is_reread: false,
+      is_favorite: false,
+    };
+    expect(BookMapper.enrichFavorite(book, new Set(["b1"])).is_favorite).toBe(
+      true,
+    );
+    expect(BookMapper.enrichFavorite(book, new Set()).is_favorite).toBe(
+      false,
+    );
+  });
+
+  it("enrichReadingRating só aplica quando status finished", () => {
+    const reading: BookDomain = {
+      id: "bid",
+      title: "T",
+      author: "A",
+      chosen_by: "u",
+      pages: 1,
+      readerIds: [],
+      readersDisplay: "",
+      gender: null,
+      image_url: "/x.svg",
+      user_id: "u",
+      is_reread: false,
+      is_favorite: false,
+      status: "reading",
+    };
+    expect(
+      BookMapper.enrichReadingRating(
+        reading,
+        new Map([["bid", 5]]),
+      ).reading_rating_stars,
+    ).toBeUndefined();
+
+    const finished = { ...reading, status: "finished" as const };
+    expect(
+      BookMapper.enrichReadingRating(
+        finished,
+        new Map([["bid", 4]]),
+      ).reading_rating_stars,
+    ).toBe(4);
+    expect(
+      BookMapper.enrichReadingRating(finished, new Map()).reading_rating_stars,
+    ).toBeNull();
   });
 
   it('deve mapear "Autor desconhecido" quando o relacionamento author vier nulo', () => {

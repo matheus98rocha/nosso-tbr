@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "../../../database.types";
@@ -8,7 +8,10 @@ const buildMockQuery = () => ({
   or: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   in: vi.fn().mockReturnThis(),
+  neq: vi.fn().mockReturnThis(),
+  not: vi.fn().mockReturnThis(),
   filter: vi.fn().mockReturnThis(),
+  textSearch: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   range: vi.fn().mockReturnThis(),
   gte: vi.fn().mockReturnThis(),
@@ -31,30 +34,126 @@ describe("BookQueryBuilder", () => {
       supabase = buildMockSupabase(mockQuery);
     });
 
-    it("applies FTS plus fallback ilike filters for title and author", () => {
+    it("uses textSearch plain + simple config so lexemes match to_tsvector(simple) on search_vector", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
-        .withSearchTerm("Senhor Tolkien")
+        .withSearchTerm("Senhor dos aneis A")
         .build();
 
-      expect(mockQuery.filter).toHaveBeenCalledWith(
-        "search_vector",
-        "fts",
-        "Senhor:* & Tolkien:*",
-      );
+      expect(mockQuery.textSearch).toHaveBeenCalledWith("search_vector", "senhor aneis", {
+        type: "plain",
+        config: "simple",
+      });
+    });
+
+    it("does not apply FTS when the term reduces to only stop words", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("o a de")
+        .build();
+
+      expect(mockQuery.textSearch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("withUserRelationship", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("filters by readers overlap with the user ids", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship("user-123")
+        .build();
+
       expect(mockQuery.or).toHaveBeenCalledWith(
-        "title.ilike.%Senhor%,title.ilike.%Tolkien%",
-      );
-      expect(mockQuery.or).toHaveBeenCalledWith(
-        "name.ilike.%Senhor%,name.ilike.%Tolkien%",
-        { referencedTable: "authors" },
+        'readers.ov.{"user-123"},chosen_by.in.("user-123")',
       );
     });
 
-    it("does not apply filters when search term is empty", () => {
-      new BookQueryBuilder(supabase, mockQuery as never).withSearchTerm("").build();
+    it("filters by chosen_by in list as part of the OR expression", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship("owner-42")
+        .build();
 
-      expect(mockQuery.filter).not.toHaveBeenCalled();
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        expect.stringContaining('chosen_by.in.("owner-42")'),
+      );
+    });
+
+    it("combines readers overlap and chosen_by in with OR", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship("abc")
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'readers.ov.{"abc"},chosen_by.in.("abc")',
+      );
+    });
+
+    it("supports multiple user ids in a single OR pair (ov + in)", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship(["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"])
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'readers.ov.{"11111111-1111-4111-8111-111111111111","22222222-2222-4222-8222-222222222222"},chosen_by.in.("11111111-1111-4111-8111-111111111111","22222222-2222-4222-8222-222222222222")',
+      );
+    });
+
+    it("does not apply relationship filter when values resolve to empty (no scoped ids)", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship([])
+        .build();
+
       expect(mockQuery.or).not.toHaveBeenCalled();
+    });
+
+    it("quotes special characters safely in PostgREST OR expressions", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withUserRelationship('user, "special" value')
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        'readers.ov.{"user, \\"special\\" value"},chosen_by.in.("user, \\"special\\" value")',
+      );
+    });
+  });
+
+  describe("withExcludedBookParticipant", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("applies chosen_by neq and readers not contains when id is provided", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withExcludedBookParticipant("11111111-1111-4111-8111-111111111111")
+        .build();
+
+      expect(mockQuery.neq).toHaveBeenCalledWith(
+        "chosen_by",
+        "11111111-1111-4111-8111-111111111111",
+      );
+      expect(mockQuery.not).toHaveBeenCalledWith(
+        "readers",
+        "cs",
+        '{"11111111-1111-4111-8111-111111111111"}',
+      );
+    });
+
+    it("does not filter when id is empty", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withExcludedBookParticipant(undefined)
+        .build();
+
+      expect(mockQuery.neq).not.toHaveBeenCalled();
+      expect(mockQuery.not).not.toHaveBeenCalled();
     });
   });
 
@@ -69,37 +168,41 @@ describe("BookQueryBuilder", () => {
 
     it("applies contains filter with the provided readers", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
-        .withReaders(["Matheus", "Fabi"])
+        .withReaders([
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+        ])
         .build();
 
       expect(mockQuery.contains).toHaveBeenCalledWith(
         "readers",
-        ["Fabi", "Matheus"],
+        [
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+        ],
       );
     });
 
-    it("normalizes reader order so ['Matheus','Fabi'] and ['Fabi','Matheus'] produce the same query", () => {
+    it("normalizes reader order so permutations produce the same query", () => {
       const mockQueryA = buildMockQuery();
       const mockQueryB = buildMockQuery();
       const supabaseA = buildMockSupabase(mockQueryA);
       const supabaseB = buildMockSupabase(mockQueryB);
 
+      const a = "11111111-1111-4111-8111-111111111111";
+      const b = "22222222-2222-4222-8222-222222222222";
+
       new BookQueryBuilder(supabaseA, mockQueryA as never)
-        .withReaders(["Matheus", "Fabi"])
+        .withReaders([a, b])
         .build();
 
       new BookQueryBuilder(supabaseB, mockQueryB as never)
-        .withReaders(["Fabi", "Matheus"])
+        .withReaders([b, a])
         .build();
 
-      expect(mockQueryA.contains).toHaveBeenCalledWith("readers", [
-        "Fabi",
-        "Matheus",
-      ]);
-      expect(mockQueryB.contains).toHaveBeenCalledWith("readers", [
-        "Fabi",
-        "Matheus",
-      ]);
+      const sorted = [a, b].sort();
+      expect(mockQueryA.contains).toHaveBeenCalledWith("readers", sorted);
+      expect(mockQueryB.contains).toHaveBeenCalledWith("readers", sorted);
     });
 
     it("does not apply filter when readers is undefined", () => {
@@ -120,15 +223,106 @@ describe("BookQueryBuilder", () => {
 
     it("applies filter with a single reader", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
-        .withReaders(["Matheus"])
+        .withReaders(["11111111-1111-4111-8111-111111111111"])
         .build();
 
-      expect(mockQuery.contains).toHaveBeenCalledWith("readers", ["Matheus"]);
+      expect(mockQuery.contains).toHaveBeenCalledWith("readers", [
+        "11111111-1111-4111-8111-111111111111",
+      ]);
     });
 
     it("returns the builder instance to support method chaining", () => {
       const builder = new BookQueryBuilder(supabase, mockQuery as never);
-      const returned = builder.withReaders(["Fabi"]);
+      const returned = builder.withReaders([
+        "22222222-2222-4222-8222-222222222222",
+      ]);
+
+      expect(returned).toBe(builder);
+    });
+  });
+
+  describe("withStatus", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("filters by paused and abandoned statuses", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withStatus(["paused", "abandoned"])
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "status.eq.paused,status.eq.abandoned",
+      );
+    });
+
+    it("does not apply status filter when status list is empty", () => {
+      new BookQueryBuilder(supabase, mockQuery as never).withStatus([]).build();
+
+      expect(mockQuery.or).not.toHaveBeenCalled();
+    });
+
+    it("applies guard for planned filter including only scheduled not_started", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withStatus(["planned"])
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "status.eq.planned,and(status.eq.not_started,planned_start_date.not.is.null)",
+      );
+    });
+
+    it("keeps other statuses when planned is combined with additional filters", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withStatus(["finished", "planned"])
+        .build();
+
+      expect(mockQuery.or).toHaveBeenCalledWith(
+        "status.eq.finished,status.eq.planned,and(status.eq.not_started,planned_start_date.not.is.null)",
+      );
+    });
+  });
+
+  describe("withReread", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("applies eq filter for is_reread when isReread is true", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReread(true)
+        .build();
+
+      expect(mockQuery.eq).toHaveBeenCalledWith("is_reread", true);
+    });
+
+    it("does not apply filter when isReread is false", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReread(false)
+        .build();
+
+      expect(mockQuery.eq).not.toHaveBeenCalled();
+    });
+
+    it("does not apply filter when isReread is undefined", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReread(undefined)
+        .build();
+
+      expect(mockQuery.eq).not.toHaveBeenCalled();
+    });
+
+    it("returns the builder instance to support method chaining", () => {
+      const builder = new BookQueryBuilder(supabase, mockQuery as never);
+      const returned = builder.withReread(true);
 
       expect(returned).toBe(builder);
     });

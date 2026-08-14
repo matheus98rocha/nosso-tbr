@@ -1,10 +1,29 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { parseFiltersFromSearchParams } from "./parseFiltersFromSearchParams";
 
 const buildParams = (entries: Record<string, string>) =>
   new URLSearchParams(entries);
 
 describe("parseFiltersFromSearchParams", () => {
+  describe("view parsing", () => {
+    it('defaults view to "todos" when param is absent', () => {
+      const { filters } = parseFiltersFromSearchParams(buildParams({}));
+      expect(filters.view).toBe("todos");
+    });
+
+    it('parses view=joint when explicitly informed', () => {
+      const { filters } = parseFiltersFromSearchParams(buildParams({ view: "joint" }));
+      expect(filters.view).toBe("joint");
+    });
+
+    it('parses view=seguindo when explicitly informed', () => {
+      const { filters } = parseFiltersFromSearchParams(
+        buildParams({ view: "seguindo" }),
+      );
+      expect(filters.view).toBe("seguindo");
+    });
+  });
+
   describe("year parsing", () => {
     it("parses a valid year param as a number", () => {
       const params = buildParams({ year: "2024" });
@@ -52,6 +71,26 @@ describe("parseFiltersFromSearchParams", () => {
     });
   });
 
+  describe("isReread parsing", () => {
+    it("parses isReread=true as true", () => {
+      const params = buildParams({ isReread: "true" });
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.isReread).toBe(true);
+    });
+
+    it("returns undefined when isReread param is absent", () => {
+      const params = buildParams({});
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.isReread).toBeUndefined();
+    });
+
+    it("returns undefined for non-true isReread value", () => {
+      const params = buildParams({ isReread: "false" });
+      const { filters } = parseFiltersFromSearchParams(params);
+      expect(filters.isReread).toBeUndefined();
+    });
+  });
+
   describe("existing fields are preserved when year is present", () => {
     it("parses status, gender and year together", () => {
       const params = buildParams({
@@ -78,9 +117,15 @@ describe("parseFiltersFromSearchParams", () => {
   describe("round-trip consistency with buildQueryStringFromFilters", () => {
     it("year survives a serialize → parse round-trip", async () => {
       const { buildQueryStringFromFilters } = await import(
-        "@/utils/buildQueryStringFromFilters/buildQueryStringFromFilters"
+        "@/utils/buildQueryStringFromFilters"
       );
-      const original = { readers: [], status: [], gender: [], year: 2026 };
+      const original = {
+        readers: [],
+        status: [],
+        gender: [],
+        view: "todos" as const,
+        year: 2026,
+      };
       const qs = buildQueryStringFromFilters(original);
       const { filters } = parseFiltersFromSearchParams(new URLSearchParams(qs));
       expect(filters.year).toBe(2026);

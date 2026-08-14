@@ -1,33 +1,42 @@
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import z from "zod";
 
-export type Status = "reading" | "finished" | "not_started" | "planned";
+export type Status =
+  | "reading"
+  | "finished"
+  | "not_started"
+  | "planned"
+  | "paused"
+  | "abandoned";
 
 export type BookPersistence = {
   id?: string;
   title: string;
   author: {
     name: string;
-  };
-  author_id: string;
-  chosen_by: "Matheus" | "Fabi" | "Barbara";
+  } | null;
+  author_id: string | null;
+  chosen_by: string;
   pages: number;
+  status?: Status;
   start_date?: string | null;
   planned_start_date?: string | null;
   end_date?: string | null;
-  inserted_at?: string;
+  inserted_at?: string | null;
   readers: string[];
   gender: string | null;
-  image_url: string;
-  user_id: string;
+  image_url: string | null;
+  user_id: string | null;
+  is_reread?: boolean;
 };
 
 export type CreateBookPersistence = {
   id?: string;
   title: string;
   author_id: string;
-  chosen_by: "Matheus" | "Fabi" | "Barbara";
+  chosen_by: string;
   pages: number;
+  status?: Status;
   start_date?: string | null;
   planned_start_date?: string | null;
   end_date?: string | null;
@@ -35,32 +44,29 @@ export type CreateBookPersistence = {
   readers: string[];
   gender: string | null;
   image_url: string;
-  user_id: string;
+  /** `null` quando ausente; nunca string vazia (UUID inválido no Postgres). */
+  user_id: string | null;
+  is_reread?: boolean;
 };
-export type BookCreateValidator = z.infer<typeof bookCreateSchema> & {
-  id?: string;
-  status?: Status;
-};
+export type BookCreateValidator = z.infer<typeof bookCreateSchema>;
 
 export type BookDomain = {
   id?: string;
   title: string;
   author: string;
   authorId?: string;
-  chosen_by: "Matheus" | "Fabi" | "Barbara";
+  chosen_by: string;
   pages: number;
   status?: Status;
-  readers:
-    | "Matheus"
-    | "Fabi"
-    | "Matheus e Fabi"
-    | "Barbara e Fabi"
-    | "Matheus e Barbara"
-    | "Barbara, Fabi e Matheus";
+  readerIds: string[];
+  readersDisplay: string;
   start_date?: string | null;
   planned_start_date?: string | null;
   end_date?: string | null;
   gender: string | null;
   image_url: string;
   user_id: string;
+  is_reread: boolean;
+  is_favorite: boolean;
+  reading_rating_stars?: number | null;
 };

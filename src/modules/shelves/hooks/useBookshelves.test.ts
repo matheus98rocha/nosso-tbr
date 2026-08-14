@@ -1,8 +1,11 @@
-import { renderHook, act } from "@testing-library/react";
-import { vi, Mock } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { Mock, vi } from "vitest";
 import { useBookshelves } from "./useBookshelves";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ApiError } from "@/lib/api/clientJsonFetch";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn(),
@@ -13,6 +16,12 @@ vi.mock("@tanstack/react-query", () => ({
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(),
 }));
+
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(),
+}));
+
+vi.mock("sonner", () => ({ toast: vi.fn() }));
 
 vi.mock("@/stores/userStore", () => ({
   useUserStore: vi.fn(() => ({ id: "user-1", display_name: "Matheus" })),
@@ -31,6 +40,10 @@ vi.mock("@/modules/shelves/services/booksshelves.service", () => ({
 
 const mockMutate = vi.fn();
 const mockInvalidateQueries = vi.fn();
+const mockPush = vi.fn();
+
+/** UI aberto — alinhado a `enabled: isLoggedIn && isOpen` no hook */
+const shelvesWhenOpen = { isOpen: true as const };
 
 const mockShelves = [
   { id: "shelf-1", name: "Favoritos", books: [] },
@@ -49,10 +62,17 @@ function setupMocks({
   isFetched?: boolean;
 } = {}) {
   (useIsLoggedIn as Mock).mockReturnValue(isLoggedIn);
+  (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
   (useQueryClient as Mock).mockReturnValue({
     invalidateQueries: mockInvalidateQueries,
   });
-  (useQuery as Mock).mockReturnValue({ data, isLoading, isFetched, error: null });
+  (useQuery as Mock).mockReturnValue({
+    data,
+    isLoading,
+    isFetched,
+    error: null,
+    isError: false,
+  });
   (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
 }
 
@@ -64,17 +84,25 @@ describe("useBookshelves", () => {
   describe("RN18 — guard de autenticação", () => {
     it("passa enabled: false para useQuery quando não está logado", () => {
       setupMocks({ isLoggedIn: false, data: undefined });
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: false }),
       );
     });
 
-    it("passa enabled: true para useQuery quando está logado", () => {
+    it("passa enabled: true para useQuery quando está logado e a UI está aberta", () => {
       setupMocks({ isLoggedIn: true });
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it("passa enabled: false para useQuery quando está logado mas a UI está fechada (isOpen: false)", () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() => useBookshelves({ isOpen: false }));
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
       );
     });
 
@@ -85,11 +113,13 @@ describe("useBookshelves", () => {
         isLoading: false,
         isFetched: false,
         error: null,
+        isError: false,
       });
       (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
       (useQueryClient as Mock).mockReturnValue({ invalidateQueries: vi.fn() });
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
 
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.bookshelves).toBeUndefined();
     });
   });
@@ -97,7 +127,7 @@ describe("useBookshelves", () => {
   describe("RN19 — staleTime em queries compartilhadas", () => {
     it("declara staleTime de 5 minutos (300000ms)", () => {
       setupMocks();
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ staleTime: 1000 * 60 * 5 }),
       );
@@ -107,7 +137,7 @@ describe("useBookshelves", () => {
   describe("queryKey", () => {
     it("usa queryKey [\"bookshelves\"]", () => {
       setupMocks();
-      renderHook(() => useBookshelves({}));
+      renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(useQuery).toHaveBeenCalledWith(
         expect.objectContaining({ queryKey: ["bookshelves"] }),
       );
@@ -117,19 +147,19 @@ describe("useBookshelves", () => {
   describe("retorno de dados", () => {
     it("expõe bookshelves quando logado e dados disponíveis", () => {
       setupMocks({ isLoggedIn: true });
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.bookshelves).toEqual(mockShelves);
     });
 
     it("expõe isFetching true enquanto carrega", () => {
       setupMocks({ isLoading: true });
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.isFetching).toBe(true);
     });
 
     it("expõe isFetched true após carga completa", () => {
       setupMocks({ isFetched: true });
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       expect(result.current.isFetched).toBe(true);
     });
   });
@@ -137,7 +167,7 @@ describe("useBookshelves", () => {
   describe("mutação — criar / editar estante", () => {
     it("chama mutate ao criar uma estante nova", () => {
       setupMocks();
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       act(() => result.current.mutate({ name: "Nova Estante" }));
       expect(mockMutate).toHaveBeenCalledWith({ name: "Nova Estante" });
     });
@@ -151,6 +181,7 @@ describe("useBookshelves", () => {
         isLoading: false,
         isFetched: true,
         error: null,
+        isError: false,
       });
       (useMutation as Mock).mockImplementation(({ onSuccess }) => ({
         mutate: (payload: unknown) => {
@@ -161,7 +192,7 @@ describe("useBookshelves", () => {
       }));
 
       const { result } = renderHook(() =>
-        useBookshelves({ handleClose }),
+        useBookshelves({ ...shelvesWhenOpen, handleClose }),
       );
       act(() => result.current.mutate({ name: "Estante X" }));
       expect(handleClose).toHaveBeenCalledWith(false);
@@ -175,6 +206,7 @@ describe("useBookshelves", () => {
         isLoading: false,
         isFetched: true,
         error: null,
+        isError: false,
       });
       (useMutation as Mock).mockImplementation(({ onSuccess }) => ({
         mutate: (payload: unknown) => {
@@ -184,11 +216,38 @@ describe("useBookshelves", () => {
         isPending: false,
       }));
 
-      const { result } = renderHook(() => useBookshelves({}));
+      const { result } = renderHook(() => useBookshelves(shelvesWhenOpen));
       act(() => result.current.mutate({ name: "Estante Y" }));
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ["bookshelves"],
       });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ["bookshelf-meta"],
+      });
+    });
+  });
+
+  describe("tratamento de sessão expirada", () => {
+    it("exibe toast e redireciona para /auth quando query retorna 401", () => {
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
+      (useQueryClient as Mock).mockReturnValue({ invalidateQueries: mockInvalidateQueries });
+      (useQuery as Mock).mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isFetched: true,
+        error: new ApiError("Unauthorized", 401),
+        isError: true,
+      });
+      (useMutation as Mock).mockReturnValue({ mutate: mockMutate, isPending: false });
+
+      renderHook(() => useBookshelves(shelvesWhenOpen));
+
+      expect(toast).toHaveBeenCalledWith("Sessão expirada", {
+        description: "Faça login novamente para continuar.",
+        className: "toast-error",
+      });
+      expect(mockPush).toHaveBeenCalledWith("/auth");
     });
   });
 });

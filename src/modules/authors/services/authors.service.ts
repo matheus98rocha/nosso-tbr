@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { AuthorDomain, AuthorPersistence } from "../types";
 import { AuthorMapper } from "./mappers/authors.mapper";
@@ -9,21 +10,13 @@ export class AuthorsService {
 
   async createAuthor(name: string): Promise<{ id: string; name: string }> {
     try {
-      const { data, error } = await this.supabase
-        .from("authors")
-        .insert({ name })
-        .select("id, name")
-        .single();
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao criar autor",
-          undefined,
-          undefined,
-          error,
-          { name },
-        );
-      }
+      const data = await apiJson<{ id: string; name: string }>(
+        "/api/authors",
+        {
+          method: "POST",
+          body: JSON.stringify({ name }),
+        },
+      );
 
       if (!data) {
         throw new RepositoryError(
@@ -49,21 +42,10 @@ export class AuthorsService {
 
   async editAuthor(name: string, id: string) {
     try {
-      const payload = { name, id };
-      const { error } = await this.supabase
-        .from("authors")
-        .update(payload)
-        .eq("id", id);
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao editar autor",
-          undefined,
-          undefined,
-          error,
-          { id, name },
-        );
-      }
+      await apiJson<{ ok: true }>(`/api/authors/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name }),
+      });
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "AuthorsService",
@@ -78,20 +60,9 @@ export class AuthorsService {
 
   async deleteAuthor(id: string) {
     try {
-      const { error } = await this.supabase
-        .from("authors")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao deletar autor",
-          undefined,
-          undefined,
-          error,
-          { id },
-        );
-      }
+      await apiJson<{ ok: true }>(`/api/authors/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "AuthorsService",

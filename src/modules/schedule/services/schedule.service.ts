@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import {
   ScheduleCreateValidator,
   ScheduleDomain,
@@ -11,21 +12,18 @@ export class ScheduleUpsertService {
 
   async createMany(schedules: ScheduleCreateValidator[]): Promise<void> {
     try {
-      const payload = schedules.map((schedule) =>
-        ScheduleUpsertMapper.toPersistence(schedule),
-      );
+      const serializable = schedules.map((s) => ({
+        book_id: s.book_id,
+        owner: s.owner,
+        date: s.date instanceof Date ? s.date.toISOString() : s.date,
+        chapters: s.chapters,
+        completed: s.completed,
+      }));
 
-      const { error } = await this.supabase.from("schedule").insert(payload);
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao criar cronograma",
-          undefined,
-          undefined,
-          error,
-          { schedules },
-        );
-      }
+      await apiJson<{ ok: true }>("/api/schedule", {
+        method: "POST",
+        body: JSON.stringify({ schedules: serializable }),
+      });
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "ScheduleService",
@@ -72,21 +70,14 @@ export class ScheduleUpsertService {
     owner: string,
   ): Promise<void> {
     try {
-      const { error } = await this.supabase
-        .from("schedule")
-        .update({ completed: isCompleted })
-        .eq("id", scheduleId)
-        .eq("owner", owner);
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao atualizar status de leitura do cronograma",
-          undefined,
-          undefined,
-          error,
-          { scheduleId, isCompleted },
-        );
-      }
+      void owner;
+      await apiJson<{ ok: true }>(
+        `/api/schedule/${encodeURIComponent(scheduleId)}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ completed: isCompleted }),
+        },
+      );
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "ScheduleService",
@@ -100,21 +91,11 @@ export class ScheduleUpsertService {
   }
   async deleteSchedule(bookId: string, userId: string): Promise<void> {
     try {
-      const { error } = await this.supabase
-        .from("schedule")
-        .delete()
-        .eq("book_id", bookId)
-        .eq("owner", userId);
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao deletar cronograma",
-          undefined,
-          undefined,
-          error,
-          { bookId },
-        );
-      }
+      void userId;
+      const q = new URLSearchParams({ bookId });
+      await apiJson<{ ok: true }>(`/api/schedule?${q.toString()}`, {
+        method: "DELETE",
+      });
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "ScheduleService",

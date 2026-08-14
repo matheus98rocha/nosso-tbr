@@ -1,15 +1,12 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
-import { DataTable } from "./components/dataTable";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AuthorDomain } from "./types";
 import { AuthorsService } from "./services/authors.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createColumns } from "./components/columns";
-import AuthorUpsert from "./components/authorUpsert";
-import { ConfirmDialog } from "@/components";
+import { AuthorUpsert, createColumns, DataTable } from "./components";
+import { ConfirmDialog, DefaultPagination } from "@/components";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-import DefaultPagination from "@/components/pagintation/pagination";
 import { QUERY_KEYS } from "@/constants/keys";
 
 const PAGE_SIZE = 10;

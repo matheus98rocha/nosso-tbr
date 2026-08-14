@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("formatters", () => {
   beforeEach(() => {
@@ -134,6 +134,20 @@ describe("formatters", () => {
 
       const result = formatStatus(["reading", "unknown"]);
       expect(result).toBe('"Reading" e "unknown"');
+    });
+  });
+
+  describe("formatBookPagesLabel", () => {
+    it("returns suffix when pages present", async () => {
+      const { formatBookPagesLabel } = await import("./formatters");
+      expect(formatBookPagesLabel(256)).toBe("256 pág.");
+    });
+
+    it("returns null when pages missing or zero", async () => {
+      const { formatBookPagesLabel } = await import("./formatters");
+      expect(formatBookPagesLabel(undefined)).toBeNull();
+      expect(formatBookPagesLabel(null)).toBeNull();
+      expect(formatBookPagesLabel(0)).toBeNull();
     });
   });
 

@@ -1,0 +1,26 @@
+import type { ChangeEvent } from "react";
+
+export type ClientProfileCommunityRow = {
+  memberId: string;
+  displayName: string;
+  email: string | null;
+  isFollowing: boolean;
+  isToggleBusy: boolean;
+  onToggle: () => void;
+};
+
+export type ClientProfileViewModel = {
+  displayName: string;
+  userEmail: string;
+  avatarInitials: string;
+  avatarSeed: string | null;
+  formattedAccountCreated: string;
+  formattedLastSignIn: string;
+  followingCount: number;
+  searchQuery: string;
+  onCommunitySearchChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onClearCommunitySearch: () => void;
+  communityRows: ClientProfileCommunityRow[];
+  isDirectoryLoading: boolean;
+  isCommunityEmpty: boolean;
+};

@@ -1,7 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { bookCreateSchema } from "../home/validators/createBook.validator";
 import { BookUpsertMapper } from "./services/mappers/bookUpsert.mapper";
 import { BookCreateValidator } from "@/types/books.types";
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
+
+const READER_A = "11111111-1111-4111-8111-111111111111";
 
 function createValidBook(
   overrides?: Partial<BookCreateValidator>,
@@ -10,12 +13,12 @@ function createValidBook(
     id: "book-1",
     title: "Livro de Teste",
     author_id: "author-1",
-    chosen_by: "Matheus",
+    chosen_by: READER_A,
     pages: 100,
-    readers: "Matheus",
+    readers: [READER_A],
     image_url: "https://amazon.com/image.jpg",
     gender: "Fantasia",
-    user_id: "user-1",
+    user_id: READER_A,
     ...overrides,
   };
 }
@@ -46,17 +49,12 @@ function invokeHandleChosenByChange(
 
   field.onChange(selectedUserId);
 
-  const selectedOption = chosenByOptions.find(
-    (opt) => opt.value === selectedUserId,
-  );
-
-  setValue("chosen_by", selectedOption?.label, { shouldValidate: true });
+  setValue("chosen_by", selectedUserId, { shouldValidate: true });
 }
 
 const defaultChosenByOptions: ChosenByOption[] = [
   { label: "Matheus", value: "user-matheus" },
-  { label: "Fabi", value: "user-fabi" },
-  { label: "Barbara", value: "user-barbara" },
+  { label: "John Doe", value: "user-john-doe" },
 ];
 
 describe("handleChosenByChange - lógica de seleção/deseleção", () => {
@@ -72,7 +70,7 @@ describe("handleChosenByChange - lógica de seleção/deseleção", () => {
     );
 
     expect(field.onChange).toHaveBeenCalledWith("user-matheus");
-    expect(setValue).toHaveBeenCalledWith("chosen_by", "Matheus", {
+    expect(setValue).toHaveBeenCalledWith("chosen_by", "user-matheus", {
       shouldValidate: true,
     });
   });
@@ -103,11 +101,11 @@ describe("handleChosenByChange - lógica de seleção/deseleção", () => {
       field,
       setValue,
       defaultChosenByOptions,
-      "user-fabi",
+      "user-john-doe",
     );
 
-    expect(field.onChange).toHaveBeenCalledWith("user-fabi");
-    expect(setValue).toHaveBeenCalledWith("chosen_by", "Fabi", {
+    expect(field.onChange).toHaveBeenCalledWith("user-john-doe");
+    expect(setValue).toHaveBeenCalledWith("chosen_by", "user-john-doe", {
       shouldValidate: true,
     });
   });
@@ -124,20 +122,20 @@ describe("handleChosenByChange - lógica de seleção/deseleção", () => {
     );
 
     expect(field.onChange).toHaveBeenCalledWith("user-unknown");
-    expect(setValue).toHaveBeenCalledWith("chosen_by", undefined, {
+    expect(setValue).toHaveBeenCalledWith("chosen_by", "user-unknown", {
       shouldValidate: true,
     });
   });
 
   it("não deve chamar onChange uma segunda vez no fluxo de deseleção", () => {
-    const field = buildChosenByField("user-barbara");
+    const field = buildChosenByField("user-john-doe");
     const setValue = buildFormSetValue();
 
     invokeHandleChosenByChange(
       field,
       setValue,
       defaultChosenByOptions,
-      "user-barbara",
+      "user-john-doe",
     );
 
     expect(field.onChange).toHaveBeenCalledTimes(1);
@@ -174,9 +172,9 @@ describe("BookUpsert - campo user_id (Quem escolheu?)", () => {
 });
 
 describe("BookUpsert - campo chosen_by", () => {
-  it("deve falhar quando chosen_by não pertence ao enum", () => {
+  it("deve falhar quando chosen_by estiver vazio", () => {
     const result = bookCreateSchema.safeParse(
-      createValidBook({ chosen_by: "Inexistente" as "Matheus" }),
+      createValidBook({ chosen_by: "" }),
     );
 
     expect(result.success).toBe(false);
@@ -187,12 +185,16 @@ describe("BookUpsert - campo chosen_by", () => {
     }
   });
 
-  it("deve aceitar os três valores válidos do enum chosen_by", () => {
-    const validValues = ["Matheus", "Fabi", "Barbara"] as const;
+  it("deve aceitar UUIDs válidos em chosen_by", () => {
+    const validValues = [
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+    ] as const;
 
     for (const chosenBy of validValues) {
       const result = bookCreateSchema.safeParse(
-        createValidBook({ chosen_by: chosenBy }),
+        createValidBook({ chosen_by: chosenBy, user_id: chosenBy }),
       );
       expect(result.success).toBe(true);
     }
@@ -256,7 +258,7 @@ describe("BookUpsert - regras de negócio do schema", () => {
   });
 
   it("deve falhar quando readers estiver vazio (RN01)", () => {
-    const result = bookCreateSchema.safeParse(createValidBook({ readers: "" }));
+    const result = bookCreateSchema.safeParse(createValidBook({ readers: [] }));
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -303,6 +305,40 @@ describe("BookUpsert - regras de negócio do schema", () => {
       expect(
         result.error.issues.some((issue) => issue.path[0] === "image_url"),
       ).toBe(true);
+    }
+  });
+
+  it("deve aceitar image_url vazio ou ausente (RN04 — opcional)", () => {
+    const empty = bookCreateSchema.safeParse(
+      createValidBook({ image_url: "" }),
+    );
+    expect(empty.success).toBe(true);
+
+    const book = createValidBook();
+    delete (book as Partial<BookCreateValidator>).image_url;
+    const omitted = bookCreateSchema.safeParse(book);
+    expect(omitted.success).toBe(true);
+  });
+
+  it("deve persistir capa padrão quando image_url estiver vazio (RN04)", () => {
+    const result = bookCreateSchema.safeParse(
+      createValidBook({ image_url: "" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const persistence = BookUpsertMapper.toPersistence(result.data);
+      expect(persistence.image_url).toBe(BOOK_COVER_PLACEHOLDER_SRC);
+    }
+  });
+
+  it("deve enviar user_id null em vez de string vazia (UUID válido no Postgres)", () => {
+    const result = bookCreateSchema.safeParse(
+      createValidBook({ user_id: "" }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const persistence = BookUpsertMapper.toPersistence(result.data);
+      expect(persistence.user_id).toBeNull();
     }
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildQueryStringFromFilters } from "./buildQueryStringFromFilters";
 import { FiltersOptions } from "@/types/filters";
 
@@ -6,9 +6,36 @@ const baseFilters: FiltersOptions = {
   readers: [],
   status: [],
   gender: [],
+  view: "todos",
 };
 
 describe("buildQueryStringFromFilters", () => {
+  describe("view serialization", () => {
+    it("serializes view when joint is selected", () => {
+      const params = new URLSearchParams(
+        buildQueryStringFromFilters({ ...baseFilters, view: "joint" }),
+      );
+
+      expect(params.get("view")).toBe("joint");
+    });
+
+    it('does not serialize view when "todos" is selected', () => {
+      const params = new URLSearchParams(
+        buildQueryStringFromFilters({ ...baseFilters, view: "todos" }),
+      );
+
+      expect(params.get("view")).toBeNull();
+    });
+
+    it("serializes view when seguindo is selected", () => {
+      const params = new URLSearchParams(
+        buildQueryStringFromFilters({ ...baseFilters, view: "seguindo" }),
+      );
+
+      expect(params.get("view")).toBe("seguindo");
+    });
+  });
+
   describe("year serialization", () => {
     it("appends year param when year is provided", () => {
       const result = buildQueryStringFromFilters({ ...baseFilters, year: 2024 });
@@ -80,6 +107,38 @@ describe("buildQueryStringFromFilters", () => {
       expect(params.get("myBooks")).toBe("true");
       expect(params.get("status")).toBe("finished");
       expect(params.get("year")).toBe("2024");
+    });
+  });
+
+  describe("isReread serialization", () => {
+    it("appends isReread param when isReread is true", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters, isReread: true });
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBe("true");
+    });
+
+    it("does not append isReread param when isReread is false", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters, isReread: false });
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBeNull();
+    });
+
+    it("does not append isReread param when isReread is undefined", () => {
+      const result = buildQueryStringFromFilters({ ...baseFilters });
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBeNull();
+    });
+
+    it("preserves other filters alongside isReread", () => {
+      const filters: FiltersOptions = {
+        ...baseFilters,
+        status: ["reading"],
+        isReread: true,
+      };
+      const result = buildQueryStringFromFilters(filters);
+      const params = new URLSearchParams(result);
+      expect(params.get("isReread")).toBe("true");
+      expect(params.get("status")).toBe("reading");
     });
   });
 

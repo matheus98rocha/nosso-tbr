@@ -1,52 +1,52 @@
+import { ApiError, apiJson } from "@/lib/api/clientJsonFetch";
 import { createClient } from "@/lib/supabase/client";
+import { ErrorHandler } from "@/services/errors/error";
+import { BookshelfDomain } from "../types/bookshelves.types";
 import { BookshelfCreateValidator } from "../validators/bookshelves.validator";
-import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 
 export class BookshelfService {
   private supabase = createClient();
 
   async create(shelf: { name: string; user_id: string }): Promise<void> {
-    const { error } = await this.supabase
-      .from("custom_shelves")
-      .insert({ name: shelf.name, user_id: shelf.user_id });
-
-    if (error) throw new Error(error.message);
+    await apiJson<{ ok: true }>("/api/shelves", {
+      method: "POST",
+      body: JSON.stringify(shelf),
+    });
   }
   async update(id: string, shelf: BookshelfCreateValidator): Promise<void> {
-    const { error } = await this.supabase
-      .from("custom_shelves")
-      .update({ name: shelf.name })
-      .eq("id", id);
-
-    if (error) throw new Error(error.message);
+    await apiJson<{ ok: true }>(`/api/shelves/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: shelf.name }),
+    });
   }
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase
+    await apiJson<{ ok: true }>(`/api/shelves/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getShelfById(
+    id: string,
+  ): Promise<{ id: string; name: string } | null> {
+    const { data, error } = await this.supabase
       .from("custom_shelves")
-      .delete()
-      .eq("id", id);
+      .select("id, name")
+      .eq("id", id)
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
+    return data;
   }
   async addBookToShelf(bookshelfId: string, bookId: string): Promise<void> {
     try {
-      const { error } = await this.supabase.from("custom_shelf_books").insert({
-        shelf_id: bookshelfId,
-        book_id: bookId,
-      });
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao adicionar livro á estante",
-          undefined,
-          undefined,
-          error,
-          {
-            origin: "BookshelfService",
-          }
-        );
-      }
+      await apiJson<{ ok: true }>(
+        `/api/shelves/${encodeURIComponent(bookshelfId)}/books/${encodeURIComponent(bookId)}`,
+        { method: "POST" },
+      );
     } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
       const normalizedError = ErrorHandler.normalize(error, {
         service: "booksshelves",
         method: "create",
@@ -57,7 +57,7 @@ export class BookshelfService {
   }
 }
 
-export async function fetchBookShelves() {
+export async function fetchBookShelves(): Promise<BookshelfDomain[]> {
   const res = await fetch("/api/shelves", {
     next: { tags: ["shelves"] },
   });
@@ -66,5 +66,5 @@ export async function fetchBookShelves() {
     throw new Error("Failed to fetch shelves");
   }
 
-  return res.json();
+  return res.json() as Promise<BookshelfDomain[]>;
 }

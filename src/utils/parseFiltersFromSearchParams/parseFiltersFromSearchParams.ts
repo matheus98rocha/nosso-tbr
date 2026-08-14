@@ -1,4 +1,4 @@
-import { FiltersOptions } from "@/types/filters";
+import { FiltersOptions, SortOption } from "@/types/filters";
 
 export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   filters: FiltersOptions;
@@ -32,9 +32,31 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   const rawYear = searchParams.get("year");
   const year = rawYear ? parseInt(rawYear, 10) : undefined;
   const myBooks = searchParams.get("myBooks") === "true";
+  const isReread = searchParams.get("isReread") === "true" || undefined;
+  const viewParam = searchParams.get("view");
+  let view: FiltersOptions["view"] = "todos";
+  if (viewParam === "joint") view = "joint";
+  else if (viewParam === "seguindo") view = "seguindo";
+  const rawSort = searchParams.get("sort");
+  const sort: SortOption | undefined =
+    rawSort === "pages_asc" || rawSort === "pages_desc" ? rawSort : undefined;
+  const focusReaderId = searchParams.get("reader") ?? "";
 
   return {
-    filters: { readers, status, gender, userId, bookId, authorId, year, myBooks },
+    filters: {
+      readers,
+      status,
+      gender,
+      userId,
+      bookId,
+      authorId,
+      year,
+      myBooks,
+      isReread,
+      view,
+      sort,
+      focusReaderId,
+    },
     searchQuery,
   };
 }

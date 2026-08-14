@@ -1,20 +1,50 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "../../../database.types";
+import { Status } from "@/types/books.types";
+import { buildFtsQueryFromUserSearch } from "./buildFtsQueryFromUserSearch";
+
+const BOOKS_SELECT = `
+  *,
+  author:authors!books_author_id_fkey (
+    name
+  )
+`;
+
+function buildBaseQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("books").select(BOOKS_SELECT, { count: "exact" });
+}
+
+type BookQuery = ReturnType<typeof buildBaseQuery>;
 
 export class BookQueryBuilder {
-  private query: ReturnType<SupabaseClient<Database>["from"]>["select"];
+  private query: BookQuery;
+
+  private static buildStatusOrCondition(statuses: Status[]): string {
+    const unique = [...new Set(statuses)];
+    const hasPlanned = unique.includes("planned");
+
+    if (!hasPlanned) {
+      return unique.map((status) => `status.eq.${status}`).join(",");
+    }
+
+    const nonPlanned = unique.filter((status) => status !== "planned");
+    const conditions = [
+      ...nonPlanned.map((status) => `status.eq.${status}`),
+      "status.eq.planned",
+      "and(status.eq.not_started,planned_start_date.not.is.null)",
+    ];
+
+    return conditions.join(",");
+  }
+
+  private static quotePostgrestTextValue(value: string): string {
+    const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return `"${escaped}"`;
+  }
 
   constructor(
     supabase: SupabaseClient<Database>,
-    initialQuery = supabase.from("books").select(
-      `
-      *,
-      author:authors!books_author_id_fkey (
-        name
-      )
-    `,
-      { count: "exact" },
-    ),
+    initialQuery: BookQuery = buildBaseQuery(supabase),
   ) {
     this.query = initialQuery;
   }
@@ -26,30 +56,10 @@ export class BookQueryBuilder {
     return this;
   }
 
-  withStatus(
-    statuses?: ("not_started" | "reading" | "finished" | "planned")[],
-  ): this {
+  withStatus(statuses?: Status[]): this {
     if (!statuses || statuses.length === 0) return this;
-
-    const filters = statuses
-      .map((status) => {
-        if (status === "not_started") {
-          return `and(start_date.is.null,planned_start_date.is.null)`;
-        } else if (status === "planned") {
-          return `and(start_date.is.null,planned_start_date.not.is.null)`;
-        } else if (status === "reading") {
-          return `and(start_date.not.is.null,end_date.is.null)`;
-        } else if (status === "finished") {
-          return `and(start_date.not.is.null,end_date.not.is.null)`;
-        }
-        return "";
-      })
-      .filter(Boolean);
-
-    if (filters.length > 0) {
-      this.query = this.query.or(filters.join(","));
-    }
-
+    const statusCondition = BookQueryBuilder.buildStatusOrCondition(statuses);
+    this.query = this.query.or(statusCondition);
     return this;
   }
 
@@ -72,6 +82,14 @@ export class BookQueryBuilder {
 
     return this;
   }
+
+  withPageOrdering(sort: "pages_asc" | "pages_desc"): this {
+    this.query = this.query.order("pages", {
+      ascending: sort === "pages_asc",
+      nullsFirst: false,
+    });
+    return this;
+  }
   withGender(genders?: string[]): this {
     if (!genders || genders.length === 0) return this;
     if (genders.length === 1) {
@@ -83,21 +101,46 @@ export class BookQueryBuilder {
   }
 
   withSearchTerm(searchTerm?: string): this {
-    if (!searchTerm?.trim()) return this;
-    const cleanTerm = searchTerm.replace(/[^\w\sÀ-ÿ]/g, " ").trim();
-    const words = cleanTerm.split(/\s+/).filter((word) => word.length >= 1);
-
-    if (words.length > 0) {
-      const formattedSearch = words.map((word) => `${word}:*`).join(" & ");
-      this.query = this.query.filter("search_vector", "fts", formattedSearch);
-      const escapedWords = words.map((word) => word.replace(/[%]/g, "\\$&"));
-      const titleConditions = escapedWords.map((word) => `title.ilike.%${word}%`);
-      this.query = this.query.or(titleConditions.join(","));
-      const authorConditions = escapedWords.map((word) => `name.ilike.%${word}%`);
-      this.query = this.query.or(authorConditions.join(","), {
-        referencedTable: "authors",
+    const ftsQuery = buildFtsQueryFromUserSearch(searchTerm);
+    if (ftsQuery) {
+      this.query = this.query.textSearch("search_vector", ftsQuery, {
+        type: "plain",
+        config: "simple",
       });
     }
+    return this;
+  }
+
+  withExcludedBookParticipant(participantUserId?: string): this {
+    const id = participantUserId?.trim();
+    if (!id) return this;
+    const quoted = BookQueryBuilder.quotePostgrestTextValue(id);
+    this.query = this.query
+      .neq("chosen_by", id)
+      .not("readers", "cs", `{${quoted}}`);
+    return this;
+  }
+
+  withUserRelationship(userValues?: string | string[]): this {
+    const values = Array.isArray(userValues)
+      ? userValues.filter((value) => !!value?.trim())
+      : userValues
+        ? [userValues]
+        : [];
+
+    if (values.length === 0) return this;
+
+    const uniqueValues = [...new Set(values)].map((v) => v.trim());
+    const quotedValues = uniqueValues.map((value) =>
+      BookQueryBuilder.quotePostgrestTextValue(value),
+    );
+    const listForOv = quotedValues.join(",");
+    const listForIn = quotedValues.join(",");
+
+    this.query = this.query.or(
+      `readers.ov.{${listForOv}},chosen_by.in.(${listForIn})`,
+    );
+
     return this;
   }
 
@@ -117,6 +160,13 @@ export class BookQueryBuilder {
     }
     return this;
   }
+  withReread(isReread?: boolean): this {
+    if (isReread) {
+      this.query = this.query.eq("is_reread", true);
+    }
+    return this;
+  }
+
   withYear(year?: number): this {
     if (!year) return this;
 

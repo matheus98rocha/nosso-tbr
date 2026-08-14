@@ -8,77 +8,140 @@ import {
 } from "../../shelves/services/booksshelves.service";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { UseCreateBookDialog } from "../bookUpsert.types";
-import { ControllerRenderProps, useForm } from "react-hook-form";
+import {
+  ControllerRenderProps,
+  type DefaultValues,
+  useForm,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { LOCKED_BOOK_STATUSES } from "@/constants/bookStatuses";
+import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
+import { useRequireAuth } from "@/stores/hooks/useAuth";
+import { useBookPreCreationValidation } from "./useBookPreCreationValidation";
+import { QUERY_KEYS } from "@/constants/keys";
+import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
+import { ApiError } from "@/lib/api/clientJsonFetch";
+import { buildHomeUrlWithStatusFilter } from "@/utils/buildHomeUrlWithStatusFilter";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
   { id: "reading", label: "Já iniciei a leitura" },
+  { id: "paused", label: "Leitura pausada" },
+  { id: "abandoned", label: "Livro abandonado" },
   { id: "finished", label: "Terminei a Leitura" },
 ];
 
 export function useBookDialog({
   bookData,
   setIsBookFormOpen,
-  chosenByOptions,
+  isBookFormOpen,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isLoggedIn = useIsLoggedIn();
+  const authUser = useRequireAuth();
 
-  const [selected, setSelected] = useState<Status | null>(null);
+  const [selected, setSelected] = useState<Status | null>("not_started");
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
   const [selectedShelfId, setSelectedShelfId] = useState("");
-  const [isDuplicateBookDialogOpen, setIsDuplicateBookDialogOpen] =
-    useState<boolean>(false);
+  const [ratingPromptBookId, setRatingPromptBookId] = useState<string | null>(
+    null,
+  );
+
+  const handleDismissRatingPrompt = useCallback(() => {
+    setRatingPromptBookId(null);
+  }, []);
+
   const isEdit: boolean = Boolean(bookData && bookData.id);
 
   const bookUpsertService = useMemo(() => new BookUpsertService(), []);
   const bookshelfService = useMemo(() => new BookshelfService(), []);
+  const {
+    isDiscoveryOpen,
+    isParticipationBlockOpen,
+    isLinkingToExistingBook,
+    matchedBook,
+    validateBeforeCreate,
+    closeDiscovery,
+    closeParticipationBlock,
+    linkUserToExistingBook,
+    takePendingPayloadForCreation,
+  } = useBookPreCreationValidation({
+    isEdit,
+    currentUserId: authUser?.id,
+    bookUpsertService,
+  });
+
+  const emptyDefaults = useMemo(
+    (): DefaultValues<BookCreateValidator> => ({
+      title: "",
+      readers: authUser?.id ? [authUser.id] : [],
+      start_date: null,
+      end_date: null,
+      planned_start_date: null,
+      gender: "",
+      image_url: "",
+      chosen_by: authUser?.id ?? "",
+      user_id: authUser?.id ?? "",
+      author_id: "",
+      is_reread: false,
+    }),
+    [authUser?.id],
+  );
 
   const form = useForm<BookCreateValidator>({
     resolver: zodResolver(bookCreateSchema),
-    defaultValues: {
-      title: "",
-      pages: undefined,
-      readers: "",
-      start_date: null,
-      end_date: null,
-      gender: "",
-      image_url: "",
-      chosen_by: bookData?.chosen_by ?? ("" as "Matheus" | "Fabi" | "Barbara"),
-      user_id: bookData?.user_id ?? "",
-      ...bookData,
-      author_id: bookData?.authorId ?? "",
-    },
+    defaultValues: emptyDefaults,
   });
 
   const { reset, handleSubmit, control } = form;
 
-  const handleResetForm = useCallback(() => {
-    setIsBookFormOpen(false);
-    reset();
-    setSelected(null);
-    setIsAddToShelfEnabled(false);
-    setSelectedShelfId("");
-  }, [setIsBookFormOpen, reset]);
-
   useEffect(() => {
-    if (bookData) {
+    if (bookData?.id) {
+      reset({
+        ...emptyDefaults,
+        title: bookData.title,
+        pages: bookData.pages,
+        readers: [...bookData.readerIds],
+        chosen_by: bookData.chosen_by,
+        user_id: bookData.chosen_by,
+        author_id: bookData.authorId ?? "",
+        start_date: bookData.start_date ?? null,
+        end_date: bookData.end_date ?? null,
+        planned_start_date: bookData.planned_start_date ?? null,
+        gender: bookData.gender ?? "",
+        image_url: bookData.image_url ?? "",
+        status: bookData.status,
+        id: bookData.id,
+        is_reread: bookData.is_reread ?? false,
+      });
       setSelected(bookData.status ?? null);
     } else {
-      setSelected(null);
+      reset(emptyDefaults);
+      setSelected("not_started");
     }
-  }, [bookData]);
+  }, [bookData?.id, bookData, reset, emptyDefaults]);
+
+  const handleResetForm = useCallback(() => {
+    setIsBookFormOpen(false);
+    reset(emptyDefaults);
+    setSelected("not_started");
+    setIsAddToShelfEnabled(false);
+    setSelectedShelfId("");
+  }, [setIsBookFormOpen, reset, emptyDefaults]);
 
   const { data: bookshelves = [], isLoading: isLoadingBookshelves } = useQuery({
-    queryKey: ["bookshelves"],
-    queryFn: fetchBookShelves,
-    enabled: isLoggedIn,
+    queryKey: QUERY_KEYS.shelves.all,
+    queryFn: () => {
+      return fetchBookShelves();
+    },
+    enabled: isLoggedIn && isBookFormOpen,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -95,35 +158,98 @@ export function useBookDialog({
     mutationFn: async (data: BookCreateValidator) => {
       if (isEdit) {
         if (!bookData || !bookData.id) throw new Error("Erro inesperado.");
-        return await bookUpsertService.edit(bookData.id, data);
-      } else {
-        const createdBook = await bookUpsertService.create(data);
-        if (isAddToShelfEnabled && createdBook?.id) {
+        await bookUpsertService.edit(bookData.id, data);
+        return { mode: "edit" as const };
+      }
+      const createdBook = await bookUpsertService.create(data);
+      let shelfDuplicate = false;
+      if (isAddToShelfEnabled && createdBook?.id && selectedShelfId) {
+        try {
           await bookshelfService.addBookToShelf(
             selectedShelfId,
             createdBook.id,
           );
+        } catch (e) {
+          if (
+            e instanceof ApiError &&
+            e.status >= 400 &&
+            e.status < 500
+          ) {
+            shelfDuplicate = true;
+          } else {
+            throw e;
+          }
         }
-        return createdBook;
       }
+      return {
+        mode: "create" as const,
+        book: createdBook,
+        shelfDuplicate,
+      };
     },
-    onSuccess: async (result) => {
-      const createdBookId = isEdit ? bookData?.id : result?.id;
+    onSuccess: async (result, variables) => {
+      const createdBookId =
+        result.mode === "edit" ? bookData?.id : result.book.id;
+
+      const transitioningToFinished = variables.status === "finished";
+      const wasAlreadyFinished = Boolean(
+        isEdit && bookData?.status === "finished",
+      );
+      const promptTargetId =
+        result.mode === "edit" ? (bookData?.id ?? null) : result.book.id;
+      const shouldOpenRatingPrompt = Boolean(
+        transitioningToFinished &&
+          !wasAlreadyFinished &&
+          promptTargetId?.length,
+      );
 
       handleResetForm();
-      setIsDuplicateBookDialogOpen(false);
-      toast("Livro salvo com sucesso!");
+      closeDiscovery();
+      if (result.mode === "create" && result.shelfDuplicate) {
+        toast("Livro salvo com sucesso!", {
+          description: SHELF_BOOK_CANNOT_ADD_MESSAGE,
+        });
+      } else {
+        toast("Livro salvo com sucesso!");
+      }
 
       await queryClient.invalidateQueries({
         queryKey: ["books"],
         exact: false,
       });
 
-      if (!isEdit && createdBookId) {
+      const nextStatus = variables.status;
+      const previousStatus = bookData?.status;
+      const statusChanged =
+        result.mode === "edit" &&
+        !!nextStatus &&
+        previousStatus !== nextStatus;
+
+      if (statusChanged && pathname === "/") {
+        router.replace(
+          buildHomeUrlWithStatusFilter(
+            new URLSearchParams(searchParams.toString()),
+            nextStatus,
+          ),
+        );
+      } else if (!isEdit && createdBookId) {
         router.replace(`/?bookId=${createdBookId}`);
+      }
+
+      if (shouldOpenRatingPrompt && promptTargetId) {
+        setRatingPromptBookId(promptTargetId);
       }
     },
     onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast("Sessão expirada", {
+          description: "Faça login novamente para continuar.",
+          className: "toast-error",
+        });
+        router.push("/auth");
+        return;
+      }
+
       if (error instanceof Error) {
         toast("Erro ao salvar livro", {
           description: error.message || "Ocorreu um erro inesperado.",
@@ -135,31 +261,44 @@ export function useBookDialog({
 
   const onSubmit = useCallback(
     async (data: BookCreateValidator) => {
-      const isDuplicate = await bookUpsertService.checkDuplicateBook(
-        data.title,
-      );
+      const decision = await validateBeforeCreate(data);
+      if (decision.type === "block_duplicate") {
+        return;
+      }
 
-      if (isDuplicate && !isEdit) {
-        setIsDuplicateBookDialogOpen(true);
+      if (decision.type === "suggest_existing") {
         setIsBookFormOpen(false);
         return;
       }
 
-      const payload = { ...data };
+      const payload: BookCreateValidator = {
+        ...data,
+        status: selected ?? data.status ?? "not_started",
+      };
 
-      if (isEdit) {
-        if (selected === "not_started" || selected === "planned") {
-          payload.start_date = null;
-          payload.end_date = null;
-        } else if (selected === "reading") {
-          payload.end_date = null;
-          payload.planned_start_date = null;
-        }
+      if (payload.status === "not_started" || payload.status === "planned") {
+        payload.start_date = null;
+        payload.end_date = null;
+      }
+
+      if (payload.status === "reading") {
+        payload.end_date = null;
+        payload.planned_start_date = null;
+      }
+
+      if (payload.status === "paused") {
+        payload.planned_start_date = null;
+      }
+
+      if (payload.status === "abandoned") {
+        payload.start_date = null;
+        payload.end_date = null;
+        payload.planned_start_date = null;
       }
 
       return createBook.mutate(payload);
     },
-    [bookUpsertService, isEdit, createBook, setIsBookFormOpen, selected],
+    [validateBeforeCreate, createBook, setIsBookFormOpen, selected],
   );
 
   const handleOnChangePageNumber = useCallback(
@@ -183,32 +322,55 @@ export function useBookDialog({
 
       if (isDeselecting) {
         field.onChange("");
-        form.setValue("chosen_by", "" as "Matheus" | "Fabi" | "Barbara", {
-          shouldValidate: true,
-        });
+        form.setValue("chosen_by", "", { shouldValidate: true });
         return;
       }
 
       field.onChange(selectedUserId);
-
-      const selectedOption = chosenByOptions.find(
-        (opt) => opt.value === selectedUserId,
-      );
-
-      form.setValue(
-        "chosen_by",
-        selectedOption?.label as "Matheus" | "Fabi" | "Barbara",
-        { shouldValidate: true },
-      );
+      form.setValue("chosen_by", selectedUserId, { shouldValidate: true });
     },
-    [chosenByOptions, form],
+    [form],
   );
 
-  const handleConfirmCreateBook = useCallback(async () => {
-    setIsDuplicateBookDialogOpen(false);
-    const formData = form.getValues();
-    createBook.mutate(formData);
-  }, [form, createBook]);
+  const handleLinkToExistingBook = useCallback(async () => {
+    const linked = await linkUserToExistingBook();
+    if (!linked) {
+      return;
+    }
+
+    toast("Livro adicionado à sua biblioteca!");
+    await queryClient.invalidateQueries({ queryKey: ["books"], exact: false });
+    setIsBookFormOpen(false);
+  }, [linkUserToExistingBook, queryClient, setIsBookFormOpen]);
+
+  const handleIgnoreAndCreateNewBook = useCallback(() => {
+    const payload = takePendingPayloadForCreation();
+    if (!payload) {
+      return;
+    }
+    createBook.mutate(payload);
+  }, [createBook, takePendingPayloadForCreation]);
+
+  const handleStatusChange = useCallback(
+    (id: string) => {
+      const statusId = id as Status;
+
+      if (!isEdit && LOCKED_BOOK_STATUSES.includes(statusId)) {
+        return;
+      }
+
+      if (
+        isEdit &&
+        LOCKED_BOOK_STATUSES.includes(statusId) &&
+        bookData?.status !== "reading"
+      ) {
+        return;
+      }
+
+      setSelected((current) => (current === statusId ? null : statusId));
+    },
+    [bookData?.status, isEdit, setSelected],
+  );
 
   return {
     onSubmit,
@@ -226,10 +388,15 @@ export function useBookDialog({
     selectedShelfId,
     setSelectedShelfId,
 
-    isDuplicateBookDialogOpen,
-    setIsDuplicateBookDialogOpen,
+    isDiscoveryOpen,
+    isParticipationBlockOpen,
+    matchedBook,
+    isLinkingToExistingBook,
 
-    handleConfirmCreateBook,
+    handleLinkToExistingBook,
+    handleIgnoreAndCreateNewBook,
+    closeDiscovery,
+    closeParticipationBlock,
 
     form,
     reset,
@@ -242,5 +409,9 @@ export function useBookDialog({
 
     handleOnChangePageNumber,
     handleChosenByChange,
+    handleStatusChange,
+
+    ratingPromptBookId,
+    handleDismissRatingPrompt,
   };
 }

@@ -1,10 +1,10 @@
 import ClientBookshelves from "@/modules/bookshelves";
 
-async function BookshelvesPage() {
+function BookshelvesPage() {
   return (
-    <div>
+    <main className="mx-auto w-full max-w-7xl px-4 py-6 md:py-8">
       <ClientBookshelves />
-    </div>
+    </main>
   );
 }
 

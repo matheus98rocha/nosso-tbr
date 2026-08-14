@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const ReactQueryProvider = ({ children }: { children: React.ReactNode }) => {
   const staleTime = 1000 * 60 * 2;

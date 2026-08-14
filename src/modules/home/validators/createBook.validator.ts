@@ -1,11 +1,12 @@
 import { z } from "zod";
 
+const ALLOWED_IMAGE_HOST_RE =
+  /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com|books\.google\.com|covers\.openlibrary\.org)/;
+
 export const bookCreateSchema = z.object({
   title: z.string().min(1, { message: "O título do livro é obrigatório" }),
   author_id: z.string().min(1, { message: "O autor do livro é obrigatório" }),
-  chosen_by: z.enum(["Matheus", "Fabi", "Barbara"], {
-    message: "Quem escolheu o livro é obrigatório",
-  }),
+  chosen_by: z.string().min(1, { message: "Quem escolheu o livro é obrigatório" }),
   pages: z
     .number({
       message: "O número de páginas é obrigatório",
@@ -13,22 +14,46 @@ export const bookCreateSchema = z.object({
     .int("O número de páginas deve ser inteiro")
     .positive("O número de páginas deve ser positivo"),
   start_date: z.string().nullable().optional(),
-  planned_start_date: z.string().nullable().optional(), // Adicionado
+  planned_start_date: z.string().nullable().optional(),
   end_date: z.string().nullable().optional(),
   inserted_at: z.string().optional(),
-  readers: z.string().min(1, { message: "O leitor é obrigatório" }),
+  readers: z
+    .array(z.string().min(1))
+    .min(1, { message: "Selecione ao menos um leitor" }),
   gender: z.string().nullable().optional(),
   image_url: z
-    .url({ message: "A URL da imagem deve ser um endereço válido" })
-    .refine(
-      (url) =>
-        !url ||
-        /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com)/.test(
-          url,
-        ),
-      {
-        message: "A URL da imagem deve ser de um domínio da Amazon válido",
-      },
-    ),
+    .string()
+    .optional()
+    .superRefine((val, ctx) => {
+      if (val === undefined || val.trim() === "") return;
+      const trimmed = val.trim();
+      const urlCheck = z.string().url().safeParse(trimmed);
+      if (!urlCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A URL da imagem deve ser um endereço válido",
+        });
+        return;
+      }
+      if (!ALLOWED_IMAGE_HOST_RE.test(trimmed)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "A URL da imagem deve ser da Amazon, Google Books ou Open Library",
+        });
+      }
+    }),
   user_id: z.string().optional(),
+  id: z.string().optional(),
+  is_reread: z.boolean().optional(),
+  status: z
+    .enum([
+      "reading",
+      "finished",
+      "not_started",
+      "planned",
+      "paused",
+      "abandoned",
+    ])
+    .optional(),
 });

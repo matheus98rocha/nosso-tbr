@@ -1,8 +1,12 @@
-import { renderHook, act } from "@testing-library/react";
-import { vi, Mock } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement, type ReactNode } from "react";
+import { Mock, vi } from "vitest";
 import { useBookCard } from "./useBookCard";
 import { BookDomain } from "@/types/books.types";
 import { useRouter } from "next/navigation";
+import { BookService } from "@/services/books/books.service";
+import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 
 vi.mock("next/navigation", () => ({ useRouter: vi.fn() }));
 vi.mock("@/services/books/books.service");
@@ -11,24 +15,68 @@ vi.mock("@/hooks/useModal", () => ({
   useModal: () => ({ setIsOpen: vi.fn() }),
 }));
 vi.mock("@/stores/hooks/useAuth", () => ({ useIsLoggedIn: () => true }));
+vi.mock("@/stores/userStore", () => ({
+  useUserStore: vi.fn((selector: (state: unknown) => unknown) =>
+    selector({
+      user: { id: "user-123" },
+    }),
+  ),
+}));
+vi.mock("@/services/bookFavorites/hooks/useToggleBookFavorite", () => ({
+  useToggleBookFavorite: () => ({
+    toggle: vi.fn(),
+    isPending: false,
+  }),
+}));
 vi.mock("@/hooks/useSafeTap", () => ({ useSafeTap: (fn: () => void) => fn }));
+vi.mock("@/modules/bookUpsert/services/bookUpsert.service", () => ({
+  BookUpsertService: vi.fn(function BookUpsertServiceMock() {
+    return {
+      edit: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
+}));
+
+function createWrapper() {
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0, staleTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+
+  return {
+    client,
+    Wrapper({ children }: { children: ReactNode }) {
+      return createElement(QueryClientProvider, { client }, children);
+    },
+  };
+}
 
 const baseBook: BookDomain = {
   id: "1",
   title: "Test Book",
   author: "Test Author",
-  chosen_by: "Matheus",
+  chosen_by: "11111111-1111-4111-8111-111111111111",
   pages: 300,
-  readers: "Matheus e Barbara",
+  readerIds: ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"],
+  readersDisplay: "Matheus e John Doe",
   start_date: "2024-01-01",
   end_date: null,
   gender: "Fiction",
   image_url: "https://example.com/test.jpg",
   user_id: "user-123",
+  is_reread: false,
+  is_favorite: false,
 };
 
-const renderBookCardHook = (book = baseBook) =>
-  renderHook(() => useBookCard({ book }));
+const renderBookCardHook = (
+  book = baseBook,
+  options?: { isShelf?: boolean; shelfId?: string },
+) => {
+  const { Wrapper } = createWrapper();
+  return renderHook(() => useBookCard({ book, ...options }), { wrapper: Wrapper });
+};
 
 describe("useBookCard", () => {
   beforeEach(() => {
@@ -76,6 +124,32 @@ describe("useBookCard", () => {
         );
       });
 
+      it("should return correct badge for paused", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "paused",
+        });
+        expect(result.current.badgeObject.bookStatusClass).toBe(
+          "bg-violet-600 text-white",
+        );
+        expect(result.current.badgeObject.bookStatusText).toBe(
+          "Leitura pausada",
+        );
+      });
+
+      it("should return correct badge for abandoned", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "abandoned",
+        });
+        expect(result.current.badgeObject.bookStatusClass).toBe(
+          "bg-rose-600 text-white",
+        );
+        expect(result.current.badgeObject.bookStatusText).toBe(
+          "Livro abandonado",
+        );
+      });
+
       it("should return correct badge for finished", () => {
         const { result } = renderBookCardHook({
           ...baseBook,
@@ -87,6 +161,24 @@ describe("useBookCard", () => {
         expect(result.current.badgeObject.bookStatusText).toBe(
           "Terminei a Leitura",
         );
+      });
+
+      it("should show fallback label when finished without end_date", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "finished",
+          end_date: null,
+        });
+        expect(result.current.statusDisplay?.label).toBe("Leitura finalizada");
+      });
+
+      it("should show formatted end date when finished with end_date", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "finished",
+          end_date: "2024-06-15T12:00:00.000Z",
+        });
+        expect(result.current.statusDisplay?.label).toMatch(/^Finalizado em /);
       });
 
       it("should fallback to not_started for undefined status", () => {
@@ -121,6 +213,123 @@ describe("useBookCard", () => {
       });
     });
 
+    describe("handleConfirmDelete (RN55)", () => {
+      it("when isShelf is true and shelfId is empty, throws (RN55 guard)", async () => {
+        const { result } = renderBookCardHook(baseBook, {
+          isShelf: true,
+          shelfId: "",
+        });
+        await expect(
+          result.current.handleConfirmDelete("1"),
+        ).rejects.toThrow(/shelfId é obrigatório/);
+      });
+
+      it("when not shelf, deletes book and replaces route with home listing", async () => {
+        const replaceMock = vi.fn();
+        (useRouter as Mock).mockReturnValue({
+          push: vi.fn(),
+          replace: replaceMock,
+        });
+        const deleteMock = vi.fn().mockResolvedValue(undefined);
+        vi.mocked(BookService).mockImplementation(
+          class MockBookService {
+            delete = deleteMock;
+          } as unknown as typeof BookService,
+        );
+
+        const { result } = renderBookCardHook();
+
+        await act(async () => {
+          await result.current.handleConfirmDelete("1");
+        });
+
+        expect(deleteMock).toHaveBeenCalledWith("1");
+        expect(replaceMock).toHaveBeenCalledWith("/");
+      });
+
+      it("when isShelf and shelfId is set, removes book from shelf only", async () => {
+        const removeBookFromShelf = vi.fn().mockResolvedValue(undefined);
+        vi.mocked(BookshelfServiceBooks).mockImplementation(
+          class MockBookshelfBooks {
+            removeBookFromShelf = removeBookFromShelf;
+          } as unknown as typeof BookshelfServiceBooks,
+        );
+        (useRouter as Mock).mockReturnValue({
+          push: vi.fn(),
+          replace: vi.fn(),
+        });
+
+        const { result } = renderBookCardHook(baseBook, {
+          isShelf: true,
+          shelfId: "shelf-abc",
+        });
+
+        await act(async () => {
+          await result.current.handleConfirmDelete("1");
+        });
+
+        expect(removeBookFromShelf).toHaveBeenCalledWith("shelf-abc", "1");
+      });
+    });
+
+    describe("card footer actions", () => {
+      it("exibe ação de iniciar leitura para livros em not_started", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "not_started",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(true);
+        expect(result.current.showReadingProgress).toBe(false);
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("exibe ação de iniciar leitura para livros em planned", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "planned",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(true);
+        expect(result.current.showReadingProgress).toBe(false);
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("exibe ação de reiniciar leitura para livros em paused", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "paused",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(false);
+        expect(result.current.showResumeReadingAction).toBe(true);
+        expect(result.current.showReadingProgress).toBe(false);
+        expect(result.current.cardReadingActionLabel).toBe("Reiniciar leitura");
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("exibe progresso de leitura para livros em reading", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "reading",
+        });
+
+        expect(result.current.showStartReadingAction).toBe(false);
+        expect(result.current.showReadingProgress).toBe(true);
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("oculta ações do rodapé na estante", () => {
+        const { result } = renderBookCardHook(
+          { ...baseBook, status: "not_started" },
+          { isShelf: true, shelfId: "shelf-abc" },
+        );
+
+        expect(result.current.showStartReadingAction).toBe(false);
+        expect(result.current.showCardFooterAction).toBe(false);
+      });
+    });
+
     describe("shareOnWhatsApp", () => {
       beforeEach(() => {
         vi.spyOn(window, "open").mockImplementation(() => null);
@@ -129,9 +338,7 @@ describe("useBookCard", () => {
         vi.restoreAllMocks();
       });
       it("deve abrir o link correto no WhatsApp", () => {
-        const { result } = renderHook(() =>
-          useBookCard({ book: { ...baseBook } }),
-        );
+        const { result } = renderBookCardHook();
 
         act(() => {
           result.current.shareOnWhatsApp();

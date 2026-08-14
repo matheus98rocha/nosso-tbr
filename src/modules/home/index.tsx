@@ -1,21 +1,42 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
+import { BookUpsert } from "@/modules/bookUpsert";
 import { useHome } from "@/modules/home/hooks/useHome";
-import { useModal } from "@/hooks/useModal";
-import { ListGrid } from "../../components/listGrid/listGrid";
 import { BookDomain } from "../../types/books.types";
-import { BookCard } from "@/components/bookCard/bookCard";
-import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves/createEditBookshelves";
+import {
+  BookCard,
+  DefaultPagination,
+  ListGrid,
+  SortFilterChips,
+  StatusFilterChips,
+  YearFilterChips,
+} from "@/components";
+import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
+import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
 import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
-import DefaultPagination from "@/components/pagintation/pagination";
-import { StatusFilterChips } from "@/components/statusFilterChips/statusFilterChips";
-import { YearFilterChips } from "@/components/yearFilterChips/yearFilterChips";
-import { BookOpen, LogInIcon, Tag, Users } from "lucide-react";
+import {
+  ArrowDownUp,
+  BookOpen,
+  BookPlus,
+  LogInIcon,
+  Radar,
+  Tag,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useModal } from "@/hooks";
+import {
+  AiRecommendationDialog,
+  AiRecommendationFab,
+} from "@/modules/aiRecommendation";
+import type { BookSuggestion } from "@/modules/aiRecommendation";
+import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFilters";
+import ReadingNow from "@/modules/home/components/readingNow";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -35,37 +56,83 @@ export default function ClientHome() {
     activeFilterLabels,
     totalPages,
     handleToggleMyBooks,
+    handleSetAllBooks,
     handleSetJointReading,
+    handleSetFollowingFeed,
     handleToggleReader,
+    handleSetSort,
     isMyBooksActive,
+    isAllBooksActive,
+    isFollowingFeedActive,
+    followingFeedEmpty,
     isLoggedIn,
     checkIsUserActive,
     readers,
+    lockedReaderId,
+    needsExtraReader,
+    readingProgressBatch,
   } = useHome();
 
   const dialogModal = useModal();
   const createShelfDialog = useModal();
+  const aiRecommendationModal = useModal();
+  const [aiPrefilledTitle, setAiPrefilledTitle] = useState<string | null>(null);
   const isLoading = isLoadingAllBooks || isLoggingOut;
+
+  const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
+
+  const shouldSuggestFollowing =
+    !isLoading &&
+    isFetched &&
+    !isError &&
+    isLoggedIn &&
+    isAllBooksActive &&
+    (allBooks?.total ?? 0) === 0;
+
+  const handleBookFormOpenChange = useCallback(
+    (open: boolean) => {
+      dialogModal.setIsOpen(open);
+      if (!open) setAiPrefilledTitle(null);
+    },
+    [dialogModal],
+  );
+
+  const handlePickAiSuggestion = useCallback(
+    (suggestion: BookSuggestion) => {
+      setAiPrefilledTitle(suggestion.title);
+      dialogModal.setIsOpen(true);
+    },
+    [dialogModal],
+  );
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">
       <BookUpsert
         isBookFormOpen={dialogModal.isOpen}
-        setIsBookFormOpen={dialogModal.setIsOpen}
+        setIsBookFormOpen={handleBookFormOpenChange}
+        initialLookupQuery={aiPrefilledTitle}
       />
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
       />
+      <AiRecommendationDialog
+        isOpen={aiRecommendationModal.isOpen}
+        onOpenChange={aiRecommendationModal.setIsOpen}
+        onPickSuggestion={handlePickAiSuggestion}
+      />
+      {isLoggedIn && (
+        <AiRecommendationFab onClick={() => aiRecommendationModal.open()} />
+      )}
 
-      <header className="flex flex-col gap-4 mb-8">
+      <header className="flex flex-col gap-4 mb-5">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div className="space-y-1">
             {isLoading ? (
               <Skeleton className="h-full w-40" />
             ) : (
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                <span className="page-title tabular-nums text-zinc-900 dark:text-zinc-100">
                   {allBooks?.total || 0}
                 </span>
                 <span className="text-sm font-medium text-zinc-500 uppercase tracking-widest">
@@ -99,7 +166,7 @@ export default function ClientHome() {
           )}
         </div>
         {isLoggedIn ? (
-          <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+          <CollapsibleBookFilters activeFilterLabels={activeFilterLabels}>
             <div className="p-4 space-y-2.5">
               <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
                 <Users size={11} />
@@ -115,32 +182,71 @@ export default function ClientHome() {
                   </div>
                 ) : (
                   <div className="flex items-center flex-col gap-2">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={
-                          isMyBooksActive ? handleSetJointReading : undefined
-                        }
+                        onClick={handleSetAllBooks}
                         className={cn(
                           "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
-                          !isMyBooksActive
+                          isAllBooksActive
+                            ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                            : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
+                        )}
+                        aria-label="Ver todos os livros relacionados"
+                        aria-pressed={isAllBooksActive}
+                      >
+                        Todos
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSetJointReading}
+                        className={cn(
+                          "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                          isJointViewActive
                             ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
                             : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
                         )}
                         aria-label="Ver leituras conjuntas"
-                        aria-pressed={!isMyBooksActive}
+                        aria-pressed={isJointViewActive}
                       >
                         <Users
                           size={13}
                           className={cn(
                             "mr-1.5 transition-colors",
-                            !isMyBooksActive
+                            isJointViewActive
                               ? "text-white"
                               : "text-zinc-400 group-hover:text-inherit",
                           )}
                         />
                         Leituras Conjuntas
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSetFollowingFeed}
+                        className={cn(
+                          "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
+                          isFollowingFeedActive
+                            ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                            : "hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 text-zinc-500 border-zinc-100",
+                        )}
+                        aria-label="Ver livros de perfis que você segue"
+                        aria-pressed={isFollowingFeedActive}
+                      >
+                        <Radar
+                          size={13}
+                          className={cn(
+                            "mr-1.5 transition-colors",
+                            isFollowingFeedActive
+                              ? "text-white"
+                              : "text-zinc-400 group-hover:text-inherit",
+                          )}
+                        />
+                        Seguindo
                       </Button>
 
                       {isLoggedIn && (
@@ -170,28 +276,77 @@ export default function ClientHome() {
                         </Button>
                       )}
                     </div>
-                    <div className="flex gap-2 items-start justify-start w-full">
-                      {!isMyBooksActive && (
-                        <div className="flex gap-2">
-                          {readers.map((user) => (
-                            <Button
-                              key={user.id}
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                handleToggleReader(user.display_name)
-                              }
-                              className={cn(
-                                "rounded-full h-8 px-3 text-xs font-medium transition-all",
-                                checkIsUserActive(user.display_name)
-                                  ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
-                                  : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
+                    <div className="flex flex-col gap-1.5 items-start justify-start w-full">
+                      {!isMyBooksActive && !isAllBooksActive && (
+                        <>
+                          <div className="flex flex-wrap gap-2">
+                            {followingFeedEmpty ? (
+                              <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed max-w-md">
+                                Você ainda não segue ninguém. Em{" "}
+                                <Link
+                                  href="/profile"
+                                  className="text-violet-600 dark:text-violet-400 font-medium underline-offset-2 hover:underline"
+                                >
+                                  Perfil
+                                </Link>{" "}
+                                você encontra pessoas para seguir e acompanhar
+                                leituras.
+                              </p>
+                            ) : (
+                              readers.map((reader) => {
+                                const isLocked = reader.id === lockedReaderId;
+                                const isActive = checkIsUserActive(reader.id);
+                                return (
+                                  <Button
+                                    key={reader.id}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      handleToggleReader(reader.id)
+                                    }
+                                    disabled={isLocked}
+                                    aria-pressed={isActive}
+                                    aria-label={
+                                      isLocked
+                                        ? `${reader.display_name} (sempre incluído nesta visão)`
+                                        : reader.display_name
+                                    }
+                                    className={cn(
+                                      "rounded-full h-8 px-3 text-xs font-medium transition-all",
+                                      isActive
+                                        ? "bg-violet-600 border-violet-600 text-white hover:bg-violet-700"
+                                        : "border-zinc-200 text-zinc-500 hover:border-violet-200 hover:text-violet-600 dark:border-zinc-800",
+                                      isLocked &&
+                                        "opacity-100 cursor-not-allowed disabled:opacity-100 disabled:pointer-events-none",
+                                    )}
+                                  >
+                                    {reader.display_name}
+                                  </Button>
+                                );
+                              })
+                            )}
+                          </div>
+
+                          {isFollowingFeedActive && !followingFeedEmpty && (
+                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-snug">
+                              Leituras privadas só de quem você segue não
+                              aparecem aqui.
+                            </p>
+                          )}
+
+                          {lockedReaderId && (
+                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-snug">
+                              {needsExtraReader ? (
+                                <span className="text-amber-500 dark:text-amber-400 font-medium">
+                                  Selecione pelo menos outro(a) leitor(a) para
+                                  ver leituras conjuntas.
+                                </span>
+                              ) : (
+                                "Você é sempre incluído. Selecione pelo menos outro(a) leitor(a) além de você."
                               )}
-                            >
-                              {user.display_name}
-                            </Button>
-                          ))}
-                        </div>
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -222,37 +377,41 @@ export default function ClientHome() {
             </div>
 
             <div className="p-4">
-              {isLoading ? (
-                <div className="flex gap-2 flex-wrap">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton
-                      key={`year-sk-${i}`}
-                      className="h-8 w-16 rounded-full"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <YearFilterChips
-                  activeYear={filters.year}
-                  onSelect={handleSetYear}
-                />
-              )}
+              <YearFilterChips
+                activeYear={filters.year}
+                onSelect={handleSetYear}
+                isLoading={isLoading}
+              />
             </div>
-          </div>
-        ) : (
+
+            <div className="p-4 space-y-2.5">
+              <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+                <ArrowDownUp size={11} />
+                Ordenação
+              </p>
+              <SortFilterChips
+                activeSort={filters.sort}
+                onSelect={handleSetSort}
+                isLoading={isLoading}
+              />
+            </div>
+          </CollapsibleBookFilters>
+        ) : null}
+
+        {!isLoggedIn ? (
           <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-2 text-center flex flex-col items-center gap-2">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Quer uma experiência personalizada?
-              </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px]">
+              </h2>
+              <p className="text-xs text-zinc-600 dark:text-zinc-300 max-w-[240px]">
                 Faça login para gerenciar sua lista de leitura, acompanhar
                 progresso e acessar filtros exclusivos.
               </p>
             </div>
 
             <div className="w-full pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800/50">
-              <p className="text-[10px] text-zinc-400 uppercase tracking-wider mb-2">
+              <p className="text-[10px] text-zinc-600 dark:text-zinc-300 uppercase tracking-wider mb-2">
                 Não possui uma conta?
               </p>
               <Link
@@ -264,16 +423,100 @@ export default function ClientHome() {
               </Link>
             </div>
           </div>
-        )}
+        ) : null}
       </header>
 
-      <ListGrid<BookDomain>
-        items={allBooks?.data ?? []}
-        isLoading={isLoading}
-        isFetched={isFetched}
-        renderItem={(book) => <BookCard key={book.id} book={book} />}
-        isError={isError}
-      />
+      {isLoggedIn && <ReadingNow className="mb-5 max-w-2xl" />}
+
+      {shouldSuggestFollowing ? (
+        <div
+          className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-linear-to-b from-zinc-50/80 to-zinc-50/40 dark:from-zinc-900/40 dark:to-zinc-900/20 p-6 sm:p-8 shadow-sm"
+          role="region"
+          aria-labelledby="empty-suggestions-title"
+        >
+          <div className="mx-auto max-w-xl text-center space-y-2 mb-8">
+            <h2
+              id="empty-suggestions-title"
+              className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
+            >
+              Ainda não há livros por aqui
+            </h2>
+            <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed">
+              Pode ser combinação dos filtros ou ainda pouca atividade na sua
+              rede. Escolha um caminho abaixo — os dois ajudam a preencher sua
+              lista com boas leituras.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 max-w-3xl mx-auto">
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/80 dark:text-violet-300 mb-4">
+                <UserPlus className="size-5" aria-hidden />
+              </div>
+              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                Conectar com amigos
+              </h3>
+              <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
+                No perfil você encontra pessoas para seguir e acompanha o que
+                elas estão lendo.
+              </p>
+              <Button
+                asChild
+                variant="outline"
+                className="min-h-11 w-full justify-center gap-2 border-violet-200 text-violet-800 hover:bg-violet-50 hover:text-violet-900 dark:border-violet-800/60 dark:text-violet-200 dark:hover:bg-violet-950/50 cursor-pointer transition-colors"
+              >
+                <Link
+                  href="/profile"
+                  aria-label="Abrir perfil para encontrar e seguir amigos"
+                >
+                  <UserPlus className="size-4 shrink-0" aria-hidden />
+                  Ir ao perfil
+                </Link>
+              </Button>
+            </div>
+
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 mb-4">
+                <BookPlus className="size-5" aria-hidden />
+              </div>
+              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                Registrar suas leituras
+              </h3>
+              <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
+                Cadastre títulos que você quer ler ou já leu — sua lista fica só
+                sua, do jeito que preferir.
+              </p>
+              <Button
+                className="min-h-11 w-full justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white cursor-pointer transition-colors"
+                onClick={() => dialogModal.setIsOpen(true)}
+                aria-label="Abrir formulário para adicionar livros à sua lista"
+              >
+                <BookPlus className="size-4 shrink-0" aria-hidden />
+                Adicionar livros
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <ScheduleProgressBatchContext.Provider value={readingProgressBatch}>
+          <ListGrid<BookDomain>
+            items={allBooks?.data ?? []}
+            isLoading={isLoading}
+            isFetched={isFetched}
+            renderItem={(book) => (
+              <BookCard key={book.id} book={book} isShelf={false} />
+            )}
+            emptyMessage={
+              filters.bookId?.trim()
+                ? "Não encontramos um livro com este identificador na sua lista."
+                : followingFeedEmpty
+                  ? "Siga outros leitores pelo perfil para ver livros nesta visão."
+                  : "Nenhum livro encontrado para os filtros selecionados."
+            }
+            isError={isError}
+          />
+        </ScheduleProgressBatchContext.Provider>
+      )}
 
       {!isLoading && totalPages > 1 && (
         <div className="mt-10">

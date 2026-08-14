@@ -1,21 +1,42 @@
-# 📋 Project Roadmap & Bug Tracker
+User Story: Ordenação de livros por número de páginas
 
-## 🐛 Bugs & Refatorações Técnicas
+Como usuário
+Quero poder ordenar os livros pelo número de páginas
+Para visualizar livros menores ou maiores conforme minha necessidade de leitura
 
-- [ ] **BUG-01:** Ajustar fetch de livro por ID imediatamente após a criação (Sync Issue).
-- [ ] **BUG-02:** Corrigir reset de estado no Cronograma; formulário permanece visível após deleção (Zumbi UI).
+Critérios de Aceite
 
-## ✨ Novas Features & UX
+Cenário 1: Ordenação padrão
 
-- [ ] **FEAT-01:** Revisão de Copy: Deixar todos os textos da aplicação mais amigáveis e menos técnicos.
-- [ ] **FEAT-02:** Abstração de Regras: Mover lógicas de componentes para Custom Hooks.
-- [ ] **FEAT-03:** Otimização de Performance: Aplicar `useCallback` e `useMemo` em funções e cálculos pesados.
-- [ ] **FEAT-04:** Arquitetura: Remover definições de `types` de dentro dos arquivos de componentes.
+Dado que estou acessando a tela inicial ou a listagem de livros dentro de uma estante
+Quando nenhum critério de ordenação for selecionado
+Então a ordem exibida deve ser a padrão já utilizada atualmente no sistema
 
-- [ ] **FEAT-04:** Feature: Adicionar uma nova aba de sorteio de leitura conjunta.
+Cenário 2: Ordenar por páginas (crescente)
 
-- [ ] **FEAT-05:** Feature: Filtro de listagem de livros, os livros com o status de iniciado aparecem primeiro.
+Dado que estou na tela inicial ou na listagem de uma estante
+Quando eu selecionar a ordenação por número de páginas crescente
+Então os livros devem ser exibidos do menor para o maior número de páginas
 
----
+Cenário 3: Ordenar por páginas (decrescente)
 
-## 🛠️ Critérios de Aceite (Clean Code)
+Dado que estou na tela inicial ou na listagem de uma estante
+Quando eu selecionar a ordenação por número de páginas decrescente
+Então os livros devem ser exibidos do maior para o menor número de páginas
+
+Cenário 4: Integração com filtros existentes
+
+Dado que estou utilizando filtros na tela inicial ou na listagem de uma estante
+Quando eu aplicar uma ordenação por número de páginas
+Então a ordenação deve respeitar os filtros já aplicados
+
+Cenário 5: Consistência entre telas
+
+Dado que a funcionalidade está disponível
+Então o comportamento de ordenação deve ser consistente entre a tela inicial e a listagem de estantes
+
+Cenário 6: Persistência da escolha (opcional)
+
+Dado que selecionei uma ordenação
+Quando eu navegar ou recarregar a página
+Então o sistema pode manter a ordenação escolhida (caso exista persistência de estado)

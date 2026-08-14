@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { useUserStore } from "@/stores/userStore";
 import { User } from "@/types/user.types";
 
@@ -11,16 +11,13 @@ export function UserProvider({
   children: React.ReactNode;
   initialUser: User | null;
 }) {
-  const initialized = useRef(false);
+  const syncedKeyRef = useRef<string | undefined>(undefined);
+  const key = initialUser?.id ?? "__null__";
 
-  const myState = useUserStore.getState();
-
-  useEffect(() => {
-    if (!initialized.current) {
-      myState.setUser(initialUser);
-      initialized.current = true;
-    }
-  }, [initialUser, myState]);
+  if (syncedKeyRef.current !== key) {
+    syncedKeyRef.current = key;
+    useUserStore.getState().setUser(initialUser);
+  }
 
   return <>{children}</>;
 }

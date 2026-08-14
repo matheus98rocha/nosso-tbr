@@ -19,14 +19,14 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
 
+      - name: Habilitar Corepack
+        run: corepack enable
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "yarn"
-
-      - name: Habilitar Corepack
-        run: corepack enable
 
       - name: Instalar dependências
         run: yarn install --immutable
@@ -56,14 +56,14 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
 
+      - name: Habilitar Corepack
+        run: corepack enable
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "yarn"
-
-      - name: Habilitar Corepack
-        run: corepack enable
 
       - name: Instalar dependências
         run: yarn install --immutable

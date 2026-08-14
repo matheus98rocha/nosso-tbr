@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Header from "@/components/header/header";
-import { cache, Suspense } from "react";
+import Header from "@/components/header";
+import { Suspense, cache } from "react";
 import { UserProvider } from "@/providers/UserProvider";
 import { getCurrentUser } from "@/services/users/service/getCurrentUser.service";
 

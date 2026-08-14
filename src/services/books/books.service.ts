@@ -1,16 +1,14 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookMapper } from "@/services/books/books.mapper";
-import { BookDomain } from "@/types/books.types";
+import { BookDomain, Status } from "@/types/books.types";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import { FiltersOptions } from "@/types/filters";
+import { ALL_BOOK_STATUSES } from "@/constants/bookStatuses";
 
-const ALLOWED_STATUSES = [
-  "reading",
-  "finished",
-  "not_started",
-  "planned",
-] as const;
+const ALLOWED_STATUSES: Status[] = ALL_BOOK_STATUSES;
+
 type BookStatus = (typeof ALLOWED_STATUSES)[number];
 
 function isBookStatus(value: unknown): value is BookStatus {
@@ -25,6 +23,8 @@ export class BookService {
     filters,
     search,
     userId,
+    relationshipUserValues,
+    excludeBookParticipantUserId,
     authorId,
     page = 0,
     pageSize = 10,
@@ -32,6 +32,8 @@ export class BookService {
     filters?: FiltersOptions;
     search?: string;
     userId?: string;
+    relationshipUserValues?: string[];
+    excludeBookParticipantUserId?: string;
     bookId?: string;
     authorId?: string;
     page?: number;
@@ -39,20 +41,27 @@ export class BookService {
   }): Promise<{ data: BookDomain[]; total: number }> {
     try {
       const statuses = (filters?.status ?? []).filter(isBookStatus);
+      const sort = filters?.sort;
 
-      const query = new BookQueryBuilder(this.supabase)
+      const builder = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
-        .withStatus(
-          statuses as ("reading" | "finished" | "not_started" | "planned")[],
-        )
+        .withStatus(statuses)
         .withGender(filters?.gender)
         .withYear(filters?.year)
+        .withReread(filters?.isReread)
         .withSearchTerm(search)
         .withId(bookId)
         .withAuthor(authorId)
-        .withUser(userId)
-        .withDefaultOrdering(statuses.includes("planned"))
-        .withPagination(page, pageSize);
+        .withUserRelationship(relationshipUserValues)
+        .withExcludedBookParticipant(excludeBookParticipantUserId)
+        .withUser(userId);
+
+      const query =
+        sort === "pages_asc" || sort === "pages_desc"
+          ? builder.withPageOrdering(sort).withPagination(page, pageSize)
+          : builder
+              .withDefaultOrdering(statuses.includes("planned"))
+              .withPagination(page, pageSize);
 
       const { data, error, count } = await query.build();
 
@@ -82,7 +91,8 @@ export class BookService {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase.from("books").delete().eq("id", id);
-    if (error) throw new Error(error.message);
+    await apiJson<{ ok: true }>(`/api/books/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
   }
 }

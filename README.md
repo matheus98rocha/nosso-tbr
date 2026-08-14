@@ -87,26 +87,27 @@ Gera os tipos do banco em `src/types/supabase.ts` a partir do projeto configurad
 
 ## 🏗 Arquitetura geral
 
-- **Rotas (camada de página)**  
-  - Local: `src/app/(main)/**/page.tsx` e `src/app/(auth)/**/page.tsx`.  
+- **Rotas (camada de página)**
+  - Local: `src/app/(main)/**/page.tsx` e `src/app/(auth)/**/page.tsx`.
   - Responsáveis por orquestrar dados de servidor/SSR e renderizar os módulos de tela.
 
-- **Módulos de funcionalidade**  
-  - Local: `src/modules/<feature>/`.  
+- **Módulos de funcionalidade**
+  - Local: `src/modules/<feature>/`.
   - Cada módulo concentra **componentes de tela**, **hooks**, **tipos** e, às vezes, **services específicos da feature**.
+  - Ex.: leitura coletiva em `src/modules/collectiveReading` (rota `(main)/collective-reading/...`, API `collective-reading-comments`).
 
-- **Serviços de domínio**  
+- **Serviços de domínio**
   - Exemplo: `src/services/books/` com:
     - `bookQuery.builder.ts`: construção fluente de queries (filtros de gênero, leitores, status, paginação, busca textual etc.).
     - `books.mapper.ts`: mapeamento entre dados do banco (Supabase) e o domínio (`BookDomain`).
     - `books.service.ts`: orquestração de consultas, aplicação de filtros e tratamento de erros.
 
-- **Estado global e stores**  
-  - Local: `src/stores/**`.  
+- **Estado global e stores**
+  - Local: `src/stores/**`.
   - Ex.: `useUserStore`, hooks de autenticação como `useIsLoggedIn`, controle de logout, etc.
 
-- **Componentes compartilhados**  
-  - Local: `src/components/**`.  
+- **Componentes compartilhados**
+  - Local: `src/components/**`.
   - Exemplos: `ListGrid`, `confirmDialog`, componentes de UI (`button`, `card`, `pagination`, `skeleton`), etc.
 
 > **Regra importante**: mantenha a lógica de negócio em **hooks** e **services**, deixando os componentes focados em **renderização** e **interação com o usuário**.
@@ -119,16 +120,21 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 
 ### 🏠 Home (`/`)
 
-- Lista de **todos os livros** cadastrados.
+- Lista de **todos os livros** cadastrados para visitantes e, para usuários logados, visões combinadas pela seção **Visão** na própria home.
+- Abas **`Todos`** / **`Leituras conjuntas`** / **`Seguindo`** (`?view=` `todos` \| `joint` \| `seguindo`) usando `router.replace` na query string (**SPA**, sem reload de página inteira): ao alternar, o React Query dispara nova busca pela chave atualizada.
+- **`Seguindo`**: lista livros relacionados apenas a **`following_id`** em `user_followers` para o usuário atual (consulta restrita aos IDs obtidos pelo `UserSocialService.getFollowingIds`), **excluindo** livros em que o próprio usuário aparece em **`readers`** ou é **`chosen_by`**. Leituras **individuais privadas** (RN56) permanecem ocultas para quem não segue o dono; **seguidores** enxergam esses livros na aba Seguindo e no perfil do membro.
+- **`Todos`** (usuário logado): continua unindo você e perfis que você segue nos chips de leitor.
 - **Filtros avançados** usando `BookQueryBuilder`:
   - Gênero (`gender`)
-  - Leitores (ex.: “Matheus”, “Fabi”, “Barbara”)
+  - Leitores (ex.: “Matheus”, “John Doe”)
   - Status da leitura (`not_started`, `reading`, `finished`)
   - Busca textual (título, autor, etc.).
 - **Paginação** com tamanho de página fixo.
 - Ações principais:
   - **Criar/editar livro** via modal `BookUpsert`.
+  - **Avaliar leitura finalizada com 1–5 estrelas** (tabela `book_reading_ratings`, apenas para o próprio usuário): convite opcional depois de marcar como **Terminei a Leitura** e ajustes no próprio cartão quando o livro não está em modo estante.
   - **Criar/editar estante** via modal `CreateEditBookshelves`.
+  - **Adicionar livro à estante** a partir do card (`AddBookToShelf`): persiste na API e exibe toast de confirmação **sem redirecionar** para `/bookshelves/[id]`; o acesso à tela de estantes continua pelo menu ou links explícitos.
 
 ### 📖 Minhas Leituras (`/my-books`)
 
@@ -144,10 +150,12 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 - **`/shelves`** – gestão de estantes:
   - Lista de estantes (`ListGrid<BookshelfDomain>`).
   - Criação/edição de estantes (`CreateEditBookshelves`).
-  - Adição de livros a uma estante via `AddBookToBookshelfDialog`.
+  - Adição de livros a uma estante via `AddBookToBookshelfDialog` (o mesmo livro não pode ser associado duas vezes à mesma estante: validação na API `POST /api/shelves/[id]/books/[bookId]`, índice único `(shelf_id, book_id)` e feedback genérico *Não é possível adicionar o livro.* quando a ação não é permitida).
 - **`/bookshelves/[id]`** – livros de uma estante específica:
   - Carrega livros de uma estante com `BookshelfServiceBooks`.
+  - Chips de ordenação (`SortFilterChips` com `variant="shelf"`): por **data de início** e **data de finalização** da leitura (`start_date_*` / `end_date_*`, mais antigo ↔ mais recente) e por **páginas**; escolha sincronizada à query `?sort=...` para persistir ao recarregar.
   - Renderiza os livros usando `BookCard` com contexto de estante (`isShelf`).
+  - Remover pelo menu do card tira só o vínculo com aquela estante (confirmação deixa explícito que o livro não é excluído da biblioteca); a lista atualiza via invalidação da query `bookshelf-books`.
 
 ### ✍️ Autores (`/authors`)
 
@@ -171,6 +179,12 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
   - Cards por citação (`Card` + `CardDescription`).
   - Indicação de página (`quote.page`).
   - Esqueleton loading enquanto carrega.
+
+### 👥 Leitura coletiva (`/collective-reading/[id]/[title]`)
+
+- Espaço para livros com **mais de um leitor** em `readers`, acessível pelo link no `BookCard` (usuário logado e participante do livro).
+- Exibe o **próximo dia do cronograma** do usuário atual (primeira linha não concluída; se tudo concluído, último dia; sem cronograma, convite para criar em `/schedule/...`).
+- **Comentários** persistidos em `collective_reading_comments`; criação via `POST /api/collective-reading-comments` e remoção pelo autor via `DELETE /api/collective-reading-comments/[id]` (**RN59** no Obsidian). **Curtir / não curtir** por comentário: tabela `collective_reading_comment_reactions`, `POST /api/collective-reading-comment-reactions` (um voto por utilizador, comutável). Atualização **em tempo real** entre clientes via Supabase **Realtime** (`postgres_changes` em comentários e reações).
 
 ### 📅 Cronograma de Leitura (`/schedule/[id]/[title]`)
 
@@ -217,6 +231,40 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 ## 🧱 Padrões de código e organização
 
 ### Componentização e hooks
+
+### Co-location obrigatória de implementação + teste
+
+Para manter consistência estrutural entre features, **todo arquivo de implementação que tenha teste associado deve viver em uma pasta própria com seu teste ao lado**.
+
+✅ **Padrão obrigatório**
+
+```text
+feature-name/
+  feature-name.ts(x)
+  feature-name.test.ts(x) | feature-name.spec.ts(x)
+  index.ts (quando fizer sentido para export público)
+```
+
+❌ **Evitar**
+
+```text
+components/
+  feature-name.tsx
+  feature-name.test.tsx
+  feature-name1.tsx
+  feature-name2.test.tsx
+```
+
+#### Regra prática para novas contribuições
+
+- Se você criou `foo.ts`, `foo.tsx` ou `foo.service.ts` e também criou `foo.test.ts`, `foo.test.tsx`, `foo.spec.ts` ou `foo.spec.tsx`, então:
+  - crie a pasta `foo/` (ou `foo.service/`, seguindo o nome-base já usado);
+  - mova implementação e teste para dentro dela;
+  - ajuste imports relativos e exportações (`index.ts`) do módulo pai para manter API estável.
+
+#### Rule pronta (para adicionar na sua skill/projeto)
+
+> **Regra:** Sempre que existir par implementação + teste com o mesmo basename no mesmo diretório, o par deve ser movido para uma pasta dedicada com o mesmo basename. Ex.: `bar.ts` + `bar.test.ts` ⟶ `bar/bar.ts` + `bar/bar.test.ts` (+ `bar/index.ts` quando necessário). Após mover, atualize imports e exports para manter compatibilidade pública.
 
 - **Componentes de tela**:
   - Focados em renderizar UI, lidar com eventos e compor componentes menores.

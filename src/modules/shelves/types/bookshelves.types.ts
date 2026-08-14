@@ -30,4 +30,5 @@ export type BookshelfPersistence = {
 export type SelectedBookshelf = {
   id: string;
   name: string;
+  bookIdsOnShelf?: string[];
 };

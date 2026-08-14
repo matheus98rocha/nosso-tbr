@@ -14,23 +14,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import {
-  bookshelfCreateSchema,
   BookshelfCreateValidator,
+  bookshelfCreateSchema,
 } from "../../validators/bookshelves.validator";
 import { useBookshelves } from "../../hooks/useBookshelves";
 import { BookshelfDomain } from "../../types/bookshelves.types";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { FolderPlus, Pencil } from "lucide-react";
-import { BlurOverlay } from "@/components/blurOverlay/blurOverlay";
+import { BlurOverlay } from "@/components/blurOverlay";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 
 type BookshelfDialogProps = {
   isOpen: boolean;
@@ -58,13 +59,14 @@ export function CreateEditBookshelves({
   const { mutate, isCreating } = useBookshelves({
     handleClose,
     editShelf,
+    isOpen,
   });
 
   function onSubmit(values: BookshelfCreateValidator) {
     mutate(values, {
       onSuccess: () => {
-        if (pathname !== "/shelves") {
-          router.push("/shelves");
+        if (pathname !== SHELVES_LIST_PATH) {
+          router.push(SHELVES_LIST_PATH);
         }
         form.reset();
       },
@@ -86,9 +88,15 @@ export function CreateEditBookshelves({
           <DialogHeader>
             <div className="flex items-center gap-2">
               {editShelf ? (
-                <Pencil className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+                <Pencil
+                  className="w-5 h-5 text-primary shrink-0"
+                  strokeWidth={1.5}
+                />
               ) : (
-                <FolderPlus className="w-5 h-5 text-primary shrink-0" strokeWidth={1.5} />
+                <FolderPlus
+                  className="w-5 h-5 text-primary shrink-0"
+                  strokeWidth={1.5}
+                />
               )}
               <DialogTitle>
                 {editShelf ? "Editar Estante" : "Criar Nova Estante"}

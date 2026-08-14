@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import Link from "next/link";
-import { BarChart3, Library, Plus, BookUser } from "lucide-react";
+import { BarChart3, BookUser, Library, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IconMap, NavItemProps } from "../../types/desktopNavMenu.types";
 

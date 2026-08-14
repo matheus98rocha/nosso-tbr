@@ -1,19 +1,16 @@
-import React from "react";
+"use client";
+
+import { memo } from "react";
 import { Button } from "../ui/button";
-import { useRouter } from "next/navigation";
+import { useBlurOverlay } from "./hooks/useBlurOverlay";
+import type { BlurOverlayProps } from "./types/blurOverlay.types";
 
-type BlurOverlayProps = {
-  showOverlay: boolean;
-  children: React.ReactNode;
-  overlayContent?: React.ReactNode;
-};
-
-export function BlurOverlay({
+function BlurOverlayComponent({
   showOverlay,
   children,
   overlayContent,
 }: BlurOverlayProps) {
-  const router = useRouter();
+  const { goToAuth } = useBlurOverlay();
 
   return (
     <>
@@ -25,7 +22,9 @@ export function BlurOverlay({
               <p className="text-lg font-medium text-gray-800">
                 Faça login para continuar
               </p>
-              <Button onClick={() => router.push("/auth")}>Entrar</Button>
+              <Button type="button" onClick={goToAuth}>
+                Entrar
+              </Button>
             </div>
           )}
         </div>
@@ -33,3 +32,5 @@ export function BlurOverlay({
     </>
   );
 }
+
+export const BlurOverlay = memo(BlurOverlayComponent);

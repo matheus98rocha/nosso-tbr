@@ -1,11 +1,13 @@
-import { renderHook, act } from "@testing-library/react";
-import { vi, Mock } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { Mock, vi } from "vitest";
 import { useHome } from "./useHome";
-import { useFiltersUrl } from "@/hooks/useFiltersUrl";
+import { useFiltersUrl } from "@/hooks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { INITIAL_FILTERS } from "@/constants/keys";
+import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 import { FiltersOptions } from "@/types/filters";
 import { useUser } from "@/services/users/hooks/useUsers";
+import { useUserStore } from "@/stores/userStore";
+import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { BookService } from "@/services/books/books.service";
 
 vi.mock("@/services/books/books.service");
@@ -19,28 +21,59 @@ vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(() => false),
 }));
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: vi.fn(() => ({
-    data: undefined,
-    isFetching: false,
-    isFetched: true,
-    isError: false,
-  })),
+  useQuery: vi.fn((params: { queryKey?: unknown[] }) => {
+    if (
+      Array.isArray(params?.queryKey) &&
+      params.queryKey[0] === "userSocial"
+    ) {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+    if (
+      Array.isArray(params?.queryKey) &&
+      params.queryKey[0] === "bookFavorites"
+    ) {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+
+    return {
+      data: undefined,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    };
+  }),
   useQueryClient: vi.fn(() => ({
     prefetchQuery: vi.fn(),
   })),
 }));
-vi.mock("@/hooks/useStatusFilters", () => ({
-  useStatusFilters: vi.fn(() => ({
-    activeStatuses: [],
-    handleToggleStatus: vi.fn(),
-  })),
-}));
-vi.mock("@/hooks/useFiltersUrl");
+vi.mock("@/hooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/hooks")>();
+  return {
+    ...actual,
+    useFiltersUrl: vi.fn(),
+    useStatusFilters: vi.fn(() => ({
+      activeStatuses: [],
+      handleToggleStatus: vi.fn(),
+    })),
+  };
+});
 
 const mockUpdateUrlWithFilters = vi.fn();
 const mockUsers = [
   { id: "1", display_name: "Matheus" },
-  { id: "2", display_name: "Barbara" },
+  { id: "2", display_name: "John Doe" },
 ];
 
 const mockGetAll = vi.fn().mockResolvedValue({ data: [], total: 0 });
@@ -63,18 +96,103 @@ function buildFiltersUrlReturn(
   };
 }
 
-function mockQueryData(total: number) {
-  (useQuery as Mock).mockReturnValue({
-    data: {
-      data: Array.from({ length: total }, (_, index) => ({
-        id: String(index + 1),
-        readers: "Matheus e Barbara",
-      })),
-      total,
-    },
-    isFetching: false,
-    isFetched: true,
-    isError: false,
+function mockQueryData(total: number, followingIds: string[] = []) {
+  (useQuery as Mock)
+    .mockReturnValueOnce({
+      data: followingIds,
+      isLoading: false,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    })
+    .mockReturnValueOnce({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    })
+    .mockReturnValueOnce({
+      data: {
+        data: Array.from({ length: total }, (_, index) => ({
+          id: String(index + 1),
+          readerIds: ["1", "2"],
+          readersDisplay: "Matheus e John Doe",
+        })),
+        total,
+      },
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    });
+}
+
+function lastBooksListRelationshipKey(): string | undefined {
+  const calls = (useQuery as Mock).mock.calls;
+  for (let i = calls.length - 1; i >= 0; i--) {
+    const queryKey = calls[i]?.[0]?.queryKey as unknown[] | undefined;
+    if (!Array.isArray(queryKey) || queryKey[0] !== "books") continue;
+    const relIdx = queryKey.indexOf("relationship");
+    if (relIdx !== -1 && relIdx + 1 < queryKey.length) {
+      return String(queryKey[relIdx + 1]);
+    }
+  }
+  return undefined;
+}
+
+function getBooksQueryConfig() {
+  const calls = (useQuery as Mock).mock.calls;
+  for (let i = calls.length - 1; i >= 0; i--) {
+    const config = calls[i]?.[0];
+    const queryKey = config?.queryKey as unknown[] | undefined;
+    if (Array.isArray(queryKey) && queryKey[0] === "books") {
+      return config;
+    }
+  }
+  throw new Error("books query config not found");
+}
+
+function mockNonLoggedBooksQuery(total = 20) {
+  (useQuery as Mock).mockImplementation((params: { queryKey?: unknown[] }) => {
+    if (params?.queryKey?.[0] === "userSocial") {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+    if (params?.queryKey?.[0] === "bookFavorites") {
+      return {
+        data: [],
+        isLoading: false,
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+    if (params?.queryKey?.[0] === "books") {
+      return {
+        data: {
+          data: Array.from({ length: total }, (_, index) => ({
+            id: String(index + 1),
+            readerIds: ["1", "2"],
+            readersDisplay: "Matheus e Barbara",
+          })),
+          total,
+        },
+        isFetching: false,
+        isFetched: true,
+        isError: false,
+      };
+    }
+    return {
+      data: undefined,
+      isFetching: false,
+      isFetched: true,
+      isError: false,
+    };
   });
 }
 
@@ -92,10 +210,46 @@ function setupHook(
 describe("useHome", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+    (useUserStore as unknown as Mock).mockReturnValue(null);
     (useUser as Mock).mockReturnValue({
       users: [],
       isLoadingUsers: false,
     });
+    (useQuery as Mock).mockImplementation(
+      (params: { queryKey?: unknown[] }) => {
+        if (
+          Array.isArray(params?.queryKey) &&
+          params.queryKey[0] === "userSocial"
+        ) {
+          return {
+            data: [],
+            isLoading: false,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        }
+        if (
+          Array.isArray(params?.queryKey) &&
+          params.queryKey[0] === "bookFavorites"
+        ) {
+          return {
+            data: [],
+            isLoading: false,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        }
+        return {
+          data: undefined,
+          isFetching: false,
+          isFetched: true,
+          isError: false,
+        };
+      },
+    );
     (useQueryClient as Mock).mockReturnValue({
       prefetchQuery: vi.fn(),
     });
@@ -202,6 +356,208 @@ describe("useHome", () => {
     });
   });
 
+  describe('"Todos" default behavior and query keys', () => {
+    it('defaults to "Todos" on initial load', () => {
+      const { result } = setupHook();
+
+      expect(result.current.filters.view).toBe("todos");
+      expect(result.current.isAllBooksActive).toBe(true);
+    });
+
+    it("uses a deterministic query key for the Todos view", () => {
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      setupHook({ view: "todos" });
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            ...QUERY_KEYS.books.list(
+              { ...INITIAL_FILTERS, view: "todos", readers: [] },
+              "",
+              0,
+              undefined,
+            ),
+            "relationship",
+            "none",
+            "excludeParticipant",
+            "none",
+          ],
+        }),
+      );
+    });
+
+    it("usa apenas o usuário logado na query key da visão Todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, ["2"]);
+
+      setupHook({ view: "todos" });
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: expect.arrayContaining(["relationship", "1"]),
+        }),
+      );
+    });
+
+    it("when logged in with no follows, relationship key is only the current user (empty feed from scoped query)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, []);
+
+      setupHook({ view: "todos" });
+
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: expect.arrayContaining(["relationship", "1"]),
+        }),
+      );
+    });
+
+    it("reacts to filter changes by updating the selected view", () => {
+      const { result } = setupHook({ view: "todos" });
+
+      act(() => result.current.handleSetJointReading());
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ view: "joint", myBooks: false }),
+      );
+    });
+  });
+
+  describe('"Todos" reader selection behavior', () => {
+    it("mantém apenas o usuário atual na seleção efetiva da visão Todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      mockQueryData(0, ["2"]);
+      const { result } = setupHook({ view: "todos", readers: [] });
+
+      expect(result.current.checkIsUserActive("1")).toBe(true);
+      expect(result.current.checkIsUserActive("2")).toBe(false);
+    });
+
+    it("não altera a URL ao alternar leitor na visão Todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ view: "todos", readers: ["1"] });
+
+      act(() => result.current.handleToggleReader("2"));
+
+      expect(mockUpdateUrlWithFilters).not.toHaveBeenCalled();
+    });
+
+    it("na visão Todos só lista o usuário logado como opção de leitor", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: [...mockUsers, { id: "3", display_name: "Nao Seguido" }],
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, ["2"]);
+
+      const { result } = setupHook({ view: "todos", readers: [] });
+
+      expect(result.current.readers.map((r) => r.id)).toEqual(["1"]);
+    });
+
+    it("na visão Todos a relationship key permanece só com o usuário mesmo se readers na URL mudar", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          if (
+            Array.isArray(params?.queryKey) &&
+            params.queryKey[0] === "userSocial"
+          ) {
+            return {
+              data: ["2"],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          if (
+            Array.isArray(params?.queryKey) &&
+            params.queryKey[0] === "bookFavorites"
+          ) {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: undefined,
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        },
+      );
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ view: "todos", readers: ["1"] }),
+      );
+      const { rerender } = renderHook(() => useHome());
+
+      expect(lastBooksListRelationshipKey()).toBe("1");
+
+      (useFiltersUrl as Mock).mockReturnValue(
+        buildFiltersUrlReturn({ view: "todos", readers: ["2"] }),
+      );
+      rerender();
+
+      expect(lastBooksListRelationshipKey()).toBe("1");
+    });
+  });
+
   describe("handleSetYear", () => {
     it("calls updateUrlWithFilters with the selected year merged into current filters", () => {
       const { result } = setupHook();
@@ -262,6 +618,16 @@ describe("useHome", () => {
       act(() => result.current.handleToggleMyBooks());
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
         expect.objectContaining({ ...existing, myBooks: true }),
+      );
+    });
+
+    it("restores the previous non-myBooks view when disabling myBooks", () => {
+      const { result } = setupHook({ myBooks: true, view: "todos" });
+
+      act(() => result.current.handleToggleMyBooks());
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ myBooks: false, view: "todos" }),
       );
     });
   });
@@ -406,7 +772,262 @@ describe("useHome", () => {
     });
   });
 
+  describe("lockedReaderId — leitor obrigatório (RN57)", () => {
+    it("é undefined quando o usuário não está logado (todos)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+      (useUserStore as unknown as Mock).mockReturnValue(null);
 
+      const { result } = setupHook({ view: "todos" });
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("é undefined quando o usuário não está logado (joint)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+      (useUserStore as unknown as Mock).mockReturnValue(null);
+
+      const { result } = setupHook({ view: "joint" });
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("é undefined quando logado na visão todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "todos" });
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("é o user.id quando logado na visão joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint" });
+      expect(result.current.lockedReaderId).toBe("1");
+    });
+
+    it("é undefined quando myBooks está ativo", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "todos", myBooks: true });
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("handleToggleReader não atualiza URL na visão todos", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, []);
+
+      const { result } = setupHook({ view: "todos", readers: ["1", "2"] });
+      act(() => result.current.handleToggleReader("1"));
+
+      expect(mockUpdateUrlWithFilters).not.toHaveBeenCalled();
+    });
+
+    it("handleToggleReader ignorado quando readerId === lockedReaderId (joint)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1", "2"] });
+      act(() => result.current.handleToggleReader("1"));
+
+      expect(mockUpdateUrlWithFilters).not.toHaveBeenCalled();
+    });
+
+    it("outro leitor pode ser removido normalmente mesmo com lock ativo (joint)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1", "2"] });
+      act(() => result.current.handleToggleReader("2"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: ["1"] }),
+      );
+    });
+
+    it("visão Todos: query usa só o usuário logado mesmo se readers na URL citar outros", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+      mockQueryData(0, ["2"]);
+
+      const { result } = setupHook({ view: "todos", readers: ["2"] });
+
+      const booksCall = (useQuery as Mock).mock.calls
+        .map((call) => call[0]?.queryKey as unknown[] | undefined)
+        .filter(
+          (queryKey): queryKey is unknown[] =>
+            Array.isArray(queryKey) && queryKey[0] === "books",
+        )
+        .at(-1);
+      const key = booksCall?.find(
+        (k: unknown) => typeof k === "string" && k.startsWith("1"),
+      );
+      expect(key).toContain("1");
+      expect(result.current.lockedReaderId).toBeUndefined();
+    });
+
+    it("effectiveSelectedReaders injeta lockedReaderId quando ausente na visão joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          const k0 = params?.queryKey?.[0];
+          if (k0 === "userSocial") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          if (k0 === "bookFavorites") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: {
+              data: [
+                {
+                  id: "book-1",
+                  readerIds: ["1", "2"],
+                  readersDisplay: "Matheus e John Doe",
+                },
+              ],
+              total: 1,
+            },
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        },
+      );
+
+      const { result } = setupHook({ view: "joint", readers: ["2"] });
+
+      expect(result.current.allBooks?.data).toHaveLength(1);
+    });
+  });
+
+  describe("needsExtraReader (RN57 — joint exige 1 leitor além do logado)", () => {
+    it("é false quando view não é joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "todos", readers: ["1"] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("é false quando filters.readers está vazio (todos selecionados por padrão)", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint", readers: [] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("é false quando há outros leitores além do lockedReaderId em joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1", "2"] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("é true quando apenas lockedReaderId está selecionado em joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({ view: "joint", readers: ["1"] });
+      expect(result.current.needsExtraReader).toBe(true);
+    });
+
+    it("é false quando o usuário não está logado em joint", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(false);
+      (useUserStore as unknown as Mock).mockReturnValue(null);
+
+      const { result } = setupHook({ view: "joint", readers: ["1"] });
+      expect(result.current.needsExtraReader).toBe(false);
+    });
+
+    it("cenário: Matheus(logado) sozinho na URL joint resulta em needsExtraReader=true", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "matheus-id",
+        display_name: "Matheus",
+      });
+
+      const { result } = setupHook({
+        view: "joint",
+        readers: ["matheus-id"],
+      });
+      expect(result.current.needsExtraReader).toBe(true);
+      expect(result.current.lockedReaderId).toBe("matheus-id");
+    });
+  });
 
   describe("pagination behavior for non-logged users", () => {
     it("keeps current page when rerender happens with identical filters", () => {
@@ -414,19 +1035,7 @@ describe("useHome", () => {
         users: mockUsers,
         isLoadingUsers: false,
       });
-
-      (useQuery as Mock).mockReturnValue({
-        data: {
-          data: Array.from({ length: 20 }, (_, index) => ({
-            id: String(index + 1),
-            readers: "Matheus e Barbara",
-          })),
-          total: 20,
-        },
-        isFetching: false,
-        isFetched: true,
-        isError: false,
-      });
+      mockNonLoggedBooksQuery();
 
       (useFiltersUrl as Mock).mockReturnValue(buildFiltersUrlReturn({}, "", false));
       const { result, rerender } = renderHook(() => useHome());
@@ -445,21 +1054,9 @@ describe("useHome", () => {
         users: mockUsers,
         isLoadingUsers: false,
       });
+      mockNonLoggedBooksQuery();
 
-      (useQuery as Mock).mockReturnValue({
-        data: {
-          data: Array.from({ length: 20 }, (_, index) => ({
-            id: String(index + 1),
-            readers: "Matheus e Barbara",
-          })),
-          total: 20,
-        },
-        isFetching: false,
-        isFetched: true,
-        isError: false,
-      });
-
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ view: "joint", readers: [] });
 
       act(() => result.current.setCurrentPage(1));
 
@@ -483,10 +1080,14 @@ describe("useHome", () => {
 
       (useIsLoggedIn as Mock).mockReturnValue(true);
       (useUserStore as Mock).mockReturnValue({ id: "user-1", display_name: "Matheus" });
+      mockGetAll.mockResolvedValue({
+        data: [{ id: "book-1", readerIds: ["user-1"], readersDisplay: "Matheus" }],
+        total: 1,
+      });
 
-      setupHook({ myBooks: false, year: 2024 }, "hobbit");
+      setupHook({ myBooks: false, year: 2024, view: "joint" }, "hobbit");
 
-      const queryConfig = (useQuery as Mock).mock.calls[0][0];
+      const queryConfig = getBooksQueryConfig();
       await queryConfig.queryFn();
 
       expect(mockGetAll).toHaveBeenCalledWith(
@@ -507,9 +1108,19 @@ describe("useHome", () => {
     });
 
     it("forwards authorId filter to service query", async () => {
-      setupHook({ authorId: "author-42" }, "tolkien");
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "user-1",
+        display_name: "Matheus",
+      });
+      mockGetAll.mockResolvedValue({
+        data: [{ id: "book-1", readerIds: ["user-1"], readersDisplay: "Matheus" }],
+        total: 1,
+      });
 
-      const queryConfig = (useQuery as Mock).mock.calls[0][0];
+      setupHook({ authorId: "author-42", view: "joint" }, "tolkien");
+
+      const queryConfig = getBooksQueryConfig();
       await queryConfig.queryFn();
 
       expect(mockGetAll).toHaveBeenCalledWith(
@@ -539,13 +1150,13 @@ describe("useHome", () => {
         true,
       );
 
-      const queryConfig = (useQuery as Mock).mock.calls[0][0];
+      const queryConfig = getBooksQueryConfig();
       await queryConfig.queryFn();
 
       expect(mockGetAll).toHaveBeenCalledWith(
         expect.objectContaining({
           page: 0,
-          pageSize: 2000,
+          pageSize: 8,
         }),
       );
       expect(mockGetAll).not.toHaveBeenCalledWith(
@@ -568,7 +1179,7 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ readers: [], view: "joint" });
       expect(result.current.readersObj.readers).toEqual([]);
     });
 
@@ -578,9 +1189,79 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: [] });
-      expect(result.current.checkIsUserActive("Matheus")).toBe(true);
-      expect(result.current.checkIsUserActive("Barbara")).toBe(true);
+      const { result } = setupHook({ readers: [], view: "joint" });
+      expect(result.current.checkIsUserActive("1")).toBe(true);
+      expect(result.current.checkIsUserActive("2")).toBe(true);
+    });
+
+    it("em joint com URL vazia, o default de toggles segue a rede (readers), não todo o array users", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: [
+          ...mockUsers,
+          { id: "3", display_name: "Nao Seguido" },
+        ],
+        isLoadingUsers: false,
+      });
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          if (params?.queryKey?.[0] === "userSocial") {
+            return {
+              data: ["2"],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          if (params?.queryKey?.[0] === "bookFavorites") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: { data: [], total: 0 },
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
+        },
+      );
+
+      const { result } = setupHook({ readers: [], view: "joint" });
+      expect(result.current.readers.map((r) => r.id)).toEqual(["1", "2"]);
+
+      act(() => result.current.handleToggleReader("2"));
+
+      expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith(
+        expect.objectContaining({ readers: ["1"], view: "joint" }),
+      );
+    });
+
+    it("marks locked reader as active in joint view when omitted from URL readers", () => {
+      (useIsLoggedIn as unknown as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
+      (useUser as Mock).mockReturnValue({
+        users: mockUsers,
+        isLoadingUsers: false,
+      });
+
+      const { result } = setupHook({ readers: ["2"], view: "joint" });
+
+      expect(result.current.lockedReaderId).toBe("1");
+      expect(result.current.checkIsUserActive("1")).toBe(true);
+      expect(result.current.checkIsUserActive("2")).toBe(true);
     });
 
     it("toggles reader selection from default-all state", () => {
@@ -589,13 +1270,14 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ readers: [], view: "joint" });
 
-      act(() => result.current.handleToggleReader("Matheus"));
+      act(() => result.current.handleToggleReader("1"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
         ...INITIAL_FILTERS,
-        readers: ["Barbara"],
+        view: "joint",
+        readers: ["2"],
       });
     });
 
@@ -605,13 +1287,14 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: ["Barbara"] });
+      const { result } = setupHook({ readers: ["2"], view: "joint" });
 
-      act(() => result.current.handleToggleReader("Matheus"));
+      act(() => result.current.handleToggleReader("1"));
 
       expect(mockUpdateUrlWithFilters).toHaveBeenCalledWith({
         ...INITIAL_FILTERS,
-        readers: ["Barbara", "Matheus"],
+        view: "joint",
+        readers: ["2", "1"],
       });
     });
 
@@ -621,12 +1304,12 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      const { result } = setupHook({ readers: ["Matheus", "Leitor Removido"] });
+      const { result } = setupHook({
+        readers: ["1", "stale-unknown"],
+        view: "joint",
+      });
 
-      expect(result.current.readersObj.readers).toEqual([
-        "Matheus",
-        "Leitor Removido",
-      ]);
+      expect(result.current.readersObj.readers).toEqual(["1", "stale-unknown"]);
     });
 
     it("in joint-reading mode only keeps books with more than one reader", () => {
@@ -635,21 +1318,52 @@ describe("useHome", () => {
         isLoadingUsers: false,
       });
 
-      (useQuery as Mock).mockReturnValue({
-        data: {
-          data: [
-            { id: "1", readers: "Matheus e Barbara" },
-            { id: "2", readers: "Matheus" },
-            { id: "3", readers: "Barbara e Carol" },
-          ],
-          total: 3,
+      (useQuery as Mock).mockImplementation(
+        (params: { queryKey?: unknown[] }) => {
+          const k0 = params?.queryKey?.[0];
+          if (k0 === "userSocial") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          if (k0 === "bookFavorites") {
+            return {
+              data: [],
+              isLoading: false,
+              isFetching: false,
+              isFetched: true,
+              isError: false,
+            };
+          }
+          return {
+            data: {
+              data: [
+                {
+                  id: "1",
+                  readerIds: ["1", "2"],
+                  readersDisplay: "Matheus e John Doe",
+                },
+                { id: "2", readerIds: ["1"], readersDisplay: "Matheus" },
+                {
+                  id: "3",
+                  readerIds: ["2", "9"],
+                  readersDisplay: "John Doe e Carol",
+                },
+              ],
+              total: 3,
+            },
+            isFetching: false,
+            isFetched: true,
+            isError: false,
+          };
         },
-        isFetching: false,
-        isFetched: true,
-        isError: false,
-      });
+      );
 
-      const { result } = setupHook({ readers: [] });
+      const { result } = setupHook({ readers: [], view: "joint" });
 
       expect(result.current.allBooks?.total).toBe(2);
       expect(result.current.allBooks?.data.map((book) => book.id)).toEqual([

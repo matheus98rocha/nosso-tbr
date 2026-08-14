@@ -2,6 +2,7 @@ import {
   BookCreateValidator,
   CreateBookPersistence,
 } from "@/types/books.types";
+import { resolveBookCoverUrl } from "@/constants/bookCover";
 
 export class BookUpsertMapper {
   static toPersistence(
@@ -14,18 +15,16 @@ export class BookUpsertMapper {
       author_id: domain.author_id,
       chosen_by: domain.chosen_by,
       pages: domain.pages,
+      status: domain.status ?? "not_started",
       start_date: domain.start_date ?? null,
       planned_start_date: domain.planned_start_date ?? null,
       end_date: domain.end_date ?? null,
       inserted_at: extra?.inserted_at ?? undefined,
-      readers: Array.isArray(domain.readers)
-        ? domain.readers
-        : domain.readers
-          ? domain.readers.split(" e ")
-          : [],
+      readers: domain.readers,
       gender: domain.gender ?? null,
-      image_url: domain.image_url,
-      user_id: domain.user_id ?? "",
+      image_url: resolveBookCoverUrl(domain.image_url),
+      user_id: domain.user_id?.trim() || null,
+      is_reread: domain.is_reread ?? false,
     };
   }
 }

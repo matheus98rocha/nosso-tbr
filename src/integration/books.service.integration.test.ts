@@ -5,7 +5,10 @@ const mockQuery = {
   or: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   in: vi.fn().mockReturnThis(),
+  neq: vi.fn().mockReturnThis(),
+  not: vi.fn().mockReturnThis(),
   filter: vi.fn().mockReturnThis(),
+  textSearch: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   range: vi.fn(),
 };
@@ -44,6 +47,7 @@ describe("BookService integration", () => {
           gender: "fantasia",
           image_url: "https://example.com/hobbit.jpg",
           user_id: "user-1",
+          status: "finished",
         },
       ],
       count: 1,
@@ -75,7 +79,7 @@ describe("BookService integration", () => {
       title: "O Hobbit",
       author: "Tolkien",
       status: "finished",
-      readers: "Matheus e Barbara",
+      readerIds: ["Matheus", "Barbara"],
     });
   });
 });

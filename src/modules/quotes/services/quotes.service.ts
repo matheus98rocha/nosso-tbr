@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { apiJson } from "@/lib/api/clientJsonFetch";
 import { QuoteDomain, QuotePersistence } from "../types/quotes.types";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { QuoteMapper } from "./mappers/quotes.mappers";
@@ -45,26 +46,17 @@ export class QuotesService {
     page: number | null
   ): Promise<QuoteDomain> {
     try {
-      const payload = QuoteMapper.toPersistence({
-        bookId,
-        content,
-        page: page ?? undefined,
-      });
-      const { data, error } = await this.supabase
-        .from("quotes")
-        .insert([payload])
-        .select()
-        .single();
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao criar citação",
-          undefined,
-          undefined,
-          error,
-          { bookId, content, page }
-        );
-      }
+      const data = await apiJson<QuotePersistence>(
+        "/api/quotes",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            bookId,
+            content,
+            page,
+          }),
+        },
+      );
 
       return QuoteMapper.toDomain(data as QuotePersistence);
     } catch (error) {
@@ -86,23 +78,13 @@ export class QuotesService {
     page?: number
   ): Promise<QuoteDomain> {
     try {
-      const payload = QuoteMapper.toPersistence({ content, page });
-      const { data, error } = await this.supabase
-        .from("quotes")
-        .update(payload)
-        .eq("id", quoteId)
-        .select()
-        .single();
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao atualizar citação",
-          undefined,
-          undefined,
-          error,
-          { quoteId, content, page }
-        );
-      }
+      const data = await apiJson<QuotePersistence>(
+        `/api/quotes/${encodeURIComponent(quoteId)}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ content, page }),
+        },
+      );
 
       return QuoteMapper.toDomain(data as QuotePersistence);
     } catch (error) {
@@ -120,20 +102,12 @@ export class QuotesService {
 
   async removeQuote(quoteId: string): Promise<void> {
     try {
-      const { error } = await this.supabase
-        .from("quotes")
-        .delete()
-        .eq("id", quoteId);
-
-      if (error) {
-        throw new RepositoryError(
-          "Falha ao remover citação",
-          undefined,
-          undefined,
-          error,
-          { quoteId }
-        );
-      }
+      await apiJson<{ ok: true }>(
+        `/api/quotes/${encodeURIComponent(quoteId)}`,
+        {
+          method: "DELETE",
+        },
+      );
     } catch (error) {
       const normalizedError = ErrorHandler.normalize(error, {
         service: "QuotesService",

@@ -5,11 +5,13 @@ export const INITIAL_FILTERS: FiltersOptions = {
   readers: [],
   status: [],
   gender: [],
+  view: "todos",
   userId: "",
   bookId: "",
   authorId: "",
   year: undefined,
   myBooks: false,
+  focusReaderId: "",
 };
 
 /**
@@ -17,7 +19,7 @@ export const INITIAL_FILTERS: FiltersOptions = {
  * Útil para garantir que a Query Key do React Query seja idêntica
  * mesmo que as propriedades do objeto de filtros mudem de ordem no estado.
  */
-function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
+export function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
     return obj;
   }
@@ -67,5 +69,21 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.stats.all, "reader", reader] as const,
     collaboration: (reader: string) =>
       [...QUERY_KEYS.stats.all, "collaboration", reader] as const,
+    leaderboard: (year: number | "all") =>
+      [...QUERY_KEYS.stats.all, "leaderboard", year] as const,
+  },
+  bookFavorites: {
+    all: ["bookFavorites"] as const,
+    byUser: (userId: string) => ["bookFavorites", userId] as const,
+  },
+  bookReadingRatings: {
+    all: ["bookReadingRatings"] as const,
+    batch: (userId: string, sortedBookIds: string[]) =>
+      ["bookReadingRatings", userId, sortedBookIds.join(",")] as const,
+  },
+  search: {
+    all: ["search"] as const,
+    autocomplete: (term: string) =>
+      [...QUERY_KEYS.search.all, "autocomplete", term] as const,
   },
 } as const;

@@ -9,28 +9,35 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SelectField } from "@/components/selectField/selectField";
+import { SelectField } from "@/components/selectField";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/datePicker/datePicker";
+import { DatePicker } from "@/components/datePicker";
 
 import {
   Form,
+  FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { BlurOverlay, ConfirmDialog } from "@/components/";
+import { BlurOverlay } from "@/components";
 import { CreateBookProps } from "./bookUpsert.types";
 import { genders } from "@/constants/genders";
-import { AutocompleteInput } from "./components";
-import AuthorUpsert from "../authors/components/authorUpsert";
+import { AuthorUpsert } from "@/modules/authors/components";
+import {
+  AutocompleteInput,
+  BookLookupPanel,
+  BookParticipationBlockedDialog,
+  FoundCatalogBookDialog,
+} from "./components";
 import { useBookUpsert } from "./hooks/useBookUpsert";
 import { DateUtils } from "@/utils";
+import { FinishedReadingRatingDialog } from "@/modules/bookRating";
 
 export function BookUpsert(props: CreateBookProps) {
   const {
@@ -42,8 +49,9 @@ export function BookUpsert(props: CreateBookProps) {
     selectedShelfId,
     setIsAddToShelfEnabled,
     setSelectedShelfId,
-    isDuplicateBookDialogOpen,
-    handleConfirmCreateBook,
+    isDiscoveryOpen,
+    isLinkingToExistingBook,
+    matchedBook,
     form,
     handleSubmit,
     control,
@@ -60,19 +68,36 @@ export function BookUpsert(props: CreateBookProps) {
     handleAuthorCreated,
     authorSearch,
     handleDialogOpenChange,
-    handleCancelDuplicateDialog,
+    handleCancelDiscoveryDialog,
+    isParticipationBlockOpen,
+    closeParticipationBlock,
+    handleLinkToExistingBook,
+    handleIgnoreAndCreateNewBook,
     handleStatusChange,
     handlePageNumberChange,
-    handleChosenByFieldChange,
     handleAuthorSearchChange,
+    plannedStartDateLabel,
+    shouldShowPlannedStartDate,
     isLoadingUsers,
     chosenByOptions,
     bookData,
+    foundBook,
+    isSearchingBooks,
+    lookupError,
+    lookupQuery,
+    handleLookupQueryChange,
+    handleSearchBooks,
+    ratingPromptBookId,
+    handleDismissRatingPrompt,
   } = useBookUpsert(props);
 
-  const showPlannedDate = !form.watch("start_date") && !form.watch("end_date");
   return (
     <>
+      <FinishedReadingRatingDialog
+        bookId={ratingPromptBookId}
+        open={Boolean(ratingPromptBookId)}
+        onDismiss={handleDismissRatingPrompt}
+      />
       <AuthorUpsert
         isOpen={isAuthorModalOpen}
         onOpenChange={handleAuthorModalOpenChange}
@@ -80,16 +105,18 @@ export function BookUpsert(props: CreateBookProps) {
         onSuccess={handleAuthorCreated}
         mode="create"
       />
-      <ConfirmDialog
-        open={isDuplicateBookDialogOpen}
-        onOpenChange={handleDialogOpenChange}
-        title="Livro Duplicado"
-        description="Um livro com este título já existe, deseja continuar?"
-        onConfirm={handleConfirmCreateBook}
-        id="duplicate-book-warning"
-        queryKeyToInvalidate="books"
-        buttonLabel="Continuar"
-        onCancel={handleCancelDuplicateDialog}
+      <BookParticipationBlockedDialog
+        open={isParticipationBlockOpen}
+        bookTitle={matchedBook?.candidate.title}
+        onDismiss={closeParticipationBlock}
+      />
+      <FoundCatalogBookDialog
+        open={isDiscoveryOpen}
+        matchedBook={matchedBook}
+        isLinkingToExisting={isLinkingToExistingBook}
+        onAddExisting={handleLinkToExistingBook}
+        onIgnoreAndCreate={handleIgnoreAndCreateNewBook}
+        onCancel={handleCancelDiscoveryDialog}
       />
       <Dialog open={props.isBookFormOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent
@@ -131,6 +158,25 @@ export function BookUpsert(props: CreateBookProps) {
                   onSubmit={handleSubmit(onSubmit)}
                   className="grid gap-6 py-5"
                 >
+                  {!isEdit && (
+                    <>
+                      <section className="grid gap-4">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          Busca automática
+                        </p>
+                        <BookLookupPanel
+                          isSearching={isSearchingBooks}
+                          error={lookupError}
+                          foundBook={foundBook}
+                          lookupQuery={lookupQuery}
+                          onQueryChange={handleLookupQueryChange}
+                          onSearch={handleSearchBooks}
+                        />
+                      </section>
+                      <Separator orientation="horizontal" />
+                    </>
+                  )}
+
                   <section className="grid gap-4">
                     <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                       Sobre o livro
@@ -158,7 +204,7 @@ export function BookUpsert(props: CreateBookProps) {
                           <FormLabel>URL da Capa</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Insira o link da imagem da Amazon"
+                              placeholder="Link da capa na Amazon; deixe em branco para usar capa padrão"
                               {...field}
                               autoFocus={false}
                             />
@@ -227,7 +273,7 @@ export function BookUpsert(props: CreateBookProps) {
                               <FormLabel>Páginas</FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
+                                  type="text"
                                   inputMode="numeric"
                                   {...field}
                                   value={value ?? ""}
@@ -258,42 +304,9 @@ export function BookUpsert(props: CreateBookProps) {
                         <FormItem>
                           <FormLabel>Quem vai ler o livro?</FormLabel>
                           <FormControl>
-                            <SelectField
-                              value={field.value}
-                              onChange={field.onChange}
-                              items={[
-                                { label: "Matheus", value: "Matheus" },
-                                { label: "Fabi", value: "Fabi" },
-                                {
-                                  label: "Matheus e Fabi",
-                                  value: "Matheus e Fabi",
-                                },
-                                {
-                                  label: "Barbara e Fabi",
-                                  value: "Barbara e Fabi",
-                                },
-                                {
-                                  label: "Barbara, Fabi e Matheus",
-                                  value: "Barbara,Fabi e Matheus",
-                                },
-                              ]}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={control}
-                      name="user_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quem escolheu?</FormLabel>
-                          <FormControl>
                             {isLoadingUsers ? (
                               <div className="flex gap-4">
-                                {[1, 2].map((i) => (
+                                {[1, 2, 3].map((i) => (
                                   <div
                                     key={i}
                                     className="h-5 w-20 animate-pulse rounded bg-muted"
@@ -302,23 +315,34 @@ export function BookUpsert(props: CreateBookProps) {
                               </div>
                             ) : (
                               <div className="flex flex-wrap gap-x-6 gap-y-1">
-                                {chosenByOptions.map(({ label, value }) => (
-                                  <div
-                                    key={value}
-                                    className="flex items-center gap-2 min-h-[44px]"
-                                  >
-                                    <Checkbox
-                                      id={`chosen-by-${value}`}
-                                      checked={field.value === value}
-                                      onCheckedChange={() =>
-                                        handleChosenByFieldChange(field, value)
-                                      }
-                                    />
-                                    <FormLabel htmlFor={`chosen-by-${value}`}>
-                                      {label}
-                                    </FormLabel>
-                                  </div>
-                                ))}
+                                {chosenByOptions.map(({ label, value }) => {
+                                  const selected = (field.value ?? []).includes(
+                                    value,
+                                  );
+                                  return (
+                                    <div
+                                      key={value}
+                                      className="flex items-center gap-2 min-h-[44px]"
+                                    >
+                                      <Checkbox
+                                        id={`readers-${value}`}
+                                        checked={selected}
+                                        onCheckedChange={() => {
+                                          const cur = field.value ?? [];
+                                          const next = selected
+                                            ? cur.filter(
+                                                (id: string) => id !== value,
+                                              )
+                                            : [...cur, value];
+                                          field.onChange(next);
+                                        }}
+                                      />
+                                      <FormLabel htmlFor={`readers-${value}`}>
+                                        {label}
+                                      </FormLabel>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
                           </FormControl>
@@ -346,13 +370,13 @@ export function BookUpsert(props: CreateBookProps) {
                       </div>
                     </FormItem>
 
-                    {showPlannedDate && (
+                    {shouldShowPlannedStartDate && (
                       <FormField
                         control={control}
                         name="planned_start_date"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Previsão de Início da Leitura</FormLabel>
+                            <FormLabel>{plannedStartDateLabel}</FormLabel>
                             <FormControl>
                               <DatePicker
                                 value={
@@ -370,6 +394,25 @@ export function BookUpsert(props: CreateBookProps) {
                         )}
                       />
                     )}
+
+                    <FormField
+                      control={control}
+                      name="is_reread"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center gap-3 min-h-[44px]">
+                            <Switch
+                              id="is-reread"
+                              checked={field.value ?? false}
+                              onCheckedChange={field.onChange}
+                            />
+                            <Label htmlFor="is-reread">
+                              Este livro é uma releitura?
+                            </Label>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
 
                     {selected !== "not_started" && selected !== null && (
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -417,6 +460,10 @@ export function BookUpsert(props: CreateBookProps) {
                                     }
                                   />
                                 </FormControl>
+                                <FormDescription>
+                                  Se não informar, usaremos a data de hoje como
+                                  data de término.
+                                </FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -466,7 +513,6 @@ export function BookUpsert(props: CreateBookProps) {
               </Form>
             </div>
 
-            {/* Sticky footer */}
             <div
               className={`shrink-0 border-t px-4 sm:px-6 py-4 bg-background ${
                 !isLoggedIn ? "pointer-events-none opacity-50" : ""

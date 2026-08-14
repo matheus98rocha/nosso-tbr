@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import sortWithPriority from "./sortWithPriority";
 describe("sortWithPriority", () => {
   it("should put the priority name first when it exists", () => {

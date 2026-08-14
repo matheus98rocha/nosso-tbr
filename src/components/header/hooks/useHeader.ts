@@ -1,7 +1,8 @@
-import { useModal } from "@/hooks/useModal";
+import { useModal } from "@/hooks/";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
 import { usePathname, useRouter } from "next/navigation";
+import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { Menu } from "../types/header.types";
 
 export function useHeader() {
@@ -39,8 +40,8 @@ export function useHeader() {
       items: [
         {
           label: "Ver Estantes",
-          action: () => router.push("/shelves"),
-          path: "/shelves",
+          action: () => router.push(SHELVES_LIST_PATH),
+          path: SHELVES_LIST_PATH,
         },
         {
           label: "Adicionar Estante",
@@ -62,6 +63,12 @@ export function useHeader() {
     {
       label: "Conta",
       items: [
+        {
+          label: "Perfil",
+          action: () => router.push("/profile"),
+          path: "/profile",
+          requiresAuth: true,
+        },
         {
           label: "Login",
           action: () => router.push("/auth"),

@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { memo } from "react";
 import {
   Select,
   SelectContent,
@@ -9,205 +8,271 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BarChart,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
   Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
+  BarChart,
+  CartesianGrid,
   Cell,
   Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { getGenderLabel } from "@/constants/genders";
+import { ReadingRankingSection } from "@/modules/stats/components";
+import {
+  STATS_CHART_PIE_FILLS,
+  useStatsClient,
+} from "@/modules/stats/hooks/useStatsClient";
+import type {
+  KpiCardProps,
+  StatsClientProps,
+} from "@/modules/stats/types/stats.types";
+import { BookOpen, FileText, PenLine, Tag } from "lucide-react";
 
-const leitores = ["Matheus", "Fabi", "Barbara"];
+const KpiCard = memo(function KpiCard({ title, value, icon }: KpiCardProps) {
+  return (
+    <Card className="transition-shadow duration-300 hover:shadow-md">
+      <CardContent className="flex flex-row items-center gap-4 pt-6">
+        <div
+          className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary md:size-12"
+          aria-hidden
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1 text-left">
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <div className="mt-1 text-2xl font-bold tabular-nums tracking-tight md:text-3xl">
+            {value}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
 
-const CORES = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50"];
-
-export type EstatisticaAnual = {
-  year: number;
-  totalBooks: number;
-  totalPages: number;
-  mostReadGenre: string;
-  mostReadAuthor: string;
-};
-
-type EstatisticaColaboracao = {
-  readerName: string;
-  booksRead: number;
-};
-
-type StatsClientProps = {
-  yearlyStats: EstatisticaAnual[];
-  collaborators: EstatisticaColaboracao[];
-  totalBooks: number;
-};
-
-export function StatsClient({
+export const StatsClient = memo(function StatsClient({
   yearlyStats,
   collaborators,
   totalBooks,
+  readerOptions,
+  selectedReaderId,
 }: StatsClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const readerParam = searchParams.get("reader") ?? leitores[0];
-  const [reader, setReader] = useState(readerParam);
-
-  useEffect(() => {
-    setReader(readerParam);
-  }, [readerParam]);
-
-  function onChange(value: string) {
-    router.push(`/stats?reader=${value}`);
-  }
-
-  const totalPages = yearlyStats.reduce(
-    (acc, s) => acc + (s.totalPages ?? 0),
-    0
-  );
-
-  const mostReadGenre = yearlyStats[0]?.mostReadGenre ?? "N/A";
-  const mostReadAuthor = yearlyStats[0]?.mostReadAuthor ?? "N/A";
+  const {
+    selectedReader,
+    handleReaderChange,
+    totalPagesAcrossYears,
+    primaryYearMostReadGenre,
+    primaryYearMostReadAuthor,
+    barChartAxisTickStyle,
+    chartGridStroke,
+    chartTooltipContentStyle,
+    collaborationPieLabelFormatter,
+    hasYearlyChartData,
+    hasCollaborationChartData,
+  } = useStatsClient({
+    yearlyStats,
+    collaborators,
+    readerOptions,
+    selectedReaderId,
+  });
 
   return (
-    <div className="space-y-8">
-      {/* seletor de leitor */}
-      <div className="flex justify-center">
-        <Select onValueChange={onChange} defaultValue={reader}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Selecione um leitor" />
-          </SelectTrigger>
-          <SelectContent>
-            {leitores.map((r) => (
-              <SelectItem key={r} value={r}>
-                {r}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-10 md:space-y-12">
+      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-2">
+          <Label
+            id="stats-reader-label"
+            htmlFor="stats-reader"
+            className="text-muted-foreground"
+          >
+            Leitor
+          </Label>
+          <Select value={selectedReader} onValueChange={handleReaderChange}>
+            <SelectTrigger
+              id="stats-reader"
+              aria-labelledby="stats-reader-label"
+              className="min-h-11 w-full min-w-[min(100%,16rem)] cursor-pointer transition-[box-shadow,colors] sm:w-56"
+            >
+              <SelectValue placeholder="Selecione um leitor" />
+            </SelectTrigger>
+            <SelectContent>
+              {readerOptions.map((reader) => (
+                <SelectItem key={reader.id} value={reader.id}>
+                  {reader.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* cards principais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="transition-shadow duration-300 hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-center text-base font-semibold">
-              Total de Livros
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <p className="text-2xl font-bold">{totalBooks}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="transition-shadow duration-300 hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-center text-base font-semibold">
-              Total de Páginas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <p className="text-2xl font-bold">{totalPages}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="transition-shadow duration-300 hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-center text-base font-semibold">
-              Gênero Mais Lido
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            {mostReadGenre === "N/A" ? (
-              <p className="text-lg">N/A</p>
-            ) : (
-              <span className="px-2 py-1 rounded text-sm font-medium">
-                <p className="text-2xl font-bold">
-                  {getGenderLabel(mostReadGenre)}
-                </p>
+      <section
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        aria-label="Resumo de leitura"
+      >
+        <KpiCard
+          title="Total de livros"
+          value={totalBooks}
+          icon={<BookOpen className="size-5 md:size-6" strokeWidth={1.75} />}
+        />
+        <KpiCard
+          title="Total de páginas"
+          value={totalPagesAcrossYears}
+          icon={<FileText className="size-5 md:size-6" strokeWidth={1.75} />}
+        />
+        <KpiCard
+          title="Gênero mais lido"
+          value={
+            primaryYearMostReadGenre === "N/A" ? (
+              <span className="text-xl text-muted-foreground md:text-2xl">
+                N/A
               </span>
+            ) : (
+              getGenderLabel(primaryYearMostReadGenre)
+            )
+          }
+          icon={<Tag className="size-5 md:size-6" strokeWidth={1.75} />}
+        />
+        <KpiCard
+          title="Autor mais lido"
+          value={
+            <span className="line-clamp-2 text-xl md:text-2xl">
+              {primaryYearMostReadAuthor}
+            </span>
+          }
+          icon={<PenLine className="size-5 md:size-6" strokeWidth={1.75} />}
+        />
+      </section>
+
+      <section
+        className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"
+        aria-label="Gráficos"
+      >
+        <Card className="shadow-sm">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-lg md:text-xl">Livros por ano</CardTitle>
+            <CardDescription>
+              Quantidade de livros concluídos em cada ano.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!hasYearlyChartData ? (
+              <p className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
+                Nenhum dado anual disponível para este leitor.
+              </p>
+            ) : (
+              <div className="h-[min(320px,55vw)] w-full min-h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={yearlyStats}
+                    margin={{ top: 16, right: 8, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="4 4"
+                      stroke={chartGridStroke}
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="year"
+                      tick={barChartAxisTickStyle}
+                      tickLine={false}
+                      axisLine={{ stroke: chartGridStroke }}
+                    />
+                    <YAxis
+                      tick={barChartAxisTickStyle}
+                      tickLine={false}
+                      axisLine={{ stroke: chartGridStroke }}
+                      width={40}
+                    />
+                    <Tooltip contentStyle={chartTooltipContentStyle} />
+                    <Legend />
+                    <Bar
+                      dataKey="totalBooks"
+                      name="Livros lidos"
+                      fill="var(--stats-chart-bar)"
+                      radius={[6, 6, 0, 0]}
+                      label={{
+                        position: "top",
+                        fill: "var(--foreground)",
+                        fontSize: 12,
+                      }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="transition-shadow duration-300 hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-center text-base font-semibold">
-              Autor Mais Lido
+        <Card className="shadow-sm">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-lg md:text-xl">
+              Colaborações de leitura
             </CardTitle>
+            <CardDescription>
+              Distribuição de livros lidos entre colaboradores.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <p className="text-2xl font-bold">{mostReadAuthor}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* gráfico de barras (livros por ano) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          {" "}
-          <CardHeader>
-            {" "}
-            <CardTitle>Livros por Ano</CardTitle>{" "}
-          </CardHeader>{" "}
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={yearlyStats}>
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar
-                  dataKey="totalBooks"
-                  name="Livros Lidos"
-                  fill="#8884d8"
-                  label={{ position: "top", fill: "#000", fontSize: 14 }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {!hasCollaborationChartData ? (
+              <p className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
+                Não há outros leitores com dados de colaboração para exibir.
+              </p>
+            ) : (
+              <div className="h-[min(320px,55vw)] w-full min-h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={collaborators}
+                      dataKey="booksRead"
+                      nameKey="readerName"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="78%"
+                      innerRadius="42%"
+                      paddingAngle={2}
+                      labelLine={false}
+                      label={collaborationPieLabelFormatter}
+                    >
+                      {collaborators.map((entry, index) => (
+                        <Cell
+                          key={entry.readerName}
+                          fill={
+                            STATS_CHART_PIE_FILLS[
+                              index % STATS_CHART_PIE_FILLS.length
+                            ]
+                          }
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={chartTooltipContentStyle} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
+      </section>
 
-        {/* gráfico de pizza (colaborações) */}
-        {collaborators.length > 0 && (
-          <Card>
-            {" "}
-            <CardHeader>
-              {" "}
-              <CardTitle>Colaborações de Leitura</CardTitle>{" "}
-            </CardHeader>{" "}
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={collaborators}
-                    dataKey="booksRead"
-                    nameKey="readerName"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={{
-                      position: "insideBottomLeft",
-                      fill: "#000",
-                      fontSize: 14,
-                    }}
-                  >
-                    {collaborators.map((_, index) => (
-                      <Cell key={index} fill={CORES[index % CORES.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      <ReadingRankingSection />
     </div>
   );
-}
+});
+
+export type {
+  EstatisticaAnual,
+  StatsClientProps,
+} from "@/modules/stats/types/stats.types";

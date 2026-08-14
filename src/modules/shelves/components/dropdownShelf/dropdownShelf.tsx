@@ -36,7 +36,7 @@ export function DropdownShelf({
         <DropdownMenuGroup>
           <DropdownMenuItem
             onClick={editShelve}
-            className="gap-2 cursor-pointer"
+            className="min-h-11 gap-2 cursor-pointer"
           >
             <Pencil className="w-4 h-4 text-muted-foreground" />
             Editar estante
@@ -44,7 +44,7 @@ export function DropdownShelf({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={removeShelve}
-            className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+            className="min-h-11 gap-2 cursor-pointer text-destructive focus:text-destructive"
           >
             <Trash2 className="w-4 h-4" />
             Remover estante

@@ -1,5 +1,9 @@
 import { BookDomain, BookPersistence } from "@/types/books.types";
 import { DateUtils } from "@/utils";
+import { resolveBookCoverUrl } from "@/constants/bookCover";
+import { formatList } from "@/utils/formatters";
+
+type UserLookup = { id: string; display_name: string };
 
 export class BookMapper {
   static toDomain(persistence: BookPersistence): BookDomain {
@@ -10,23 +14,19 @@ export class BookMapper {
       author_id,
       chosen_by,
       pages,
+      status,
       start_date,
       end_date,
       planned_start_date,
     } = persistence;
 
-    let status: BookDomain["status"] = "not_started";
-
-    if (start_date) {
-      status = "reading";
-    }
-    if (end_date) {
-      status = "finished";
-    }
-
     const startDateObj = DateUtils.toDate(start_date);
     const endDateObj = DateUtils.toDate(end_date);
     const plannedDateObj = DateUtils.toDate(planned_start_date);
+
+    const readerIds = Array.isArray(persistence.readers)
+      ? persistence.readers.map(String)
+      : [];
 
     return {
       id: id ? id : "",
@@ -35,16 +35,75 @@ export class BookMapper {
       authorId: author_id || undefined,
       chosen_by,
       pages,
-      status,
+      status: status ?? "not_started",
       end_date: endDateObj ? endDateObj.toISOString() : null,
       start_date: startDateObj ? startDateObj.toISOString() : null,
       planned_start_date: plannedDateObj ? plannedDateObj.toISOString() : null,
-      readers: Array.isArray(persistence.readers)
-        ? (persistence.readers.join(" e ") as BookDomain["readers"])
-        : (persistence.readers as BookDomain["readers"]),
+      readerIds,
+      readersDisplay: BookMapper.readersDisplayFromIds(readerIds, []),
       gender: persistence.gender ?? null,
-      image_url: persistence.image_url,
-      user_id: persistence.user_id,
+      image_url: resolveBookCoverUrl(persistence.image_url),
+      user_id: persistence.user_id ?? "",
+      is_reread: persistence.is_reread ?? false,
+      is_favorite: false,
     };
+  }
+
+  static enrichFavorite(book: BookDomain, favoriteIds: Set<string>): BookDomain {
+    const id = book.id ?? "";
+    return {
+      ...book,
+      is_favorite: id.length > 0 && favoriteIds.has(id),
+    };
+  }
+
+  static enrichReadingRating(
+    book: BookDomain,
+    starsByBookId: Map<string, number>,
+  ): BookDomain {
+    if (book.status !== "finished") return book;
+    const id = book.id ?? "";
+    if (!id) return book;
+    const v = starsByBookId.get(id);
+    return {
+      ...book,
+      reading_rating_stars: v ?? null,
+    };
+  }
+
+  static isSoloBook(
+    book: Pick<BookDomain, "chosen_by"> & {
+      readerIds?: BookDomain["readerIds"] | null;
+    },
+  ): boolean {
+    const readerIds = book.readerIds ?? [];
+    return readerIds.length === 1 && readerIds[0] === book.chosen_by;
+  }
+
+  static isCollectiveReadingBook(
+    book: Pick<BookDomain, "readerIds">,
+  ): boolean {
+    return (book.readerIds?.length ?? 0) > 1;
+  }
+
+  static enrichReadersDisplay(book: BookDomain, users: UserLookup[]): BookDomain {
+    const ids = book.readerIds ?? [];
+    return {
+      ...book,
+      readerIds: ids,
+      readersDisplay: BookMapper.readersDisplayFromIds(ids, users),
+    };
+  }
+
+  private static readersDisplayFromIds(
+    readerIds: string[],
+    users: UserLookup[],
+  ): string {
+    if (!readerIds.length) return "";
+    const labels = readerIds
+      .map((id) => users.find((u) => u.id === id)?.display_name?.trim())
+      .filter((label): label is string => Boolean(label?.length));
+    if (!labels.length) return "";
+    return formatList(labels);
   }
 }

@@ -1,11 +1,11 @@
 // DesktopNavMenu.tsx
 import { useMemo } from "react";
 import { useHeader } from "../../hooks/useHeader";
-import { BookUpsert } from "@/modules/bookUpsert/bookUpsert";
+import { BookUpsert } from "@/modules/bookUpsert";
 import { DesktopNavMenuProps } from "../../types/desktopNavMenu.types";
 import { useDesktopNav } from "../../hooks/useDesktopNav";
-import { NavSkeleton } from "../navSkeleton/navSkeleton";
-import { NavItem } from "../navItem/navItem";
+import { NavSkeleton } from "../navSkeleton";
+import { NavItem } from "../navItem";
 
 const ALLOWED_LABELS = [
   "Adicionar Livro",

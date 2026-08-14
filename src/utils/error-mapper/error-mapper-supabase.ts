@@ -1,6 +1,6 @@
 // src/utils/errorMapper.ts
 
-import { PostgrestError, AuthError } from "@supabase/supabase-js";
+import { AuthError, PostgrestError } from "@supabase/supabase-js";
 
 type SupabaseError = PostgrestError | AuthError | null;
 

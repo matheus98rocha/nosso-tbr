@@ -5,4 +5,6 @@ export type ScheduleTableProps = {
   bookId: string;
   updateIsCompleted: (payload: { id: string; isRead: boolean }) => void;
   deleteSchedule: (id: string) => Promise<void>;
+  isReadTogglePending: boolean;
+  pendingScheduleId: string | null;
 };

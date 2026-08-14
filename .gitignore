@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+package-lock.json
 /.pnp
 .pnp.*
 .yarn/*
@@ -36,10 +37,14 @@ yarn-error.log*
 # vercel
 .vercel
 
+# supabase CLI local link metadata
+supabase/.temp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
-.cursor
+# Cursor IDE (local rules, MCP config — do not commit secrets)
+.cursor/
 
 src/types/supabase.ts

@@ -2,19 +2,23 @@ import { useCallback } from "react";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/multSelect/multiSelect";
 
-import { useSyncLocalFilters } from "./hooks/useSyncLocalFilters";
+import {
+  areFiltersOptionsEqual,
+  useSyncLocalStateOnClose,
+} from "../../hooks/useSyncLocalStateOnClose";
 import {
   FiltersProps,
   GENDER_OPTIONS,
-  READER_OPTIONS,
   STATUS_OPTIONS,
   useLocalFilters,
 } from "./hooks/useFiltersSheet";
@@ -26,12 +30,18 @@ export default function FiltersSheet({
   setIsOpen,
   updateUrlWithFilters,
   searchQuery,
+  readerOptions,
 }: FiltersProps) {
   const pathname = usePathname();
   const { localFilters, handleFilterChange, resetLocalFilters } =
     useLocalFilters(filters);
 
-  useSyncLocalFilters(filters, open, resetLocalFilters);
+  useSyncLocalStateOnClose({
+    externalState: filters,
+    isOpen: open,
+    syncLocalState: resetLocalFilters,
+    areEqual: areFiltersOptionsEqual,
+  });
 
   const applyFilters = useCallback(() => {
     updateUrlWithFilters(localFilters, searchQuery);
@@ -39,16 +49,14 @@ export default function FiltersSheet({
   }, [localFilters, searchQuery, updateUrlWithFilters, setIsOpen]);
 
   const handleCancel = useCallback(() => {
-    const cleared = { readers: [], gender: [], status: [] };
+    resetLocalFilters(filters);
     setIsOpen(false);
-    updateUrlWithFilters(cleared, "");
-    resetLocalFilters(cleared);
-  }, [setIsOpen, updateUrlWithFilters, resetLocalFilters]);
+  }, [filters, setIsOpen, resetLocalFilters]);
 
   const handleClearAll = useCallback(() => {
-    const cleared = { readers: [], gender: [], status: [] };
+    const cleared = { ...localFilters, readers: [], gender: [], status: [], isReread: undefined };
     resetLocalFilters(cleared);
-  }, [resetLocalFilters]);
+  }, [localFilters, resetLocalFilters]);
 
   return (
     <Sheet open={open} onOpenChange={setIsOpen}>
@@ -65,15 +73,16 @@ export default function FiltersSheet({
         </SheetHeader>
 
         <div className="flex flex-col gap-6 p-3 overflow-y-auto mt-4">
-          {pathname === "/" && (
-            <FilterSection
-              title="Leitores"
-              options={READER_OPTIONS}
-              selected={localFilters.readers}
-              onChange={(values) => handleFilterChange("readers", values)}
-              placeholder="Selecione os leitores"
-            />
-          )}
+          {pathname === "/" &&
+            !(localFilters.view === "todos" && !localFilters.myBooks) && (
+              <FilterSection
+                title="Leitores"
+                options={readerOptions}
+                selected={localFilters.readers}
+                onChange={(values) => handleFilterChange("readers", values)}
+                placeholder="Selecione os leitores"
+              />
+            )}
 
           <FilterSection
             title="Status"
@@ -90,6 +99,19 @@ export default function FiltersSheet({
             onChange={(values) => handleFilterChange("gender", values)}
             placeholder="Selecione os gêneros"
           />
+
+          <div className="flex items-center gap-3 min-h-[44px]">
+            <Switch
+              id="filter-reread"
+              checked={localFilters.isReread ?? false}
+              onCheckedChange={(checked) =>
+                handleFilterChange("isReread", checked || false)
+              }
+            />
+            <Label htmlFor="filter-reread" className="text-sm font-semibold text-foreground/80">
+              Apenas releituras
+            </Label>
+          </div>
         </div>
 
         <SheetFooter className="flex flex-col gap-2 mt-auto pt-4 border-t">

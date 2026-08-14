@@ -1,7 +1,9 @@
+"use client";
+
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { motion, HTMLMotionProps } from "framer-motion";
+import { HTMLMotionProps, motion } from "framer-motion";
 
 function Card({ className, ...props }: HTMLMotionProps<"div">) {
   return (

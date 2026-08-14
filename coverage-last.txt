@@ -1,0 +1,594 @@
+﻿
+ RUN  v4.0.18 C:/www/nosso-tbr
+      Coverage enabled with v8
+
+ Ô£ô src/app/api/auth/register/route.test.ts (12 tests) 759ms
+     Ô£ô returns 503 when REGISTER_INVITE_SECRET is not configured  644ms
+ Ô£ô src/app/api/books/[id]/route.test.ts (18 tests) 1499ms
+       Ô£ô retorna 401 e n├úo consulta books quando n├úo h├í usu├írio autenticado  1249ms
+ Ô£ô src/components/searchBar/searchBar.test.tsx (1 test) 590ms
+     Ô£ô fecha o dropdown ao clicar em uma sugest├úo  587ms
+ Ô£ô src/components/statusFilterChips/statusFilterChips.test.tsx (8 tests) 926ms
+       Ô£ô renders all chips as buttons  603ms
+ Ô£ô src/components/defaultPagintation/defaultPagination.test.tsx (2 tests) 642ms
+     Ô£ô renders navigation labels and page links  634ms
+ Ô£ô src/modules/bookUpsert/components/bookParticipationBlockedDialog/bookParticipationBlockedDialog.test.tsx (2 tests) 1068ms
+     Ô£ô exibe t├¡tulo e descri├º├úo quando aberto  763ms
+     Ô£ô chama onDismiss ao clicar em Entendi  301ms
+ Ô£ô src/components/yearFilterChips/yearFilterChips.test.tsx (19 tests) 1360ms
+       Ô£ô renders exactly 6 year buttons  532ms
+ Ô£ô src/modules/bookUpsert/components/foundCatalogBookDialog/foundCatalogBookDialog.test.tsx (5 tests) 1642ms
+     Ô£ô exibe t├¡tulo do di├ílogo, dados do candidato e bot├Áes de a├º├úo  836ms
+ Ô£ô src/modules/profile/clientProfile/clientProfile.test.tsx (2 tests) 890ms
+     Ô£ô renderiza t├¡tulo e dados da conta  584ms
+     Ô£ô chama onClearCommunitySearch ao limpar busca na lista vazia  302ms
+ Ô£ô src/modules/stats/components/readingRanking/readingRankingSection.test.tsx (1 test) 966ms
+     Ô£ô renders full classification with all reader rows  960ms
+ Ô£ô src/modules/stats/StatsClient.spec.tsx (1 test) 807ms
+     Ô£ô renders KPI summary and charts section  796ms
+ Ô£ô src/app/(auth)/auth/page.test.tsx (5 tests) 3661ms
+     Ô£ô renderiza cart├úo de login com e-mail, senha e a├º├úo de entrar  724ms
+     Ô£ô navega para recupera├º├úo de senha ao acionar Esqueci a senha  415ms
+     Ô£ô envia loginAction com e-mail e senha do formul├írio  1016ms
+     Ô£ô exibe mensagem de erro retornada por loginAction  668ms
+     Ô£ô exibe mensagem de sucesso retornada por loginAction  826ms
+ Ô£ô src/app/(main)/shelves/page.test.tsx (3 tests) 928ms
+     Ô£ô mant├®m main com largura m├íxima e lista de estantes via GET /api/shelves  428ms
+     Ô£ô exibe a├º├úo de criar estante quando o usu├írio est├í autenticado  468ms
+ Ô£ô src/components/linkButton/linkButton.test.tsx (1 test) 583ms
+     Ô£ô renders a link with the given label  579ms
+ Ô£ô src/components/bookCard/bookCard.test.tsx (13 tests) 2792ms
+     Ô£ô exibe t├¡tulo, autor e faixa de status (composi├º├úo com useBookCard)  573ms
+     Ô£ô RN55: no menu da estante, a remo├º├úo ├® ┬½Remover livro da estante┬╗  364ms
+     Ô£ô ao acionar Editar Livro no menu, abre o fluxo de edi├º├úo (setIsOpen true)  455ms
+     Ô£ô ao acionar Adicionar Livro a Estante, abre o modal de estantes  411ms
+     Ô£ô ao acionar Remover livro no menu (biblioteca), abre o di├ílogo de exclus├úo  461ms
+ Ô£ô src/components/error/error.test.tsx (1 test) 630ms
+     Ô£ô renders the retry control with an accessible label  625ms
+ Ô£ô src/modules/profile/communityMemberFollowRow/communityMemberFollowRow.test.tsx (1 test) 743ms
+     Ô£ô dispara onPress ao clicar em Follow  728ms
+ Ô£ô src/app/api/authors/route.test.ts (2 tests) 524ms
+       Ô£ô retorna 401 sem usu├írio  468ms
+ Ô£ô src/app/api/quotes/route.test.ts (3 tests) 677ms
+       Ô£ô retorna 401 sem sess├úo  605ms
+ Ô£ô src/components/ui/button.test.tsx (3 tests) 693ms
+     Ô£ô renders asChild with a single anchor child without throwing  522ms
+ Ô£ô src/components/blurOverlay/blurOverlay.test.tsx (3 tests) 723ms
+     Ô£ô renders default overlay and navigates to auth on button click  625ms
+ Ô£ô src/app/api/books/route.test.ts (11 tests) 1085ms
+     Ô£ô returns book rows when select succeeds without consulting auth session  751ms
+ Ô£ô src/app/(auth)/layout.test.tsx (2 tests) 535ms
+     Ô£ô should render children correctly  529ms
+ Ô£ô src/modules/stats/components/readingRanking/readingRankingTable.test.tsx (1 test) 896ms
+     Ô£ô renders all rows with ranks and names  891ms
+ Ô£ô src/app/api/shelves/[id]/books/reorder/route.test.ts (13 tests) 720ms
+     Ô£ô retorna 401 quando n├úo h├í sess├úo (RN48)  524ms
+ Ô£ô src/app/api/authors/[id]/route.test.ts (4 tests) 477ms
+       Ô£ô retorna 401 sem sess├úo  434ms
+ Ô£ô src/app/api/schedule/route.test.ts (6 tests) 475ms
+       Ô£ô retorna 401 sem sess├úo  412ms
+ Ô£ô src/app/api/shelves/[id]/route.test.ts (7 tests) 488ms
+       Ô£ô retorna 401 sem sess├úo  411ms
+ Ô£ô src/app/api/quotes/[id]/route.test.ts (4 tests) 416ms
+       Ô£ô retorna 404 quando quote n├úo existe  377ms
+ Ô£ô src/modules/schedule/hooks/useOptimisticScheduleReadToggle.spec.ts (4 tests) 278ms
+ Ô£ô src/app/api/schedule/[id]/route.test.ts (2 tests) 700ms
+       Ô£ô retorna 403 quando owner da linha difere da sess├úo  647ms
+ Ô£ô src/modules/home/index.test.tsx (4 tests) 1516ms
+     Ô£ô renders the locked reader chip as active and disabled in joint view  889ms
+     Ô£ô shows guidance copy and both paths when logged-in Todos view has zero books  338ms
+ Ô£ô src/app/api/books/[id]/link/route.test.ts (5 tests) 319ms
+ Ô£ô src/app/api/shelves/[id]/books/[bookId]/route.test.ts (21 tests) 513ms
+     Ô£ô retorna 401 quando n├úo h├í sess├úo (RN48)  314ms
+ Ô£ô src/app/api/users/route.test.ts (3 tests) 300ms
+ Ô£ô src/modules/schedule/hooks/useOptimisticScheduleDelete.spec.ts (4 tests) 224ms
+ Ô£ô src/modules/home/hooks/useHome.test.ts (77 tests) 394ms
+ Ô£ô src/modules/bookUpsert/hooks/useBookDialog.test.ts (17 tests) 130ms
+ Ô£ô src/modules/bookUpsert/hooks/useBookLookup.test.ts (11 tests) 156ms
+ Ô£ô src/modules/shelves/hooks/useBookshelves.test.ts (13 tests) 168ms
+ Ô£ô src/components/bookCard/components/addBookToShelf/hooks/useAddBookToShelf.test.ts (25 tests) 151ms
+ Ô£ô src/app/api/book-lookup/route.test.ts (4 tests) 109ms
+ Ô£ô src/modules/profile/clientProfile/hooks/useClientProfile.spec.ts (3 tests) 107ms
+ Ô£ô src/components/datePicker/datePicker.test.tsx (1 test) 510ms
+     Ô£ô renders placeholder when value is undefined  505ms
+ Ô£ô src/utils/formatters/formatters.test.ts (18 tests) 102ms
+ Ô£ô src/components/bookCard/hooks/useBookCard.test.ts (13 tests) 146ms
+ Ô£ô src/services/users/hooks/useUsers.test.ts (11 tests) 99ms
+ Ô£ô src/modules/bookUpsert/hooks/useBookUpsert.test.ts (15 tests) 170ms
+ Ô£ô src/components/header/hooks/useDesktopNav.test.ts (6 tests) 82ms
+ Ô£ô src/modules/bookUpsert/hooks/useBookDialog.ignoreCreate.test.ts (2 tests) 67ms
+ Ô£ô src/modules/bookshelves/hooks/useBookshelfBookOrder.test.tsx (1 test) 66ms
+ Ô£ô src/components/listGrid/listGrid.test.tsx (1 test) 69ms
+ Ô£ô src/components/defaultPagintation/hooks/useDefaultPagination.spec.ts (8 tests) 90ms
+ Ô£ô src/modules/stats/hooks/useReadingRanking.spec.ts (6 tests) 91ms
+ Ô£ô src/hooks/useStatusFilters/useStatusFilters.test.ts (9 tests) 84ms
+ Ô£ô src/hooks/useReadingYears/useReadingYears.spec.ts (6 tests) 96ms
+ Ô£ô src/modules/bookUpsert/hooks/useBookPreCreationValidation.test.ts (8 tests) 131ms
+ Ô£ô src/modules/stats/hooks/useStatsClient.spec.ts (4 tests) 115ms
+ Ô£ô src/utils/date/date.test.ts (40 tests) 74ms
+ Ô£ô src/components/datePicker/hooks/useDatePicker.spec.ts (2 tests) 87ms
+ Ô£ô src/modules/bookUpsert/hooks/usePlannedStartDateFieldVisibility.test.ts (6 tests) 93ms
+ Ô£ô src/modules/profile/hooks/useUserSocial.test.ts (4 tests) 93ms
+ Ô£ô src/components/header/hooks/useHomeSearchBar.test.ts (2 tests) 67ms
+ Ô£ô src/modules/home/hooks/useSyncLocalStateOnClose.test.ts (6 tests) 68ms
+ Ô£ô src/hooks/useSafeTap/useSafeTap.test.ts (7 tests) 71ms
+ Ô£ô src/modules/home/hooks/useBookSearchRefinement.spec.ts (4 tests) 79ms
+ Ô£ô src/components/searchBar/hooks/useSearchBar.spec.ts (3 tests) 60ms
+ Ô£ô src/components/blurOverlay/hooks/useBlurOverlay.spec.ts (1 test) 57ms
+ Ô£ô src/components/multSelect/hooks/useMultiSelect.spec.ts (2 tests) 78ms
+ Ô£ô src/app/(main)/bookshelves/[id]/page.test.tsx (1 test) 261ms
+ Ô£ô src/modules/bookshelves/index.test.tsx (1 test) 266ms
+ Ô£ô src/modules/bookUpsert/bookUpsert.spec.ts (21 tests) 44ms
+ Ô£ô src/modules/bookshelves/hooks/useBookshelfBooks.test.ts (3 tests) 63ms
+ Ô£ô src/components/yearFilterChips/hooks/useYearFilterChips.spec.ts (5 tests) 91ms
+ Ô£ô src/modules/bookUpsert/hooks/usePlannedStartDateLabel.test.ts (4 tests) 114ms
+npx : stderr | src/modules/bookUpsert/services/bookUpsert.service.test.ts > BookUpsertService business rules > blocks 
+create when status is paused
+No C:\Users\mathe\AppData\Local\Temp\ps-script-3d854fa1-cca0-44db-9735-954a97067da3.ps1:92 caractere:34
++ ... t-Location "c:\www\nosso-tbr"; npx vitest run --coverage 2>&1 | Out-F ...
++                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/mo...tatus is paused:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Server Error: {
+  name: 'RepositoryError',
+  message: 'Livros n├úo podem ser criados com status pausado ou abandonado.',
+  statusCode: 500,
+  timestamp: '2026-04-30T20:58:06.203Z',
+  stack: 'RepositoryError: Livros n├úo podem ser criados com status pausado ou abandonado.\n' +
+    '    at ensureCreatableStatus (C:/www/nosso-tbr/src/modules/bookUpsert/services/bookUpsert.validation.ts:12:11)\n' 
++
+    '    at BookUpsertService.create (C:/www/nosso-tbr/src/modules/bookUpsert/services/bookUpsert.service.ts:72:7)\n' +
+    '    at C:/www/nosso-tbr/src/modules/bookUpsert/services/bookUpsert.service.test.ts:53:15\n' +
+    '    at file:///C:/www/nosso-tbr/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/www/nosso-tbr/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/www/nosso-tbr/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)\n' +
+    '    at runWithTimeout (file:///C:/www/nosso-tbr/node_modules/@vitest/runner/dist/index.js:1209:10)\n' +
+    '    at file:///C:/www/nosso-tbr/node_modules/@vitest/runner/dist/index.js:1653:37\n' +
+    '    at Traces.$ (file:///C:/www/nosso-tbr/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)',
+  originalError: undefined,
+  env: 'test',
+  app: undefined
+}
+
+ Ô£ô src/modules/bookUpsert/services/bookUpsert.service.test.ts (9 tests) 48ms
+ Ô£ô src/modules/profile/utils/formatJoinedDate.test.ts (2 tests) 44ms
+ Ô£ô src/modules/bookshelves/hooks/useBookshelfMeta.test.ts (3 tests) 81ms
+ Ô£ô src/components/error/hooks/useErrorComponent.spec.ts (1 test) 41ms
+ Ô£ô src/modules/schedule/services/mappers/schedule.test.ts (5 tests) 52ms
+ Ô£ô src/modules/home/utils/sortWithPriority/sortWithPriority.test.ts (6 tests) 41ms
+ Ô£ô src/services/books/bookQuery.builder.test.ts (30 tests) 39ms
+ Ô£ô src/app/api/_utils/requireUser.test.ts (3 tests) 27ms
+ Ô£ô src/services/userSocial/userSocial.service.test.ts (4 tests) 20ms
+ Ô£ô src/utils/parseFiltersFromSearchParams/parseFiltersFromSearchParams.test.ts (16 tests) 19ms
+ Ô£ô src/services/userRegistration/validators/userRegistration.validator.test.ts (8 tests) 21ms
+ Ô£ô src/services/users/service/getUsers.service.test.ts (2 tests) 17ms
+ Ô£ô src/utils/buildQueryStringFromFilters/buildQueryStringFromFilters.test.ts (18 tests) 19ms
+ Ô£ô src/modules/bookshelves/utils/shelfBookOrder.test.ts (7 tests) 21ms
+ Ô£ô src/services/books/books.service.test.ts (4 tests) 22ms
+ Ô£ô src/modules/schedule/utils/generateBookSchedule.test.ts (9 tests) 14ms
+ Ô£ô src/modules/bookshelves/services/bookshelvesBooks.service.test.ts (1 test) 15ms
+ Ô£ô src/modules/bookUpsert/services/bookCatalogMatch.service.test.ts (4 tests) 15ms
+ Ô£ô src/lib/auth/registerInvite.test.ts (4 tests) 13ms
+ Ô£ô src/constants/keys.test.ts (9 tests) 14ms
+ Ô£ô src/modules/bookUpsert/services/bookStatusTransition.test.ts (4 tests) 16ms
+ Ô£ô src/modules/stats/utils/buildRankedLeaderboard.spec.ts (5 tests) 10ms
+ Ô£ô src/modules/bookshelves/utils/bookshelfBooksSort.test.ts (6 tests) 13ms
+ Ô£ô src/services/books/tests/books.mapper.spec.ts (7 tests) 11ms
+ Ô£ô src/utils/normalizeForBookTitleSearch/normalizeForBookTitleSearch.test.ts (5 tests) 11ms
+ Ô£ô src/services/books/buildFtsQueryFromUserSearch.test.ts (5 tests) 9ms
+ Ô£ô src/modules/bookUpsert/services/bookUpsert.validation.test.ts (3 tests) 10ms
+ Ô£ô src/components/header/services/mappers/searchAutocomplete.mapper.test.ts (4 tests) 8ms
+ Ô£ô src/services/books/books.mapper.test.ts (8 tests) 8ms
+ Ô£ô src/modules/quotes/services/mappers/quotes.mappers.test.ts (4 tests) 9ms
+ Ô£ô src/utils/levenshteinDistance/levenshteinDistance.test.ts (7 tests) 7ms
+ Ô£ô src/utils/stripLatinDiacritics/stripLatinDiacritics.test.ts (2 tests) 7ms
+ Ô£ô src/modules/bookUpsert/services/bookCatalogDiscovery.rules.test.ts (7 tests) 6ms
+ Ô£ô src/services/userSocial/tests/userSocial.mapper.spec.ts (1 test) 6ms
+ Ô£ô src/modules/schedule/utils/scheduleQueryKey.test.ts (3 tests) 6ms
+ Ô£ô src/modules/bookshelves/hooks/useBookshelfSortPreference.test.ts (2 tests) 4ms
+ Ô£ô src/lib/security/bookParticipation.test.ts (4 tests) 5ms
+ Ô£ô src/lib/routes/shelves.test.ts (2 tests) 3ms
+
+ Test Files  113 passed (113)
+      Tests  792 passed (792)
+   Start at  17:57:30
+   Duration  44.28s (transform 20.77s, setup 61.71s, import 133.64s, tests 37.58s, environment 329.38s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   69.39 |    61.39 |   59.91 |    69.5 |                   
+ app/(auth)        |     100 |      100 |     100 |     100 |                   
+  layout.tsx       |     100 |      100 |     100 |     100 |                   
+ app/(auth)/auth   |     100 |      100 |     100 |     100 |                   
+  page.tsx         |     100 |      100 |     100 |     100 |                   
+ ...okshelves/[id] |     100 |      100 |     100 |     100 |                   
+  page.tsx         |     100 |      100 |     100 |     100 |                   
+ ...(main)/shelves |     100 |      100 |     100 |     100 |                   
+  page.tsx         |     100 |      100 |     100 |     100 |                   
+ app/api/_utils    |     100 |      100 |     100 |     100 |                   
+  requireUser.ts   |     100 |      100 |     100 |     100 |                   
+ .../auth/register |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ app/api/authors   |      80 |    66.66 |     100 |   78.57 |                   
+  route.ts         |      80 |    66.66 |     100 |   78.57 | 19,24,37          
+ ...i/authors/[id] |   78.78 |    66.66 |     100 |   80.64 |                   
+  route.ts         |   78.78 |    66.66 |     100 |   80.64 | 22,27,39,59,70,82 
+ ...pi/book-lookup |   87.09 |       85 |   66.66 |   92.85 |                   
+  route.ts         |   87.09 |       85 |   66.66 |   92.85 | 71-72             
+ app/api/books     |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ ...api/books/[id] |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ ...ooks/[id]/link |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ app/api/quotes    |   78.26 |    64.28 |     100 |   77.27 |                   
+  route.ts         |   78.26 |    64.28 |     100 |   77.27 | 23,28,41,44,70    
+ ...pi/quotes/[id] |   72.72 |    58.82 |     100 |      78 |                   
+  route.ts         |   72.72 |    58.82 |     100 |      78 | ...27,130,140,145 
+ app/api/schedule  |   83.33 |    66.66 |     100 |      85 |                   
+  route.ts         |   83.33 |    66.66 |     100 |      85 | ...5,56,59,93,117 
+ .../schedule/[id] |   73.91 |    58.33 |     100 |   77.27 |                   
+  route.ts         |   73.91 |    58.33 |     100 |   77.27 | 22,27,40,43,56    
+ ...i/shelves/[id] |   84.61 |    72.72 |     100 |   86.48 |                   
+  route.ts         |   84.61 |    72.72 |     100 |   86.48 | 40,55,74,77,85    
+ ...books/[bookId] |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ .../books/reorder |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ app/api/users     |     100 |     87.5 |     100 |     100 |                   
+  route.ts         |     100 |     87.5 |     100 |     100 | 27                
+ assets/icons      |     100 |      100 |     100 |     100 |                   
+  logo.tsx         |     100 |      100 |     100 |     100 |                   
+ components        |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ts/blurOverlay |     100 |      100 |     100 |     100 |                   
+  blurOverlay.tsx  |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...rOverlay/hooks |     100 |      100 |     100 |     100 |                   
+  ...lurOverlay.ts |     100 |      100 |     100 |     100 |                   
+ ...nents/bookCard |     100 |    92.53 |     100 |     100 |                   
+  bookCard.tsx     |     100 |    92.53 |     100 |     100 | ...75,186,201-219 
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...addBookToShelf |       0 |        0 |       0 |       0 |                   
+  ...okToShelf.tsx |       0 |        0 |       0 |       0 | 26-28             
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...kToShelf/hooks |    62.5 |    85.71 |      60 |   59.09 |                   
+  ...ookToShelf.ts |    62.5 |    85.71 |      60 |   59.09 | 28,36-59          
+ ...s/dropdownBook |     100 |      100 |     100 |     100 |                   
+  dropdownBook.tsx |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...bookCard/hooks |   95.65 |    68.18 |   84.61 |   97.67 |                   
+  useBookCard.ts   |   95.65 |    68.18 |   84.61 |   97.67 | 45                
+ .../confirmDialog |      75 |      100 |      50 |      75 |                   
+  ...irmDialog.tsx |      75 |      100 |      50 |      75 | 49                
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...rmDialog/hooks |      50 |      100 |   33.33 |      50 |                   
+  ...firmDialog.ts |      50 |      100 |   33.33 |      50 | 18-21             
+ ...nts/datePicker |     100 |      100 |     100 |     100 |                   
+  datePicker.tsx   |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...tePicker/hooks |     100 |       50 |     100 |     100 |                   
+  useDatePicker.ts |     100 |       50 |     100 |     100 | 14-19             
+ ...ultPagintation |     100 |     62.5 |     100 |     100 |                   
+  ...agination.tsx |     100 |     62.5 |     100 |     100 | 45-87             
+ ...intation/hooks |   80.95 |       40 |   86.36 |   81.13 |                   
+  ...Pagination.ts |   80.95 |       40 |   86.36 |   81.13 | ...78,103-107,149 
+ components/error  |     100 |      100 |     100 |     100 |                   
+  error.tsx        |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ts/error/hooks |   66.66 |      100 |      50 |   66.66 |                   
+  ...rComponent.ts |   66.66 |      100 |      50 |   66.66 | 7                 
+ components/header |       0 |        0 |       0 |       0 |                   
+  header.tsx       |       0 |        0 |       0 |       0 | 38-282            
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ .../homeSearchBar |       0 |      100 |       0 |       0 |                   
+  ...SearchBar.tsx |       0 |      100 |       0 |       0 | 11-38             
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...onents/navItem |      10 |        0 |       0 |      10 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  navItem.tsx      |      10 |        0 |       0 |      10 | 20-59             
+ ...onents/navMenu |    8.33 |        0 |       0 |      10 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  navMenu.tsx      |    8.33 |        0 |       0 |      10 | 21-43             
+ ...ts/navSkeleton |       0 |      100 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  navSkeleton.tsx  |       0 |      100 |       0 |       0 | 4-10              
+ ...s/header/hooks |   50.48 |    34.61 |   36.58 |   52.57 |                   
+  useDesktopNav.ts |     100 |      100 |     100 |     100 |                   
+  useHeader.ts     |       0 |        0 |       0 |       0 | 9-105             
+  ...eSearchBar.ts |   77.77 |    41.66 |   66.66 |      80 | ...,72,85,100-105 
+  ...tocomplete.ts |      10 |        0 |       0 |   10.52 | 10-41             
+ ...eader/services |    6.45 |        0 |       0 |    6.89 |                   
+  ...te.service.ts |    6.45 |        0 |       0 |    6.89 | 11-99             
+ ...rvices/mappers |    90.9 |     87.5 |     100 |     100 |                   
+  ...ete.mapper.ts |    90.9 |     87.5 |     100 |     100 | 11                
+ ...nputWithButton |      56 |    18.75 |   42.85 |   54.16 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...ithButton.tsx |      56 |    18.75 |   42.85 |   54.16 | ...54,59,63,67-73 
+ ...nts/linkButton |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  linkButton.tsx   |     100 |      100 |     100 |     100 |                   
+ ...nents/listGrid |    87.5 |    91.66 |     100 |    87.5 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  listGrid.tsx     |    87.5 |    91.66 |     100 |    87.5 | 42                
+ ...nts/multSelect |   14.28 |        0 |       0 |   14.28 |                   
+  multiSelect.tsx  |   14.28 |        0 |       0 |   14.28 | 21-59             
+ ...ltSelect/hooks |     100 |      100 |     100 |     100 |                   
+  ...ultiSelect.ts |     100 |      100 |     100 |     100 |                   
+ ...ents/searchBar |   55.55 |       70 |   42.85 |   55.55 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  searchBar.tsx    |   55.55 |       70 |   42.85 |   55.55 | 68,83-88          
+ ...earchBar/hooks |   67.85 |       50 |      70 |   73.07 |                   
+  useSearchBar.ts  |   67.85 |       50 |      70 |   73.07 | 32-36,52-53,68-69 
+ ...ts/selectField |   33.33 |        0 |       0 |   33.33 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  selectField.tsx  |   33.33 |        0 |       0 |   33.33 | 21-30             
+ ...ortFilterChips |    92.3 |    61.53 |      75 |    92.3 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...lterChips.tsx |    92.3 |    61.53 |      75 |    92.3 | 101               
+ ...tusFilterChips |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...lterChips.tsx |     100 |      100 |     100 |     100 |                   
+ components/ui     |   39.28 |    46.66 |   43.39 |   39.56 |                   
+  badge.tsx        |     100 |    66.66 |     100 |     100 | 35                
+  button.tsx       |     100 |      100 |     100 |     100 |                   
+  calendar.tsx     |       0 |        0 |       0 |       0 | 26-185            
+  card.tsx         |   85.71 |      100 |   85.71 |   85.71 | 58                
+  checkbox.tsx     |       0 |      100 |       0 |       0 | 13                
+  command.tsx      |       0 |        0 |       0 |       0 | 20-162            
+  dialog.tsx       |      90 |      100 |      90 |      90 | 18                
+  ...down-menu.tsx |   33.33 |      100 |   33.33 |   33.33 | 18,91-229         
+  form.tsx         |   17.85 |        0 |       0 |   17.85 | 38,46-58,77-146   
+  input.tsx        |     100 |      100 |     100 |     100 |                   
+  label.tsx        |     100 |      100 |     100 |     100 |                   
+  pagination.tsx   |   85.71 |    77.77 |   85.71 |   85.71 | 108               
+  popover.tsx      |      75 |      100 |      75 |      75 | 45                
+  select.tsx       |      70 |      100 |      70 |      70 | 18,92,129         
+  separator.tsx    |     100 |      100 |     100 |     100 |                   
+  sheet.tsx        |       0 |        0 |       0 |       0 | 10-121            
+  skeleton.tsx     |     100 |      100 |     100 |     100 |                   
+  switch.tsx       |       0 |      100 |       0 |       0 | 12                
+  table.tsx        |       0 |      100 |       0 |       0 | 8-98              
+  tooltip.tsx      |     100 |      100 |     100 |     100 |                   
+ ...earFilterChips |    87.5 |       75 |      75 |    87.5 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...lterChips.tsx |    87.5 |       75 |      75 |    87.5 | 18                
+ ...terChips/hooks |     100 |      100 |     100 |     100 |                   
+  ...ilterChips.ts |     100 |      100 |     100 |     100 |                   
+ constants         |   94.59 |    73.33 |    92.3 |   94.44 |                   
+  bookCover.ts     |     100 |      100 |     100 |     100 |                   
+  bookStatuses.ts  |     100 |      100 |     100 |     100 |                   
+  genders.ts       |     100 |       50 |     100 |     100 | 31-65             
+  keys.ts          |   85.71 |       80 |    87.5 |   85.71 | 23,77             
+  shelfBook.ts     |     100 |      100 |     100 |     100 |                   
+  ...Dictionary.ts |     100 |      100 |     100 |     100 |                   
+ hooks             |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ hooks/useDebounce |       0 |      100 |       0 |       0 |                   
+  useDebounce.ts   |       0 |      100 |       0 |       0 | 4-16              
+ .../useFiltersUrl |       0 |        0 |       0 |       0 |                   
+  useFiltersUrl.ts |       0 |        0 |       0 |       0 | 15-73             
+ hooks/useModal    |   55.55 |      100 |      20 |     100 |                   
+  useModal.ts      |   55.55 |      100 |      20 |     100 |                   
+ ...seReadingYears |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...adingYears.ts |     100 |      100 |     100 |     100 |                   
+ hooks/useSafeTap  |     100 |      100 |     100 |     100 |                   
+  useSafeTap.ts    |     100 |      100 |     100 |     100 |                   
+ ...eStatusFilters |     100 |      100 |     100 |     100 |                   
+  ...tusFilters.ts |     100 |      100 |     100 |     100 |                   
+ lib               |     100 |      100 |     100 |     100 |                   
+  utils.ts         |     100 |      100 |     100 |     100 |                   
+ lib/api           |      25 |    16.66 |   66.66 |      25 |                   
+  ...tJsonFetch.ts |   21.05 |        0 |      50 |   21.05 | 19-58             
+  ...rizedError.ts |     100 |      100 |     100 |     100 |                   
+ lib/auth          |     100 |      100 |     100 |     100 |                   
+  ...sterInvite.ts |     100 |      100 |     100 |     100 |                   
+ lib/routes        |     100 |      100 |     100 |     100 |                   
+  shelves.ts       |     100 |      100 |     100 |     100 |                   
+ lib/security      |     100 |       90 |     100 |     100 |                   
+  ...ticipation.ts |     100 |       90 |     100 |     100 | 18                
+ modules/auth      |     100 |      100 |     100 |     100 |                   
+  index.tsx        |     100 |      100 |     100 |     100 |                   
+ ...les/auth/hooks |     100 |      100 |     100 |     100 |                   
+  useLogin.ts      |     100 |      100 |     100 |     100 |                   
+ ...ors/components |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...s/authorUpsert |       0 |        0 |       0 |       0 |                   
+  authorUpsert.tsx |       0 |        0 |       0 |       0 | 43-107            
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...onents/columns |    6.66 |        0 |       0 |    6.66 |                   
+  columns.tsx      |    6.66 |        0 |       0 |    6.66 | 24,45-95          
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ents/dataTable |       0 |        0 |       0 |       0 |                   
+  dataTable.tsx    |       0 |        0 |       0 |       0 | 43-123            
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...thors/services |    2.17 |        0 |   14.28 |    2.17 |                   
+  ...rs.service.ts |    2.17 |        0 |   14.28 |    2.17 | 12-167            
+ ...rvices/mappers |       0 |      100 |     100 |       0 |                   
+  ...ors.mapper.ts |       0 |      100 |     100 |       0 | 5-23              
+ ...les/bookUpsert |       0 |        0 |       0 |       0 |                   
+  bookUpsert.tsx   |       0 |        0 |       0 |       0 | 89-450            
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ert/components |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...s/autocomplete |       0 |        0 |       0 |       0 |                   
+  autocomplete.tsx |       0 |        0 |       0 |       0 | 53-143            
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ookLookupPanel |   18.18 |        0 |       0 |   18.18 |                   
+  index.tsx        |   18.18 |        0 |       0 |   18.18 | 24-88             
+ ...nBlockedDialog |      75 |       50 |      50 |      75 |                   
+  ...kedDialog.tsx |      75 |       50 |      50 |      75 | 20                
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...alogBookDialog |   83.33 |    63.63 |      50 |   83.33 |                   
+  ...ookDialog.tsx |   83.33 |    63.63 |      50 |   83.33 | 46-110            
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...okUpsert/hooks |   67.85 |    39.45 |      60 |   67.04 |                   
+  useBookDialog.ts |   37.81 |    18.18 |   47.36 |   36.84 | ...95-302,315-329 
+  useBookLookup.ts |     100 |      100 |     100 |     100 |                   
+  ...Validation.ts |   89.79 |    83.33 |      75 |   89.58 | 45,67,71-72,85    
+  useBookUpsert.ts |   82.81 |    76.92 |   44.44 |   81.35 | ...30,141,151,157 
+  ...Visibility.ts |     100 |      100 |     100 |     100 |                   
+  ...tDateLabel.ts |     100 |      100 |     100 |     100 |                   
+ ...psert/services |   77.23 |    73.68 |    90.9 |   77.39 |                   
+  ...very.rules.ts |   88.23 |    88.88 |     100 |     100 | 8,22              
+  ...ch.service.ts |    86.2 |     62.5 |     100 |    86.2 | 21,33,75,80       
+  ...Transition.ts |     100 |    85.18 |     100 |     100 | 29,36,43          
+  ...rt.service.ts |   63.93 |    55.26 |   77.77 |   63.33 | ...39,212,233-256 
+  ...validation.ts |     100 |    93.33 |     100 |     100 | 24                
+ ...rvices/mappers |     100 |      100 |     100 |     100 |                   
+  ...ert.mapper.ts |     100 |      100 |     100 |     100 |                   
+ ...es/bookshelves |   71.42 |     64.7 |      50 |   71.42 |                   
+  ...ksQueryKey.ts |     100 |      100 |     100 |     100 |                   
+  index.tsx        |   69.23 |     64.7 |      40 |   69.23 | 41,153-181        
+ ...kshelves/hooks |   76.66 |       50 |      90 |   79.62 |                   
+  ...fBookOrder.ts |   73.33 |       25 |   88.88 |   77.77 | 42-52,72-73       
+  ...shelfBooks.ts |     100 |      100 |     100 |     100 |                   
+  ...kshelfMeta.ts |     100 |      100 |     100 |     100 |                   
+  ...kshelfSort.ts |     100 |      100 |     100 |     100 |                   
+  ...Preference.ts |   68.42 |    71.42 |      75 |   70.58 | 36-40             
+ ...elves/services |   18.18 |        0 |   33.33 |   22.22 |                   
+  ...ks.service.ts |   18.18 |        0 |   33.33 |   22.22 | 10-29,47          
+ ...kshelves/utils |   94.33 |    83.33 |     100 |   97.91 |                   
+  ...fBooksSort.ts |   93.33 |       80 |     100 |     100 | 7-16,29-30        
+  ...fBookOrder.ts |   95.65 |    91.66 |     100 |   95.65 | 52                
+ modules/home      |   81.25 |    69.73 |   57.14 |      80 |                   
+  index.tsx        |   81.25 |    69.73 |   57.14 |      80 | 268-328,465       
+ ...s/filtersSheet |    5.26 |        0 |       0 |    5.26 |                   
+  filters.tsx      |    5.26 |        0 |       0 |    5.26 | 35-108,150        
+ ...ersSheet/hooks |   28.57 |        0 |      20 |   28.57 |                   
+  ...ltersSheet.ts |   28.57 |        0 |      20 |   28.57 | 29-52             
+ ...les/home/hooks |    88.8 |    80.15 |   86.11 |   88.88 |                   
+  ...Refinement.ts |      95 |    83.33 |     100 |   94.44 | 43                
+  useHome.ts       |   87.96 |    78.26 |   84.74 |   87.61 | ...28,541,620-634 
+  ...ateOnClose.ts |   93.75 |      100 |      80 |     100 |                   
+ ...les/home/utils |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...rtWithPriority |      90 |       75 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...thPriority.ts |      90 |       75 |     100 |     100 | 13                
+ ...ome/validators |   81.81 |     87.5 |     100 |      80 |                   
+  ....validator.ts |   81.81 |     87.5 |     100 |      80 | 32-36             
+ .../clientProfile |      60 |       50 |      50 |      60 |                   
+  ...ntProfile.tsx |      60 |       50 |      50 |      60 | 22,142            
+ ...tProfile/hooks |      80 |    66.66 |      60 |   77.77 |                   
+  ...entProfile.ts |      80 |    66.66 |      60 |   77.77 | 28,34,39,54       
+ ...emberFollowRow |     100 |       55 |     100 |     100 |                   
+  ...FollowRow.tsx |     100 |       55 |     100 |     100 | 25-30,34-59       
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ile/components |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...InitialsAvatar |     100 |      100 |     100 |     100 |                   
+  ...alsAvatar.tsx |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ .../profile/hooks |   67.92 |       64 |   57.89 |   66.66 |                   
+  ...llowToggle.ts |      44 |    35.71 |    37.5 |      44 | 24-49,60          
+  useUserSocial.ts |   89.28 |      100 |   72.72 |   88.46 | 23,35,67          
+ .../profile/utils |      80 |    57.14 |     100 |   78.57 |                   
+  ...JoinedDate.ts |      80 |      100 |     100 |      75 | 10                
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  initials.ts      |      80 |       50 |     100 |      80 | 8,16              
+ ...rvices/mappers |     100 |      100 |     100 |     100 |                   
+  ...es.mappers.ts |     100 |      100 |     100 |     100 |                   
+ ...schedule/hooks |   95.55 |       70 |     100 |   95.45 |                   
+  ...duleDelete.ts |   95.23 |    66.66 |     100 |   95.23 | 30                
+  ...ReadToggle.ts |   95.83 |    71.42 |     100 |   95.65 | 33                
+ ...rvices/mappers |   83.33 |       50 |     100 |   83.33 |                   
+  ...ule.mapper.ts |   83.33 |       50 |     100 |   83.33 | 43-47             
+ ...schedule/utils |     100 |    93.75 |     100 |     100 |                   
+  ...kSchedule.tsx |     100 |    93.75 |     100 |     100 | 51                
+  ...leQueryKey.ts |     100 |      100 |     100 |     100 |                   
+ modules/shelves   |   61.53 |      100 |   33.33 |   61.53 |                   
+  index.tsx        |   61.53 |      100 |   33.33 |   61.53 | 30-31,90,117-120  
+ ...ookshelfDialog |      50 |    52.94 |   33.33 |   52.38 |                   
+  ...elfDialog.tsx |      50 |    52.94 |   33.33 |   52.38 | 47,52-74,79,116   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...s/bookCombobox |       0 |        0 |       0 |       0 |                   
+  bookCombobox.tsx |       0 |        0 |       0 |       0 | 27-58             
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ditBookshelves |   64.28 |    81.25 |      40 |   64.28 |                   
+  ...okshelves.tsx |   64.28 |    81.25 |      40 |   64.28 | 66-71,118         
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ .../dropdownShelf |     100 |      100 |     100 |     100 |                   
+  ...downShelf.tsx |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...ents/shelfCard |   56.25 |       60 |   14.28 |   56.25 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  shelfCard.tsx    |   56.25 |       60 |   14.28 |   56.25 | 43,67-118         
+ .../shelves/hooks |   86.36 |    66.66 |   83.33 |      85 |                   
+  ...ookshelves.ts |   86.36 |    66.66 |   83.33 |      85 | 50-53             
+ ...elves/services |   21.05 |    16.66 |   28.57 |   22.22 |                   
+  ...es.service.ts |   21.05 |    16.66 |   28.57 |   22.22 | 11-55,66          
+ ...ves/validators |     100 |      100 |     100 |     100 |                   
+  ....validator.ts |     100 |      100 |     100 |     100 |                   
+ modules/stats     |     100 |       50 |     100 |     100 |                   
+  index.tsx        |     100 |       50 |     100 |     100 | 132-223           
+ ...readingRanking |    62.5 |    47.67 |      50 |   69.64 |                   
+  ...ardPodium.tsx |   63.04 |     42.3 |   71.42 |   73.68 | ...,78-80,178-188 
+  ...ngSection.tsx |   46.15 |       56 |   22.22 |   46.15 | 29-32,98,119-198  
+  ...kingTable.tsx |     100 |    55.55 |     100 |     100 | 20-95             
+ ...es/stats/hooks |   94.82 |    77.27 |    91.3 |   94.44 |                   
+  ...ingRanking.ts |   95.83 |      100 |    87.5 |   95.45 | 32                
+  ...tatsClient.ts |   94.11 |    58.33 |   93.33 |   93.75 | 80-81             
+ ...stats/services |    6.25 |     12.5 |      25 |    6.25 |                   
+  stats.service.ts |    6.25 |     12.5 |      25 |    6.25 | 21-78             
+ ...rvices/mappers |       0 |      100 |     100 |       0 |                   
+  stats.mapper.ts  |       0 |      100 |     100 |       0 | 17-47             
+ ...es/stats/utils |     100 |      100 |     100 |     100 |                   
+  ...eaderboard.ts |     100 |      100 |     100 |     100 |                   
+ services/books    |   76.42 |    69.66 |   79.48 |   77.06 |                   
+  ...ry.builder.ts |    71.6 |    56.41 |      72 |   71.83 | 14,67-100,148-161 
+  books.mapper.ts  |   93.75 |    84.37 |     100 |     100 | 27,34,41,61-73    
+  books.service.ts |   68.75 |    64.28 |      75 |   68.75 | 69,83-94          
+  ...UserSearch.ts |     100 |      100 |     100 |     100 |                   
+ services/errors   |   46.66 |     30.3 |   64.28 |   46.66 |                   
+  error.ts         |   46.66 |     30.3 |   64.28 |   46.66 | ...11-126,157-197 
+ ...ion/validators |     100 |      100 |     100 |     100 |                   
+  ....validator.ts |     100 |      100 |     100 |     100 |                   
+ ...ces/userSocial |   58.33 |       50 |   83.33 |      60 |                   
+  ...al.service.ts |   58.33 |       50 |   83.33 |      60 | ...,89-95,112,122 
+ ...Social/mappers |     100 |       50 |     100 |     100 |                   
+  ...ial.mapper.ts |     100 |       50 |     100 |     100 | 8                 
+ ...es/users/hooks |     100 |    66.66 |     100 |     100 |                   
+  useUsers.ts      |     100 |    66.66 |     100 |     100 | 19                
+ .../users/mappers |     100 |      100 |     100 |     100 |                   
+  users.mapper.ts  |     100 |      100 |     100 |     100 |                   
+ .../users/service |     100 |      100 |     100 |     100 |                   
+  ...rs.service.ts |     100 |      100 |     100 |     100 |                   
+ stores            |   28.57 |      100 |   33.33 |   16.66 |                   
+  userStore.ts     |   28.57 |      100 |   33.33 |   16.66 | 23-30             
+ stores/hooks      |       0 |      100 |       0 |       0 |                   
+  useAuth.ts       |       0 |      100 |       0 |       0 | 4-10              
+ test              |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...nTestState.ts |     100 |      100 |     100 |     100 |                   
+ utils             |      60 |      100 |      50 |      60 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  passwordRules.ts |      60 |      100 |      50 |      60 | 4,18              
+ ...ingFromFilters |      92 |    93.75 |     100 |   94.11 |                   
+  ...romFilters.ts |      92 |    93.75 |     100 |   94.11 | 21                
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ utils/date        |     100 |      100 |     100 |     100 |                   
+  date.ts          |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ utils/formatters  |     100 |      100 |     100 |     100 |                   
+  formatters.ts    |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...shteinDistance |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...inDistance.ts |     100 |      100 |     100 |     100 |                   
+ ...ookTitleSearch |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...itleSearch.ts |     100 |      100 |     100 |     100 |                   
+  ...eStopWords.ts |     100 |      100 |     100 |     100 |                   
+ ...omSearchParams |     100 |    96.15 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...archParams.ts |     100 |    96.15 |     100 |     100 | 42                
+ ...atinDiacritics |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...Diacritics.ts |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

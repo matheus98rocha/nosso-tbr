@@ -1,4 +1,12 @@
-import { Book, Bookmark, BookOpen, BookCheck } from "lucide-react";
+import { memo } from "react";
+import {
+  Book,
+  BookCheck,
+  BookOpen,
+  BookX,
+  Bookmark,
+  PauseCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -32,6 +40,22 @@ const STATUS_CHIP_CONFIG: StatusChipConfig[] = [
       "hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 text-zinc-500 border-zinc-100",
   },
   {
+    status: "paused",
+    label: "Pausado",
+    Icon: PauseCircle,
+    activeClass: "bg-violet-600 border-violet-600 text-white hover:bg-violet-700",
+    hoverClass:
+      "hover:bg-violet-50 hover:text-violet-700 hover:border-violet-200 text-zinc-500 border-zinc-100",
+  },
+  {
+    status: "abandoned",
+    label: "Abandonado",
+    Icon: BookX,
+    activeClass: "bg-rose-600 border-rose-600 text-white hover:bg-rose-700",
+    hoverClass:
+      "hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-zinc-500 border-zinc-100",
+  },
+  {
     status: "finished",
     label: "Terminei",
     Icon: BookCheck,
@@ -42,7 +66,7 @@ const STATUS_CHIP_CONFIG: StatusChipConfig[] = [
   },
 ];
 
-export function StatusFilterChips({
+function StatusFilterChipsComponent({
   activeStatuses,
   onToggle,
 }: StatusFilterChipsProps) {
@@ -57,6 +81,7 @@ export function StatusFilterChips({
               key={status}
               size="sm"
               variant="outline"
+              aria-pressed={isActive}
               onClick={() => onToggle(status)}
               className={cn(
                 "rounded-full h-8 px-4 text-xs font-medium transition-all duration-200 border shadow-sm group",
@@ -65,6 +90,7 @@ export function StatusFilterChips({
             >
               <Icon
                 size={13}
+                aria-hidden
                 className={cn(
                   "mr-1.5 transition-colors",
                   isActive
@@ -80,3 +106,5 @@ export function StatusFilterChips({
     </div>
   );
 }
+
+export const StatusFilterChips = memo(StatusFilterChipsComponent);

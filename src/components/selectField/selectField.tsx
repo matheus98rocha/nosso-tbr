@@ -1,4 +1,4 @@
-import * as React from "react";
+import { memo } from "react";
 import {
   Select,
   SelectContent,
@@ -8,22 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { SelectFieldProps } from "./types/selectField.types";
 
-type Item = {
-  label: string;
-  value: string;
-};
-
-type SelectFieldProps = {
-  name?: string;
-  label?: string;
-  placeholder?: string;
-  items: Item[];
-  value?: string;
-  onChange?: (value: string) => void;
-};
-
-export function SelectField({
+function SelectFieldComponent({
   name,
   label,
   placeholder,
@@ -49,3 +36,5 @@ export function SelectField({
     </Select>
   );
 }
+
+export const SelectField = memo(SelectFieldComponent);

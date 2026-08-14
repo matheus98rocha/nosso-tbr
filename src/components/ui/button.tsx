@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
+import { type VariantProps, cva } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -58,8 +58,14 @@ function Button({
       disabled={isLoading || props.disabled}
       {...props}
     >
-      {isLoading && <Loader2Icon className="animate-spin" />}
-      {children}
+      {asChild ? (
+        children
+      ) : (
+        <>
+          {isLoading && <Loader2Icon className="animate-spin" />}
+          {children}
+        </>
+      )}
     </Comp>
   );
 }
