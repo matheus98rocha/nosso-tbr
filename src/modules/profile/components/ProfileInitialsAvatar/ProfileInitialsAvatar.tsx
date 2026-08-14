@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const sizeClasses = {
+  xs: "size-9 text-[11px] rounded-full",
   sm: "size-12 text-base rounded-xl",
   md: "size-16 text-lg rounded-2xl",
   lg: "size-[4.5rem] text-xl rounded-2xl",

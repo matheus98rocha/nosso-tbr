@@ -16,7 +16,7 @@ import {
 import { BookCard } from "@/components/bookCard/bookCard";
 import { ListGrid } from "@/components/listGrid";
 import { cn } from "@/lib/utils";
-import { ProfileInitialsAvatar } from "@/modules/profile/components";
+import { ProfileAvatar } from "@/modules/profile/components";
 import {
   useMemberProfile,
   useMemberProfileFavorites,
@@ -112,10 +112,12 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
         <div className="h-24 sm:h-28 bg-linear-to-br from-violet-500/25 via-fuchsia-500/15 to-amber-400/20 dark:from-violet-500/20 dark:via-fuchsia-600/10 dark:to-amber-500/10" />
         <CardHeader className="px-6 pb-6 -mt-10 relative">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
-            <ProfileInitialsAvatar
+            <ProfileAvatar
               initials={initials}
+              avatarSeed={profile.avatarSeed}
               size="lg"
               className="ring-4 ring-white dark:ring-zinc-900 shadow-lg"
+              alt={`Avatar de ${profile.displayName}`}
             />
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between flex-1 min-w-0 pt-2 sm:pt-0">
               <div className="space-y-1 min-w-0">

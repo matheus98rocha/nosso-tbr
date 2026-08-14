@@ -8,6 +8,7 @@ const baseViewModel: ClientProfileViewModel = {
   displayName: "reader",
   userEmail: "reader@tbr.com",
   avatarInitials: "R",
+  avatarSeed: null,
   formattedAccountCreated: "15 de janeiro de 2024",
   formattedLastSignIn: "1 de junho de 2024",
   followingCount: 2,
@@ -25,6 +26,10 @@ const { mockUseClientProfile } = vi.hoisted(() => ({
 
 vi.mock("@/modules/profile/clientProfile/hooks", () => ({
   useClientProfile: () => mockUseClientProfile(),
+}));
+
+vi.mock("@/modules/profile/avatarSelection", () => ({
+  AvatarSelectionPanel: () => <div data-testid="avatar-selection-panel" />,
 }));
 
 describe("ClientProfile", () => {

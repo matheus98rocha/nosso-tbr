@@ -120,6 +120,10 @@ vi.mock("@/components/bookCard", () => ({
   BookCard: () => <div>book-card</div>,
 }));
 
+vi.mock("@/modules/home/components/readingNow", () => ({
+  default: () => null,
+}));
+
 vi.mock("@/components/pagintation/pagination", () => ({
   default: () => <div>pagination</div>,
 }));

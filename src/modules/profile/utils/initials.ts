@@ -1,3 +1,8 @@
+export function displayNameFromEmail(email: string) {
+  const at = email.indexOf("@");
+  return at > 0 ? email.slice(0, at) : email;
+}
+
 export function initialsFromEmail(email: string) {
   const local = email.split("@")[0] ?? email;
   const parts = local

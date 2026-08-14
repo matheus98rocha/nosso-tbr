@@ -15,11 +15,12 @@ vi.mock("@/modules/profile/hooks", () => ({
 }));
 
 vi.mock("@/services/userSocial/userSocial.service", () => {
-  const getUserById = vi.fn().mockResolvedValue({
+  const   getUserById = vi.fn().mockResolvedValue({
     id: "1",
     displayName: "Reader Public",
     email: "reader@tbr.com",
     joinedAt: null,
+    avatarSeed: null,
   });
   return {
     UserSocialService: class {

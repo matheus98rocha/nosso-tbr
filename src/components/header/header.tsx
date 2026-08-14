@@ -14,21 +14,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { CircleUser, Menu as MenuIcon } from "lucide-react";
+import { Menu as MenuIcon } from "lucide-react";
 import { useHeader } from "./hooks/useHeader";
+import { useHeaderAccount } from "./hooks/useHeaderAccount";
 import { HomeSearchBar } from "./components/homeSearchBar";
+import HeaderAccountMenu from "./components/headerAccountMenu";
+import HeaderAccountSummary from "./components/headerAccountSummary";
 import { useUserStore } from "@/stores/userStore";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { DesktopNavMenu } from "./components/navMenu";
-import { Skeleton } from "../ui/skeleton";
 import LogoIcon from "@/assets/icons/logo";
 import { BookService } from "@/services/books/books.service";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
@@ -43,6 +37,14 @@ function Header() {
   const user = useUserStore((state) => state.user);
   const isLoadingUser = useUserStore((state) => state.loading);
   const isLogged = useIsLoggedIn();
+  const {
+    account,
+    isLoading: isLoadingAccount,
+    isLoggedIn,
+    navigateToProfile,
+    navigateToAuth,
+    handleLogout,
+  } = useHeaderAccount();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -108,26 +110,41 @@ function Header() {
           </span>
         </button>
 
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-11 h-11 rounded-full hover:bg-zinc-100 transition-colors"
-              aria-label="Abrir menu de navegação"
+        <div className="flex items-center gap-1">
+          <HeaderAccountMenu
+            account={account}
+            isLoading={isLoadingAccount}
+            isLoggedIn={isLoggedIn}
+            onNavigateToProfile={navigateToProfile}
+            onNavigateToAuth={navigateToAuth}
+            onLogout={handleLogout}
+            showDisplayName={false}
+          />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11 rounded-full transition-colors hover:bg-zinc-100"
+                aria-label="Abrir menu de navegação"
+              >
+                <MenuIcon className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="flex w-full flex-col p-0 sm:max-w-sm"
             >
-              <MenuIcon className="w-5 h-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="right"
-            className="w-full sm:max-w-sm flex flex-col p-0"
-          >
-            <SheetHeader className="px-6 py-5 border-b">
+            <SheetHeader className="border-b px-6 py-5">
               <SheetTitle className="text-base font-semibold tracking-tight">
                 Menu
               </SheetTitle>
             </SheetHeader>
+            {isLogged && account && (
+              <div className="border-b px-6 py-4">
+                <HeaderAccountSummary account={account} />
+              </div>
+            )}
             {isLogged && (
               <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-4">
                 {menuItems.map((menu) => (
@@ -162,11 +179,11 @@ function Header() {
               </div>
             )}
 
-            <SheetFooter className="px-4 py-4 border-t">
+            <SheetFooter className="border-t px-4 py-4">
               <SheetClose asChild>
                 <Button
                   variant="outline"
-                  className="w-full h-11 rounded-xl font-medium"
+                  className="h-11 w-full rounded-xl font-medium"
                 >
                   Fechar
                 </Button>
@@ -174,6 +191,7 @@ function Header() {
             </SheetFooter>
           </SheetContent>
         </Sheet>
+        </div>
       </div>
       {pathname === "/" && <HomeSearchBar />}
     </div>
@@ -207,63 +225,15 @@ function Header() {
           {pathname === "/" && <HomeSearchBar />}
         </div>
       )}
-      <div className="flex items-center gap-2 shrink-0">
-        {isLoadingUser ? (
-          <Skeleton className="h-4 w-36 rounded-md" />
-        ) : (
-          <>
-            {user?.email && (
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 truncate max-w-[180px]">
-                {user.email}
-              </span>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-11 h-11 rounded-full hover:bg-zinc-100 transition-colors"
-                  aria-label="Menu da conta"
-                >
-                  <CircleUser
-                    className="w-5 h-5 text-primary"
-                    strokeWidth={1.5}
-                  />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {isLogged ? (
-                  <>
-                    <DropdownMenuItem
-                      className="cursor-pointer h-11"
-                      onClick={() => router.push("/profile")}
-                      aria-label="Abrir página de perfil"
-                    >
-                      Perfil
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="cursor-pointer h-11"
-                      onClick={() => useUserStore.getState().logout()}
-                      aria-label="Sair da conta"
-                    >
-                      Sair
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => router.push("/auth")}
-                  >
-                    Entrar
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        )}
+      <div className="flex shrink-0 items-center gap-2">
+        <HeaderAccountMenu
+          account={account}
+          isLoading={isLoadingAccount}
+          isLoggedIn={isLoggedIn}
+          onNavigateToProfile={navigateToProfile}
+          onNavigateToAuth={navigateToAuth}
+          onLogout={handleLogout}
+        />
       </div>
     </div>
   );
