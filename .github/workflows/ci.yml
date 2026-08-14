@@ -19,9 +19,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: yarn
+
+      - name: Habilitar Corepack
+        run: corepack enable
 
       - name: Instalar Dependências com Yarn
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Rodar Testes e Cobertura
         run: yarn vitest run --coverage
