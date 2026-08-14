@@ -5,6 +5,7 @@ import { EllipsisVerticalIcon, Heart, Users } from "lucide-react";
 import { BookCover } from "@/components/bookCover";
 
 import BookCardDetailsModal from "./components/bookCardDetailsModal";
+import { CardStartReadingButton } from "./components/cardStartReadingButton";
 import { AddBookToShelf } from "./components/addBookToShelf";
 import { DropdownBook } from "./components/dropdownBook";
 import { BookUpsert } from "@/modules/bookUpsert";
@@ -54,6 +55,8 @@ export function BookCard(props: BookCardProps) {
     isFavoritePending,
     canAccessCollectiveReading,
     showReadingProgress,
+    showCardFooterAction,
+    cardReadingActionLabel,
   } = useBookCard(props);
 
   const showTopActions = showFavoriteToggle || (isLogged && !hideInteractions);
@@ -151,8 +154,8 @@ export function BookCard(props: BookCardProps) {
               "flex min-w-0 flex-col",
               isShelf ? "gap-1" : "gap-1.5",
               !isShelf && "items-center",
-              !(showReadingProgress && !isShelf) && "mt-auto",
-              showReadingProgress && !isShelf && "mt-1",
+              !(showCardFooterAction && !isShelf) && "mt-auto",
+              showCardFooterAction && !isShelf && "mt-1",
             )}
           >
             {showReadersOnCard && (
@@ -252,13 +255,13 @@ export function BookCard(props: BookCardProps) {
         <CardContent
           className={cn(
             isShelf ? "p-2" : "p-3",
-            showReadingProgress && !isShelf && "pb-3 pt-3",
+            showCardFooterAction && !isShelf && "pb-3 pt-3",
           )}
         >
           <div
             className={cn(
               "flex min-w-0 flex-col",
-              showReadingProgress && !isShelf ? "gap-2.5" : "gap-0",
+              showCardFooterAction && !isShelf ? "gap-2.5" : "gap-0",
             )}
           >
             <div className={cn("flex min-w-0", isShelf ? "gap-2.5" : "gap-3")}>
@@ -349,12 +352,21 @@ export function BookCard(props: BookCardProps) {
                 </div>
               )}
             </div>
-            {showReadingProgress && !isShelf && (
+            {showCardFooterAction && !isShelf && (
               <div className="flex min-w-0 w-full flex-col items-center border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800/80">
-                <CardReadingProgressIndicator
-                  bookId={book.id}
-                  onNavigateToSchedule={handleNavigateToSchedule}
-                />
+                {showReadingProgress ? (
+                  <CardReadingProgressIndicator
+                    bookId={book.id}
+                    onNavigateToSchedule={handleNavigateToSchedule}
+                  />
+                ) : (
+                  <CardStartReadingButton
+                    bookTitle={book.title}
+                    onStartReading={handleStartReading}
+                    isPending={isStatusPending}
+                    label={cardReadingActionLabel}
+                  />
+                )}
               </div>
             )}
             {!isShelf && book.status === "finished" && (
