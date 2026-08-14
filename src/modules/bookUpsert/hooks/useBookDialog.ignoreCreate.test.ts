@@ -27,6 +27,8 @@ vi.mock("@/stores/hooks/useAuth", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
+  usePathname: vi.fn(() => "/"),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
 vi.mock("@/modules/shelves/services/booksshelves.service", () => ({

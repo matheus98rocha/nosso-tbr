@@ -1,4 +1,5 @@
 export * from "./buildQueryStringFromFilters";
+export * from "./buildHomeUrlWithStatusFilter";
 export * from "./parseFiltersFromSearchParams";
 export * from "./formatters";
 export * from "./date";

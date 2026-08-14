@@ -16,7 +16,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { SelectedBookshelf } from "../../shelves/types/bookshelves.types";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { LOCKED_BOOK_STATUSES } from "@/constants/bookStatuses";
 import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
@@ -25,6 +25,7 @@ import { useBookPreCreationValidation } from "./useBookPreCreationValidation";
 import { QUERY_KEYS } from "@/constants/keys";
 import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
 import { ApiError } from "@/lib/api/clientJsonFetch";
+import { buildHomeUrlWithStatusFilter } from "@/utils/buildHomeUrlWithStatusFilter";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -41,6 +42,8 @@ export function useBookDialog({
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isLoggedIn = useIsLoggedIn();
   const authUser = useRequireAuth();
 
@@ -215,7 +218,21 @@ export function useBookDialog({
         exact: false,
       });
 
-      if (!isEdit && createdBookId) {
+      const nextStatus = variables.status;
+      const previousStatus = bookData?.status;
+      const statusChanged =
+        result.mode === "edit" &&
+        !!nextStatus &&
+        previousStatus !== nextStatus;
+
+      if (statusChanged && pathname === "/") {
+        router.replace(
+          buildHomeUrlWithStatusFilter(
+            new URLSearchParams(searchParams.toString()),
+            nextStatus,
+          ),
+        );
+      } else if (!isEdit && createdBookId) {
         router.replace(`/?bookId=${createdBookId}`);
       }
 

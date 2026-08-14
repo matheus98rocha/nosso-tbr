@@ -3,7 +3,7 @@ import { Mock, vi } from "vitest";
 import { useBookDialog } from "./useBookDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsLoggedIn, useRequireAuth } from "@/stores/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/clientJsonFetch";
 
@@ -20,6 +20,8 @@ vi.mock("@/stores/hooks/useAuth", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
+  usePathname: vi.fn(() => "/"),
+  useSearchParams: vi.fn(() => new URLSearchParams("status=paused&myBooks=true")),
 }));
 
 vi.mock("@/modules/shelves/services/booksshelves.service", () => ({
@@ -61,6 +63,7 @@ vi.mock("@/modules/home/validators/createBook.validator", () => ({
 const mockMutate = vi.fn();
 const mockInvalidateQueries = vi.fn();
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 
 const mockShelves = [
   { id: "shelf-1", name: "Favoritos" },
@@ -85,7 +88,7 @@ function setupMocks({
   isLoadingBookshelves?: boolean;
 } = {}) {
   (useIsLoggedIn as Mock).mockReturnValue(isLoggedIn);
-  (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
+  (useRouter as Mock).mockReturnValue({ push: mockPush, replace: mockReplace });
   (useQueryClient as Mock).mockReturnValue({
     invalidateQueries: mockInvalidateQueries,
   });
@@ -105,6 +108,10 @@ function setupMocks({
 describe("useBookDialog — query de estantes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (usePathname as Mock).mockReturnValue("/");
+    (useSearchParams as Mock).mockReturnValue(
+      new URLSearchParams("status=paused&myBooks=true"),
+    );
   });
 
   describe("RN18 — guard de autenticação", () => {
@@ -145,7 +152,7 @@ describe("useBookDialog — query de estantes", () => {
         error: null,
       });
       (useQueryClient as Mock).mockReturnValue({ invalidateQueries: vi.fn() });
-      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: mockReplace });
 
       const { result } = renderHook(() => useBookDialog(defaultProps));
       expect(result.current.bookshelfOptions).toEqual([]);
@@ -191,7 +198,7 @@ describe("useBookDialog — query de estantes", () => {
         error: null,
       });
       (useQueryClient as Mock).mockReturnValue({ invalidateQueries: mockInvalidateQueries });
-      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: mockReplace });
       const { result } = renderHook(() => useBookDialog(defaultProps));
       expect(result.current.bookshelfOptions).toEqual([]);
     });
@@ -250,7 +257,7 @@ describe("useBookDialog — query de estantes", () => {
     it("mantém readers, chosen_by e user_id vazios quando authUser não está disponível", () => {
       (useIsLoggedIn as Mock).mockReturnValue(true);
       (useRequireAuth as Mock).mockReturnValue(null);
-      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: vi.fn() });
+      (useRouter as Mock).mockReturnValue({ push: mockPush, replace: mockReplace });
       (useQueryClient as Mock).mockReturnValue({
         invalidateQueries: mockInvalidateQueries,
       });
@@ -301,6 +308,85 @@ describe("useBookDialog — query de estantes", () => {
         className: "toast-error",
       });
       expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("navegação após alteração de status", () => {
+    const editBookData = {
+      id: "book-1",
+      title: "Livro Teste",
+      status: "paused" as const,
+      readerIds: ["user-1"],
+      chosen_by: "user-1",
+    };
+
+    it("navega para o filtro do novo status ao editar na home", async () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() =>
+        useBookDialog({
+          ...defaultProps,
+          bookData: editBookData,
+        }),
+      );
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      await mutationOptions.onSuccess?.(
+        { mode: "edit" as const },
+        { status: "reading" },
+      );
+
+      expect(mockReplace).toHaveBeenCalledWith("/?status=reading&myBooks=true");
+    });
+
+    it("não navega quando o status não mudou", async () => {
+      setupMocks({ isLoggedIn: true });
+      renderHook(() =>
+        useBookDialog({
+          ...defaultProps,
+          bookData: editBookData,
+        }),
+      );
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      await mutationOptions.onSuccess?.(
+        { mode: "edit" as const },
+        { status: "paused" },
+      );
+
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it("não navega quando a edição ocorre fora da home", async () => {
+      (usePathname as Mock).mockReturnValue("/bookshelves/shelf-1");
+      setupMocks({ isLoggedIn: true });
+      renderHook(() =>
+        useBookDialog({
+          ...defaultProps,
+          bookData: editBookData,
+        }),
+      );
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      await mutationOptions.onSuccess?.(
+        { mode: "edit" as const },
+        { status: "reading" },
+      );
+
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it("navega para bookId ao criar um livro novo", async () => {
+      (usePathname as Mock).mockReturnValue("/");
+      setupMocks({ isLoggedIn: true });
+      renderHook(() => useBookDialog(defaultProps));
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      await mutationOptions.onSuccess?.(
+        { mode: "create" as const, book: { id: "book-new" }, shelfDuplicate: false },
+        { status: "reading" },
+      );
+
+      expect(mockReplace).toHaveBeenCalledWith("/?bookId=book-new");
     });
   });
 });
