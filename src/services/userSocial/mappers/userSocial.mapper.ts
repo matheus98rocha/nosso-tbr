@@ -7,6 +7,7 @@ export class UserSocialMapper {
       displayName: row.display_name,
       email: row.email ?? "",
       joinedAt: null,
+      avatarSeed: row.avatar_seed,
     };
   }
 }

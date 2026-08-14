@@ -20,8 +20,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ProfileInitialsAvatar } from "@/modules/profile/components";
+import { ProfileAvatar } from "@/modules/profile/components";
 import { useClientProfile } from "@/modules/profile/clientProfile/hooks";
+import { AvatarSelectionPanel } from "@/modules/profile/avatarSelection";
 import CommunityMemberFollowRow from "../communityMemberFollowRow";
 
 function ClientProfileView() {
@@ -47,10 +48,12 @@ function ClientProfileView() {
         <div className="h-20 sm:h-24 bg-linear-to-br from-violet-500/30 via-fuchsia-500/15 to-amber-300/25 dark:from-violet-600/25 dark:via-fuchsia-600/10 dark:to-amber-500/15" />
         <CardHeader className="px-6 pb-6 -mt-8 relative border-b border-zinc-200/80 dark:border-zinc-800">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-            <ProfileInitialsAvatar
+            <ProfileAvatar
               initials={viewModel.avatarInitials}
+              avatarSeed={viewModel.avatarSeed}
               size="lg"
               className="ring-4 ring-white dark:ring-zinc-900 shadow-lg"
+              alt={`Avatar de ${viewModel.displayName}`}
             />
             <div className="space-y-2 min-w-0 flex-1 pt-1 sm:pt-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -109,6 +112,8 @@ function ClientProfileView() {
           </dl>
         </CardContent>
       </Card>
+
+      <AvatarSelectionPanel />
 
       <section
         className="dark:bg-zinc-900/50 rounded-2xl border border-violet-200/40 dark:border-violet-900/30 shadow-md overflow-hidden"

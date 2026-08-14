@@ -98,6 +98,7 @@ export function useClientProfile(): ClientProfileViewModel | null {
       displayName,
       userEmail: user.email,
       avatarInitials,
+      avatarSeed: ownRow?.avatarSeed ?? null,
       formattedAccountCreated: formatJoinedDate(user.created_at),
       formattedLastSignIn: formatJoinedDate(user.last_sign_in_at),
       followingCount,
@@ -111,6 +112,7 @@ export function useClientProfile(): ClientProfileViewModel | null {
   }, [
     user,
     ownRow?.displayName,
+    ownRow?.avatarSeed,
     followingCount,
     searchQuery,
     onCommunitySearchChange,

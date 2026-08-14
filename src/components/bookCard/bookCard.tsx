@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { EllipsisVerticalIcon, Heart, Users } from "lucide-react";
+
+import { BookCover } from "@/components/bookCover";
 
 import BookCardDetailsModal from "./components/bookCardDetailsModal";
 import { AddBookToShelf } from "./components/addBookToShelf";
@@ -18,7 +19,6 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { useBookCard } from "./hooks/useBookCard";
 import { BookCardProps } from "./types/bookCard.types";
-import { resolveBookCoverUrl } from "@/constants/bookCover";
 import { cn } from "@/lib/utils";
 import { formatBookPagesLabel } from "@/utils/formatters";
 
@@ -80,16 +80,13 @@ export function BookCard(props: BookCardProps) {
       )}
       aria-label={`Ver detalhes: ${book.title}`}
     >
-      <div className={coverSizes.className}>
-        <Image
-          src={resolveBookCoverUrl(book.image_url)}
-          alt=""
-          width={coverSizes.width}
-          height={coverSizes.height}
-          className="size-full object-cover"
-          loading="lazy"
-        />
-      </div>
+      <BookCover
+        src={book.image_url}
+        alt=""
+        width={coverSizes.width}
+        height={coverSizes.height}
+        containerClassName={coverSizes.className}
+      />
       <div
         className={cn(
           "flex min-w-0 flex-1 flex-col",

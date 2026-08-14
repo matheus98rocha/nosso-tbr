@@ -17,7 +17,7 @@ import { CreateEditBookshelves } from "../createEditBookshelves";
 import { DropdownShelf } from "../dropdownShelf";
 import { ConfirmDialog } from "@/components/confirmDialog";
 import { BookshelfService } from "../../services/booksshelves.service";
-import Image from "next/image";
+import { BookCover } from "@/components/bookCover";
 import {
   Tooltip,
   TooltipContent,
@@ -124,13 +124,12 @@ export function ShelfCard({ shelf, openAddBookDialog }: Props) {
                       transform: `rotate(${(index - 1) * 4}deg)`,
                     }}
                   >
-                    <Image
-                      src={book.imageUrl as string}
+                    <BookCover
+                      src={book.imageUrl}
                       alt={`Livro ${index + 1} da estante ${shelf.name}`}
                       width={80}
                       height={128}
-                      className="object-cover w-full h-full"
-                      loading="lazy"
+                      containerClassName="size-full"
                     />
                   </div>
                 ))}

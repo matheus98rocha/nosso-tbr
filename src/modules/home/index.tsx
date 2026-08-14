@@ -35,6 +35,8 @@ import {
   AiRecommendationFab,
 } from "@/modules/aiRecommendation";
 import type { BookSuggestion } from "@/modules/aiRecommendation";
+import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFilters";
+import ReadingNow from "@/modules/home/components/readingNow";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -164,7 +166,7 @@ export default function ClientHome() {
           )}
         </div>
         {isLoggedIn ? (
-          <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+          <CollapsibleBookFilters activeFilterLabels={activeFilterLabels}>
             <div className="p-4 space-y-2.5">
               <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
                 <Users size={11} />
@@ -393,8 +395,12 @@ export default function ClientHome() {
                 isLoading={isLoading}
               />
             </div>
-          </div>
-        ) : (
+          </CollapsibleBookFilters>
+        ) : null}
+
+        {isLoggedIn && <ReadingNow />}
+
+        {!isLoggedIn ? (
           <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-2 text-center flex flex-col items-center gap-2">
             <div className="space-y-1">
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -419,7 +425,7 @@ export default function ClientHome() {
               </Link>
             </div>
           </div>
-        )}
+        ) : null}
       </header>
 
       {shouldSuggestFollowing ? (

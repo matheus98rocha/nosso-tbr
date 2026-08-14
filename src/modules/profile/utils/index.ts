@@ -1,2 +1,6 @@
 export { formatJoinedDate } from "./formatJoinedDate";
-export { initialsFromDisplayName, initialsFromEmail } from "./initials";
+export {
+  displayNameFromEmail,
+  initialsFromDisplayName,
+  initialsFromEmail,
+} from "./initials";

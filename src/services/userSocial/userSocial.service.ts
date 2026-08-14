@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { isReadingAvatarSeed } from "@/modules/profile/avatarSelection/utils";
 import { UserSocialMapper } from "./mappers/userSocial.mapper";
 import { DirectoryUser } from "./types/userSocial.types";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
@@ -11,7 +12,7 @@ export class UserSocialService {
       const q = search.trim();
       let query = this.supabase
         .from("users")
-        .select("id, display_name, email")
+        .select("id, display_name, email, avatar_seed")
         .order("display_name", { ascending: true })
         .limit(80);
 
@@ -49,7 +50,7 @@ export class UserSocialService {
     try {
       const { data, error } = await this.supabase
         .from("users")
-        .select("id, display_name, email")
+        .select("id, display_name, email, avatar_seed")
         .eq("id", id)
         .maybeSingle();
 
@@ -159,6 +160,52 @@ export class UserSocialService {
         error,
         { followingId },
       );
+    }
+  }
+
+  async updateAvatarSeed(avatarSeed: string): Promise<void> {
+    if (!isReadingAvatarSeed(avatarSeed)) {
+      throw new RepositoryError("Invalid avatar seed", undefined, undefined, undefined, {
+        avatarSeed,
+      });
+    }
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await this.supabase.auth.getUser();
+
+      if (authError || !user) {
+        throw new RepositoryError(
+          "Unauthorized",
+          undefined,
+          undefined,
+          authError,
+        );
+      }
+
+      const { error } = await this.supabase
+        .from("users")
+        .update({ avatar_seed: avatarSeed })
+        .eq("id", user.id);
+
+      if (error) {
+        throw new RepositoryError(
+          "Failed to update avatar",
+          undefined,
+          undefined,
+          error,
+          { avatarSeed },
+        );
+      }
+    } catch (error) {
+      const normalized = ErrorHandler.normalize(error, {
+        service: "UserSocialService",
+        method: "updateAvatarSeed",
+      });
+      ErrorHandler.log(normalized);
+      throw normalized;
     }
   }
 }

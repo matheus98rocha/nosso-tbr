@@ -1,5 +1,6 @@
 export { BlurOverlay } from "./blurOverlay";
 export { BookCard } from "./bookCard";
+export { BookCover } from "./bookCover";
 export { ConfirmDialog } from "./confirmDialog";
 export { DatePicker } from "./datePicker";
 export { default as ErrorComponent } from "./error";

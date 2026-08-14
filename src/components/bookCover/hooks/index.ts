@@ -1,0 +1,1 @@
+export { useBookCover } from "./useBookCover";

@@ -15,13 +15,20 @@ jobs:
       - name: Checkout do Código
         uses: actions/checkout@v4
 
+      - name: Habilitar Corepack
+        run: corepack enable
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
+          cache: yarn
+
+      - name: Preparar Yarn
+        run: corepack enable
 
       - name: Instalar Dependências com Yarn
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Rodar Testes e Cobertura
         run: yarn vitest run --coverage
