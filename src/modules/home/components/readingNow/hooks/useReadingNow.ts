@@ -15,7 +15,11 @@ import type { FiltersOptions } from "@/types/filters";
 import { buildHomeUrlWithStatusFilter } from "@/utils/buildHomeUrlWithStatusFilter";
 import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
 
-import type { ReadingNowBookItem } from "../readingNow.types";
+import type {
+  ReadingNowBookItem,
+  ReadingNowStatusTransitionStatus,
+  ReadingNowStatusTransitionTarget,
+} from "../readingNow.types";
 import { buildReadingNowStatusPayload } from "../utils/buildReadingNowStatusPayload";
 
 const READING_NOW_PAGE_SIZE = 12;
@@ -84,6 +88,8 @@ export function useReadingNow() {
   );
   const [ratingPromptBookId, setRatingPromptBookId] = useState<string | null>(null);
   const [transitioningBookId, setTransitioningBookId] = useState<string | null>(null);
+  const [pendingStatusTransition, setPendingStatusTransition] =
+    useState<ReadingNowStatusTransitionTarget | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -322,6 +328,34 @@ export function useReadingNow() {
     [changeBookStatus],
   );
 
+  const requestStatusTransition = useCallback(
+    (book: BookDomain & { id: string }, nextStatus: ReadingNowStatusTransitionStatus) => {
+      setPendingStatusTransition({ book, nextStatus });
+    },
+    [],
+  );
+
+  const cancelStatusTransition = useCallback(() => {
+    setPendingStatusTransition(null);
+  }, []);
+
+  const confirmStatusTransition = useCallback(() => {
+    if (!pendingStatusTransition) return;
+
+    const { book, nextStatus } = pendingStatusTransition;
+    changeBookStatus(book, nextStatus);
+    setPendingStatusTransition(null);
+
+    if (detailsBook?.id === book.id) {
+      handleDetailsOpenChange(false);
+    }
+  }, [
+    pendingStatusTransition,
+    changeBookStatus,
+    detailsBook?.id,
+    handleDetailsOpenChange,
+  ]);
+
   const isStatusPending = statusTransitionMutation.isPending;
 
   return {
@@ -353,6 +387,10 @@ export function useReadingNow() {
     finishReading,
     pauseReading,
     abandonReading,
+    pendingStatusTransition,
+    requestStatusTransition,
+    cancelStatusTransition,
+    confirmStatusTransition,
     isStatusPending,
     transitioningBookId,
     ratingPromptBookId,

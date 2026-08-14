@@ -36,6 +36,11 @@ export function BookCard(props: BookCardProps) {
     handleCollectiveReadingFromDetails,
     handleScheduleFromDetails,
     handleQuotesFromDetails,
+    onStartReading: handleStartReading,
+    onFinishReading: handleFinishReading,
+    onPauseReading: handlePauseReading,
+    onAbandonReading: handleAbandonReading,
+    isStatusPending,
     dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
@@ -202,6 +207,11 @@ export function BookCard(props: BookCardProps) {
         onCollectiveReading={handleCollectiveReadingFromDetails}
         onOpenSchedule={handleScheduleFromDetails}
         onOpenQuotes={handleQuotesFromDetails}
+        onStartReading={handleStartReading}
+        onFinishReading={handleFinishReading}
+        onPauseReading={handlePauseReading}
+        onAbandonReading={handleAbandonReading}
+        isStatusPending={isStatusPending}
       />
 
       <AddBookToShelf

@@ -15,13 +15,13 @@ export default function ReadingNowStatusActions({
   className,
 }: ReadingNowStatusActionsProps) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+    <div className={cn("flex flex-wrap items-center gap-1", className)}>
       <Button
         type="button"
         variant="outline"
         size="sm"
         disabled={isPending}
-        className="h-7 gap-1 px-2.5 text-[11px] border-emerald-200/80 text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800/60 dark:text-emerald-200 dark:hover:bg-emerald-950/40"
+        className="h-6 gap-1 px-2 text-[10px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         onClick={(event) => {
           event.stopPropagation();
           onFinish();
@@ -35,7 +35,7 @@ export default function ReadingNowStatusActions({
         variant="outline"
         size="sm"
         disabled={isPending}
-        className="h-7 gap-1 px-2.5 text-[11px] border-violet-200/80 text-violet-800 hover:bg-violet-50 dark:border-violet-800/60 dark:text-violet-200 dark:hover:bg-violet-950/40"
+        className="h-6 gap-1 px-2 text-[10px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         onClick={(event) => {
           event.stopPropagation();
           onPause();
@@ -46,10 +46,10 @@ export default function ReadingNowStatusActions({
       </Button>
       <Button
         type="button"
-        variant="ghost"
+        variant="outline"
         size="sm"
         disabled={isPending}
-        className="h-7 gap-1 px-2.5 text-[11px] text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-950/40"
+        className="h-6 gap-1 px-2 text-[10px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         onClick={(event) => {
           event.stopPropagation();
           onAbandon();

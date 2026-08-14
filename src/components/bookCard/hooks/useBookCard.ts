@@ -3,6 +3,8 @@ import { BookCardProps, StatusDisplay } from "../types/bookCard.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useCallback, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { MouseEvent } from "react";
 import { canUserParticipateInBook } from "@/lib/security/bookParticipation";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
@@ -10,6 +12,8 @@ import { BookService } from "@/services/books/books.service";
 import { BookMapper } from "@/services/books/books.mapper";
 import { useUserStore } from "@/stores/userStore";
 import { useToggleBookFavorite } from "@/services/bookFavorites/hooks/useToggleBookFavorite";
+import type { BookCreateValidator, Status } from "@/types/books.types";
+import { BookUpsertService } from "@/modules/bookUpsert/services/bookUpsert.service";
 
 export function useBookCard({
   book,
@@ -24,6 +28,7 @@ export function useBookCard({
   const bookDetailsModal = useModal();
 
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isLogged = useIsLoggedIn();
   const currentUser = useUserStore((state) => state.user);
   const dropdownTap = useSafeTap(() => dropdownModal.setIsOpen(true));
@@ -100,6 +105,65 @@ export function useBookCard({
     bookDetailsModal.setIsOpen(false);
     handleNavigateToQuotes();
   }, [bookDetailsModal.setIsOpen, handleNavigateToQuotes]);
+
+  const statusTransitionMutation = useMutation({
+    mutationFn: async (nextStatus: Status) => {
+      if (!book.id) throw new Error("Livro sem identificador.");
+
+      const payload: BookCreateValidator = {
+        title: book.title,
+        pages: book.pages,
+        readers: [...book.readerIds],
+        chosen_by: book.chosen_by,
+        user_id: book.user_id,
+        author_id: book.authorId ?? "",
+        start_date: book.start_date ?? null,
+        end_date: book.end_date ?? null,
+        planned_start_date: book.planned_start_date ?? null,
+        gender: book.gender ?? "",
+        image_url: book.image_url ?? "",
+        status: nextStatus,
+        is_reread: book.is_reread,
+      };
+
+      if (nextStatus === "reading") {
+        payload.end_date = null;
+        payload.planned_start_date = null;
+        payload.start_date = payload.start_date ?? new Date().toISOString();
+      }
+
+      if (nextStatus === "paused") payload.planned_start_date = null;
+      if (nextStatus === "abandoned") {
+        payload.start_date = null;
+        payload.end_date = null;
+        payload.planned_start_date = null;
+      }
+
+      await new BookUpsertService().edit(book.id, payload);
+    },
+    onSuccess: async (_, nextStatus) => {
+      const labels: Partial<Record<Status, string>> = {
+        reading: "Leitura iniciada",
+        finished: "Leitura finalizada",
+        paused: "Leitura pausada",
+        abandoned: "Leitura abandonada",
+      };
+      toast(labels[nextStatus] ?? "Status atualizado");
+      await queryClient.invalidateQueries({ queryKey: ["books"], exact: false });
+      bookDetailsModal.setIsOpen(false);
+    },
+    onError: (error) => {
+      toast("Não foi possível atualizar o status", {
+        description: error instanceof Error ? error.message : "Tente novamente.",
+        className: "toast-error",
+      });
+    },
+  });
+
+  const changeBookStatus = useCallback(
+    (nextStatus: Status) => statusTransitionMutation.mutate(nextStatus),
+    [statusTransitionMutation],
+  );
 
   const statusMap = {
     not_started: {
@@ -247,6 +311,11 @@ export function useBookCard({
     handleCollectiveReadingFromDetails,
     handleScheduleFromDetails,
     handleQuotesFromDetails,
+    onStartReading: () => changeBookStatus("reading"),
+    onFinishReading: () => changeBookStatus("finished"),
+    onPauseReading: () => changeBookStatus("paused"),
+    onAbandonReading: () => changeBookStatus("abandoned"),
+    isStatusPending: statusTransitionMutation.isPending,
     isLogged,
     dropdownTap,
     shareOnWhatsApp,
