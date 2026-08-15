@@ -39,6 +39,7 @@ vi.mock("@/modules/bookshelves/services/bookshelvesBooks.service", () => ({
 
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(() => true),
+  useRequireAuth: vi.fn(() => ({ id: "user-1" })),
 }));
 
 vi.mock("next/link", () => ({
