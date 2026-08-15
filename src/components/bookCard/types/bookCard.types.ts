@@ -6,12 +6,14 @@ export type BookCardProps =
       isShelf?: false;
       shelfId?: undefined;
       hideInteractions?: boolean;
+      onEditBook?: () => void;
     }
   | {
       book: BookDomain;
       isShelf: true;
       shelfId: string;
       hideInteractions?: boolean;
+      onEditBook?: () => void;
     };
 
 export type StatusDisplay = {

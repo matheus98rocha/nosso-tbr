@@ -398,6 +398,22 @@ describe("BookCard", () => {
     expect(setEditOpen).toHaveBeenCalledWith(true);
   });
 
+  it("prioriza onEditBook do pai em vez do modal interno ao editar", async () => {
+    const user = userEvent.setup();
+    const onEditBook = vi.fn();
+    const setEditOpen = vi.fn();
+    presetUseBookCard(baseBook, {
+      dialogEditModal: { ...modalState(false), setIsOpen: setEditOpen },
+      dropdownModal: modalState(true),
+    });
+    render(<BookCard book={baseBook} onEditBook={onEditBook} />);
+
+    await user.click(screen.getByRole("menuitem", { name: "Editar Livro" }));
+
+    expect(onEditBook).toHaveBeenCalledTimes(1);
+    expect(setEditOpen).not.toHaveBeenCalled();
+  });
+
   it("ao acionar Adicionar Livro a Estante, abre o modal de estantes", async () => {
     const user = userEvent.setup();
     const setAddShelfOpen = vi.fn();

@@ -34,6 +34,7 @@ type BookshelfBooksSortableGridProps = {
   emptyMessage: string;
   onReorder: (books: readonly BookDomain[], nextOrderedIds: string[]) => void;
   reorderDisabled?: boolean;
+  onEditBook?: (book: BookDomain) => void;
 };
 
 function BookCardSkeleton() {
@@ -64,10 +65,12 @@ function SortableShelfBookItem({
   book,
   shelfId,
   reorderDisabled,
+  onEditBook,
 }: {
   book: BookDomain;
   shelfId: string;
   reorderDisabled: boolean;
+  onEditBook?: (book: BookDomain) => void;
 }) {
   const id = book.id ?? "";
   const {
@@ -111,7 +114,12 @@ function SortableShelfBookItem({
           <GripVertical className="h-4 w-4 shrink-0" aria-hidden />
         </button>
         <div className="min-w-0 flex-1">
-          <BookCard book={book} isShelf shelfId={shelfId} />
+          <BookCard
+            book={book}
+            isShelf
+            shelfId={shelfId}
+            onEditBook={onEditBook ? () => onEditBook(book) : undefined}
+          />
         </div>
       </div>
     </div>
@@ -127,6 +135,7 @@ export default function BookshelfBooksSortableGrid({
   emptyMessage,
   onReorder,
   reorderDisabled = false,
+  onEditBook,
 }: BookshelfBooksSortableGridProps) {
   const itemIds = useMemo(
     () => books.map((b) => b.id).filter((id): id is string => Boolean(id)),
@@ -205,6 +214,7 @@ export default function BookshelfBooksSortableGrid({
                 book={book}
                 shelfId={shelfId}
                 reorderDisabled={reorderDisabled}
+                onEditBook={onEditBook}
               />
             </div>
           ))}

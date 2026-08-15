@@ -25,6 +25,7 @@ export class BookService {
     userId,
     relationshipUserValues,
     excludeBookParticipantUserId,
+    readersOverlap,
     authorId,
     page = 0,
     pageSize = 10,
@@ -34,6 +35,7 @@ export class BookService {
     userId?: string;
     relationshipUserValues?: string[];
     excludeBookParticipantUserId?: string;
+    readersOverlap?: string[];
     bookId?: string;
     authorId?: string;
     page?: number;
@@ -45,6 +47,8 @@ export class BookService {
 
       const builder = new BookQueryBuilder(this.supabase)
         .withReaders(filters?.readers)
+        .withReadersOverlap(readersOverlap)
+        .withExcludingSingleReaderSnapshots(readersOverlap)
         .withStatus(statuses)
         .withGender(filters?.gender)
         .withYear(filters?.year)

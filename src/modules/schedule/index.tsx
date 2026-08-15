@@ -1,13 +1,16 @@
 "use client";
 
-import { CreateScheduleForm } from "./components/createScheduleForm";
-import { PageReadingProgressIndicator } from "./components/readingProgressIndicator";
-import { useSchedule } from "./hooks";
-import { ClientScheduleProps } from "./types/schedule.types";
-import { ScheduleTable } from "./components/scheduleTable";
+import { BookOpen } from "lucide-react";
+
+import { ErrorComponent } from "@/components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserStore } from "@/stores/userStore";
-import { BookOpen } from "lucide-react";
+
+import { CreateScheduleForm } from "./components/createScheduleForm";
+import { PageReadingProgressIndicator } from "./components/readingProgressIndicator";
+import { ScheduleTable } from "./components/scheduleTable";
+import { useSchedule } from "./hooks";
+import { ClientScheduleProps } from "./types/schedule.types";
 
 export default function ClientSchedule({ id, title }: ClientScheduleProps) {
   const {
@@ -15,6 +18,7 @@ export default function ClientSchedule({ id, title }: ClientScheduleProps) {
     updateIsCompleted,
     deleteSchedule,
     isLoadingSchedule,
+    isError,
     shouldDisplayScheduleTable,
     emptySchedule,
     isReadTogglePending,
@@ -35,6 +39,10 @@ export default function ClientSchedule({ id, title }: ClientScheduleProps) {
         <Skeleton className="h-[min(420px,50vh)] w-full rounded-2xl" />
       </div>
     );
+  }
+
+  if (isError) {
+    return <ErrorComponent />;
   }
 
   return (

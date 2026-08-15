@@ -7,6 +7,7 @@ describe("UserSocialMapper", () => {
       id: "11111111-1111-4111-8111-111111111111",
       display_name: "Test",
       email: "test@example.com",
+      avatar_seed: null,
     });
     expect(out.id).toBe("11111111-1111-4111-8111-111111111111");
     expect(out.displayName).toBe("Test");

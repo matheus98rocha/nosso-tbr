@@ -14,7 +14,11 @@ export function useSchedule({ id: bookId }: UseScheduleProps) {
   const scheduleService = new ScheduleUpsertService();
   const { user } = useUserStore();
 
-  const { data: schedule, isLoading: isLoadingSchedules } = useQuery({
+  const {
+    data: schedule,
+    isLoading: isLoadingSchedules,
+    isError: isScheduleError,
+  } = useQuery({
     queryKey: getScheduleQueryKey(bookId, user?.id),
     queryFn: () => scheduleService.getByBookId(bookId, user!.id),
     enabled: !!user?.id,
@@ -40,8 +44,13 @@ export function useSchedule({ id: bookId }: UseScheduleProps) {
 
   const isLoadingSchedule = isLoadingSchedules || isPendingDelete;
   const shouldDisplayScheduleTable =
-    !isLoadingSchedule && schedule && schedule.length > 0 && !isPendingDelete;
-  const emptySchedule = schedule && schedule.length === 0;
+    !isLoadingSchedule &&
+    !isScheduleError &&
+    !!schedule &&
+    schedule.length > 0 &&
+    !isPendingDelete;
+  const emptySchedule =
+    !isScheduleError && Array.isArray(schedule) && schedule.length === 0;
 
   return useMemo(
     () => ({
@@ -50,6 +59,7 @@ export function useSchedule({ id: bookId }: UseScheduleProps) {
       deleteSchedule,
       shouldDisplayScheduleTable,
       isLoadingSchedule,
+      isError: isScheduleError,
       emptySchedule,
       isReadTogglePending,
       pendingScheduleId,
@@ -60,6 +70,7 @@ export function useSchedule({ id: bookId }: UseScheduleProps) {
       deleteSchedule,
       shouldDisplayScheduleTable,
       isLoadingSchedule,
+      isScheduleError,
       emptySchedule,
       isReadTogglePending,
       pendingScheduleId,

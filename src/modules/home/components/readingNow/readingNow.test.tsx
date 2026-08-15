@@ -102,7 +102,7 @@ const baseHookReturn = {
   transitioningBookId: null,
   ratingPromptBookId: null,
   dismissRatingPrompt: vi.fn(),
-};
+} as unknown as ReturnType<typeof useReadingNow>;
 
 describe("ReadingNow", () => {
   it("does not render when there are no reading books", () => {

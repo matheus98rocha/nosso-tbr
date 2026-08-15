@@ -8,7 +8,6 @@ import BookCardDetailsModal from "./components/bookCardDetailsModal";
 import { CardStartReadingButton } from "./components/cardStartReadingButton";
 import { AddBookToShelf } from "./components/addBookToShelf";
 import { DropdownBook } from "./components/dropdownBook";
-import { BookUpsert } from "@/modules/bookUpsert";
 import { CardReadingProgressIndicator } from "@/modules/schedule/components/readingProgressIndicator";
 import { CardReadingRatingButton } from "@/modules/bookRating";
 import { ConfirmDialog } from "@/components/confirmDialog";
@@ -24,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { formatBookPagesLabel } from "@/utils/formatters";
 
 export function BookCard(props: BookCardProps) {
-  const { isShelf = false, hideInteractions = false } = props;
+  const { isShelf = false, hideInteractions = false, onEditBook } = props;
   const {
     book,
     dialogAddShelfModal,
@@ -238,12 +237,6 @@ export function BookCard(props: BookCardProps) {
         onOpenChange={dialogDeleteModal.setIsOpen}
       />
 
-      <BookUpsert
-        isBookFormOpen={dialogEditModal.isOpen}
-        setIsBookFormOpen={dialogEditModal.setIsOpen}
-        bookData={book}
-      />
-
       <Card
         className={cn(
           "group gap-0 overflow-hidden py-0",
@@ -336,7 +329,11 @@ export function BookCard(props: BookCardProps) {
                           />
                         </button>
                       }
-                      editBook={() => dialogEditModal.setIsOpen(true)}
+                      editBook={() =>
+                        onEditBook
+                          ? onEditBook()
+                          : dialogEditModal.setIsOpen(true)
+                      }
                       removeBook={() => dialogDeleteModal.setIsOpen(true)}
                       removeBookLabel={
                         isShelf ? "Remover livro da estante" : "Remover livro"

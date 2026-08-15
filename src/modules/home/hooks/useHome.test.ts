@@ -385,6 +385,8 @@ describe("useHome", () => {
             "none",
             "excludeParticipant",
             "none",
+            "jointReaders",
+            "none",
           ],
         }),
       );
@@ -1049,27 +1051,33 @@ describe("useHome", () => {
       expect(result.current.currentPage).toBe(1);
     });
 
-    it("returns second page slice when currentPage is 1", () => {
+    it("requests server page 1 when currentPage is 1 in logged joint view", async () => {
+      const { useIsLoggedIn } = await import("@/stores/hooks/useAuth");
+      const { useUserStore } = await import("@/stores/userStore");
+
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
       (useUser as Mock).mockReturnValue({
         users: mockUsers,
         isLoadingUsers: false,
       });
-      mockNonLoggedBooksQuery();
 
       const { result } = setupHook({ view: "joint", readers: [] });
 
       act(() => result.current.setCurrentPage(1));
 
-      expect(result.current.allBooks?.data.map((book) => book.id)).toEqual([
-        "9",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-      ]);
+      const queryConfig = getBooksQueryConfig();
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 1,
+          pageSize: 8,
+        }),
+      );
     });
   });
 
@@ -1079,7 +1087,7 @@ describe("useHome", () => {
       const { useUserStore } = await import("@/stores/userStore");
 
       (useIsLoggedIn as Mock).mockReturnValue(true);
-      (useUserStore as Mock).mockReturnValue({ id: "user-1", display_name: "Matheus" });
+      (useUserStore as unknown as Mock).mockReturnValue({ id: "user-1", display_name: "Matheus" });
       mockGetAll.mockResolvedValue({
         data: [{ id: "book-1", readerIds: ["user-1"], readersDisplay: "Matheus" }],
         total: 1,
@@ -1093,10 +1101,11 @@ describe("useHome", () => {
       expect(mockGetAll).toHaveBeenCalledWith(
         expect.objectContaining({
           page: 0,
-          pageSize: 2000,
+          pageSize: 8,
           search: "hobbit",
           bookId: "",
           authorId: "",
+          readersOverlap: ["user-1"],
           filters: expect.objectContaining({
             readers: [],
             status: [],
@@ -1312,64 +1321,32 @@ describe("useHome", () => {
       expect(result.current.readersObj.readers).toEqual(["1", "stale-unknown"]);
     });
 
-    it("in joint-reading mode only keeps books with more than one reader", () => {
+    it("in joint-reading mode requests server pagination with readersOverlap", async () => {
+      const { useIsLoggedIn } = await import("@/stores/hooks/useAuth");
+      const { useUserStore } = await import("@/stores/userStore");
+
+      (useIsLoggedIn as Mock).mockReturnValue(true);
+      (useUserStore as unknown as Mock).mockReturnValue({
+        id: "1",
+        display_name: "Matheus",
+      });
       (useUser as Mock).mockReturnValue({
         users: mockUsers,
         isLoadingUsers: false,
       });
 
-      (useQuery as Mock).mockImplementation(
-        (params: { queryKey?: unknown[] }) => {
-          const k0 = params?.queryKey?.[0];
-          if (k0 === "userSocial") {
-            return {
-              data: [],
-              isLoading: false,
-              isFetching: false,
-              isFetched: true,
-              isError: false,
-            };
-          }
-          if (k0 === "bookFavorites") {
-            return {
-              data: [],
-              isLoading: false,
-              isFetching: false,
-              isFetched: true,
-              isError: false,
-            };
-          }
-          return {
-            data: {
-              data: [
-                {
-                  id: "1",
-                  readerIds: ["1", "2"],
-                  readersDisplay: "Matheus e John Doe",
-                },
-                { id: "2", readerIds: ["1"], readersDisplay: "Matheus" },
-                {
-                  id: "3",
-                  readerIds: ["2", "9"],
-                  readersDisplay: "John Doe e Carol",
-                },
-              ],
-              total: 3,
-            },
-            isFetching: false,
-            isFetched: true,
-            isError: false,
-          };
-        },
+      setupHook({ readers: [], view: "joint" });
+
+      const queryConfig = getBooksQueryConfig();
+      await queryConfig.queryFn();
+
+      expect(mockGetAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 0,
+          pageSize: 8,
+          readersOverlap: expect.arrayContaining(["1"]),
+        }),
       );
-
-      const { result } = setupHook({ readers: [], view: "joint" });
-
-      expect(result.current.allBooks?.total).toBe(2);
-      expect(result.current.allBooks?.data.map((book) => book.id)).toEqual([
-        "1",
-        "3",
-      ]);
     });
   });
 });

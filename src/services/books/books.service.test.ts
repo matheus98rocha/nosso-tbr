@@ -3,6 +3,8 @@ import { BookService } from "./books.service";
 
 const buildMockBuilder = () => ({
   withReaders: vi.fn().mockReturnThis(),
+  withReadersOverlap: vi.fn().mockReturnThis(),
+  withExcludingSingleReaderSnapshots: vi.fn().mockReturnThis(),
   withStatus: vi.fn().mockReturnThis(),
   withGender: vi.fn().mockReturnThis(),
   withYear: vi.fn().mockReturnThis(),

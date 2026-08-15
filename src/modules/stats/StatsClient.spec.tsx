@@ -19,6 +19,14 @@ vi.mock("@/modules/stats/components", () => ({
   ReadingRankingSection: () => <div data-testid="reading-ranking-section" />,
 }));
 
+vi.mock("next/dynamic", () => ({
+  default: () => {
+    return function MockDynamicStatsCharts() {
+      return <div data-testid="stats-charts-dynamic" />;
+    };
+  },
+}));
+
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="recharts-mock">{children}</div>
@@ -88,9 +96,23 @@ describe("StatsClient", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("5")).toBeInTheDocument();
     expect(screen.getByText("900")).toBeInTheDocument();
-    expect(
-      screen.getByRole("region", { name: "Gráficos" }),
-    ).toBeInTheDocument();
     expect(screen.getByTestId("reading-ranking-section")).toBeInTheDocument();
+  });
+
+  it("loads charts through dynamic import wrapper", () => {
+    render(
+      <StatsClient
+        yearlyStats={yearlyStats}
+        collaborators={[{ readerName: "John Doe", booksRead: 2 }]}
+        totalBooks={5}
+        readerOptions={[
+          { id: "reader-matheus", label: "Matheus" },
+          { id: "reader-john-doe", label: "John Doe" },
+        ]}
+        selectedReaderId="reader-matheus"
+      />,
+    );
+
+    expect(screen.getByTestId("stats-charts-dynamic")).toBeInTheDocument();
   });
 });

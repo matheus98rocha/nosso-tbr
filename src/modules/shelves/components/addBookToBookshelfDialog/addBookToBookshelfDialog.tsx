@@ -39,6 +39,7 @@ export function AddBookToBookshelfDialog({
       const service = new BookService();
       return (await service.getAll({})).data;
     },
+    enabled: isOpen,
   });
 
   const booksForCombobox = useMemo(() => {

@@ -41,6 +41,10 @@ vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(() => true),
 }));
 
+vi.mock("@/modules/bookUpsert", () => ({
+  BookUpsert: () => null,
+}));
+
 vi.mock("next/link", () => ({
   default: ({
     children,
