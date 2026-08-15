@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+
 import { QuotesService } from "../services/quotes.service";
-import { useState } from "react";
 import { ClientQuotesProps, QuoteDomain } from "../types/quotes.types";
 
 export function useQuotes({ id: bookId }: ClientQuotesProps) {
@@ -15,12 +16,15 @@ export function useQuotes({ id: bookId }: ClientQuotesProps) {
     setDeleteOpen(true);
   };
 
-  const { data: quotes, isLoading: isLoadingQuotes } = useQuery({
+  const {
+    data: quotes,
+    isLoading: isLoadingQuotes,
+    isError: isQuotesError,
+  } = useQuery({
     queryKey: ["quotes", bookId],
     queryFn: () => quotesService.getQuotesByBook(bookId),
   });
 
-  // Mutação para remover citação
   const deleteMutation = useMutation({
     mutationFn: (quoteId: string) => {
       const quotesService = new QuotesService();
@@ -29,7 +33,7 @@ export function useQuotes({ id: bookId }: ClientQuotesProps) {
     onSuccess: (_, quoteId) => {
       queryClient.setQueryData<QuoteDomain[]>(
         ["quotes", bookId],
-        (old) => old?.filter((quote) => quote.id !== quoteId) || []
+        (old) => old?.filter((quote) => quote.id !== quoteId) || [],
       );
       setDeleteOpen(false);
       setDeleteId(null);
@@ -37,17 +41,29 @@ export function useQuotes({ id: bookId }: ClientQuotesProps) {
   });
 
   const isLoading = isLoadingQuotes || deleteMutation.isPending;
-  const hasQuotes = quotes && quotes.length > 0;
+  const hasQuotes = !isQuotesError && !!quotes && quotes.length > 0;
 
-  return {
-    quotes,
-    isLoading,
-    hasQuotes,
-    deleteId,
-    setDeleteId,
-    deleteOpen,
-    setDeleteOpen,
-    handleOpenDelete,
-    deleteMutation,
-  };
+  return useMemo(
+    () => ({
+      quotes,
+      isLoading,
+      isError: isQuotesError,
+      hasQuotes,
+      deleteId,
+      setDeleteId,
+      deleteOpen,
+      setDeleteOpen,
+      handleOpenDelete,
+      deleteMutation,
+    }),
+    [
+      quotes,
+      isLoading,
+      isQuotesError,
+      hasQuotes,
+      deleteId,
+      deleteOpen,
+      deleteMutation,
+    ],
+  );
 }

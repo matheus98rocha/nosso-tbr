@@ -5,6 +5,7 @@ import { Database } from "../../../database.types";
 
 const buildMockQuery = () => ({
   contains: vi.fn().mockReturnThis(),
+  overlaps: vi.fn().mockReturnThis(),
   or: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   in: vi.fn().mockReturnThis(),
@@ -238,6 +239,70 @@ describe("BookQueryBuilder", () => {
       ]);
 
       expect(returned).toBe(builder);
+    });
+  });
+
+  describe("withReadersOverlap", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("applies overlaps filter with selected reader ids", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReadersOverlap(["1", "2"])
+        .build();
+
+      expect(mockQuery.overlaps).toHaveBeenCalledWith("readers", ["1", "2"]);
+    });
+
+    it("does not apply filter when reader ids are empty", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withReadersOverlap([])
+        .build();
+
+      expect(mockQuery.overlaps).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("withExcludingSingleReaderSnapshots", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      supabase = buildMockSupabase(mockQuery);
+    });
+
+    it("excludes books whose readers array equals a single selected id", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withExcludingSingleReaderSnapshots([
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+        ])
+        .build();
+
+      expect(mockQuery.not).toHaveBeenCalledWith(
+        "readers",
+        "eq",
+        '{"11111111-1111-4111-8111-111111111111"}',
+      );
+      expect(mockQuery.not).toHaveBeenCalledWith(
+        "readers",
+        "eq",
+        '{"22222222-2222-4222-8222-222222222222"}',
+      );
+    });
+
+    it("does not apply filter when reader ids are empty", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withExcludingSingleReaderSnapshots(undefined)
+        .build();
+
+      expect(mockQuery.not).not.toHaveBeenCalled();
     });
   });
 

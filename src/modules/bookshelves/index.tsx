@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense, useCallback, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowDownUp, ArrowLeft, GripVertical, Library } from "lucide-react";
@@ -15,10 +15,15 @@ import BookshelfBooksSortableGrid from "./components/BookshelfBooksSortableGrid"
 import { useUserStore } from "@/stores/userStore";
 import { useBookFavoriteIds } from "@/services/bookFavorites/hooks/useBookFavoriteIds";
 import { BookMapper } from "@/services/books/books.mapper";
+import { BookUpsert } from "@/modules/bookUpsert";
+import { useModal } from "@/hooks";
+import type { BookDomain } from "@/types/books.types";
 
 function ClientBookshelvesInner() {
   const { id } = useParams();
   const bookshelfId = typeof id === "string" ? id : undefined;
+  const editBookDialog = useModal();
+  const [editingBook, setEditingBook] = useState<BookDomain | null>(null);
 
   const {
     data: books = [],
@@ -49,6 +54,22 @@ function ClientBookshelvesInner() {
     isError: isShelfMetaError,
   } = useBookshelfMeta(bookshelfId);
 
+  const handleEditBookOpenChange = useCallback(
+    (open: boolean) => {
+      editBookDialog.setIsOpen(open);
+      if (!open) setEditingBook(null);
+    },
+    [editBookDialog],
+  );
+
+  const handleEditBook = useCallback(
+    (book: BookDomain) => {
+      setEditingBook(book);
+      editBookDialog.setIsOpen(true);
+    },
+    [editBookDialog],
+  );
+
   if (!bookshelfId) {
     return (
       <div
@@ -74,6 +95,11 @@ function ClientBookshelvesInner() {
 
   return (
     <div className="space-y-6">
+      <BookUpsert
+        isBookFormOpen={editBookDialog.isOpen}
+        setIsBookFormOpen={handleEditBookOpenChange}
+        bookData={editingBook ?? undefined}
+      />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href={SHELVES_LIST_PATH}
@@ -156,6 +182,7 @@ function ClientBookshelvesInner() {
         emptyMessage="Nenhum livro nesta estante. Adicione livros pela sua biblioteca ou pelas estantes."
         onReorder={applyReorder}
         reorderDisabled={isReorderPending || isSortActive}
+        onEditBook={handleEditBook}
       />
     </div>
   );

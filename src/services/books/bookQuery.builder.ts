@@ -56,6 +56,25 @@ export class BookQueryBuilder {
     return this;
   }
 
+  withReadersOverlap(readerIds?: string[]): this {
+    const ids = readerIds?.filter((id) => !!id?.trim()) ?? [];
+    if (ids.length === 0) return this;
+    this.query = this.query.overlaps("readers", ids);
+    return this;
+  }
+
+  withExcludingSingleReaderSnapshots(readerIds?: string[]): this {
+    const ids = readerIds?.filter((id) => !!id?.trim()) ?? [];
+    if (ids.length === 0) return this;
+
+    for (const id of ids) {
+      const quoted = BookQueryBuilder.quotePostgrestTextValue(id.trim());
+      this.query = this.query.not("readers", "eq", `{${quoted}}`);
+    }
+
+    return this;
+  }
+
   withStatus(statuses?: Status[]): this {
     if (!statuses || statuses.length === 0) return this;
     const statusCondition = BookQueryBuilder.buildStatusOrCondition(statuses);

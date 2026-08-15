@@ -36,17 +36,18 @@ describe("useSchedule", () => {
     vi.clearAllMocks();
 
     const { useUserStore } = await import("@/stores/userStore");
-    (useUserStore as Mock).mockReturnValue({ user: { id: "user-1" } });
+    (useUserStore as unknown as Mock).mockReturnValue({ user: { id: "user-1" } });
 
     (useQuery as Mock).mockReturnValue({
       data: [{ id: "sch-1", completed: false }],
       isLoading: false,
+      isError: false,
     });
   });
 
   it("enables schedule query only when user exists", async () => {
     const { useUserStore } = await import("@/stores/userStore");
-    (useUserStore as Mock).mockReturnValue({ user: null });
+    (useUserStore as unknown as Mock).mockReturnValue({ user: null });
 
     renderHook(() => useSchedule({ id: "book-1" }));
 
@@ -61,10 +62,28 @@ describe("useSchedule", () => {
     expect(result.current.shouldDisplayScheduleTable).toBe(true);
     expect(result.current.emptySchedule).toBe(false);
 
-    (useQuery as Mock).mockReturnValue({ data: [], isLoading: false });
+    (useQuery as Mock).mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+    });
     rerender();
 
     expect(result.current.emptySchedule).toBe(true);
+  });
+
+  it("exposes isError and avoids empty/create states on fetch failure", () => {
+    (useQuery as Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    });
+
+    const { result } = renderHook(() => useSchedule({ id: "book-1" }));
+
+    expect(result.current.isError).toBe(true);
+    expect(result.current.emptySchedule).toBe(false);
+    expect(result.current.shouldDisplayScheduleTable).toBe(false);
   });
 
   it("wires optimistic read toggle hook", () => {

@@ -1,6 +1,11 @@
 "use client";
 
 import React from "react";
+import { X } from "lucide-react";
+
+import { ConfirmDialog } from "@/components/confirmDialog";
+import { ErrorComponent } from "@/components";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,19 +13,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useQuotes } from "./hooks/useQuotes";
-import { X } from "lucide-react";
-import { UpsertQuoteModal } from "./components";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ClientQuotesProps } from "./types/quotes.types";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/confirmDialog";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import { UpsertQuoteModal } from "./components";
+import { useQuotes } from "./hooks/useQuotes";
+import { ClientQuotesProps } from "./types/quotes.types";
 
 export function ClientQuotes({ id, title }: ClientQuotesProps) {
   const {
     quotes,
     isLoading,
+    isError,
     hasQuotes,
     deleteId,
     deleteMutation,
@@ -41,6 +45,10 @@ export function ClientQuotes({ id, title }: ClientQuotesProps) {
         </div>
       </div>
     );
+  }
+
+  if (isError) {
+    return <ErrorComponent />;
   }
 
   return (
@@ -70,7 +78,6 @@ export function ClientQuotes({ id, title }: ClientQuotesProps) {
               <div className="flex items-center gap-2">
                 <UpsertQuoteModal id={id} title={title} quote={quote} />
 
-                {/* Botão deletar */}
                 <Button
                   variant="ghost"
                   size="icon"

@@ -23,7 +23,6 @@ import { useHomeReadingProgressBatch } from "./useHomeReadingProgressBatch";
 import { useHomeReadingRatingsBatch } from "./useHomeReadingRatingsBatch";
 
 const PAGE_SIZE = 8;
-const JOINT_READINGS_FETCH_SIZE = 2000;
 const bookService = new BookService();
 const userSocialService = new UserSocialService();
 
@@ -266,16 +265,48 @@ export function useHome() {
         !isAllBooksActive &&
         (filters.view === "seguindo" || filters.view === "joint")));
 
+  const allReaderIds = useMemo(() => users.map((u) => u.id), [users]);
+  const networkReaderIds = useMemo(
+    () => readers.map((u) => u.id),
+    [readers],
+  );
+  const effectiveSelectedReaders = useMemo(() => {
+    const defaultWhenEmpty =
+      isAllBooksActive || isFollowingFeedActive ? allReaderIds : networkReaderIds;
+    const base = filters.readers.length > 0 ? filters.readers : defaultWhenEmpty;
+    if (lockedReaderId && !base.includes(lockedReaderId)) {
+      return [lockedReaderId, ...base];
+    }
+    return base;
+  }, [
+    filters.readers,
+    allReaderIds,
+    networkReaderIds,
+    isAllBooksActive,
+    isFollowingFeedActive,
+    lockedReaderId,
+  ]);
+
+  const isJointViewActive = !!(
+    isLoggedIn &&
+    filters.view === "joint" &&
+    !filters.myBooks
+  );
+
   const serverFilters = useMemo(
     () => ({ ...filters, readers: [] as string[] }),
     [filters],
   );
   const shouldUseServerPagination =
-    isMyBooksActive || isAllBooksActive || isFollowingFeedActive;
+    isMyBooksActive ||
+    isAllBooksActive ||
+    isFollowingFeedActive ||
+    isJointViewActive;
   const serverPage = shouldUseServerPagination ? currentPage : 0;
-  const serverPageSize = shouldUseServerPagination
-    ? PAGE_SIZE
-    : JOINT_READINGS_FETCH_SIZE;
+  const serverPageSize = PAGE_SIZE;
+
+  const jointReadersKey =
+    effectiveSelectedReaders.slice().sort().join("|") || "none";
 
   const relationshipKey =
     relationshipUserValues?.slice().sort().join("|") ?? "none";
@@ -303,6 +334,8 @@ export function useHome() {
       relationshipKey,
       "excludeParticipant",
       excludeBookParticipantUserId ?? "none",
+      "jointReaders",
+      isJointViewActive ? jointReadersKey : "none",
     ],
     queryFn: async () => {
       if (
@@ -321,6 +354,7 @@ export function useHome() {
           userId: effectiveUserId,
           relationshipUserValues,
           excludeBookParticipantUserId,
+          readersOverlap: isJointViewActive ? effectiveSelectedReaders : undefined,
           filters: {
             readers: [],
             status: serverFilters.status,
@@ -376,28 +410,6 @@ export function useHome() {
   );
   const formattedYear = useMemo(() => formatYear(filters.year), [filters.year]);
 
-  const allReaderIds = useMemo(() => users.map((u) => u.id), [users]);
-  const networkReaderIds = useMemo(
-    () => readers.map((u) => u.id),
-    [readers],
-  );
-  const effectiveSelectedReaders = useMemo(() => {
-    const defaultWhenEmpty =
-      isAllBooksActive || isFollowingFeedActive ? allReaderIds : networkReaderIds;
-    const base = filters.readers.length > 0 ? filters.readers : defaultWhenEmpty;
-    if (lockedReaderId && !base.includes(lockedReaderId)) {
-      return [lockedReaderId, ...base];
-    }
-    return base;
-  }, [
-    filters.readers,
-    allReaderIds,
-    networkReaderIds,
-    isAllBooksActive,
-    isFollowingFeedActive,
-    lockedReaderId,
-  ]);
-
   const needsExtraReader = useMemo(() => {
     if (filters.view !== "joint" || !lockedReaderId) return false;
     if (filters.readers.length === 0) return false;
@@ -431,47 +443,7 @@ export function useHome() {
     };
   }, [booksQueryData, refinedBooks]);
 
-  const allBooks = useMemo(() => {
-    if (!booksQueryDataWithRefinement) {
-      return booksQueryDataWithRefinement;
-    }
-
-    if (isMyBooksActive || isAllBooksActive || isFollowingFeedActive) {
-      return booksQueryDataWithRefinement;
-    }
-
-    const selectedReadersSet = new Set(effectiveSelectedReaders);
-    const filteredJointBooks = booksQueryDataWithRefinement.data.filter(
-      (book) => {
-        if (book.readerIds.length < 2) {
-          return false;
-        }
-
-        if (selectedReadersSet.size === 0) {
-          return true;
-        }
-
-        return [...selectedReadersSet].some((id) =>
-          book.readerIds.includes(id),
-        );
-      },
-    );
-
-    const from = currentPage * PAGE_SIZE;
-    const to = from + PAGE_SIZE;
-
-    return {
-      data: filteredJointBooks.slice(from, to),
-      total: filteredJointBooks.length,
-    };
-  }, [
-    booksQueryDataWithRefinement,
-    isMyBooksActive,
-    isAllBooksActive,
-    isFollowingFeedActive,
-    effectiveSelectedReaders,
-    currentPage,
-  ]);
+  const allBooks = booksQueryDataWithRefinement;
 
   const readingProgressBatch = useHomeReadingProgressBatch(allBooks?.data);
 

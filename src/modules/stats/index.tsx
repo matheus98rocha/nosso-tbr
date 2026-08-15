@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { memo } from "react";
 import {
   Select,
@@ -11,35 +12,31 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getGenderLabel } from "@/constants/genders";
 import { ReadingRankingSection } from "@/modules/stats/components";
-import {
-  STATS_CHART_PIE_FILLS,
-  useStatsClient,
-} from "@/modules/stats/hooks/useStatsClient";
+import { useStatsClient } from "@/modules/stats/hooks/useStatsClient";
 import type {
   KpiCardProps,
   StatsClientProps,
 } from "@/modules/stats/types/stats.types";
 import { BookOpen, FileText, PenLine, Tag } from "lucide-react";
+
+const StatsCharts = dynamic(() => import("./components/statsCharts"), {
+  loading: () => (
+    <div
+      className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"
+      aria-busy="true"
+      aria-label="Carregando gráficos"
+    >
+      <Skeleton className="h-[min(320px,55vw)] min-h-[280px] w-full rounded-xl" />
+      <Skeleton className="h-[min(320px,55vw)] min-h-[280px] w-full rounded-xl" />
+    </div>
+  ),
+  ssr: false,
+});
 
 const KpiCard = memo(function KpiCard({ title, value, icon }: KpiCardProps) {
   return (
@@ -156,116 +153,16 @@ export const StatsClient = memo(function StatsClient({
         />
       </section>
 
-      <section
-        className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"
-        aria-label="Gráficos"
-      >
-        <Card className="shadow-sm">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-lg md:text-xl">Livros por ano</CardTitle>
-            <CardDescription>
-              Quantidade de livros concluídos em cada ano.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!hasYearlyChartData ? (
-              <p className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
-                Nenhum dado anual disponível para este leitor.
-              </p>
-            ) : (
-              <div className="h-[min(320px,55vw)] w-full min-h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={yearlyStats}
-                    margin={{ top: 16, right: 8, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="4 4"
-                      stroke={chartGridStroke}
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="year"
-                      tick={barChartAxisTickStyle}
-                      tickLine={false}
-                      axisLine={{ stroke: chartGridStroke }}
-                    />
-                    <YAxis
-                      tick={barChartAxisTickStyle}
-                      tickLine={false}
-                      axisLine={{ stroke: chartGridStroke }}
-                      width={40}
-                    />
-                    <Tooltip contentStyle={chartTooltipContentStyle} />
-                    <Legend />
-                    <Bar
-                      dataKey="totalBooks"
-                      name="Livros lidos"
-                      fill="var(--stats-chart-bar)"
-                      radius={[6, 6, 0, 0]}
-                      label={{
-                        position: "top",
-                        fill: "var(--foreground)",
-                        fontSize: 12,
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-lg md:text-xl">
-              Colaborações de leitura
-            </CardTitle>
-            <CardDescription>
-              Distribuição de livros lidos entre colaboradores.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!hasCollaborationChartData ? (
-              <p className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
-                Não há outros leitores com dados de colaboração para exibir.
-              </p>
-            ) : (
-              <div className="h-[min(320px,55vw)] w-full min-h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={collaborators}
-                      dataKey="booksRead"
-                      nameKey="readerName"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius="78%"
-                      innerRadius="42%"
-                      paddingAngle={2}
-                      labelLine={false}
-                      label={collaborationPieLabelFormatter}
-                    >
-                      {collaborators.map((entry, index) => (
-                        <Cell
-                          key={entry.readerName}
-                          fill={
-                            STATS_CHART_PIE_FILLS[
-                              index % STATS_CHART_PIE_FILLS.length
-                            ]
-                          }
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={chartTooltipContentStyle} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+      <StatsCharts
+        yearlyStats={yearlyStats}
+        collaborators={collaborators}
+        hasYearlyChartData={hasYearlyChartData}
+        hasCollaborationChartData={hasCollaborationChartData}
+        barChartAxisTickStyle={barChartAxisTickStyle}
+        chartGridStroke={chartGridStroke}
+        chartTooltipContentStyle={chartTooltipContentStyle}
+        collaborationPieLabelFormatter={collaborationPieLabelFormatter}
+      />
 
       <ReadingRankingSection />
     </div>

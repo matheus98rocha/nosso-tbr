@@ -74,9 +74,11 @@ export default function ClientHome() {
   } = useHome();
 
   const dialogModal = useModal();
+  const editBookDialog = useModal();
   const createShelfDialog = useModal();
   const aiRecommendationModal = useModal();
   const [aiPrefilledTitle, setAiPrefilledTitle] = useState<string | null>(null);
+  const [editingBook, setEditingBook] = useState<BookDomain | null>(null);
   const isLoading = isLoadingAllBooks || isLoggingOut;
 
   const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
@@ -105,12 +107,33 @@ export default function ClientHome() {
     [dialogModal],
   );
 
+  const handleEditBookOpenChange = useCallback(
+    (open: boolean) => {
+      editBookDialog.setIsOpen(open);
+      if (!open) setEditingBook(null);
+    },
+    [editBookDialog],
+  );
+
+  const handleEditBook = useCallback(
+    (book: BookDomain) => {
+      setEditingBook(book);
+      editBookDialog.setIsOpen(true);
+    },
+    [editBookDialog],
+  );
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-7">
       <BookUpsert
         isBookFormOpen={dialogModal.isOpen}
         setIsBookFormOpen={handleBookFormOpenChange}
         initialLookupQuery={aiPrefilledTitle}
+      />
+      <BookUpsert
+        isBookFormOpen={editBookDialog.isOpen}
+        setIsBookFormOpen={handleEditBookOpenChange}
+        bookData={editingBook ?? undefined}
       />
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
@@ -504,7 +527,12 @@ export default function ClientHome() {
             isLoading={isLoading}
             isFetched={isFetched}
             renderItem={(book) => (
-              <BookCard key={book.id} book={book} isShelf={false} />
+              <BookCard
+                key={book.id}
+                book={book}
+                isShelf={false}
+                onEditBook={() => handleEditBook(book)}
+              />
             )}
             emptyMessage={
               filters.bookId?.trim()

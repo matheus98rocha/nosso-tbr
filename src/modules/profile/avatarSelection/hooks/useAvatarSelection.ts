@@ -7,7 +7,6 @@ import {
   AVATAR_CATALOG,
   buildCatalogAvatarUrl,
   isReadingAvatarSeed,
-  isStoredAvatarSeed,
   type ReadingAvatarSeed,
 } from "@/modules/profile/avatarSelection/utils";
 import { useClientMounted } from "@/modules/profile/hooks/useClientMounted";
@@ -30,12 +29,14 @@ export function useAvatarSelection(): AvatarSelectionViewModel {
     staleTime: 1000 * 60 * 2,
   });
 
-  const savedSeed = useMemo((): string | null => {
+  const savedSeed = useMemo((): ReadingAvatarSeed | null => {
     const seed = profileQuery.data?.avatarSeed;
-    return isStoredAvatarSeed(seed) ? seed : null;
+    return isReadingAvatarSeed(seed) ? seed : null;
   }, [profileQuery.data?.avatarSeed]);
 
-  const [selectedSeed, setSelectedSeed] = useState<string | null>(null);
+  const [selectedSeed, setSelectedSeed] = useState<ReadingAvatarSeed | null>(
+    null,
+  );
 
   useEffect(() => {
     setSelectedSeed(savedSeed);
@@ -75,7 +76,7 @@ export function useAvatarSelection(): AvatarSelectionViewModel {
   }, []);
 
   const onSaveAvatar = useCallback(() => {
-    if (!selectedSeed) {
+    if (!selectedSeed || !isReadingAvatarSeed(selectedSeed)) {
       return;
     }
 

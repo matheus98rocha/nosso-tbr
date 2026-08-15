@@ -285,6 +285,10 @@ const catalogEntryBySeed = new Map(
 export const READING_AVATAR_SEEDS = AVATAR_CATALOG.map((entry) => entry.seed);
 
 export function getAvatarCatalogEntry(seed: string) {
+  if (!isReadingAvatarSeed(seed)) {
+    return undefined;
+  }
+
   return catalogEntryBySeed.get(seed);
 }
 

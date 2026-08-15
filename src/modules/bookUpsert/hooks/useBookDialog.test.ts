@@ -6,6 +6,7 @@ import { useIsLoggedIn, useRequireAuth } from "@/stores/hooks/useAuth";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/clientJsonFetch";
+import type { BookDomain } from "@/types/books.types";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn(),
@@ -312,12 +313,22 @@ describe("useBookDialog — query de estantes", () => {
   });
 
   describe("navegação após alteração de status", () => {
-    const editBookData = {
+    const editBookData: BookDomain = {
       id: "book-1",
       title: "Livro Teste",
-      status: "paused" as const,
+      author: "Autor Teste",
+      pages: 200,
+      status: "paused",
       readerIds: ["user-1"],
+      readersDisplay: "User",
       chosen_by: "user-1",
+      start_date: null,
+      end_date: null,
+      gender: null,
+      image_url: "",
+      user_id: "user-1",
+      is_reread: false,
+      is_favorite: false,
     };
 
     it("navega para o filtro do novo status ao editar na home", async () => {

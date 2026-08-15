@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockQuery = {
   contains: vi.fn().mockReturnThis(),
+  overlaps: vi.fn().mockReturnThis(),
   or: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   in: vi.fn().mockReturnThis(),
@@ -69,6 +70,7 @@ describe("BookService integration", () => {
         bookId: "",
         authorId: "",
         myBooks: false,
+        view: "todos",
       },
     });
 
@@ -81,5 +83,36 @@ describe("BookService integration", () => {
       status: "finished",
       readerIds: ["Matheus", "Barbara"],
     });
+  });
+
+  it("applies joint-reading overlap filters when readersOverlap is provided", async () => {
+    mockQuery.range.mockResolvedValue({
+      data: [],
+      count: 0,
+      error: null,
+    });
+
+    const service = new BookService();
+
+    await service.getAll({
+      page: 0,
+      pageSize: 8,
+      readersOverlap: ["reader-a", "reader-b"],
+    });
+
+    expect(mockQuery.overlaps).toHaveBeenCalledWith("readers", [
+      "reader-a",
+      "reader-b",
+    ]);
+    expect(mockQuery.not).toHaveBeenCalledWith(
+      "readers",
+      "eq",
+      '{"reader-a"}',
+    );
+    expect(mockQuery.not).toHaveBeenCalledWith(
+      "readers",
+      "eq",
+      '{"reader-b"}',
+    );
   });
 });

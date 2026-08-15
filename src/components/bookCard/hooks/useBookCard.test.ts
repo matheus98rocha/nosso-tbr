@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createElement, type ReactNode } from "react";
 import { Mock, vi } from "vitest";
 import { useBookCard } from "./useBookCard";
+import type { BookCardProps } from "../types/bookCard.types";
 import { BookDomain } from "@/types/books.types";
 import { useRouter } from "next/navigation";
 import { BookService } from "@/services/books/books.service";
@@ -72,10 +73,13 @@ const baseBook: BookDomain = {
 
 const renderBookCardHook = (
   book = baseBook,
-  options?: { isShelf?: boolean; shelfId?: string },
+  options?: { isShelf: true; shelfId: string },
 ) => {
   const { Wrapper } = createWrapper();
-  return renderHook(() => useBookCard({ book, ...options }), { wrapper: Wrapper });
+  const props: BookCardProps = options
+    ? { book, isShelf: true, shelfId: options.shelfId }
+    : { book };
+  return renderHook(() => useBookCard(props), { wrapper: Wrapper });
 };
 
 describe("useBookCard", () => {

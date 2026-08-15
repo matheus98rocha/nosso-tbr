@@ -7,8 +7,8 @@ export type AvatarOption = {
 
 export type AvatarSelectionViewModel = {
   avatarOptions: AvatarOption[];
-  selectedSeed: string | null;
-  savedSeed: string | null;
+  selectedSeed: ReadingAvatarSeed | null;
+  savedSeed: ReadingAvatarSeed | null;
   isDirty: boolean;
   isSaving: boolean;
   isLoading: boolean;
