@@ -81,6 +81,7 @@ const { baseUseHome } = vi.hoisted(() => {
     readingProgressBatch: {
       readingBookIds: [],
       progressByBookId: new Map(),
+      paceByBookId: new Map(),
       isLoading: false,
       isError: false,
     },

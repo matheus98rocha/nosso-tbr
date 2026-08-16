@@ -4,4 +4,5 @@ export { useOptimisticScheduleReadToggle } from "./useOptimisticScheduleReadTogg
 export { useReadingProgress } from "./useReadingProgress";
 export { useReadingProgressMany } from "./useReadingProgressMany";
 export { useSchedule } from "./useSchedule";
+export { useScheduleReadingPace } from "./useScheduleReadingPace";
 export { useScheduleReadingProgress } from "./useScheduleReadingProgress";

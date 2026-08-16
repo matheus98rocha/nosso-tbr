@@ -1,7 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
+
 import { useUserStore } from "@/stores/userStore";
+
 import type { ReadingProgressDomain } from "../types/readingProgress.types";
+import {
+  normalizeReadingProgressManyQueryData,
+  type ReadingProgressManyQueryData,
+} from "../utils/normalizeReadingProgressManyQueryData";
 
 export function useReadingProgress(bookId: string | undefined) {
   const queryClient = useQueryClient();
@@ -12,7 +18,9 @@ export function useReadingProgress(bookId: string | undefined) {
       return null;
     }
 
-    const caches = queryClient.getQueriesData<ReadingProgressDomain[]>({
+    const caches = queryClient.getQueriesData<
+      ReadingProgressManyQueryData | ReadingProgressDomain[]
+    >({
       predicate: (query) => {
         const key = query.queryKey;
         return (
@@ -26,8 +34,9 @@ export function useReadingProgress(bookId: string | undefined) {
     });
 
     for (const [, data] of caches) {
-      if (!Array.isArray(data)) continue;
-      const found = data.find((row) => row.bookId === bookId);
+      const found = normalizeReadingProgressManyQueryData(data).progress.find(
+        (row) => row.bookId === bookId,
+      );
       if (found) return found;
     }
 
