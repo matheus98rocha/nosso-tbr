@@ -20,6 +20,14 @@ vi.mock("@/stores/userStore", () => ({
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: vi.fn(() => false),
 }));
+vi.mock("@/modules/schedule/hooks/useReadingProgressMany", () => ({
+  useReadingProgressMany: vi.fn(() => ({
+    progressByBookId: new Map(),
+    paceByBookId: new Map(),
+    isLoading: false,
+    isError: false,
+  })),
+}));
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn((params: { queryKey?: unknown[] }) => {
     if (

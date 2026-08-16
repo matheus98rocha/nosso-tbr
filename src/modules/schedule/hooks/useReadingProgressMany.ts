@@ -13,6 +13,10 @@ import type {
 import type { SchedulePaceByBookId } from "../types/schedulePace.types";
 import { computeReadingProgress } from "../utils/computeReadingProgress";
 import { computeSchedulePaceFromAggregates } from "../utils/computeSchedulePace";
+import {
+  normalizeReadingProgressManyQueryData,
+  type ReadingProgressManyQueryData,
+} from "../utils/normalizeReadingProgressManyQueryData";
 import { getReadingProgressManyQueryKey } from "../utils/readingProgressQueryKey";
 
 const service = new ReadingProgressService();
@@ -20,10 +24,7 @@ const service = new ReadingProgressService();
 const STALE_TIME = 1000 * 60 * 5;
 const GC_TIME = 1000 * 60 * 10;
 
-export type ReadingProgressManyQueryData = {
-  progress: ReadingProgressDomain[];
-  paceByBookId: SchedulePaceByBookId;
-};
+export type { ReadingProgressManyQueryData };
 
 function toQueryData(
   rows: readonly ReadingProgressPersistence[],
@@ -88,15 +89,17 @@ export function useReadingProgressMany(bookIds: readonly string[]) {
     refetchOnMount: false,
   });
 
-  const progressByBookId = useMemo<ReadingProgressByBookId>(
-    () => (data ? toDomainMap(data.progress) : new Map()),
+  const normalized = useMemo(
+    () => normalizeReadingProgressManyQueryData(data),
     [data],
   );
 
-  const paceByBookId = useMemo<SchedulePaceByBookId>(
-    () => data?.paceByBookId ?? new Map(),
-    [data],
+  const progressByBookId = useMemo<ReadingProgressByBookId>(
+    () => toDomainMap(normalized.progress),
+    [normalized],
   );
+
+  const paceByBookId = normalized.paceByBookId;
 
   return useMemo(
     () => ({

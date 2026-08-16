@@ -4,21 +4,10 @@ import { useMemo } from "react";
 import { useUserStore } from "@/stores/userStore";
 
 import type { ReadingProgressDomain } from "../types/readingProgress.types";
-import type { ReadingProgressManyQueryData } from "./useReadingProgressMany";
-
-function toProgressList(
-  data: ReadingProgressManyQueryData | ReadingProgressDomain[] | undefined,
-): ReadingProgressDomain[] {
-  if (!data) {
-    return [];
-  }
-
-  if (Array.isArray(data)) {
-    return data;
-  }
-
-  return Array.isArray(data.progress) ? data.progress : [];
-}
+import {
+  normalizeReadingProgressManyQueryData,
+  type ReadingProgressManyQueryData,
+} from "../utils/normalizeReadingProgressManyQueryData";
 
 export function useReadingProgress(bookId: string | undefined) {
   const queryClient = useQueryClient();
@@ -45,7 +34,9 @@ export function useReadingProgress(bookId: string | undefined) {
     });
 
     for (const [, data] of caches) {
-      const found = toProgressList(data).find((row) => row.bookId === bookId);
+      const found = normalizeReadingProgressManyQueryData(data).progress.find(
+        (row) => row.bookId === bookId,
+      );
       if (found) return found;
     }
 
