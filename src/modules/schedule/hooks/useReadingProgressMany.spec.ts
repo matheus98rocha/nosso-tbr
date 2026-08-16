@@ -98,6 +98,61 @@ describe("useReadingProgressMany", () => {
       completed: 5,
       percentage: 100,
     });
+    expect(result.current.paceByBookId.size).toBe(0);
+  });
+
+  it("mapeia overdue, ahead e last_date para paceByBookId", async () => {
+    mockGetMany.mockResolvedValueOnce([
+      {
+        book_id: "a",
+        total: 10,
+        completed: 6,
+        overdue: 0,
+        ahead: 1,
+        last_date: "2026-08-10",
+      },
+    ]);
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useReadingProgressMany(["a"]), {
+      wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.paceByBookId.size).toBe(1);
+    });
+
+    const pace = result.current.paceByBookId.get("a");
+    expect(pace?.status).toBe("ahead");
+    expect(pace?.aheadDays).toBe(1);
+    expect(pace?.overdueDays).toBe(0);
+    expect(pace?.predictedEndDate.getFullYear()).toBe(2026);
+    expect(pace?.predictedEndDate.getMonth()).toBe(7);
+    expect(pace?.predictedEndDate.getDate()).toBe(9);
+  });
+
+  it("mapeia overdue para status behind", async () => {
+    mockGetMany.mockResolvedValueOnce([
+      {
+        book_id: "a",
+        total: 10,
+        completed: 3,
+        overdue: 2,
+        ahead: 0,
+        last_date: "2026-08-10",
+      },
+    ]);
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useReadingProgressMany(["a"]), {
+      wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.paceByBookId.get("a")?.status).toBe("behind");
+    });
+    expect(result.current.paceByBookId.get("a")?.overdueDays).toBe(2);
+    expect(result.current.paceByBookId.get("a")?.predictedEndDate.getDate()).toBe(
+      12,
+    );
   });
 
   it("omite entradas com total inválido (RNxx-03)", async () => {

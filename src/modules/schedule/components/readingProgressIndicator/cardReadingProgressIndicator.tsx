@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 import { useBookCardScheduleProgress } from "../../hooks/useBookCardScheduleProgress";
+import { SchedulePaceLabel } from "../schedulePaceLabel";
 import { ReadingProgressIndicator } from "./readingProgressIndicator";
 import type { CardReadingProgressIndicatorProps } from "./types/readingProgressIndicator.types";
 
@@ -19,7 +20,7 @@ function CardReadingProgressIndicator({
   onNavigateToSchedule,
   className,
 }: CardReadingProgressIndicatorProps) {
-  const { progress, isLoading, isError, showNoScheduleCta } =
+  const { progress, pace, isLoading, isError, showNoScheduleCta } =
     useBookCardScheduleProgress(bookId);
 
   if (!bookId) {
@@ -64,6 +65,7 @@ function CardReadingProgressIndicator({
         variant="card"
         onNavigateToSchedule={onNavigateToSchedule}
       />
+      <SchedulePaceLabel pace={pace} variant="card" />
     </div>
   );
 }

@@ -116,6 +116,26 @@ describe("GET /api/schedule/progress", () => {
     });
   });
 
+  it("retorna 200 com colunas de prazo da RPC sem alterar o contrato HTTP", async () => {
+    const payload = [
+      {
+        book_id: BOOK_A,
+        total: 10,
+        completed: 6,
+        overdue: 0,
+        ahead: 1,
+        last_date: "2026-08-10",
+      },
+    ];
+    const client = makeClient({ data: payload, error: null });
+    const route = await loadRoute(client);
+    const res = await route.GET(
+      new Request(`http://localhost/api/schedule/progress?bookIds=${BOOK_A}`),
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual(payload);
+  });
+
   it("trim e dedup vazios mas preserva UUIDs com espaços externos", async () => {
     const client = makeClient({ data: [], error: null });
     const route = await loadRoute(client);

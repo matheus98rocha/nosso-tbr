@@ -62,5 +62,7 @@ describe("ClientSchedule", () => {
     render(<ClientSchedule id="book-1" title="Livro" />);
 
     expect(screen.getByTestId("create-schedule-form")).toBeInTheDocument();
+    expect(screen.queryByText(/Data prevista de término/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Atraso de/)).not.toBeInTheDocument();
   });
 });

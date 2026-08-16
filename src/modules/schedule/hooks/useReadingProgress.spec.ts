@@ -14,6 +14,7 @@ vi.mock("@/stores/userStore", () => ({
 
 import { getReadingProgressManyQueryKey } from "@/modules/schedule/utils/readingProgressQueryKey";
 import type { ReadingProgressDomain } from "@/modules/schedule/types/readingProgress.types";
+import type { ReadingProgressManyQueryData } from "./useReadingProgressMany";
 import { useReadingProgress } from "./useReadingProgress";
 
 function makeWrapper(seedCache?: (qc: QueryClient) => void) {
@@ -82,5 +83,29 @@ describe("useReadingProgress", () => {
 
     const { result } = renderHook(() => useReadingProgress("book-1"), { wrapper });
     expect(result.current.progress).toBeNull();
+  });
+
+  it("encontra o progresso no cache many no formato { progress, paceByBookId }", () => {
+    const progress: ReadingProgressDomain = {
+      bookId: "book-1",
+      total: 10,
+      completed: 4,
+      percentage: 40,
+    };
+    const cached: ReadingProgressManyQueryData = {
+      progress: [progress],
+      paceByBookId: new Map(),
+    };
+    const { wrapper } = makeWrapper((qc) => {
+      qc.setQueryData(
+        getReadingProgressManyQueryKey(["book-1"], "user-1"),
+        cached,
+      );
+    });
+
+    const { result } = renderHook(() => useReadingProgress("book-1"), {
+      wrapper,
+    });
+    expect(result.current.progress).toEqual(progress);
   });
 });

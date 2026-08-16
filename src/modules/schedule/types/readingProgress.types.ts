@@ -2,6 +2,9 @@ export type ReadingProgressPersistence = {
   book_id: string;
   total: number;
   completed: number;
+  overdue?: number;
+  ahead?: number;
+  last_date?: string;
 };
 
 export type ReadingProgressDomain = {

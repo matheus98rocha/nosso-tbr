@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import type { BookDomain } from "@/types/books.types";
+
 import { useReadingProgressMany } from "@/modules/schedule/hooks/useReadingProgressMany";
+import type { BookDomain } from "@/types/books.types";
 
 export function useHomeReadingProgressBatch(books: BookDomain[] | undefined) {
   const readingBookIds = useMemo(() => {
@@ -13,16 +14,17 @@ export function useHomeReadingProgressBatch(books: BookDomain[] | undefined) {
       .map((book) => book.id);
   }, [books]);
 
-  const { progressByBookId, isLoading, isError } =
+  const { progressByBookId, paceByBookId, isLoading, isError } =
     useReadingProgressMany(readingBookIds);
 
   return useMemo(
     () => ({
       readingBookIds,
       progressByBookId,
+      paceByBookId,
       isLoading,
       isError,
     }),
-    [readingBookIds, progressByBookId, isLoading, isError],
+    [readingBookIds, progressByBookId, paceByBookId, isLoading, isError],
   );
 }
