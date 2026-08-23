@@ -75,6 +75,8 @@ Projeto construído principalmente com:
 - **Tailwind CSS 4** + **shadcn/ui** + **Radix UI** – design system e componentes de UI
 - **Vitest** + **Testing Library** – testes unitários/comportamentais
 
+**Identidade visual:** o favicon e o ícone da aba usam a marca dos três livros (violeta, teal e rosa) já presente no `LogoIcon` do header. Arquivos em `src/app/icon.svg`, `src/app/icon.png`, `src/app/apple-icon.png` e `public/favicon.ico`.
+
 Script útil relacionado ao Supabase:
 
 ```bash
