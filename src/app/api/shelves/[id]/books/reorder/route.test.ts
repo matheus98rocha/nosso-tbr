@@ -44,7 +44,7 @@ describe("POST /api/shelves/[id]/books/reorder (RN45 dono via RPC, RN50 ordem po
           ],
         }),
       }),
-      { params: Promise.resolve({ id: "s1" }) },
+      { params: { id: "s1" } },
     );
 
     expect(res.status).toBe(401);
@@ -224,7 +224,7 @@ describe("POST /api/shelves/[id]/books/reorder (RN45 dono via RPC, RN50 ordem po
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ bookIds: [idB, idA] }),
       }),
-      { params: Promise.resolve({ id: "s1" }) },
+      { params: { id: "s1" } },
     );
 
     expect(res.status).toBe(200);
