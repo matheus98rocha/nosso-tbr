@@ -32,7 +32,8 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): {
   const rawYear = searchParams.get("year");
   const year = rawYear ? parseInt(rawYear, 10) : undefined;
   const myBooks = searchParams.get("myBooks") === "true";
-  const isReread = searchParams.get("isReread") === "true" || undefined;
+  const isReread =
+    searchParams.get("isReread") === "true" ? true : undefined;
   const viewParam = searchParams.get("view");
   let view: FiltersOptions["view"] = "todos";
   if (viewParam === "joint") view = "joint";
