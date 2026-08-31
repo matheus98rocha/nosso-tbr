@@ -1,4 +1,3 @@
-// modules/navigation/types/nav.types.ts
 import { JSX } from "react";
 
 export interface NavItemData {
@@ -9,10 +8,6 @@ export interface NavItemData {
 }
 
 export interface DesktopNavMenuProps {
-  bookUpsertModal: {
-    isOpen: boolean;
-    setIsOpen: (open: boolean) => void;
-  };
   isLoading: boolean;
 }
 
@@ -20,7 +15,6 @@ export interface NavItemProps {
   item: NavItemData;
   isActive: boolean;
   onPrefetch: (label: string) => Promise<void>;
-  onOpenModal: () => void;
 }
 
 export type PrefetchMap = Record<string, () => Promise<void> | void>;

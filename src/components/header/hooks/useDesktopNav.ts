@@ -4,10 +4,12 @@ import { useUserStore } from "@/stores/userStore";
 import { AuthorsService } from "@/modules/authors/services/authors.service";
 import { StatsService } from "@/modules/stats/services/stats.service";
 import { fetchBookShelves } from "@/modules/shelves/services/booksshelves.service";
-import { QUERY_KEYS } from "@/constants/keys";
+import { BookService } from "@/services/books/books.service";
+import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 
 const authorsService = new AuthorsService();
 const statsService = new StatsService();
+const bookService = new BookService();
 
 export function useDesktopNav() {
   const queryClient = useQueryClient();
@@ -19,6 +21,17 @@ export function useDesktopNav() {
       const commonOptions = { staleTime: STALE_TIME };
 
       const prefetchMap: Record<string, () => Promise<void>> = {
+        Início: () =>
+          queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.books.list(INITIAL_FILTERS, "", 0),
+            queryFn: () =>
+              bookService.getAll({
+                page: 0,
+                pageSize: 8,
+                filters: INITIAL_FILTERS,
+              }),
+            ...commonOptions,
+          }),
         "Ver Estantes": () =>
           queryClient.prefetchQuery({
             queryKey: QUERY_KEYS.shelves.all,

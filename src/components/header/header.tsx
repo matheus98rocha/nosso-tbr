@@ -2,7 +2,6 @@
 
 import React, { JSX, useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookUpsert } from "@/modules/bookUpsert";
 import { CreateEditBookshelves } from "@/modules/shelves/components/createEditBookshelves";
 import {
   Sheet,
@@ -30,8 +29,7 @@ import { cn } from "@/lib/utils";
 
 function Header() {
   const queryClient = useQueryClient();
-  const { bookUpsertModal, createShelfDialog, menuItems, pathname, router } =
-    useHeader();
+  const { createShelfDialog, menuItems, pathname, router } = useHeader();
   const [scrolled, setScrolled] = useState(false);
 
   const user = useUserStore((state) => state.user);
@@ -217,10 +215,7 @@ function Header() {
       {isLogged && (
         <div className="flex flex-col items-center justify-center flex-1 min-w-0 gap-2">
           {(!scrolled || isLogged) && (
-            <DesktopNavMenu
-              bookUpsertModal={bookUpsertModal}
-              isLoading={isLoadingUser}
-            />
+            <DesktopNavMenu isLoading={isLoadingUser} />
           )}
           {pathname === "/" && <HomeSearchBar />}
         </div>
@@ -240,13 +235,6 @@ function Header() {
 
   return (
     <>
-      {pathname !== "/" && !isLogged && (
-        <BookUpsert
-          isBookFormOpen={bookUpsertModal.isOpen}
-          setIsBookFormOpen={bookUpsertModal.setIsOpen}
-        />
-      )}
-
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
         handleClose={() => createShelfDialog.setIsOpen(false)}

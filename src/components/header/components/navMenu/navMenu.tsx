@@ -1,23 +1,18 @@
-// DesktopNavMenu.tsx
 import { useMemo } from "react";
 import { useHeader } from "../../hooks/useHeader";
-import { BookUpsert } from "@/modules/bookUpsert";
 import { DesktopNavMenuProps } from "../../types/desktopNavMenu.types";
 import { useDesktopNav } from "../../hooks/useDesktopNav";
 import { NavSkeleton } from "../navSkeleton";
 import { NavItem } from "../navItem";
 
 const ALLOWED_LABELS = [
-  "Adicionar Livro",
+  "Início",
   "Estatisticas",
   "Ver Estantes",
   "Autores",
 ];
 
-export function DesktopNavMenu({
-  bookUpsertModal,
-  isLoading,
-}: DesktopNavMenuProps) {
+export function DesktopNavMenu({ isLoading }: DesktopNavMenuProps) {
   const { menuItems, pathname } = useHeader();
   const { handlePrefetch } = useDesktopNav();
 
@@ -32,22 +27,17 @@ export function DesktopNavMenu({
   if (isLoading) return <NavSkeleton />;
 
   return (
-    <>
-      <nav className="flex items-center justify-center gap-1 mb-2">
+    <nav className="desktop-nav" aria-label="Navegação principal">
+      <ul>
         {filteredItems.map((item) => (
           <NavItem
             key={item.label}
             item={item}
             isActive={!!(item.path && pathname === item.path)}
             onPrefetch={handlePrefetch}
-            onOpenModal={() => bookUpsertModal.setIsOpen(true)}
           />
         ))}
-      </nav>
-      <BookUpsert
-        isBookFormOpen={bookUpsertModal.isOpen}
-        setIsBookFormOpen={bookUpsertModal.setIsOpen}
-      />
-    </>
+      </ul>
+    </nav>
   );
 }

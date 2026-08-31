@@ -175,6 +175,55 @@ describe("ClientHome joint view reader chips", () => {
   });
 });
 
+describe("ClientHome FAB Adicionar livro", () => {
+  beforeEach(() => {
+    mockSetBookFormOpen.mockClear();
+    vi.mocked(useHome).mockImplementation(() => ({ ...baseUseHome }));
+  });
+
+  it("exibe FAB Adicionar livro quando logado", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      allBooks: { data: [{ id: "b1" } as never], total: 1 },
+      isLoggedIn: true,
+    } as unknown as ReturnType<typeof useHome>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    expect(
+      screen.getByRole("button", { name: "Adicionar livro" }),
+    ).toBeInTheDocument();
+  });
+
+  it("abre modal de adicionar livro ao clicar no FAB", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      allBooks: { data: [{ id: "b1" } as never], total: 1 },
+      isLoggedIn: true,
+    } as unknown as ReturnType<typeof useHome>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    await user.click(screen.getByRole("button", { name: "Adicionar livro" }));
+
+    expect(mockSetBookFormOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("não exibe FAB Adicionar livro quando deslogado", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      isLoggedIn: false,
+    } as unknown as ReturnType<typeof useHome>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    expect(
+      screen.queryByRole("button", { name: "Adicionar livro" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("ClientHome book suggestions (empty network)", () => {
   beforeEach(() => {
     mockSetBookFormOpen.mockClear();

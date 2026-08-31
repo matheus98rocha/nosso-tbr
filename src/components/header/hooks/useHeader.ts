@@ -9,19 +9,18 @@ export function useHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const bookUpsertModal = useModal();
   const createShelfDialog = useModal();
   const logout = useUserStore((state) => state.logout);
   const isLoggedIn = useIsLoggedIn();
 
   const allMenuItems: Menu[] = [
     {
-      label: "Livros",
+      label: "Início",
       items: [
         {
-          label: "Adicionar Livro",
-          action: () => bookUpsertModal.setIsOpen(true),
-          requiresAuth: false,
+          label: "Início",
+          action: () => router.push("/"),
+          path: "/",
         },
       ],
     },
@@ -104,7 +103,6 @@ export function useHeader() {
 
   return {
     menuItems,
-    bookUpsertModal,
     createShelfDialog,
     logout,
     isLoggedIn,
