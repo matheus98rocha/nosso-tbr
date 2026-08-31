@@ -36,6 +36,7 @@ import {
 } from "@/modules/aiRecommendation";
 import type { BookSuggestion } from "@/modules/aiRecommendation";
 import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFilters";
+import HomeAddBookButton from "@/modules/home/components/homeAddBookButton";
 import ReadingNow from "@/modules/home/components/readingNow";
 
 export default function ClientHome() {
@@ -145,7 +146,10 @@ export default function ClientHome() {
         onPickSuggestion={handlePickAiSuggestion}
       />
       {isLoggedIn && (
-        <AiRecommendationFab onClick={() => aiRecommendationModal.open()} />
+        <>
+          <HomeAddBookButton onClick={() => dialogModal.setIsOpen(true)} />
+          <AiRecommendationFab onClick={() => aiRecommendationModal.open()} />
+        </>
       )}
 
       <header className="flex flex-col gap-4 mb-5">

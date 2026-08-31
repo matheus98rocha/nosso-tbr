@@ -127,6 +127,10 @@
 }
 
 @layer base {
+  html {
+    interpolate-size: allow-keywords;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
@@ -158,5 +162,134 @@
 
   .section-heading {
     @apply scroll-m-20 border-b border-border pb-2 text-2xl font-semibold tracking-tight text-foreground first:mt-0;
+  }
+
+  .desktop-nav {
+    position: relative;
+    width: fit-content;
+    margin-inline: auto;
+    margin-bottom: 0.5rem;
+    background: hsl(0 0% 0% / 0.04);
+    padding: 6px;
+    border-radius: 12px;
+    isolation: isolate;
+
+    > ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      display: flex;
+      gap: 0.15rem;
+    }
+
+    .desktop-nav__link {
+      display: flex;
+    }
+  }
+
+  @supports (anchor-name: --hovered-nav-link) {
+    .desktop-nav {
+      anchor-name: --hovered-nav-link;
+
+      li:is(:hover, :focus-within),
+      li:has([aria-current="page"]) {
+        anchor-name: --hovered-nav-link;
+      }
+
+      &:has(li:is(:hover, :focus-within))
+        li:has([aria-current="page"]):not(:hover):not(:focus-within) {
+        anchor-name: none;
+      }
+
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        top: calc(anchor(bottom) - 8px);
+        left: calc(anchor(left) + 0.75rem);
+        right: calc(anchor(right) + 0.75rem);
+        bottom: calc(anchor(bottom) + 4px);
+        border-radius: 10px;
+        position-anchor: --hovered-nav-link;
+        pointer-events: none;
+        transition:
+          500ms
+          linear(
+            0,
+            0.029 1.6%,
+            0.123 3.5%,
+            0.651 10.6%,
+            0.862 14.1%,
+            1.002 17.7%,
+            1.046 19.6%,
+            1.074 21.6%,
+            1.087 23.9%,
+            1.086 26.6%,
+            1.014 38.5%,
+            0.994 46.3%,
+            1
+          );
+      }
+
+      &::before {
+        z-index: -1;
+        background: rgb(0 0 0 / 0.06);
+        backdrop-filter: blur(2px);
+      }
+
+      &::after {
+        z-index: -2;
+        background-image: linear-gradient(
+          135deg,
+          oklch(0.55 0.12 264 / 0.22),
+          oklch(0.72 0.08 280 / 0.28),
+          oklch(0.45 0.1 250 / 0.18)
+        );
+      }
+
+      &:has(a:is(:hover, :focus-visible), button:is(:hover, :focus-visible))::before,
+      &:has(a:is(:hover, :focus-visible), button:is(:hover, :focus-visible))::after,
+      &:has([aria-current="page"])::before,
+      &:has([aria-current="page"])::after {
+        top: anchor(top);
+        left: anchor(left);
+        right: anchor(right);
+        bottom: anchor(bottom);
+
+        @supports (corner-shape: squircle) {
+          corner-shape: squircle;
+          border-radius: 50%;
+        }
+      }
+
+      &:has(li:first-of-type a:is(:hover, :focus-visible), li:first-of-type button:is(:hover, :focus-visible))::before,
+      &:has(li:first-of-type a:is(:hover, :focus-visible), li:first-of-type button:is(:hover, :focus-visible))::after {
+        @supports (corner-shape: squircle) {
+          border-radius: 32px 50% 50% 32px;
+        }
+      }
+
+      &:has(li:last-of-type a:is(:hover, :focus-visible), li:last-of-type button:is(:hover, :focus-visible))::before,
+      &:has(li:last-of-type a:is(:hover, :focus-visible), li:last-of-type button:is(:hover, :focus-visible))::after {
+        @supports (corner-shape: squircle) {
+          border-radius: 50% 32px 32px 50%;
+        }
+      }
+
+      @supports (corner-shape: squircle) {
+        border-radius: 24px;
+        corner-shape: squircle;
+      }
+    }
+  }
+
+  @supports not (anchor-name: --hovered-nav-link) {
+    .desktop-nav .desktop-nav__link:hover {
+      background-color: oklch(0.967 0.003 264.542);
+    }
+
+    .desktop-nav .desktop-nav__link[aria-current="page"] {
+      background-color: oklch(0.21 0.034 264.665 / 0.08);
+    }
   }
 }

@@ -8,12 +8,14 @@ const {
   mockGetByReader,
   mockGetCollaboration,
   mockFetchBookShelves,
+  mockGetAllBooks,
   mockUseUserStore,
 } = vi.hoisted(() => ({
   mockGetAuthors: vi.fn().mockResolvedValue([]),
   mockGetByReader: vi.fn().mockResolvedValue([]),
   mockGetCollaboration: vi.fn().mockResolvedValue([]),
   mockFetchBookShelves: vi.fn().mockResolvedValue([]),
+  mockGetAllBooks: vi.fn().mockResolvedValue({ data: [], total: 0 }),
   mockUseUserStore: vi.fn(),
 }));
 
@@ -38,6 +40,13 @@ vi.mock("@/modules/shelves/services/booksshelves.service", () => ({
   fetchBookShelves: mockFetchBookShelves,
 }));
 
+vi.mock("@/services/books/books.service", () => ({
+  BookService: vi.fn(function (this: Record<string, unknown>) {
+    this.getAll = mockGetAllBooks;
+  }),
+}));
+
+import { INITIAL_FILTERS } from "@/constants/keys";
 import { useDesktopNav } from "./useDesktopNav";
 
 const AUTHENTICATED_USER = { id: "user-123", name: "Tester" };
@@ -103,6 +112,22 @@ describe("useDesktopNav — handlePrefetch", () => {
     });
   });
 
+  describe("Início", () => {
+    it("deve prefetch lista inicial de livros independente de autenticação", async () => {
+      mockUser(null);
+      const { wrapper } = makeWrapper();
+      const { result } = renderHook(() => useDesktopNav(), { wrapper });
+
+      await result.current.handlePrefetch("Início");
+
+      expect(mockGetAllBooks).toHaveBeenCalledWith({
+        page: 0,
+        pageSize: 8,
+        filters: INITIAL_FILTERS,
+      });
+    });
+  });
+
   describe("Ver Estantes", () => {
     it("deve prefetch independente de autenticação", async () => {
       mockUser(null);
@@ -139,6 +164,7 @@ describe("useDesktopNav — handlePrefetch", () => {
       expect(mockGetCollaboration).not.toHaveBeenCalled();
       expect(mockFetchBookShelves).not.toHaveBeenCalled();
       expect(mockGetAuthors).not.toHaveBeenCalled();
+      expect(mockGetAllBooks).not.toHaveBeenCalled();
     });
   });
 });
