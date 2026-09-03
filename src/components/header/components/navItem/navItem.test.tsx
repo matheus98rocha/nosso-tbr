@@ -73,6 +73,22 @@ describe("NavItem", () => {
       expect(link.className).toMatch(/desktop-nav__link/);
     });
 
+    it("mantém link como filho direto de li para seletores li:has([aria-current])", () => {
+      const { container } = render(
+        <NavItem
+          item={{ label: "Início", path: "/" }}
+          isActive={true}
+          onPrefetch={vi.fn()}
+        />,
+      );
+
+      const link = container.querySelector("li > a.desktop-nav__link");
+
+      expect(link).not.toBeNull();
+      expect(link).toHaveAttribute("href", "/");
+      expect(link).toHaveAttribute("aria-current", "page");
+    });
+
     it("envolve link em li com desktop-nav__link", () => {
       const { container } = render(
         <NavItem
@@ -87,6 +103,23 @@ describe("NavItem", () => {
 
       expect(listItem).toContainElement(link);
       expect(link.className).toMatch(/desktop-nav__link/);
+    });
+
+    it("não define aria-current no li, apenas no link", () => {
+      const { container } = render(
+        <NavItem
+          item={{ label: "Início", path: "/" }}
+          isActive={true}
+          onPrefetch={vi.fn()}
+        />,
+      );
+
+      const listItem = container.querySelector("li");
+
+      expect(listItem).not.toHaveAttribute("aria-current");
+      expect(
+        container.querySelector('li > a.desktop-nav__link[aria-current="page"]'),
+      ).not.toBeNull();
     });
   });
 

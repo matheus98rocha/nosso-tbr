@@ -189,8 +189,6 @@
 
   @supports (anchor-name: --hovered-nav-link) {
     .desktop-nav {
-      anchor-name: --hovered-nav-link;
-
       li:is(:hover, :focus-within),
       li:has([aria-current="page"]) {
         anchor-name: --hovered-nav-link;
@@ -212,6 +210,7 @@
         border-radius: 10px;
         position-anchor: --hovered-nav-link;
         pointer-events: none;
+        opacity: 0;
         transition:
           500ms
           linear(
@@ -251,6 +250,7 @@
       &:has(a:is(:hover, :focus-visible), button:is(:hover, :focus-visible))::after,
       &:has([aria-current="page"])::before,
       &:has([aria-current="page"])::after {
+        opacity: 1;
         top: anchor(top);
         left: anchor(left);
         right: anchor(right);
