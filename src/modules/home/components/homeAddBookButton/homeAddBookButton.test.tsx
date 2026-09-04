@@ -12,7 +12,10 @@ describe("HomeAddBookButton", () => {
     expect(button).toBeInTheDocument();
     expect(button.className).toMatch(/fixed/);
     expect(button.className).toMatch(/left-6/);
-    expect(button.className).toMatch(/bottom-6/);
+    expect(button.className).not.toMatch(/\bbottom-6\b/);
+    expect(button.className).toContain(
+      "bottom-[calc(2rem+env(safe-area-inset-bottom,0px))]",
+    );
   });
 
   it("dispara onClick ao clicar", async () => {
