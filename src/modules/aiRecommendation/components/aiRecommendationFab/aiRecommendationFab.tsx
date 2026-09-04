@@ -3,6 +3,7 @@
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { FAB_BOTTOM_CLASS } from "@/constants/floatingActionButton";
 import { cn } from "@/lib/utils";
 
 import type { AiRecommendationFabProps } from "../../types";
@@ -14,7 +15,9 @@ function AiRecommendationFab({ onClick }: AiRecommendationFabProps) {
       onClick={onClick}
       aria-label="Pedir indicação de leitura para a IA"
       className={cn(
-        "fixed bottom-[calc(2rem+env(safe-area-inset-bottom,0px))] right-6 z-40 h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 rounded-full shadow-lg",
+        "fixed right-6 z-40 h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 rounded-full shadow-lg",
+        "md:right-8 lg:right-10",
+        FAB_BOTTOM_CLASS,
         "bg-gradient-to-br from-violet-600 via-fuchsia-500 to-amber-400 text-white",
         "hover:shadow-xl hover:scale-[1.03] active:scale-95 transition-all duration-200",
         "ring-2 ring-white/30",
