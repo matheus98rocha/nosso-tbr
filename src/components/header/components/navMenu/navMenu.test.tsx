@@ -169,6 +169,78 @@ describe("DesktopNavMenu", () => {
     });
   });
 
+  describe("contrato DOM para highlight anchor no primeiro item", () => {
+    it("primeiro li filtrado é Início com link href / e classe desktop-nav__link", () => {
+      renderDesktopNavMenu();
+
+      const nav = screen.getByRole("navigation");
+      const firstLi = nav.querySelector("ul > li:first-of-type");
+
+      expect(firstLi).not.toBeNull();
+      expect(firstLi?.tagName).toBe("LI");
+
+      const inicioLink = within(firstLi as HTMLElement).getByRole("link", {
+        name: /Início/i,
+      });
+
+      expect(inicioLink).toHaveAttribute("href", "/");
+      expect(inicioLink.className).toMatch(/desktop-nav__link/);
+    });
+
+    it("mantém cadeia nav.desktop-nav > ul > li > a.desktop-nav__link em cada item", () => {
+      renderDesktopNavMenu();
+
+      const nav = screen.getByRole("navigation");
+      expect(nav.className).toMatch(/desktop-nav/);
+
+      const listItems = nav.querySelectorAll("ul > li");
+
+      expect(listItems).toHaveLength(ALLOWED_LABELS.length);
+
+      listItems.forEach((li) => {
+        const link = li.querySelector(":scope > a.desktop-nav__link");
+        expect(link).not.toBeNull();
+        expect(li.children).toHaveLength(1);
+      });
+    });
+
+    it("marca Início ativo via aria-current no link dentro de li:first-of-type na rota raiz", () => {
+      renderDesktopNavMenu({ pathname: "/" });
+
+      const nav = screen.getByRole("navigation");
+      const firstLink = nav.querySelector(
+        "ul > li:first-of-type > a.desktop-nav__link",
+      );
+
+      expect(firstLink).toHaveAttribute("href", "/");
+      expect(firstLink).toHaveAttribute("aria-current", "page");
+      expect(nav).not.toHaveAttribute("aria-current");
+    });
+
+    it("expõe aria-current apenas no link filho do li do item ativo", () => {
+      renderDesktopNavMenu({ pathname: "/stats" });
+
+      const nav = screen.getByRole("navigation");
+      const activeLink = screen.getByRole("link", { name: /Estatisticas/i });
+
+      expect(activeLink).toHaveAttribute("aria-current", "page");
+      expect(activeLink.closest("li")).toBeTruthy();
+      expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    });
+
+    it("renderiza links como anchor para seletores CSS de hover/focus no primeiro item", () => {
+      renderDesktopNavMenu();
+
+      const nav = screen.getByRole("navigation");
+      const firstLink = nav.querySelector(
+        "ul > li:first-of-type > a.desktop-nav__link",
+      );
+
+      expect(firstLink?.tagName).toBe("A");
+      expect(nav.querySelector("ul > li:first-of-type > button")).toBeNull();
+    });
+  });
+
   describe("filtro ALLOWED_LABELS", () => {
     it("exibe somente Início, Estatisticas, Ver Estantes e Autores", () => {
       renderDesktopNavMenu();
