@@ -3,8 +3,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientHome from "./index";
+import { FAB_CONTENT_PADDING_CLASS } from "@/constants/floatingActionButton";
 import { useHome } from "@/modules/home/hooks/useHome";
+import ClientHome from "./index";
 
 const mockSetBookFormOpen = vi.fn();
 
@@ -221,6 +222,31 @@ describe("ClientHome FAB Adicionar livro", () => {
     expect(
       screen.queryByRole("button", { name: "Adicionar livro" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("reserva padding inferior no conteúdo quando logado para não cobrir cards", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      allBooks: { data: [{ id: "b1" } as never], total: 1 },
+      isLoggedIn: true,
+    } as unknown as ReturnType<typeof useHome>);
+
+    const { container } = renderWithQueryClient(<ClientHome />);
+    const root = container.firstElementChild;
+
+    expect(root?.className).toContain(FAB_CONTENT_PADDING_CLASS);
+  });
+
+  it("não aplica padding de FAB quando deslogado", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      isLoggedIn: false,
+    } as unknown as ReturnType<typeof useHome>);
+
+    const { container } = renderWithQueryClient(<ClientHome />);
+    const root = container.firstElementChild;
+
+    expect(root?.className).not.toContain(FAB_CONTENT_PADDING_CLASS);
   });
 });
 

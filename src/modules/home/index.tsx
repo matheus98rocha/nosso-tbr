@@ -1,22 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { BookUpsert } from "@/modules/bookUpsert";
-import { useHome } from "@/modules/home/hooks/useHome";
-import { BookDomain } from "../../types/books.types";
-import {
-  BookCard,
-  DefaultPagination,
-  ListGrid,
-  SortFilterChips,
-  StatusFilterChips,
-  YearFilterChips,
-} from "@/components";
-import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
-import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
-import { useUserStore } from "@/stores/userStore";
-import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 import {
   ArrowDownUp,
   BookOpen,
@@ -27,17 +12,35 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
+
+import {
+  BookCard,
+  DefaultPagination,
+  ListGrid,
+  SortFilterChips,
+  StatusFilterChips,
+  YearFilterChips,
+} from "@/components";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FAB_CONTENT_PADDING_CLASS } from "@/constants/floatingActionButton";
 import { useModal } from "@/hooks";
+import { cn } from "@/lib/utils";
 import {
   AiRecommendationDialog,
   AiRecommendationFab,
 } from "@/modules/aiRecommendation";
 import type { BookSuggestion } from "@/modules/aiRecommendation";
+import { BookUpsert } from "@/modules/bookUpsert";
 import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFilters";
 import HomeAddBookButton from "@/modules/home/components/homeAddBookButton";
 import ReadingNow from "@/modules/home/components/readingNow";
+import { useHome } from "@/modules/home/hooks/useHome";
+import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
+import { useUserStore } from "@/stores/userStore";
+
+import { BookDomain } from "../../types/books.types";
+import { CreateEditBookshelves } from "../shelves/components/createEditBookshelves";
 
 export default function ClientHome() {
   const isLoggingOut = useUserStore((state) => state.isLoggingOut);
@@ -125,7 +128,12 @@ export default function ClientHome() {
   );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-7">
+    <div
+      className={cn(
+        "w-full max-w-7xl mx-auto px-4 py-7",
+        isLoggedIn && FAB_CONTENT_PADDING_CLASS,
+      )}
+    >
       <BookUpsert
         isBookFormOpen={dialogModal.isOpen}
         setIsBookFormOpen={handleBookFormOpenChange}
