@@ -123,6 +123,7 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 ### 🏠 Home (`/`)
 
 - Lista de **todos os livros** cadastrados para visitantes e, para usuários logados, visões combinadas pela seção **Visão** na própria home.
+- **Spotlight de leitura** (`HomeReadingSpotlight`): cards lado a lado **Lendo agora** (`readingNow`) e **Próxima leitura** (`nextReading`) — o próximo livro com `planned_start_date` mais próxima (inclui atrasados), com CTA para iniciar a leitura. Cada card some se não houver elegíveis.
 - Abas **`Todos`** / **`Leituras conjuntas`** / **`Seguindo`** (`?view=` `todos` \| `joint` \| `seguindo`) usando `router.replace` na query string (**SPA**, sem reload de página inteira): ao alternar, o React Query dispara nova busca pela chave atualizada.
 - **`Seguindo`**: lista livros relacionados apenas a **`following_id`** em `user_followers` para o usuário atual (consulta restrita aos IDs obtidos pelo `UserSocialService.getFollowingIds`), **excluindo** livros em que o próprio usuário aparece em **`readers`** ou é **`chosen_by`**. Leituras **individuais privadas** (RN56) permanecem ocultas para quem não segue o dono; **seguidores** enxergam esses livros na aba Seguindo e no perfil do membro.
 - **`Todos`** (usuário logado): continua unindo você e perfis que você segue nos chips de leitor.

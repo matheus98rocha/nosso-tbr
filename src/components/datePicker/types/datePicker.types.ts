@@ -3,4 +3,5 @@ export type DatePickerProps = {
   onChange?: (date: Date | undefined) => void;
   isRequiredField?: boolean;
   isAfterTodayHidden?: boolean;
+  allowClear?: boolean;
 };

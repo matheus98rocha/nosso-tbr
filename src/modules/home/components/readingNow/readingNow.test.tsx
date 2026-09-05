@@ -9,6 +9,10 @@ vi.mock("@/components/bookCover", () => ({
   BookCover: () => <div data-testid="book-cover" />,
 }));
 
+vi.mock("@/components/bookCard/components/bookOptionsMenu", () => ({
+  default: () => null,
+}));
+
 vi.mock("./components/readingNowBookDetailsModal", () => ({
   default: () => null,
 }));
