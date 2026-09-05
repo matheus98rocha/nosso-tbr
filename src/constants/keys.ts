@@ -86,4 +86,9 @@ export const QUERY_KEYS = {
     autocomplete: (term: string) =>
       [...QUERY_KEYS.search.all, "autocomplete", term] as const,
   },
+  admin: {
+    all: ["admin"] as const,
+    users: ["admin", "users"] as const,
+    inviteLink: ["admin", "invite-link"] as const,
+  },
 } as const;

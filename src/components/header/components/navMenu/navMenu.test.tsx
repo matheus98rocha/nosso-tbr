@@ -60,6 +60,7 @@ const ALLOWED_LABELS = [
   "Estatisticas",
   "Ver Estantes",
   "Autores",
+  "Administração",
 ] as const;
 
 function buildMenuItems() {
@@ -113,6 +114,16 @@ function buildMenuItems() {
         {
           label: "Autores",
           path: "/authors",
+          action: vi.fn(),
+        },
+      ],
+    },
+    {
+      label: "Administração",
+      items: [
+        {
+          label: "Administração",
+          path: "/admin",
           action: vi.fn(),
         },
       ],

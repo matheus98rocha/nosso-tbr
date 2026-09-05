@@ -1,5 +1,6 @@
 import registerInvite from "@/lib/auth/registerInvite";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { registerUserBodySchema } from "@/services/userRegistration/validators/userRegistration.validator";
 import { NextResponse } from "next/server";
 
@@ -52,28 +53,45 @@ export async function POST(request: Request) {
   }
 
   const { email, password, display_name } = parsed.data;
-  const supabase = await createClient();
 
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-  });
+  let adminClient;
+  try {
+    adminClient = createServiceRoleClient();
+  } catch {
+    return NextResponse.json(
+      {
+        error:
+          "Cadastro não está configurado no servidor. Defina SUPABASE_SERVICE_ROLE_KEY.",
+      },
+      { status: 503 },
+    );
+  }
 
-  if (authError) {
-    console.error("Auth signUp failed during registration", {
-      code: authError.code,
-      message: authError.message,
-      status: authError.status,
+  const { data: created, error: createError } =
+    await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+
+  if (createError) {
+    console.error("Auth createUser failed during registration", {
+      code: createError.code,
+      message: createError.message,
+      status: createError.status,
     });
 
     return NextResponse.json(
-      { error: mapAuthErrorToClientMessage(authError.code) },
+      { error: mapAuthErrorToClientMessage(createError.code) },
       { status: 400 },
     );
   }
 
-  if (!authData.user) {
-    console.error("Auth signUp succeeded without returning a user", { email });
+  const userId = created.user?.id;
+  if (!userId) {
+    console.error("Auth createUser succeeded without returning a user", {
+      email,
+    });
 
     return NextResponse.json(
       { error: "Registration did not return a user" },
@@ -81,18 +99,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error: upsertError } = await supabase.from("users").upsert(
+  const { error: upsertError } = await adminClient.from("users").upsert(
     {
-      id: authData.user.id,
+      id: userId,
       display_name,
       email,
+      tier: "common_user",
     },
     { onConflict: "id" },
   );
 
   if (upsertError) {
-    console.error("Profile upsert failed after auth signUp", {
-      userId: authData.user.id,
+    console.error("Profile upsert failed after auth createUser", {
+      userId,
       email,
       code: upsertError.code,
       message: upsertError.message,
@@ -104,6 +123,29 @@ export async function POST(request: Request) {
       {
         error:
           "Cadastro criado, mas não foi possível salvar seu perfil agora. Tente novamente em instantes.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    console.error("signInWithPassword failed after registration", {
+      userId,
+      email,
+      code: signInError.code,
+      message: signInError.message,
+    });
+
+    return NextResponse.json(
+      {
+        error:
+          "Conta criada, mas não foi possível entrar automaticamente. Faça login.",
       },
       { status: 500 },
     );

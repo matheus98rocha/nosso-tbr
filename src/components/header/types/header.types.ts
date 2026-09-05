@@ -2,6 +2,7 @@ export type MenuItem = {
   label: string;
   action: () => void;
   requiresAuth?: boolean;
+  requiresAdmin?: boolean;
   hideIfLoggedIn?: boolean;
   path?: string;
 };

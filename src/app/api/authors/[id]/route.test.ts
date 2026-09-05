@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 type Client = {
   auth: { getUser: ReturnType<typeof vi.fn> };
@@ -11,6 +11,19 @@ function authLogged(userId: string): Client["auth"] {
       data: { user: { id: userId } },
       error: null,
     }),
+  };
+}
+
+function usersTier(tier: "admin" | "common_user") {
+  return {
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { tier },
+          error: null,
+        }),
+      })),
+    })),
   };
 }
 
@@ -45,12 +58,35 @@ describe("/api/authors/[id]", () => {
       expect(res.status).toBe(401);
     });
 
-    it("atualiza authors.eq(id)", async () => {
+    it("retorna 403 para common_user", async () => {
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("common_user");
+          throw new Error(`unexpected ${table}`);
+        }),
+      };
+      const route = await loadRoute(client);
+      const res = await route.PATCH(
+        new Request("http://localhost", {
+          method: "PATCH",
+          body: JSON.stringify({ name: "X" }),
+        }),
+        { params: Promise.resolve({ id: "auth-1" }) },
+      );
+      expect(res.status).toBe(403);
+    });
+
+    it("atualiza authors.eq(id) quando admin", async () => {
       const eq = vi.fn().mockResolvedValue({ error: null });
       const update = vi.fn(() => ({ eq }));
       const client: Client = {
         auth: authLogged("u1"),
-        from: vi.fn(() => ({ update })),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          if (table === "authors") return { update };
+          throw new Error(`unexpected ${table}`);
+        }),
       };
       const route = await loadRoute(client);
       const res = await route.PATCH(
@@ -68,6 +104,23 @@ describe("/api/authors/[id]", () => {
   });
 
   describe("RN47 — DELETE bloqueado se referenciado", () => {
+    it("retorna 403 para common_user", async () => {
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("common_user");
+          throw new Error(`unexpected ${table}`);
+        }),
+      };
+      const route = await loadRoute(client);
+      const res = await route.DELETE(new Request("http://localhost"), {
+        params: Promise.resolve({ id: "auth-1" }),
+      });
+      expect(res.status).toBe(403);
+      expect(client.from).toHaveBeenCalledWith("users");
+      expect(client.from).not.toHaveBeenCalledWith("books");
+    });
+
     it("retorna 403 quando há livro com author_id", async () => {
       const maybeSingleBooks = vi.fn().mockResolvedValue({
         data: { id: "b1" },
@@ -94,6 +147,7 @@ describe("/api/authors/[id]", () => {
       const client: Client = {
         auth: authLogged("u1"),
         from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
           if (table === "books") return booksChain;
           if (table === "book_authors") return baChain;
           throw new Error(`unexpected ${table}`);
@@ -118,6 +172,7 @@ describe("/api/authors/[id]", () => {
       const client: Client = {
         auth: authLogged("u1"),
         from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
           if (table === "books") {
             return {
               select: vi.fn(() => ({

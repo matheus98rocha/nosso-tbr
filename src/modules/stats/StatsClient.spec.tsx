@@ -58,8 +58,6 @@ const yearlyStats: EstatisticaAnual[] = [
 describe("StatsClient", () => {
   beforeEach(() => {
     vi.mocked(useStatsClient).mockReturnValue({
-      selectedReader: "reader-matheus",
-      handleReaderChange: vi.fn(),
       totalPagesAcrossYears: 900,
       primaryYearMostReadGenre: "fiction",
       primaryYearMostReadAuthor: "Author",
@@ -77,17 +75,12 @@ describe("StatsClient", () => {
     });
   });
 
-  it("renders KPI summary and charts section", () => {
+  it("renders KPI summary and charts section without reader select", () => {
     render(
       <StatsClient
         yearlyStats={yearlyStats}
         collaborators={[{ readerName: "John Doe", booksRead: 2 }]}
         totalBooks={5}
-        readerOptions={[
-          { id: "reader-matheus", label: "Matheus" },
-          { id: "reader-john-doe", label: "John Doe" },
-        ]}
-        selectedReaderId="reader-matheus"
       />,
     );
 
@@ -96,6 +89,7 @@ describe("StatsClient", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("5")).toBeInTheDocument();
     expect(screen.getByText("900")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Leitor")).not.toBeInTheDocument();
     expect(screen.getByTestId("reading-ranking-section")).toBeInTheDocument();
   });
 
@@ -105,11 +99,6 @@ describe("StatsClient", () => {
         yearlyStats={yearlyStats}
         collaborators={[{ readerName: "John Doe", booksRead: 2 }]}
         totalBooks={5}
-        readerOptions={[
-          { id: "reader-matheus", label: "Matheus" },
-          { id: "reader-john-doe", label: "John Doe" },
-        ]}
-        selectedReaderId="reader-matheus"
       />,
     );
 

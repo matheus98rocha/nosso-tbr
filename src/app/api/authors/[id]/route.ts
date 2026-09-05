@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUser } from "@/app/api/_utils/requireUser";
+import { requireAdmin } from "@/app/api/_utils/requireAdmin";
 
 const patchBody = z.object({
   name: z.string().min(1),
@@ -12,7 +12,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function PATCH(request: Request, ctx: Ctx) {
   const { id } = await ctx.params;
   const supabase = await createClient();
-  const auth = await requireUser(supabase);
+  const auth = await requireAdmin(supabase);
   if (auth.errorResponse) return auth.errorResponse;
 
   let json: unknown;
@@ -45,7 +45,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
 export async function DELETE(_request: Request, ctx: Ctx) {
   const { id } = await ctx.params;
   const supabase = await createClient();
-  const auth = await requireUser(supabase);
+  const auth = await requireAdmin(supabase);
   if (auth.errorResponse) return auth.errorResponse;
 
   const { data: bookRef, error: bErr } = await supabase

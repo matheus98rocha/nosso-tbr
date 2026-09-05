@@ -105,13 +105,13 @@ function StatsChartsComponent({
             Colaborações de leitura
           </CardTitle>
           <CardDescription>
-            Distribuição de livros lidos entre colaboradores.
+            Distribuição de livros lidos com quem você se segue mutuamente.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {!hasCollaborationChartData ? (
             <p className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
-              Não há outros leitores com dados de colaboração para exibir.
+              Não há colaborações com leitores que se seguem mutuamente.
             </p>
           ) : (
             <div className="h-[min(320px,55vw)] w-full min-h-[280px]">

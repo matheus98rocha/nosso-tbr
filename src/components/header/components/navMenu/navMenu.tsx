@@ -10,6 +10,7 @@ const ALLOWED_LABELS = [
   "Estatisticas",
   "Ver Estantes",
   "Autores",
+  "Administração",
 ];
 
 export function DesktopNavMenu({ isLoading }: DesktopNavMenuProps) {

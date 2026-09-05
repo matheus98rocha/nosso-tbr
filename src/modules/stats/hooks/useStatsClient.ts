@@ -1,14 +1,12 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import type { PieLabelRenderProps } from "recharts";
 
 import type {
   CollaborationStatsDomain,
   EstatisticaAnual,
 } from "@/modules/stats/types/stats.types";
-import type { StatsReaderOption } from "@/modules/stats/utils/normalizeStatsReaderOptions";
 
 export const STATS_CHART_PIE_FILLS = [
   "var(--stats-chart-pie-1)",
@@ -21,39 +19,12 @@ export const STATS_CHART_PIE_FILLS = [
 export type UseStatsClientArgs = {
   yearlyStats: EstatisticaAnual[];
   collaborators: CollaborationStatsDomain[];
-  readerOptions: StatsReaderOption[];
-  selectedReaderId: string;
 };
 
 export function useStatsClient({
   yearlyStats,
   collaborators,
-  readerOptions,
-  selectedReaderId,
 }: UseStatsClientArgs) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const defaultReaderId = readerOptions[0]?.id ?? "";
-  const readerFromQuery = searchParams.get("reader");
-  const resolvedReaderId =
-    readerFromQuery && readerOptions.some((reader) => reader.id === readerFromQuery)
-      ? readerFromQuery
-      : selectedReaderId || defaultReaderId;
-  const [selectedReader, setSelectedReader] = useState(resolvedReaderId);
-
-  useEffect(() => {
-    setSelectedReader(resolvedReaderId);
-  }, [resolvedReaderId]);
-
-  const handleReaderChange = useCallback(
-    (nextReaderId: string) => {
-      const query = new URLSearchParams({ reader: nextReaderId }).toString();
-      router.push(`/stats?${query}`);
-      router.refresh();
-    },
-    [router],
-  );
-
   const totalPagesAcrossYears = useMemo(
     () => yearlyStats.reduce((acc, row) => acc + (row.totalPages ?? 0), 0),
     [yearlyStats],
@@ -106,8 +77,6 @@ export function useStatsClient({
 
   return useMemo(
     () => ({
-      selectedReader,
-      handleReaderChange,
       totalPagesAcrossYears,
       primaryYearMostReadGenre,
       primaryYearMostReadAuthor,
@@ -119,8 +88,6 @@ export function useStatsClient({
       hasCollaborationChartData,
     }),
     [
-      selectedReader,
-      handleReaderChange,
       totalPagesAcrossYears,
       primaryYearMostReadGenre,
       primaryYearMostReadAuthor,

@@ -3,17 +3,9 @@
 import dynamic from "next/dynamic";
 import { memo } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGenderLabel } from "@/constants/genders";
 import { ReadingRankingSection } from "@/modules/stats/components";
@@ -63,12 +55,8 @@ export const StatsClient = memo(function StatsClient({
   yearlyStats,
   collaborators,
   totalBooks,
-  readerOptions,
-  selectedReaderId,
 }: StatsClientProps) {
   const {
-    selectedReader,
-    handleReaderChange,
     totalPagesAcrossYears,
     primaryYearMostReadGenre,
     primaryYearMostReadAuthor,
@@ -81,40 +69,10 @@ export const StatsClient = memo(function StatsClient({
   } = useStatsClient({
     yearlyStats,
     collaborators,
-    readerOptions,
-    selectedReaderId,
   });
 
   return (
     <div className="space-y-10 md:space-y-12">
-      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <Label
-            id="stats-reader-label"
-            htmlFor="stats-reader"
-            className="text-muted-foreground"
-          >
-            Leitor
-          </Label>
-          <Select value={selectedReader} onValueChange={handleReaderChange}>
-            <SelectTrigger
-              id="stats-reader"
-              aria-labelledby="stats-reader-label"
-              className="min-h-11 w-full min-w-[min(100%,16rem)] cursor-pointer transition-[box-shadow,colors] sm:w-56"
-            >
-              <SelectValue placeholder="Selecione um leitor" />
-            </SelectTrigger>
-            <SelectContent>
-              {readerOptions.map((reader) => (
-                <SelectItem key={reader.id} value={reader.id}>
-                  {reader.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       <section
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
         aria-label="Resumo de leitura"
