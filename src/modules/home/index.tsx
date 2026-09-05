@@ -26,14 +26,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FAB_CONTENT_PADDING_CLASS } from "@/constants/floatingActionButton";
 import { useModal } from "@/hooks";
 import { cn } from "@/lib/utils";
-import {
-  AiRecommendationDialog,
-  AiRecommendationFab,
-} from "@/modules/aiRecommendation";
+import { AiRecommendationDialog } from "@/modules/aiRecommendation";
 import type { BookSuggestion } from "@/modules/aiRecommendation";
 import { BookUpsert } from "@/modules/bookUpsert";
 import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFilters";
-import HomeAddBookButton from "@/modules/home/components/homeAddBookButton";
+import HomeQuickActions from "@/modules/home/components/homeQuickActions";
 import ReadingNow from "@/modules/home/components/readingNow";
 import { useHome } from "@/modules/home/hooks/useHome";
 import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
@@ -154,10 +151,10 @@ export default function ClientHome() {
         onPickSuggestion={handlePickAiSuggestion}
       />
       {isLoggedIn && (
-        <>
-          <HomeAddBookButton onClick={() => dialogModal.setIsOpen(true)} />
-          <AiRecommendationFab onClick={() => aiRecommendationModal.open()} />
-        </>
+        <HomeQuickActions
+          onAddBook={() => dialogModal.setIsOpen(true)}
+          onRequestRecommendation={() => aiRecommendationModal.open()}
+        />
       )}
 
       <header className="flex flex-col gap-4 mb-5">

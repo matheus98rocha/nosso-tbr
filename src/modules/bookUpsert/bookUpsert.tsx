@@ -1,5 +1,15 @@
-import React from "react";
-import { XIcon } from "lucide-react";
+import {
+  BookMarked,
+  BookOpen,
+  Library,
+  Search,
+  XIcon,
+} from "lucide-react";
+
+import { BlurOverlay } from "@/components";
+import { DatePicker } from "@/components/datePicker";
+import { SelectField } from "@/components/selectField";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -7,12 +17,6 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { SelectField } from "@/components/selectField";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/datePicker";
-
 import {
   Form,
   FormControl,
@@ -22,22 +26,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { BlurOverlay } from "@/components";
-import { CreateBookProps } from "./bookUpsert.types";
+import { Switch } from "@/components/ui/switch";
 import { genders } from "@/constants/genders";
+import { cn } from "@/lib/utils";
 import { AuthorUpsert } from "@/modules/authors/components";
+import { FinishedReadingRatingDialog } from "@/modules/bookRating";
+import { DateUtils } from "@/utils";
+
+import { CreateBookProps } from "./bookUpsert.types";
 import {
   AutocompleteInput,
   BookLookupPanel,
   BookParticipationBlockedDialog,
   FoundCatalogBookDialog,
 } from "./components";
+import BookUpsertSection from "./components/bookUpsertSection";
 import { useBookUpsert } from "./hooks/useBookUpsert";
-import { DateUtils } from "@/utils";
-import { FinishedReadingRatingDialog } from "@/modules/bookRating";
 
 export function BookUpsert(props: CreateBookProps) {
   const {
@@ -91,6 +97,8 @@ export function BookUpsert(props: CreateBookProps) {
     handleDismissRatingPrompt,
   } = useBookUpsert(props);
 
+  const coverUrl = form.watch("image_url");
+
   return (
     <>
       <FinishedReadingRatingDialog
@@ -121,10 +129,17 @@ export function BookUpsert(props: CreateBookProps) {
       <Dialog open={props.isBookFormOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent
           showCloseButton={false}
-          className="inset-x-0 bottom-0 top-auto left-0 translate-x-0 translate-y-0 max-w-none rounded-t-2xl rounded-b-none h-[92dvh] sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg sm:h-[80%] flex flex-col gap-0 p-0 overflow-hidden"
+          className={cn(
+            "inset-x-0 bottom-0 top-auto left-0 translate-x-0 translate-y-0",
+            "max-w-none rounded-t-3xl rounded-b-none h-[92dvh]",
+            "sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-w-lg",
+            "sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl sm:h-[80%]",
+            "flex flex-col gap-0 overflow-hidden border-zinc-200/80 p-0",
+            "bg-[linear-gradient(180deg,#fffdf8_0%,#faf7f2_48%,#ffffff_100%)]",
+            "dark:border-zinc-700/80 dark:bg-[linear-gradient(180deg,#27272a_0%,#18181b_100%)]",
+          )}
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
-            {/* Drag handle — mobile only */}
             <div
               className="flex justify-center pt-3 pb-1 sm:hidden"
               aria-hidden="true"
@@ -132,56 +147,81 @@ export function BookUpsert(props: CreateBookProps) {
               <div className="h-1 w-10 rounded-full bg-muted-foreground/25" />
             </div>
 
-            {/* Sticky header */}
-            <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 py-4 border-b">
-              <DialogTitle>
-                {props.bookData ? "Editar Livro" : "Adicione um novo livro"}
-              </DialogTitle>
-              <DialogClose
-                className="cursor-pointer rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-                aria-label="Fechar"
-              >
-                <XIcon className="size-4" />
-                <span className="sr-only">Fechar</span>
-              </DialogClose>
+            <div
+              className={cn(
+                "shrink-0 border-b border-zinc-200/80 px-4 py-4 sm:px-6",
+                "dark:border-zinc-700/70",
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span
+                    className={cn(
+                      "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl",
+                      "bg-zinc-900 text-zinc-50 shadow-sm",
+                      "dark:bg-zinc-100 dark:text-zinc-900",
+                    )}
+                    aria-hidden
+                  >
+                    <BookOpen className="size-5" />
+                  </span>
+                  <div className="min-w-0 space-y-1">
+                    <DialogTitle className="text-lg font-semibold tracking-tight">
+                      {props.bookData
+                        ? "Editar Livro"
+                        : "Adicione um novo livro"}
+                    </DialogTitle>
+                    <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                      {props.bookData
+                        ? "Atualize os dados e o andamento da leitura."
+                        : "Busque pelo título ou preencha os detalhes na mão."}
+                    </p>
+                  </div>
+                </div>
+                <DialogClose
+                  className="cursor-pointer rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+                  aria-label="Fechar"
+                >
+                  <XIcon className="size-4" />
+                  <span className="sr-only">Fechar</span>
+                </DialogClose>
+              </div>
             </div>
 
-            {/* Scrollable body */}
             <div
-              className={`flex-1 min-h-0 overscroll-contain px-4 sm:px-6 ${
-                isLoggedIn ? "overflow-y-auto" : "overflow-hidden"
-              }`}
+              className={cn(
+                "min-h-0 flex-1 overscroll-contain px-4 sm:px-6",
+                isLoggedIn ? "overflow-y-auto" : "overflow-hidden",
+              )}
             >
               <Form {...form}>
                 <form
                   id="book-upsert-form"
                   onSubmit={handleSubmit(onSubmit)}
-                  className="grid gap-6 py-5"
+                  className="grid gap-4 py-5"
                 >
                   {!isEdit && (
-                    <>
-                      <section className="grid gap-4">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                          Busca automática
-                        </p>
-                        <BookLookupPanel
-                          isSearching={isSearchingBooks}
-                          error={lookupError}
-                          foundBook={foundBook}
-                          lookupQuery={lookupQuery}
-                          onQueryChange={handleLookupQueryChange}
-                          onSearch={handleSearchBooks}
-                        />
-                      </section>
-                      <Separator orientation="horizontal" />
-                    </>
+                    <BookUpsertSection
+                      title="Busca automática"
+                      description="Ache o livro pelo título ou ISBN e preencha o formulário em segundos."
+                      icon={<Search className="size-4" />}
+                    >
+                      <BookLookupPanel
+                        isSearching={isSearchingBooks}
+                        error={lookupError}
+                        foundBook={foundBook}
+                        lookupQuery={lookupQuery}
+                        onQueryChange={handleLookupQueryChange}
+                        onSearch={handleSearchBooks}
+                      />
+                    </BookUpsertSection>
                   )}
 
-                  <section className="grid gap-4">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                      Sobre o livro
-                    </p>
-
+                  <BookUpsertSection
+                    title="Sobre o livro"
+                    description="Informações básicas para identificar a obra na sua estante."
+                    icon={<BookMarked className="size-4" />}
+                  >
                     <FormField
                       control={control}
                       name="title"
@@ -202,13 +242,38 @@ export function BookUpsert(props: CreateBookProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>URL da Capa</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Link da capa na Amazon; deixe em branco para usar capa padrão"
-                              {...field}
-                              autoFocus={false}
-                            />
-                          </FormControl>
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={cn(
+                                "flex h-[4.5rem] w-12 shrink-0 items-center justify-center overflow-hidden rounded-md",
+                                "border border-zinc-200 bg-zinc-100 shadow-sm",
+                                "dark:border-zinc-700 dark:bg-zinc-800",
+                              )}
+                              aria-hidden
+                            >
+                              {coverUrl ? (
+                                <img
+                                  src={coverUrl}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                  onError={(event) => {
+                                    event.currentTarget.style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <BookOpen className="size-4 text-zinc-400" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <FormControl>
+                                <Input
+                                  placeholder="Link da capa na Amazon; deixe em branco para usar capa padrão"
+                                  {...field}
+                                  autoFocus={false}
+                                />
+                              </FormControl>
+                            </div>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -221,28 +286,30 @@ export function BookUpsert(props: CreateBookProps) {
                         <FormItem>
                           <FormLabel>Autor</FormLabel>
                           <FormControl>
-                            <AutocompleteInput
-                              items={authors}
-                              value={field.value}
-                              initialLabel={props.bookData?.author}
-                              isLoading={isLoadingAuthors}
-                              onValueChange={field.onChange}
-                              onSearch={handleAuthorSearchChange}
-                              onAddNew={handleOpenAddAuthorModal}
-                              placeholder="Pesquisar autor..."
-                              emptyMessage={
-                                emptyAuthorSearch
-                                  ? "Não encontramos esse autor..."
-                                  : ""
-                              }
-                            />
+                            <div className="w-full">
+                              <AutocompleteInput
+                                items={authors}
+                                value={field.value}
+                                initialLabel={props.bookData?.author}
+                                isLoading={isLoadingAuthors}
+                                onValueChange={field.onChange}
+                                onSearch={handleAuthorSearchChange}
+                                onAddNew={handleOpenAddAuthorModal}
+                                placeholder="Pesquisar autor..."
+                                emptyMessage={
+                                  emptyAuthorSearch
+                                    ? "Não encontramos esse autor..."
+                                    : ""
+                                }
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <FormField
                         control={control}
                         name="gender"
@@ -250,11 +317,13 @@ export function BookUpsert(props: CreateBookProps) {
                           <FormItem>
                             <FormLabel>Gênero</FormLabel>
                             <FormControl>
-                              <SelectField
-                                value={field.value ?? undefined}
-                                onChange={field.onChange}
-                                items={genders}
-                              />
+                              <div className="w-full">
+                                <SelectField
+                                  value={field.value ?? undefined}
+                                  onChange={field.onChange}
+                                  items={genders}
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -288,15 +357,13 @@ export function BookUpsert(props: CreateBookProps) {
                         }}
                       />
                     </div>
-                  </section>
+                  </BookUpsertSection>
 
-                  <Separator orientation="horizontal" />
-
-                  <section className="grid gap-4">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                      Leitura
-                    </p>
-
+                  <BookUpsertSection
+                    title="Leitura"
+                    description="Quem lê, em que status está e as datas importantes."
+                    icon={<BookOpen className="size-4" />}
+                  >
                     <FormField
                       control={control}
                       name="readers"
@@ -304,71 +371,80 @@ export function BookUpsert(props: CreateBookProps) {
                         <FormItem>
                           <FormLabel>Quem vai ler o livro?</FormLabel>
                           <FormControl>
-                            {isLoadingUsers ? (
-                              <div className="flex gap-4">
-                                {[1, 2, 3].map((i) => (
-                                  <div
-                                    key={i}
-                                    className="h-5 w-20 animate-pulse rounded bg-muted"
-                                  />
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="flex flex-wrap gap-x-6 gap-y-1">
-                                {chosenByOptions.map(({ label, value }) => {
-                                  const selected = (field.value ?? []).includes(
-                                    value,
-                                  );
-                                  return (
+                            <div className="flex flex-wrap gap-2">
+                              {isLoadingUsers
+                                ? [1, 2, 3].map((i) => (
                                     <div
-                                      key={value}
-                                      className="flex items-center gap-2 min-h-[44px]"
-                                    >
-                                      <Checkbox
+                                      key={i}
+                                      className="h-9 w-24 animate-pulse rounded-full bg-muted"
+                                    />
+                                  ))
+                                : chosenByOptions.map(({ label, value }) => {
+                                    const isSelected = (
+                                      field.value ?? []
+                                    ).includes(value);
+                                    return (
+                                      <button
+                                        key={value}
+                                        type="button"
                                         id={`readers-${value}`}
-                                        checked={selected}
-                                        onCheckedChange={() => {
+                                        aria-pressed={isSelected}
+                                        onClick={() => {
                                           const cur = field.value ?? [];
-                                          const next = selected
+                                          const next = isSelected
                                             ? cur.filter(
                                                 (id: string) => id !== value,
                                               )
                                             : [...cur, value];
                                           field.onChange(next);
                                         }}
-                                      />
-                                      <FormLabel htmlFor={`readers-${value}`}>
+                                        className={cn(
+                                          "inline-flex min-h-11 items-center rounded-full border px-3.5 text-sm font-medium transition-colors",
+                                          isSelected
+                                            ? "border-zinc-900 bg-zinc-900 text-zinc-50 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                                            : "border-zinc-200 bg-white/80 text-zinc-600 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-300",
+                                        )}
+                                      >
                                         {label}
-                                      </FormLabel>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
+                                      </button>
+                                    );
+                                  })}
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <FormItem>
-                      <FormLabel>Status da leitura</FormLabel>
-                      <div className="flex flex-wrap gap-x-6 gap-y-1">
-                        {checkboxes.map(({ id, label }) => (
-                          <div
-                            key={id}
-                            className="flex items-center gap-2 min-h-[44px]"
-                          >
-                            <Checkbox
-                              id={id}
-                              checked={selected === id}
-                              onCheckedChange={() => handleStatusChange(id)}
-                            />
-                            <FormLabel htmlFor={id}>{label}</FormLabel>
-                          </div>
-                        ))}
+                    <div className="grid gap-2">
+                      <Label>Status da leitura</Label>
+                      <div
+                        className="flex flex-wrap gap-2"
+                        role="radiogroup"
+                        aria-label="Status da leitura"
+                      >
+                        {checkboxes.map(({ id, label }) => {
+                          const isSelected = selected === id;
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              role="radio"
+                              aria-checked={isSelected}
+                              onClick={() => handleStatusChange(id)}
+                              className={cn(
+                                "min-h-11 rounded-full border px-3.5 text-left text-sm font-medium transition-all",
+                                isSelected
+                                  ? "border-amber-500/70 bg-amber-100 text-amber-950 shadow-sm dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-100"
+                                  : "border-zinc-200 bg-white/80 text-zinc-600 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-300",
+                              )}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
                       </div>
-                    </FormItem>
+                    </div>
 
                     {shouldShowPlannedStartDate && (
                       <FormField
@@ -378,16 +454,18 @@ export function BookUpsert(props: CreateBookProps) {
                           <FormItem>
                             <FormLabel>{plannedStartDateLabel}</FormLabel>
                             <FormControl>
-                              <DatePicker
-                                value={
-                                  DateUtils.toDate(field.value) ?? undefined
-                                }
-                                onChange={(date) =>
-                                  field.onChange(
-                                    DateUtils.toISOString(date) || null,
-                                  )
-                                }
-                              />
+                              <div className="w-full">
+                                <DatePicker
+                                  value={
+                                    DateUtils.toDate(field.value) ?? undefined
+                                  }
+                                  onChange={(date) =>
+                                    field.onChange(
+                                      DateUtils.toISOString(date) || null,
+                                    )
+                                  }
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -400,15 +478,21 @@ export function BookUpsert(props: CreateBookProps) {
                       name="is_reread"
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex items-center gap-3 min-h-[44px]">
+                          <div
+                            className={cn(
+                              "flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3.5",
+                              "border-zinc-200/90 bg-white/70",
+                              "dark:border-zinc-700/80 dark:bg-zinc-950/30",
+                            )}
+                          >
+                            <Label htmlFor="is-reread" className="text-sm">
+                              Este livro é uma releitura?
+                            </Label>
                             <Switch
                               id="is-reread"
                               checked={field.value ?? false}
                               onCheckedChange={field.onChange}
                             />
-                            <Label htmlFor="is-reread">
-                              Este livro é uma releitura?
-                            </Label>
                           </div>
                         </FormItem>
                       )}
@@ -423,17 +507,19 @@ export function BookUpsert(props: CreateBookProps) {
                             <FormItem>
                               <FormLabel>Data de Início</FormLabel>
                               <FormControl>
-                                <DatePicker
-                                  isAfterTodayHidden
-                                  value={
-                                    DateUtils.toDate(field.value) ?? undefined
-                                  }
-                                  onChange={(date) =>
-                                    field.onChange(
-                                      DateUtils.toISOString(date) || null,
-                                    )
-                                  }
-                                />
+                                <div className="w-full">
+                                  <DatePicker
+                                    isAfterTodayHidden
+                                    value={
+                                      DateUtils.toDate(field.value) ?? undefined
+                                    }
+                                    onChange={(date) =>
+                                      field.onChange(
+                                        DateUtils.toISOString(date) || null,
+                                      )
+                                    }
+                                  />
+                                </div>
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -448,17 +534,20 @@ export function BookUpsert(props: CreateBookProps) {
                               <FormItem>
                                 <FormLabel>Data de Término</FormLabel>
                                 <FormControl>
-                                  <DatePicker
-                                    isAfterTodayHidden
-                                    value={
-                                      DateUtils.toDate(field.value) ?? undefined
-                                    }
-                                    onChange={(date) =>
-                                      field.onChange(
-                                        DateUtils.toISOString(date) || null,
-                                      )
-                                    }
-                                  />
+                                  <div className="w-full">
+                                    <DatePicker
+                                      isAfterTodayHidden
+                                      value={
+                                        DateUtils.toDate(field.value) ??
+                                        undefined
+                                      }
+                                      onChange={(date) =>
+                                        field.onChange(
+                                          DateUtils.toISOString(date) || null,
+                                        )
+                                      }
+                                    />
+                                  </div>
                                 </FormControl>
                                 <FormDescription>
                                   Se não informar, usaremos a data de hoje como
@@ -471,54 +560,58 @@ export function BookUpsert(props: CreateBookProps) {
                         )}
                       </div>
                     )}
-                  </section>
+                  </BookUpsertSection>
 
                   {!isEdit && (
-                    <>
-                      <Separator orientation="horizontal" />
-
-                      <section className="grid gap-4">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                          Estante
-                        </p>
-
-                        <div className="flex items-center gap-3 min-h-[44px]">
-                          <Switch
-                            id="add-to-shelf"
-                            checked={isAddToShelfEnabled}
-                            onCheckedChange={setIsAddToShelfEnabled}
-                            aria-label="Adicionar livro a uma estante"
-                          />
-                          <Label htmlFor="add-to-shelf">
-                            Adicionar a uma estante?
-                          </Label>
-                        </div>
-
-                        {isLoadingBookshelves && isAddToShelfEnabled && (
-                          <div className="h-9 w-full animate-pulse rounded bg-muted" />
+                    <BookUpsertSection
+                      title="Estante"
+                      description="Opcional: organize o livro em uma estante agora."
+                      icon={<Library className="size-4" />}
+                    >
+                      <div
+                        className={cn(
+                          "flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3.5",
+                          "border-zinc-200/90 bg-white/70",
+                          "dark:border-zinc-700/80 dark:bg-zinc-950/30",
                         )}
+                      >
+                        <Label htmlFor="add-to-shelf" className="text-sm">
+                          Adicionar a uma estante?
+                        </Label>
+                        <Switch
+                          id="add-to-shelf"
+                          checked={isAddToShelfEnabled}
+                          onCheckedChange={setIsAddToShelfEnabled}
+                          aria-label="Adicionar livro a uma estante"
+                        />
+                      </div>
 
-                        {!isLoadingBookshelves && isAddToShelfEnabled && (
-                          <SelectField
-                            items={bookshelfOptions}
-                            value={selectedShelfId}
-                            onChange={setSelectedShelfId}
-                            placeholder="Selecione uma estante"
-                          />
-                        )}
-                      </section>
-                    </>
+                      {isLoadingBookshelves && isAddToShelfEnabled && (
+                        <div className="h-9 w-full animate-pulse rounded bg-muted" />
+                      )}
+
+                      {!isLoadingBookshelves && isAddToShelfEnabled && (
+                        <SelectField
+                          items={bookshelfOptions}
+                          value={selectedShelfId}
+                          onChange={setSelectedShelfId}
+                          placeholder="Selecione uma estante"
+                        />
+                      )}
+                    </BookUpsertSection>
                   )}
                 </form>
               </Form>
             </div>
 
             <div
-              className={`shrink-0 border-t px-4 sm:px-6 py-4 bg-background ${
-                !isLoggedIn ? "pointer-events-none opacity-50" : ""
-              }`}
+              className={cn(
+                "shrink-0 border-t border-zinc-200/80 bg-white/90 px-4 py-4 backdrop-blur-md sm:px-6",
+                "dark:border-zinc-700/70 dark:bg-zinc-950/80",
+                !isLoggedIn ? "pointer-events-none opacity-50" : "",
+              )}
             >
-              <DialogFooter>
+              <DialogFooter className="gap-2 sm:gap-2">
                 <DialogClose asChild>
                   <Button variant="outline" className="w-full sm:w-auto">
                     Cancelar
@@ -528,7 +621,11 @@ export function BookUpsert(props: CreateBookProps) {
                   type="submit"
                   form="book-upsert-form"
                   isLoading={isLoading}
-                  className="w-full sm:w-auto"
+                  className={cn(
+                    "w-full sm:w-auto",
+                    "bg-zinc-900 text-zinc-50 hover:bg-zinc-800",
+                    "dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white",
+                  )}
                 >
                   {bookData ? "Editar" : "Adicionar"}
                 </Button>

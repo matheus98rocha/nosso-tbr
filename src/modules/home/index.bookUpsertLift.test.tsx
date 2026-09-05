@@ -188,7 +188,10 @@ vi.mock("@/components/yearFilterChips", () => ({
 
 vi.mock("@/modules/aiRecommendation", () => ({
   AiRecommendationDialog: () => null,
-  AiRecommendationFab: () => null,
+}));
+
+vi.mock("@/modules/home/components/homeQuickActions", () => ({
+  default: () => null,
 }));
 
 vi.mock("@/modules/home/components/collapsibleBookFilters", () => ({

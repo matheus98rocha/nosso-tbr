@@ -28,7 +28,3 @@ export interface AiSuggestionsListProps {
   onPickSuggestion: (suggestion: BookSuggestion) => void;
   onTryAnother: () => void;
 }
-
-export interface AiRecommendationFabProps {
-  onClick: () => void;
-}
