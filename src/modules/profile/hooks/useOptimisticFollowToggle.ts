@@ -46,9 +46,12 @@ export function useOptimisticFollowToggle(currentUserId: string | undefined) {
       }
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["userSocial", "following"],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["userSocial", "following"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+      ]);
     },
   });
 
