@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUser } from "@/services/users/hooks/useUsers";
+import { mergeChosenByOptions } from "@/services/users/utils/mergeChosenByOptions";
 import { BookCreateValidator } from "@/types/books.types";
 import { ControllerRenderProps } from "react-hook-form";
 
@@ -27,7 +28,21 @@ export function useBookUpsert({
   initialLookupQuery,
 }: CreateBookProps) {
   const isLoggedIn = useIsLoggedIn();
-  const { chosenByOptions, isLoadingUsers } = useUser();
+  const { chosenByOptions: networkChosenByOptions, isLoadingUsers } = useUser();
+
+  const chosenByOptions = useMemo(
+    () =>
+      mergeChosenByOptions(
+        networkChosenByOptions,
+        bookData?.readerIds,
+        bookData?.readersDisplay,
+      ),
+    [
+      networkChosenByOptions,
+      bookData?.readerIds,
+      bookData?.readersDisplay,
+    ],
+  );
 
   const {
     onSubmit,

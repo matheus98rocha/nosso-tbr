@@ -140,6 +140,35 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+describe("useBookUpsert — RN67 merge de leitores no edit", () => {
+  it("passa a useBookDialog opções da rede + leitores do livro fora da rede", () => {
+    setupMocks();
+    (useUser as Mock).mockReturnValue({
+      chosenByOptions: [{ label: "Eu", value: "me" }],
+      isLoadingUsers: false,
+    });
+
+    renderHook(() =>
+      useBookUpsert({
+        ...defaultProps,
+        bookData: {
+          readerIds: ["me", "ex"],
+          readersDisplay: "Eu, Ex Amigo",
+        } as never,
+      }),
+    );
+
+    expect(useBookDialog as Mock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chosenByOptions: [
+          { label: "Eu", value: "me" },
+          { label: "Ex Amigo", value: "ex" },
+        ],
+      }),
+    );
+  });
+});
+
 describe("useBookUpsert — handleDialogOpenChange", () => {
   it("chama clear ao fechar o modal", () => {
     setupMocks();
