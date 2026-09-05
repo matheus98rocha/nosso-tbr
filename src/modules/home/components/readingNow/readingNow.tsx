@@ -21,7 +21,7 @@ const sectionTransition = {
   ease: [0.33, 1, 0.68, 1] as const,
 };
 
-export default function ReadingNow({ className }: ReadingNowProps) {
+export default function ReadingNow({ className, onEditBook }: ReadingNowProps) {
   const reduceMotion = useReducedMotion();
   const {
     scrollRef,
@@ -215,6 +215,9 @@ export default function ReadingNow({ className }: ReadingNowProps) {
                   onFinishReading={() => requestStatusTransition(item.book, "finished")}
                   onPauseReading={() => requestStatusTransition(item.book, "paused")}
                   onAbandonReading={() => requestStatusTransition(item.book, "abandoned")}
+                  onEditBook={
+                    onEditBook ? () => onEditBook(item.book) : undefined
+                  }
                 />
               ))}
             </div>

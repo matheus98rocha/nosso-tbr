@@ -456,6 +456,7 @@ export function BookUpsert(props: CreateBookProps) {
                             <FormControl>
                               <div className="w-full">
                                 <DatePicker
+                                  allowClear
                                   value={
                                     DateUtils.toDate(field.value) ?? undefined
                                   }

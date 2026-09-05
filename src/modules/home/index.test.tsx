@@ -122,7 +122,7 @@ vi.mock("@/components/bookCard", () => ({
   BookCard: () => <div>book-card</div>,
 }));
 
-vi.mock("@/modules/home/components/readingNow", () => ({
+vi.mock("@/modules/home/components/homeReadingSpotlight", () => ({
   default: () => null,
 }));
 

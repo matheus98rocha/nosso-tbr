@@ -31,7 +31,7 @@ import type { BookSuggestion } from "@/modules/aiRecommendation";
 import { BookUpsert } from "@/modules/bookUpsert";
 import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFilters";
 import HomeQuickActions from "@/modules/home/components/homeQuickActions";
-import ReadingNow from "@/modules/home/components/readingNow";
+import HomeReadingSpotlight from "@/modules/home/components/homeReadingSpotlight";
 import { useHome } from "@/modules/home/hooks/useHome";
 import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
 import { useUserStore } from "@/stores/userStore";
@@ -458,7 +458,7 @@ export default function ClientHome() {
         ) : null}
       </header>
 
-      {isLoggedIn && <ReadingNow className="mb-5 max-w-2xl" />}
+      {isLoggedIn && <HomeReadingSpotlight onEditBook={handleEditBook} />}
 
       {shouldSuggestFollowing ? (
         <div

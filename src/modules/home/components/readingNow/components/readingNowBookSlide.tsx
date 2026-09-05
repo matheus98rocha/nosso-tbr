@@ -2,6 +2,7 @@
 
 import { CalendarDays, CalendarPlus, MessageSquareQuote } from "lucide-react";
 
+import BookOptionsMenu from "@/components/bookCard/components/bookOptionsMenu";
 import { BookCover } from "@/components/bookCover";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -30,6 +31,7 @@ export default function ReadingNowBookSlide({
   onAbandonReading,
   isProgressLoading,
   isStatusPending,
+  onEditBook,
 }: ReadingNowBookSlideProps) {
   const { book, scheduleProgress, daysReading } = item;
   const hasSchedule = scheduleProgress !== null;
@@ -37,7 +39,7 @@ export default function ReadingNowBookSlide({
   return (
     <article className="flex min-w-full shrink-0 snap-start snap-always flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex min-w-0 gap-3">
+        <div className="flex min-w-0 items-start gap-1">
           <button
             type="button"
             onClick={onOpenDetails}
@@ -62,6 +64,8 @@ export default function ReadingNowBookSlide({
               </p>
             </div>
           </button>
+
+          <BookOptionsMenu book={book} onEditBook={onEditBook} />
         </div>
 
         <div className="space-y-1">

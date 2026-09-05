@@ -9,6 +9,7 @@ export type ReadingNowBookItem = {
 
 export type ReadingNowProps = {
   className?: string;
+  onEditBook?: (book: BookDomain) => void;
 };
 
 export type ReadingNowBookSlideProps = {
@@ -21,6 +22,7 @@ export type ReadingNowBookSlideProps = {
   onAbandonReading: () => void;
   isProgressLoading: boolean;
   isStatusPending: boolean;
+  onEditBook?: () => void;
 };
 
 export type ReadingNowCarouselDotsProps = {
