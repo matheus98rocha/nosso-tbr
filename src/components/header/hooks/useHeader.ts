@@ -1,5 +1,5 @@
 import { useModal } from "@/hooks/";
-import { useIsLoggedIn } from "@/stores/hooks/useAuth";
+import { useIsAdmin, useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
 import { usePathname, useRouter } from "next/navigation";
 import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
@@ -12,6 +12,7 @@ export function useHeader() {
   const createShelfDialog = useModal();
   const logout = useUserStore((state) => state.logout);
   const isLoggedIn = useIsLoggedIn();
+  const isAdmin = useIsAdmin();
 
   const allMenuItems: Menu[] = [
     {
@@ -56,6 +57,18 @@ export function useHeader() {
           label: "Autores",
           action: () => router.push("/authors"),
           path: "/authors",
+          requiresAdmin: true,
+        },
+      ],
+    },
+    {
+      label: "Administração",
+      items: [
+        {
+          label: "Administração",
+          action: () => router.push("/admin"),
+          path: "/admin",
+          requiresAdmin: true,
         },
       ],
     },
@@ -95,6 +108,7 @@ export function useHeader() {
       ...menu,
       items: menu.items.filter((item) => {
         if (item.requiresAuth && !isLoggedIn) return false;
+        if (item.requiresAdmin && !isAdmin) return false;
         if (item.hideIfLoggedIn && isLoggedIn) return false;
         return true;
       }),
@@ -106,6 +120,7 @@ export function useHeader() {
     createShelfDialog,
     logout,
     isLoggedIn,
+    isAdmin,
     router,
     pathname,
   };

@@ -2,7 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { type SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
+
 import { userRegistrationMapper } from "@/services/userRegistration/mappers/userRegistration.mapper";
 import { registerUser } from "@/services/userRegistration/service/registerUser.service";
 import {
@@ -11,6 +14,8 @@ import {
 } from "@/services/userRegistration/validators/userRegistration.validator";
 
 export function useRegister(inviteToken: string) {
+  const router = useRouter();
+
   const form = useForm<RegisterUserFormValues>({
     resolver: zodResolver(registerUserFormSchema),
     defaultValues: {
@@ -25,6 +30,11 @@ export function useRegister(inviteToken: string) {
   const mutation = useMutation({
     mutationFn: (values: RegisterUserFormValues) =>
       registerUser(userRegistrationMapper.toApiPayload(values)),
+    onSuccess: () => {
+      toast.success("Conta criada com sucesso!");
+      router.replace("/");
+      router.refresh();
+    },
   });
 
   const onValidSubmit: SubmitHandler<RegisterUserFormValues> = async (
@@ -39,6 +49,5 @@ export function useRegister(inviteToken: string) {
     isPending: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,
-    isSuccess: mutation.isSuccess,
   };
 }

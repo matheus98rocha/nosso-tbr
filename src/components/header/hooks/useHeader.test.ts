@@ -3,12 +3,14 @@ import { renderHook } from "@testing-library/react";
 
 import { nextNavigationTestState } from "@/test/nextNavigationTestState";
 
-const { mockUseIsLoggedIn } = vi.hoisted(() => ({
+const { mockUseIsLoggedIn, mockUseIsAdmin } = vi.hoisted(() => ({
   mockUseIsLoggedIn: vi.fn(() => true),
+  mockUseIsAdmin: vi.fn(() => false),
 }));
 
 vi.mock("@/stores/hooks/useAuth", () => ({
   useIsLoggedIn: mockUseIsLoggedIn,
+  useIsAdmin: mockUseIsAdmin,
 }));
 
 vi.mock("@/stores/userStore", () => ({
@@ -30,6 +32,7 @@ describe("useHeader — menu desktop", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseIsLoggedIn.mockReturnValue(true);
+    mockUseIsAdmin.mockReturnValue(false);
   });
 
   it("expõe item Início com path / no primeiro grupo do menu", () => {
@@ -46,6 +49,29 @@ describe("useHeader — menu desktop", () => {
         path: "/",
       }),
     ]);
+  });
+
+  it("não expõe Autores nem Administração para common-user", () => {
+    const { result } = renderHook(() => useHeader());
+
+    const allLabels = result.current.menuItems.flatMap((menu) =>
+      menu.items.map((item) => item.label),
+    );
+
+    expect(allLabels).not.toContain("Autores");
+    expect(allLabels).not.toContain("Administração");
+  });
+
+  it("expõe Autores e Administração para admin", () => {
+    mockUseIsAdmin.mockReturnValue(true);
+    const { result } = renderHook(() => useHeader());
+
+    const allLabels = result.current.menuItems.flatMap((menu) =>
+      menu.items.map((item) => item.label),
+    );
+
+    expect(allLabels).toContain("Autores");
+    expect(allLabels).toContain("Administração");
   });
 
   it("não expõe bookUpsertModal nem item Adicionar Livro", () => {

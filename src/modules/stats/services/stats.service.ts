@@ -10,6 +10,31 @@ import {
   StatsDomain,
 } from "../types/stats.types";
 
+async function getMutualFollowPeerIds(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<string[]> {
+  const [{ data: following }, { data: followers }] = await Promise.all([
+    supabase
+      .from("user_followers")
+      .select("following_id")
+      .eq("follower_id", userId),
+    supabase
+      .from("user_followers")
+      .select("follower_id")
+      .eq("following_id", userId),
+  ]);
+
+  const followingIds = new Set(
+    (following ?? []).map((row) => row.following_id as string),
+  );
+  const followerIds = new Set(
+    (followers ?? []).map((row) => row.follower_id as string),
+  );
+
+  return [...followingIds].filter((id) => followerIds.has(id));
+}
+
 export class StatsService {
   private readonly supabase: SupabaseClient<Database>;
 
@@ -62,6 +87,23 @@ export class StatsService {
   async getReadingLeaderboard(
     year?: number | null
   ): Promise<Omit<ReadingLeaderboardEntryDomain, "rank">[]> {
+    const {
+      data: { user },
+    } = await this.supabase.auth.getUser();
+
+    if (!user) {
+      return [];
+    }
+
+    const mutualPeerIds = await getMutualFollowPeerIds(
+      this.supabase,
+      user.id,
+    );
+
+    if (mutualPeerIds.length === 0) {
+      return [];
+    }
+
     const { data, error } = await this.supabase.rpc("get_reading_leaderboard", {
       year_input: year ?? undefined,
     });
@@ -75,6 +117,10 @@ export class StatsService {
       throw error;
     }
 
-    return (data ?? []).map(StatsMapper.toLeaderboardBase);
+    const allowedIds = new Set([user.id, ...mutualPeerIds]);
+
+    return (data ?? [])
+      .filter((row) => allowedIds.has(row.reader_id))
+      .map(StatsMapper.toLeaderboardBase);
   }
 }

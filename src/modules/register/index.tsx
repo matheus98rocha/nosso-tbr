@@ -42,7 +42,7 @@ type RegisterFormProps = {
 };
 
 function RegisterForm({ inviteToken }: RegisterFormProps) {
-  const { form, onSubmit, isPending, isError, error, isSuccess } =
+  const { form, onSubmit, isPending, isError, error } =
     useRegister(inviteToken);
 
   const password = useWatch({ control: form.control, name: "password" });
@@ -247,16 +247,6 @@ function RegisterForm({ inviteToken }: RegisterFormProps) {
                   className="text-sm text-destructive"
                 >
                   {error.message}
-                </p>
-              ) : null}
-              {isSuccess ? (
-                <p
-                  role="status"
-                  aria-live="polite"
-                  className="text-sm text-chart-2"
-                >
-                  Cadastro concluído. Verifique seu e-mail se a confirmação
-                  estiver ativa.
                 </p>
               ) : null}
             </form>

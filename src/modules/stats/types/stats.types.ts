@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import type { StatsReaderOption } from "@/modules/stats/utils/normalizeStatsReaderOptions";
-
 export type StatsPersistence = {
   year: number;
   total_books: number;
@@ -65,8 +63,6 @@ export type StatsClientProps = {
   yearlyStats: EstatisticaAnual[];
   collaborators: CollaborationStatsDomain[];
   totalBooks: number;
-  readerOptions: StatsReaderOption[];
-  selectedReaderId: string;
 };
 
 export type KpiCardProps = {
