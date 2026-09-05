@@ -12,6 +12,14 @@ import {
   resetNextNavigationTestState,
 } from "@/test/nextNavigationTestState";
 
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+vi.stubGlobal("ResizeObserver", ResizeObserverStub);
+
 vi.mock("next/navigation", () => ({
   __esModule: true,
   useRouter: vi.fn(),
