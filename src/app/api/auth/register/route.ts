@@ -1,4 +1,4 @@
-import registerInvite from "@/lib/auth/registerInvite";
+import { isExpired } from "@/lib/auth/registerInvite";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { registerUserBodySchema } from "@/services/userRegistration/validators/userRegistration.validator";
@@ -17,16 +17,6 @@ function mapAuthErrorToClientMessage(errorCode?: string): string {
 }
 
 export async function POST(request: Request) {
-  if (!registerInvite.secretConfigured()) {
-    return NextResponse.json(
-      {
-        error:
-          "Cadastro por convite não está configurado no servidor. Defina REGISTER_INVITE_SECRET.",
-      },
-      { status: 503 },
-    );
-  }
-
   let json: unknown;
   try {
     json = await request.json();
@@ -42,18 +32,6 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!registerInvite.tokenValid(parsed.data.invite)) {
-    return NextResponse.json(
-      {
-        error:
-          "Convite inválido ou expirado. Peça um novo link de cadastro.",
-      },
-      { status: 403 },
-    );
-  }
-
-  const { email, password, display_name } = parsed.data;
-
   let adminClient;
   try {
     adminClient = createServiceRoleClient();
@@ -66,6 +44,36 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   }
+
+  const inviteToken = parsed.data.invite.trim();
+  const { data: inviteRow, error: inviteError } = await adminClient
+    .from("register_invites")
+    .select("id, token, expires_at")
+    .eq("token", inviteToken)
+    .maybeSingle();
+
+  if (inviteError) {
+    console.error("register_invites lookup failed", {
+      code: inviteError.code,
+      message: inviteError.message,
+    });
+    return NextResponse.json(
+      { error: "Não foi possível validar o convite. Tente novamente." },
+      { status: 500 },
+    );
+  }
+
+  if (!inviteRow || isExpired(inviteRow.expires_at)) {
+    return NextResponse.json(
+      {
+        error:
+          "Convite inválido ou expirado. Peça um novo link de cadastro.",
+      },
+      { status: 403 },
+    );
+  }
+
+  const { email, password, display_name } = parsed.data;
 
   const { data: created, error: createError } =
     await adminClient.auth.admin.createUser({

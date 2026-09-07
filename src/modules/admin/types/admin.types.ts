@@ -7,7 +7,19 @@ export type AdminUserListItem = {
   tier: UserTier;
 };
 
-export type InviteLinkPayload = {
-  inviteUrl: string | null;
-  configured: boolean;
+export type AdminInviteItem = {
+  id: string;
+  token: string;
+  expires_at: string;
+  created_at: string;
+  inviteUrl: string;
+};
+
+export type AdminInvitesPayload = {
+  invites: AdminInviteItem[];
+};
+
+export type CreateAdminInvitePayload = {
+  invite: Omit<AdminInviteItem, "inviteUrl">;
+  inviteUrl: string;
 };

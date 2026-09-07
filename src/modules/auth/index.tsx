@@ -1,6 +1,7 @@
 "use client";
 
-import LogoIcon from "@/assets/icons/logo";
+import { useActionState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,9 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useActionState } from "react";
-import { LoginState, loginAction } from "./actions/login";
-import { useLogin } from "./hooks/useLogin";
+import { LoginState, loginAction } from "@/modules/auth/actions/login";
+import { AuthBrandPanel, AuthShell } from "@/modules/auth/components";
+import { useLogin } from "@/modules/auth/hooks/useLogin";
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState<LoginState, FormData>(
@@ -29,24 +30,24 @@ export default function LoginPage() {
   const { handleRecoverPassword } = useLogin();
 
   return (
-    <div className="flex min-h-screen w-screen items-center justify-center bg-muted p-4">
-      <Card className="mx-auto w-full max-w-sm border-border bg-card text-card-foreground shadow-sm md:w-96 lg:w-[400px]">
-        <CardHeader className="space-y-2">
-          <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-            <span
-              className="inline-flex size-12 shrink-0 [&>svg]:size-full"
-              aria-hidden
-            >
-              <LogoIcon />
-            </span>
-            Nosso TBR
+    <AuthShell
+      brand={
+        <AuthBrandPanel
+          title="Bem-vindo de volta à estante"
+          description="Organize leituras, metas e descobertas com calma — sua biblioteca digital está aqui."
+        />
+      }
+    >
+      <Card className="border-border/70 bg-card/95 text-card-foreground shadow-[0_18px_50px_-28px_oklch(0.25_0.05_264/0.45)] backdrop-blur-sm">
+        <CardHeader className="space-y-2 border-b border-border/60 pb-5">
+          <CardTitle className="font-[family-name:var(--font-auth-display)] text-2xl font-semibold tracking-tight">
+            Entrar
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Sua estante digital: organize leituras, metas e descobertas com
-            calma.
+            Use seu e-mail e senha para acessar a conta.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-2">
           <form action={formAction} className="space-y-4" aria-label="Sign in">
             <div className="space-y-2">
               <Label htmlFor="login-email">E-mail</Label>
@@ -127,6 +128,6 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

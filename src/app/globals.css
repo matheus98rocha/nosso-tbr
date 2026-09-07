@@ -156,6 +156,44 @@
 }
 
 @layer components {
+  .auth-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+
+  .brand-display {
+    font-family: var(--font-auth-display), var(--font-geist-sans), ui-serif, Georgia, serif;
+  }
+
+  .home-atmosphere {
+    position: relative;
+  }
+
+  .home-atmosphere::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: -1.5rem -1rem auto;
+    height: 18rem;
+    z-index: 0;
+    background:
+      radial-gradient(
+        ellipse at 12% 0%,
+        oklch(0.55 0.1 264 / 0.1),
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse at 88% 20%,
+        oklch(0.62 0.07 175 / 0.08),
+        transparent 50%
+      );
+  }
+
+  .home-atmosphere > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .page-title {
     @apply text-balance text-2xl font-bold tracking-tight text-foreground;
   }

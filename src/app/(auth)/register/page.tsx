@@ -1,45 +1,26 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import React, { Suspense } from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import ClientRegister from "@/modules/register";
-import React, { Suspense } from "react";
 
 function RegisterPageSkeleton() {
   return (
-    <div className="flex min-h-screen w-screen items-center justify-center bg-muted p-4">
-      <Card className="mx-auto w-full max-w-sm border-border bg-card md:w-96 lg:w-[400px]">
-        <CardHeader className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Skeleton className="size-12 shrink-0 rounded-md" />
-            <Skeleton className="h-8 w-40" />
-          </div>
-          <Skeleton className="h-4 w-full max-w-[280px]" />
-          <Skeleton className="h-4 w-full max-w-xs" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-28" />
+    <div className="relative min-h-screen w-screen overflow-x-hidden bg-[oklch(0.96_0.01_264)]">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch lg:px-6 lg:py-10">
+        <div className="min-h-[220px] bg-[oklch(0.18_0.04_264)] lg:min-h-0 lg:rounded-2xl" />
+        <div className="flex flex-1 items-start justify-center px-4 py-8 sm:px-6 lg:items-center">
+          <div className="w-full max-w-md space-y-4 rounded-xl border border-border/70 bg-card p-6 shadow-sm">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-full max-w-[280px]" />
+            <Skeleton className="h-11 w-full rounded-md" />
+            <Skeleton className="h-11 w-full rounded-md" />
+            <Skeleton className="h-11 w-full rounded-md" />
+            <Skeleton className="h-20 w-full rounded-md" />
+            <Skeleton className="h-11 w-full rounded-md" />
             <Skeleton className="h-11 w-full rounded-md" />
           </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-11 w-full rounded-md" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-14" />
-            <Skeleton className="h-11 w-full rounded-md" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-11 w-full rounded-md" />
-          </div>
-          <Skeleton className="h-20 w-full rounded-md" />
-          <Skeleton className="h-11 w-full rounded-md" />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

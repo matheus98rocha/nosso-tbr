@@ -1,32 +1,20 @@
 import { NextResponse } from "next/server";
 
-import { isAdminTier, type UserTier } from "@/lib/auth/userTier";
+import { isAdminTier } from "@/lib/auth/userTier";
 
 import { requireUser } from "./requireUser";
 
-type SupabaseAdminClient = {
+type AdminGuardClient = {
   auth: {
     getUser: () => Promise<{
       data: { user: { id: string } | null };
       error: Error | null;
     }>;
   };
-  from: (table: string) => {
-    select: (columns: string) => {
-      eq: (
-        column: string,
-        value: string,
-      ) => {
-        maybeSingle: () => Promise<{
-          data: { tier: UserTier } | null;
-          error: Error | null;
-        }>;
-      };
-    };
-  };
+  from: (table: string) => any;
 };
 
-export async function requireAdmin(supabase: SupabaseAdminClient): Promise<
+export async function requireAdmin(supabase: AdminGuardClient): Promise<
   | { user: { id: string }; errorResponse: null }
   | { user: null; errorResponse: NextResponse }
 > {

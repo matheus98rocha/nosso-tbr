@@ -89,6 +89,6 @@ export const QUERY_KEYS = {
   admin: {
     all: ["admin"] as const,
     users: ["admin", "users"] as const,
-    inviteLink: ["admin", "invite-link"] as const,
+    invites: ["admin", "invites"] as const,
   },
 } as const;

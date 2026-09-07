@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Check, X } from "lucide-react";
+import { Check, Ticket, X } from "lucide-react";
 import { useWatch } from "react-hook-form";
 
-import LogoIcon from "@/assets/icons/logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,22 +23,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { AuthBrandPanel, AuthShell } from "@/modules/auth/components";
+import { RegisterPasswordHints } from "@/modules/register/components";
 import { useRegister } from "@/modules/register/hooks/useRegister";
-import {
-  PASSWORD_RULE_LABELS,
-  type PasswordRuleKey,
-  getPasswordRuleStatuses,
-} from "@/utils/passwordRules";
-
-const PASSWORD_RULE_ORDER: PasswordRuleKey[] = [
-  "minLength",
-  "hasLetter",
-  "hasNumber",
-];
-
-type RegisterFormProps = {
-  inviteToken: string;
-};
+import type { RegisterFormProps } from "@/modules/register/types";
 
 function RegisterForm({ inviteToken }: RegisterFormProps) {
   const { form, onSubmit, isPending, isError, error } =
@@ -51,28 +38,35 @@ function RegisterForm({ inviteToken }: RegisterFormProps) {
     name: "password_confirm",
   });
 
-  const ruleStatuses = getPasswordRuleStatuses(password ?? "");
   const passwordsMatch =
     (passwordConfirm?.length ?? 0) > 0 && password === passwordConfirm;
 
   return (
-    <div className="flex min-h-screen w-screen items-center justify-center bg-muted p-4">
-      <Card className="bg-card mx-auto w-full max-w-sm border-border text-card-foreground shadow-sm md:w-96 lg:w-[400px]">
-        <CardHeader className="space-y-2">
-          <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-            <span
-              className="inline-flex size-12 shrink-0 [&>svg]:size-full"
-              aria-hidden
-            >
-              <LogoIcon />
+    <AuthShell
+      brand={
+        <AuthBrandPanel
+          title="Crie sua conta na estante"
+          description="Junte-se a quem ama contar capítulos, páginas e histórias — com convite, no seu ritmo."
+          badge={
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium tracking-wide text-white/90 backdrop-blur-sm">
+              <Ticket className="size-3.5 shrink-0" aria-hidden />
+              Convite ativo · válido por 24h
             </span>
-            Criar conta
+          }
+        />
+      }
+    >
+      <Card className="border-border/70 bg-card/95 text-card-foreground shadow-[0_18px_50px_-28px_oklch(0.25_0.05_264/0.45)] backdrop-blur-sm">
+        <CardHeader className="space-y-2 border-b border-border/60 pb-5">
+          <CardTitle className="font-[family-name:var(--font-auth-display)] text-2xl font-semibold tracking-tight">
+            Dados do cadastro
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Junte-se a quem ama contar capítulos, páginas e histórias.
+            Preencha os campos abaixo. Depois do cadastro, você já entra na
+            home.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-2">
           <Form {...form}>
             <form
               onSubmit={(e) => {
@@ -137,42 +131,7 @@ function RegisterForm({ inviteToken }: RegisterFormProps) {
                         {...field}
                       />
                     </FormControl>
-                    <ul
-                      id="register-password-hints"
-                      className="mt-2 space-y-1.5 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
-                      role="list"
-                      aria-label="Password requirements"
-                    >
-                      {PASSWORD_RULE_ORDER.map((key) => {
-                        const ok = ruleStatuses[key];
-                        return (
-                          <li
-                            key={key}
-                            className="flex items-center gap-2"
-                            role="listitem"
-                          >
-                            {ok ? (
-                              <Check
-                                className="size-4 shrink-0 text-chart-2"
-                                aria-hidden
-                              />
-                            ) : (
-                              <X
-                                className="size-4 shrink-0 text-muted-foreground"
-                                aria-hidden
-                              />
-                            )}
-                            <span
-                              className={cn(
-                                ok && "font-medium text-foreground",
-                              )}
-                            >
-                              {PASSWORD_RULE_LABELS[key]}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    <RegisterPasswordHints password={password ?? ""} />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -196,10 +155,14 @@ function RegisterForm({ inviteToken }: RegisterFormProps) {
                     <p
                       id="register-password-match-hint"
                       role={
-                        (passwordConfirm?.length ?? 0) > 0 ? "status" : undefined
+                        (passwordConfirm?.length ?? 0) > 0
+                          ? "status"
+                          : undefined
                       }
                       aria-live={
-                        (passwordConfirm?.length ?? 0) > 0 ? "polite" : undefined
+                        (passwordConfirm?.length ?? 0) > 0
+                          ? "polite"
+                          : undefined
                       }
                       className={cn(
                         "text-sm",
@@ -251,7 +214,7 @@ function RegisterForm({ inviteToken }: RegisterFormProps) {
               ) : null}
             </form>
           </Form>
-          <div className="mt-6 flex justify-center border-t border-border pt-4">
+          <div className="mt-6 flex justify-center border-t border-border/60 pt-4">
             <Button
               variant="link"
               className="h-11 min-h-11 cursor-pointer px-2"
@@ -262,28 +225,28 @@ function RegisterForm({ inviteToken }: RegisterFormProps) {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }
 
 function RegisterMissingInvite() {
   return (
-    <div className="flex min-h-screen w-screen items-center justify-center bg-muted p-4">
-      <Card className="bg-card mx-auto w-full max-w-sm border-border text-card-foreground shadow-sm md:w-96 lg:w-[400px]">
+    <AuthShell
+      brand={
+        <AuthBrandPanel
+          title="Cadastro fechado"
+          description="O cadastro só é possível com um link de convite válido e dentro da validade de 24 horas."
+        />
+      }
+    >
+      <Card className="border-border/70 bg-card/95 text-card-foreground shadow-[0_18px_50px_-28px_oklch(0.25_0.05_264/0.45)] backdrop-blur-sm">
         <CardHeader className="space-y-2">
-          <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-            <span
-              className="inline-flex size-12 shrink-0 [&>svg]:size-full"
-              aria-hidden
-            >
-              <LogoIcon />
-            </span>
-            Cadastro fechado
+          <CardTitle className="font-[family-name:var(--font-auth-display)] text-2xl font-semibold tracking-tight">
+            Precisa de um convite
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            O cadastro só é possível com um link de convite válido na URL
-            (parâmetro invite). Peça a quem administra o Nosso TBR um novo
-            convite se precisar de acesso.
+            Peça a quem administra o Nosso TBR um novo convite se precisar de
+            acesso.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -292,7 +255,7 @@ function RegisterMissingInvite() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }
 

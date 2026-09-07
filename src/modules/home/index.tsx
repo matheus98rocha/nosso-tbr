@@ -127,7 +127,7 @@ export default function ClientHome() {
   return (
     <div
       className={cn(
-        "w-full max-w-7xl mx-auto px-4 py-7",
+        "home-atmosphere mx-auto w-full max-w-7xl px-4 py-7",
         isLoggedIn && FAB_CONTENT_PADDING_CLASS,
       )}
     >
@@ -157,17 +157,17 @@ export default function ClientHome() {
         />
       )}
 
-      <header className="flex flex-col gap-4 mb-5">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-          <div className="space-y-1">
+      <header className="mb-5 flex flex-col gap-4">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div className="space-y-1.5">
             {isLoading ? (
               <Skeleton className="h-full w-40" />
             ) : (
-              <div className="flex items-baseline gap-2">
-                <span className="page-title tabular-nums text-zinc-900 dark:text-zinc-100">
+              <div className="flex items-baseline gap-2.5">
+                <span className="brand-display page-title tabular-nums text-[oklch(0.22_0.05_264)] dark:text-zinc-100">
                   {allBooks?.total || 0}
                 </span>
-                <span className="text-sm font-medium text-zinc-500 uppercase tracking-widest">
+                <span className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
                   livros encontrados
                 </span>
               </div>
@@ -176,9 +176,9 @@ export default function ClientHome() {
             {isLoading ? (
               <Skeleton className="h-4 w-56" />
             ) : activeFilterLabels.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-1.5 text-xs text-zinc-400 italic">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground italic">
                 <span>Filtrando por:</span>
-                <span className="font-medium text-zinc-600 dark:text-zinc-300 not-italic">
+                <span className="font-medium text-foreground not-italic">
                   {activeFilterLabels.join(" • ")}
                 </span>
               </div>
@@ -431,19 +431,19 @@ export default function ClientHome() {
         ) : null}
 
         {!isLoggedIn ? (
-          <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-2 text-center flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-[oklch(0.22_0.05_264/0.12)] bg-[oklch(0.22_0.05_264/0.03)] p-3 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              <h2 className="brand-display text-base font-semibold text-zinc-900 dark:text-zinc-100">
                 Quer uma experiência personalizada?
               </h2>
-              <p className="text-xs text-zinc-600 dark:text-zinc-300 max-w-[240px]">
+              <p className="max-w-[240px] text-xs text-zinc-600 dark:text-zinc-300">
                 Faça login para gerenciar sua lista de leitura, acompanhar
                 progresso e acessar filtros exclusivos.
               </p>
             </div>
 
-            <div className="w-full pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-800/50">
-              <p className="text-[10px] text-zinc-600 dark:text-zinc-300 uppercase tracking-wider mb-2">
+            <div className="mt-2 w-full border-t border-[oklch(0.22_0.05_264/0.1)] pt-2 dark:border-zinc-800/50">
+              <p className="mb-2 text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
                 Não possui uma conta?
               </p>
               <Link
@@ -469,7 +469,7 @@ export default function ClientHome() {
           <div className="mx-auto max-w-xl text-center space-y-2 mb-8">
             <h2
               id="empty-suggestions-title"
-              className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
+              className="brand-display text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
             >
               Ainda não há livros por aqui
             </h2>

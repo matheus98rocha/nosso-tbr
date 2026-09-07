@@ -169,6 +169,13 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
   - Deletar autores com `ConfirmDialog` e feedback via `toast`.
 - Ação extra:
   - Ver livros de um autor redirecionando para a Home filtrada por `authorId`.
+- Acesso exclusivo de **admin** (gestão completa); criação pontual de autor no fluxo de livro permanece para autenticados.
+
+### 🛡 Administração (`/admin`)
+
+- Lista todos os usuários (`display_name`, `email`, `tier`) com ações de **promover a admin** e **excluir**.
+- **Convites de cadastro:** gera links `/register?invite=…` com validade de **24 horas** (`register_invites`), lista os ativos e permite copiar. Cadastro multi-uso até expirar.
+- APIs: `GET /api/admin/users`, `GET|POST /api/admin/invites`, mutações em `/api/admin/users/[id]`.
 
 ### 💬 Citações (`/quotes/[title]/[id]`)
 

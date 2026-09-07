@@ -1,4 +1,12 @@
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
+
+vi.mock("next/font/google", () => ({
+  Newsreader: () => ({
+    variable: "--font-auth-display",
+    className: "font-newsreader",
+  }),
+}));
 
 import AuthLayout, { metadata } from "./layout";
 

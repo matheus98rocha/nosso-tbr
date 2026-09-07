@@ -1,41 +1,83 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { createInviteToken, isExpired, tokensMatch, inviteExpiresAt, buildInviteUrl } from "./registerInvite";
 
 describe("registerInvite (RN36)", () => {
-  const prev = process.env.REGISTER_INVITE_SECRET;
+  describe("createInviteToken", () => {
+    it("retorna string opaca não vazia", () => {
+      const token = createInviteToken();
+      expect(typeof token).toBe("string");
+      expect(token.length).toBeGreaterThan(0);
+    });
 
-  beforeEach(() => {
-    delete process.env.REGISTER_INVITE_SECRET;
+    it("gera tokens distintos em chamadas consecutivas", () => {
+      const first = createInviteToken();
+      const second = createInviteToken();
+      expect(first).not.toBe(second);
+    });
   });
 
-  afterEach(() => {
-    if (prev === undefined) delete process.env.REGISTER_INVITE_SECRET;
-    else process.env.REGISTER_INVITE_SECRET = prev;
+  describe("isExpired", () => {
+    const expiresAt = new Date("2026-09-07T15:00:00.000Z");
+
+    it("retorna false quando now é anterior a expires_at", () => {
+      const now = new Date("2026-09-07T14:59:59.999Z");
+      expect(isExpired(expiresAt, now)).toBe(false);
+    });
+
+    it("retorna true quando now é igual a expires_at", () => {
+      expect(isExpired(expiresAt, expiresAt)).toBe(true);
+    });
+
+    it("retorna true quando now é posterior a expires_at", () => {
+      const now = new Date("2026-09-07T15:00:00.001Z");
+      expect(isExpired(expiresAt, now)).toBe(true);
+    });
+
+    it("aceita expires_at como string ISO", () => {
+      const now = new Date("2026-09-07T16:00:00.000Z");
+      expect(isExpired("2026-09-07T15:00:00.000Z", now)).toBe(true);
+    });
   });
 
-  it("secretConfigured retorna false quando variável ausente ou só espaços", async () => {
-    const mod = await import("./registerInvite");
-    expect(mod.default.secretConfigured()).toBe(false);
-    process.env.REGISTER_INVITE_SECRET = "   ";
-    expect(mod.default.secretConfigured()).toBe(false);
+  describe("tokensMatch", () => {
+    it("retorna true para tokens iguais com trim", () => {
+      expect(tokensMatch("  abc-token  ", "abc-token")).toBe(true);
+    });
+
+    it("retorna false para tokens diferentes", () => {
+      expect(tokensMatch("token-a", "token-b")).toBe(false);
+    });
+
+    it("retorna false quando comprimentos diferem", () => {
+      expect(tokensMatch("short", "much-longer-token")).toBe(false);
+    });
   });
 
-  it("tokenValid retorna false quando segredo não está configurado", async () => {
-    process.env.REGISTER_INVITE_SECRET = "";
-    const mod = await import("./registerInvite");
-    expect(mod.default.tokenValid("abc")).toBe(false);
+  describe("inviteExpiresAt", () => {
+    it("retorna now + 24 horas", () => {
+      const now = new Date("2026-09-07T12:00:00.000Z");
+      expect(inviteExpiresAt(now).toISOString()).toBe(
+        "2026-09-08T12:00:00.000Z",
+      );
+    });
   });
 
-  it("tokenValid aceita convite igual ao segredo", async () => {
-    process.env.REGISTER_INVITE_SECRET = "segredo-fixo";
-    const mod = await import("./registerInvite");
-    expect(mod.default.tokenValid("segredo-fixo")).toBe(true);
-    expect(mod.default.tokenValid("segredo-fixox")).toBe(false);
-    expect(mod.default.tokenValid(" outro ")).toBe(false);
-  });
-
-  it("tokenValid faz trim no token fornecido", async () => {
-    process.env.REGISTER_INVITE_SECRET = "abc";
-    const mod = await import("./registerInvite");
-    expect(mod.default.tokenValid("  abc  ")).toBe(true);
+  describe("buildInviteUrl", () => {
+    it("usa NEXT_PUBLIC_SITE_URL quando definido", () => {
+      const previous = process.env.NEXT_PUBLIC_SITE_URL;
+      process.env.NEXT_PUBLIC_SITE_URL = "https://nosso-tbr.example/";
+      try {
+        expect(
+          buildInviteUrl(
+            new Request("http://localhost/api/admin/invites"),
+            "tok",
+          ),
+        ).toBe("https://nosso-tbr.example/register?invite=tok");
+      } finally {
+        if (previous === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+        else process.env.NEXT_PUBLIC_SITE_URL = previous;
+      }
+    });
   });
 });

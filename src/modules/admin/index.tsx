@@ -20,12 +20,14 @@ export default function AdminScreen() {
     users,
     isLoadingUsers,
     usersError,
-    inviteUrl,
-    inviteConfigured,
-    isLoadingInvite,
-    inviteError,
-    copied,
+    invites,
+    isLoadingInvites,
+    invitesError,
+    createInvite,
+    isCreatingInvite,
+    copiedInviteId,
     copyInviteLink,
+    formatInviteExpiry,
     tierLabel,
     userPendingDelete,
     openDeleteConfirm,
@@ -47,33 +49,67 @@ export default function AdminScreen() {
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Administração</h1>
         <p className="text-sm text-muted-foreground">
-          Usuários do sistema e link de convite para cadastro.
+          Usuários do sistema e convites de cadastro com validade de 24 horas.
         </p>
       </header>
 
-      <section className="flex flex-col gap-3" aria-labelledby="invite-heading">
-        <h2 id="invite-heading" className="text-lg font-medium">
-          Link de convite
-        </h2>
-        {isLoadingInvite ? (
-          <p className="text-sm text-muted-foreground">Carregando link…</p>
-        ) : inviteError ? (
+      <section className="flex flex-col gap-4" aria-labelledby="invite-heading">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-1">
+            <h2 id="invite-heading" className="text-lg font-medium">
+              Convites de cadastro
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Cada link permite múltiplos cadastros até expirar. Gere um novo
+              quando precisar convidar alguém.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={createInvite}
+            disabled={isCreatingInvite}
+            className="shrink-0"
+          >
+            {isCreatingInvite ? "Gerando…" : "Gerar convite (24h)"}
+          </Button>
+        </div>
+
+        {isLoadingInvites ? (
+          <p className="text-sm text-muted-foreground">Carregando convites…</p>
+        ) : invitesError ? (
           <p className="text-sm text-destructive">
-            Não foi possível carregar o link de convite.
+            Não foi possível carregar os convites.
           </p>
-        ) : !inviteConfigured || !inviteUrl ? (
-          <p className="text-sm text-muted-foreground">
-            Convite não configurado no servidor. Defina REGISTER_INVITE_SECRET.
+        ) : invites.length === 0 ? (
+          <p className="rounded-md border border-dashed px-4 py-6 text-sm text-muted-foreground">
+            Nenhum convite ativo. Gere um link para compartilhar o cadastro.
           </p>
         ) : (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <code className="flex-1 break-all rounded-md border bg-muted/40 px-3 py-2 text-sm">
-              {inviteUrl}
-            </code>
-            <Button type="button" variant="outline" onClick={copyInviteLink}>
-              {copied ? "Copiado" : "Copiar"}
-            </Button>
-          </div>
+          <ul className="flex flex-col gap-3">
+            {invites.map((invite) => (
+              <li
+                key={invite.id}
+                className="flex flex-col gap-3 rounded-md border px-4 py-3"
+              >
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-medium">
+                    Expira {formatInviteExpiry(invite.expires_at)}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyInviteLink(invite)}
+                  >
+                    {copiedInviteId === invite.id ? "Copiado" : "Copiar link"}
+                  </Button>
+                </div>
+                <code className="break-all rounded-md bg-muted/40 px-3 py-2 text-xs sm:text-sm">
+                  {invite.inviteUrl}
+                </code>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 

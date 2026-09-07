@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
-import Header from "@/components/header";
+import { Newsreader } from "next/font/google";
 import { Suspense, cache } from "react";
+
+import Header from "@/components/header";
 import { UserProvider } from "@/providers/UserProvider";
 import { getCurrentUserSession } from "@/services/users/service/getCurrentUser.service";
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-auth-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Nosso TBR",
@@ -25,18 +34,20 @@ export default async function MainLayout({
       initialUser={session?.user ?? null}
       initialTier={session?.tier ?? null}
     >
-      <Suspense
-        fallback={
-          <svg
-            className="mr-3 size-5 animate-spin ..."
-            viewBox="0 0 24 24"
-          ></svg>
-        }
-      >
-        <Header />
-      </Suspense>
-      <div className="pt-36  p-6 flex flex-col items-center gap-6">
-        {children}
+      <div className={newsreader.variable}>
+        <Suspense
+          fallback={
+            <svg
+              className="mr-3 size-5 animate-spin ..."
+              viewBox="0 0 24 24"
+            ></svg>
+          }
+        >
+          <Header />
+        </Suspense>
+        <div className="flex flex-col items-center gap-6 p-6 pt-36">
+          {children}
+        </div>
       </div>
     </UserProvider>
   );

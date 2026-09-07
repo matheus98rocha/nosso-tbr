@@ -4,7 +4,7 @@ const validPayload = {
   email: "tester@example.com",
   password: "Password123",
   display_name: "Tester",
-  invite: "test-invite-secret",
+  invite: "valid-invite-token",
 };
 
 type SessionClient = {
@@ -25,6 +25,30 @@ type AdminClient = {
 const { createServiceRoleClientMock } = vi.hoisted(() => ({
   createServiceRoleClientMock: vi.fn(),
 }));
+
+function mockRegisterInviteLookup(
+  adminClient: AdminClient,
+  result: {
+    data: {
+      id: string;
+      token: string;
+      expires_at: string;
+    } | null;
+    error?: null;
+  },
+) {
+  const maybeSingle = vi.fn().mockResolvedValue({ ...result, error: result.error ?? null });
+  const eq = vi.fn(() => ({ maybeSingle }));
+  const select = vi.fn(() => ({ eq }));
+
+  const originalFrom = adminClient.from as (table: string) => unknown;
+  adminClient.from = vi.fn((table: string) => {
+    if (table === "register_invites") return { select };
+    return originalFrom(table);
+  }) as AdminClient["from"];
+
+  return { select, eq, maybeSingle };
+}
 
 async function loadRoute(sessionClient: SessionClient, adminClient?: AdminClient) {
   vi.resetModules();
@@ -52,27 +76,34 @@ describe("POST /api/auth/register", () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    vi.stubEnv("REGISTER_INVITE_SECRET", "test-invite-secret");
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-07T12:00:00.000Z"));
     consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
       // noop for tests
     });
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.resetModules();
     vi.unmock("@/lib/supabase/server");
     vi.unmock("@/lib/supabase/serviceRole");
   });
 
-  it("returns 503 when REGISTER_INVITE_SECRET is not configured", async () => {
-    vi.unstubAllEnvs();
-    vi.stubEnv("REGISTER_INVITE_SECRET", "");
+  it("returns 403 when invite token is unknown in register_invites", async () => {
+    const upsert = vi.fn();
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser: vi.fn() } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
 
-    const route = await loadRoute({
-      auth: { signInWithPassword: vi.fn() },
-    });
+    mockRegisterInviteLookup(adminClient, { data: null });
+
+    const route = await loadRoute({ auth: { signInWithPassword: vi.fn() } }, adminClient);
 
     const response = await route.POST(
       new Request("http://localhost/api/auth/register", {
@@ -82,27 +113,44 @@ describe("POST /api/auth/register", () => {
       }),
     );
 
-    expect(response.status).toBe(503);
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: expect.stringContaining("Convite inválido ou expirado"),
+    });
   });
 
-  it("returns 403 when invite token does not match", async () => {
-    const route = await loadRoute(
-      { auth: { signInWithPassword: vi.fn() } },
-      {
-        auth: { admin: { createUser: vi.fn() } },
-        from: vi.fn(),
+  it("returns 403 when invite exists but is expired", async () => {
+    const upsert = vi.fn();
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser: vi.fn() } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(adminClient, {
+      data: {
+        id: "invite-expired",
+        token: validPayload.invite,
+        expires_at: "2026-09-07T11:59:59.999Z",
       },
-    );
+    });
+
+    const route = await loadRoute({ auth: { signInWithPassword: vi.fn() } }, adminClient);
 
     const response = await route.POST(
       new Request("http://localhost/api/auth/register", {
         method: "POST",
-        body: JSON.stringify({ ...validPayload, invite: "wrong-token" }),
+        body: JSON.stringify(validPayload),
         headers: { "content-type": "application/json" },
       }),
     );
 
     expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: expect.stringContaining("Convite inválido ou expirado"),
+    });
   });
 
   it("returns 503 when service role is not configured", async () => {
@@ -133,13 +181,26 @@ describe("POST /api/auth/register", () => {
         status: 422,
       },
     });
+    const upsert = vi.fn();
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(adminClient, {
+      data: {
+        id: "invite-valid",
+        token: validPayload.invite,
+        expires_at: "2026-09-08T12:00:00.000Z",
+      },
+    });
 
     const route = await loadRoute(
       { auth: { signInWithPassword: vi.fn() } },
-      {
-        auth: { admin: { createUser } },
-        from: vi.fn(),
-      },
+      adminClient,
     );
 
     const response = await route.POST(
@@ -165,13 +226,26 @@ describe("POST /api/auth/register", () => {
       data: { user: null },
       error: null,
     });
+    const upsert = vi.fn();
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(adminClient, {
+      data: {
+        id: "invite-valid",
+        token: validPayload.invite,
+        expires_at: "2026-09-08T12:00:00.000Z",
+      },
+    });
 
     const route = await loadRoute(
       { auth: { signInWithPassword: vi.fn() } },
-      {
-        auth: { admin: { createUser } },
-        from: vi.fn(),
-      },
+      adminClient,
     );
 
     const response = await route.POST(
@@ -188,21 +262,33 @@ describe("POST /api/auth/register", () => {
     });
   });
 
-  it("returns 201, cria perfil e autentica a sessão", async () => {
+  it("returns 201, cria perfil e autentica a sessão com convite válido no banco", async () => {
     const upsert = vi.fn().mockResolvedValue({ error: null });
-    const from = vi.fn().mockReturnValue({ upsert });
     const createUser = vi.fn().mockResolvedValue({
       data: { user: { id: "new-user-id" } },
       error: null,
     });
     const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
 
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    const inviteLookup = mockRegisterInviteLookup(adminClient, {
+      data: {
+        id: "invite-valid",
+        token: validPayload.invite,
+        expires_at: "2026-09-08T12:00:00.000Z",
+      },
+    });
+
     const route = await loadRoute(
       { auth: { signInWithPassword } },
-      {
-        auth: { admin: { createUser } },
-        from,
-      },
+      adminClient,
     );
 
     const response = await route.POST(
@@ -215,6 +301,7 @@ describe("POST /api/auth/register", () => {
 
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toEqual({ ok: true });
+    expect(inviteLookup.eq).toHaveBeenCalledWith("token", validPayload.invite);
     expect(createUser).toHaveBeenCalledWith({
       email: validPayload.email,
       password: validPayload.password,
@@ -244,19 +331,31 @@ describe("POST /api/auth/register", () => {
         hint: null,
       },
     });
-    const from = vi.fn().mockReturnValue({ upsert });
     const createUser = vi.fn().mockResolvedValue({
       data: { user: { id: "user-123" } },
       error: null,
     });
     const signInWithPassword = vi.fn();
 
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(adminClient, {
+      data: {
+        id: "invite-valid",
+        token: validPayload.invite,
+        expires_at: "2026-09-08T12:00:00.000Z",
+      },
+    });
+
     const route = await loadRoute(
       { auth: { signInWithPassword } },
-      {
-        auth: { admin: { createUser } },
-        from,
-      },
+      adminClient,
     );
 
     const response = await route.POST(
@@ -284,7 +383,6 @@ describe("POST /api/auth/register", () => {
 
   it("returns 500 when sign-in after registration fails", async () => {
     const upsert = vi.fn().mockResolvedValue({ error: null });
-    const from = vi.fn().mockReturnValue({ upsert });
     const createUser = vi.fn().mockResolvedValue({
       data: { user: { id: "new-user-id" } },
       error: null,
@@ -293,12 +391,25 @@ describe("POST /api/auth/register", () => {
       error: { code: "invalid_credentials", message: "Invalid login" },
     });
 
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(adminClient, {
+      data: {
+        id: "invite-valid",
+        token: validPayload.invite,
+        expires_at: "2026-09-08T12:00:00.000Z",
+      },
+    });
+
     const route = await loadRoute(
       { auth: { signInWithPassword } },
-      {
-        auth: { admin: { createUser } },
-        from,
-      },
+      adminClient,
     );
 
     const response = await route.POST(

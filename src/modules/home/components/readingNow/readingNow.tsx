@@ -99,21 +99,25 @@ export default function ReadingNow({ className }: ReadingNowProps) {
           ease: sectionTransition.ease,
         }}
         className={cn(
-          "overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-none",
-          "dark:border-zinc-800 dark:bg-zinc-900/70",
+          "overflow-hidden rounded-xl border border-[oklch(0.22_0.05_264/0.12)] bg-card/95 shadow-[0_12px_40px_-28px_oklch(0.25_0.05_264/0.35)]",
+          "dark:border-zinc-800 dark:bg-zinc-900/70 dark:shadow-none",
           className,
         )}
         aria-label="Lendo agora"
       >
-        <div className="flex flex-col gap-1.5 border-b border-zinc-200/70 px-3 py-2.5 dark:border-zinc-800/80">
+        <div className="flex flex-col gap-1.5 border-b border-[oklch(0.22_0.05_264/0.1)] bg-[oklch(0.22_0.05_264/0.03)] px-3 py-2.5 dark:border-zinc-800/80 dark:bg-transparent">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <p className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
-                <BookOpen size={13} aria-hidden className="text-zinc-400 dark:text-zinc-500" />
+              <p className="brand-display flex items-center gap-1.5 text-[13px] font-semibold tracking-tight text-[oklch(0.28_0.05_264)] dark:text-zinc-300">
+                <BookOpen
+                  size={13}
+                  aria-hidden
+                  className="text-[oklch(0.45_0.08_264)] dark:text-zinc-500"
+                />
                 Lendo agora
               </p>
               {!isLoading && items.length > 0 && (
-                <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                <span className="rounded-full bg-[oklch(0.22_0.05_264/0.08)] px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground dark:bg-zinc-800 dark:text-zinc-400">
                   {items.length}
                 </span>
               )}

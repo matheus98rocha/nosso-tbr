@@ -1,6 +1,7 @@
 export {
+  createAdminInvite,
   deleteAdminUser,
-  getAdminInviteLink,
+  getAdminInvites,
   getAdminUsers,
   promoteAdminUser,
 } from "./admin.service";
