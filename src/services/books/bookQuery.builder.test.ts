@@ -46,6 +46,66 @@ describe("BookQueryBuilder", () => {
       });
     });
 
+    it("passes dotted initials through to textSearch so host lexemes like j.r.r match", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("J.R.R Tolkien")
+        .build();
+
+      expect(mockQuery.textSearch).toHaveBeenCalledWith(
+        "search_vector",
+        "j.r.r tolkien",
+        {
+          type: "plain",
+          config: "simple",
+        },
+      );
+    });
+
+    it("passes trailing-dot initials variant through to textSearch", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("J.R.R. Tolkien")
+        .build();
+
+      expect(mockQuery.textSearch).toHaveBeenCalledWith(
+        "search_vector",
+        "j.r.r. tolkien",
+        {
+          type: "plain",
+          config: "simple",
+        },
+      );
+    });
+
+    it("passes two-letter author initials through to textSearch", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("C.S. Lewis")
+        .build();
+
+      expect(mockQuery.textSearch).toHaveBeenCalledWith(
+        "search_vector",
+        "c.s. lewis",
+        {
+          type: "plain",
+          config: "simple",
+        },
+      );
+    });
+
+    it("passes mixed title and dotted-author search through to textSearch", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withSearchTerm("Hobbit J.R.R Tolkien")
+        .build();
+
+      expect(mockQuery.textSearch).toHaveBeenCalledWith(
+        "search_vector",
+        "hobbit j.r.r tolkien",
+        {
+          type: "plain",
+          config: "simple",
+        },
+      );
+    });
+
     it("does not apply FTS when the term reduces to only stop words", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
         .withSearchTerm("o a de")

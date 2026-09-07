@@ -5,7 +5,7 @@ export function buildFtsQueryFromUserSearch(
   searchTerm: string | undefined,
 ): string | null {
   if (!searchTerm?.trim()) return null;
-  const cleanTerm = searchTerm.replace(/[^\w\sÀ-ÿ]/g, " ").trim();
+  const cleanTerm = searchTerm.replace(/[^\w\sÀ-ÿ.]/g, " ").trim();
   const words = cleanTerm
     .split(/\s+/)
     .map((word) => stripLatinDiacritics(word).toLowerCase())
