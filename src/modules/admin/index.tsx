@@ -28,6 +28,7 @@ export default function AdminScreen() {
     copiedInviteId,
     copyInviteLink,
     formatInviteExpiry,
+    formatLastSignIn,
     tierLabel,
     userPendingDelete,
     openDeleteConfirm,
@@ -45,7 +46,7 @@ export default function AdminScreen() {
   }
 
   return (
-    <div className="w-full max-w-4xl flex flex-col gap-8">
+    <div className="w-full max-w-6xl flex flex-col gap-8">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Administração</h1>
         <p className="text-sm text-muted-foreground">
@@ -130,6 +131,8 @@ export default function AdminScreen() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>E-mail</TableHead>
+                  <TableHead className="text-center">Livros</TableHead>
+                  <TableHead>Último acesso</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -137,7 +140,7 @@ export default function AdminScreen() {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground">
+                    <TableCell colSpan={6} className="text-muted-foreground">
                       Nenhum usuário encontrado.
                     </TableCell>
                   </TableRow>
@@ -146,6 +149,12 @@ export default function AdminScreen() {
                     <TableRow key={user.id}>
                       <TableCell>{user.display_name}</TableCell>
                       <TableCell>{user.email ?? "—"}</TableCell>
+                      <TableCell className="text-center tabular-nums">
+                        {user.books_count}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatLastSignIn(user.last_sign_in_at)}
+                      </TableCell>
                       <TableCell>{tierLabel(user.tier)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

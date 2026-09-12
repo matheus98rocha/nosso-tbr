@@ -145,6 +145,17 @@ export default function useAdmin() {
     return "Common-user";
   }, []);
 
+  const formatLastSignIn = useCallback((lastSignInAt: string | null) => {
+    if (!lastSignInAt) return "Nunca";
+    const date = new Date(lastSignInAt);
+    const absolute = format(date, "dd/MM/yyyy HH:mm", { locale: ptBR });
+    const relative = formatDistanceToNow(date, {
+      addSuffix: true,
+      locale: ptBR,
+    });
+    return `${absolute} (${relative})`;
+  }, []);
+
   const openDeleteConfirm = useCallback((user: AdminUserListItem) => {
     setUserPendingDelete(user);
   }, []);
@@ -191,6 +202,7 @@ export default function useAdmin() {
     copiedInviteId,
     copyInviteLink,
     formatInviteExpiry,
+    formatLastSignIn,
     tierLabel,
     userPendingDelete,
     openDeleteConfirm,

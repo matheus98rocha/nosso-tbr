@@ -5,6 +5,8 @@ export type AdminUserListItem = {
   display_name: string;
   email: string | null;
   tier: UserTier;
+  books_count: number;
+  last_sign_in_at: string | null;
 };
 
 export type AdminInviteItem = {
