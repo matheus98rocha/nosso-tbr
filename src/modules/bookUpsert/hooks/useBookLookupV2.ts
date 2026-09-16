@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import type { BookLookupData } from "../types/bookLookup.types";
 
@@ -10,8 +10,10 @@ export function useBookLookupV2() {
   const [book, setBook] = useState<BookLookupData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const lookup = useCallback(async (params: LookupParams) => {
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     setBook(null);
@@ -29,6 +31,8 @@ export function useBookLookupV2() {
         `/api/book-lookup-v2?${searchParams.toString()}`,
       );
 
+      if (requestId !== requestIdRef.current) return;
+
       if (res.status === 404) {
         setError("Nenhum livro encontrado.");
         return;
@@ -43,17 +47,23 @@ export function useBookLookupV2() {
       }
 
       const data = await res.json();
+      if (requestId !== requestIdRef.current) return;
       setBook(data.book);
     } catch {
+      if (requestId !== requestIdRef.current) return;
       setError("Erro de conexão.");
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   const clear = useCallback(() => {
+    requestIdRef.current += 1;
     setBook(null);
     setError(null);
+    setIsLoading(false);
   }, []);
 
   return { book, isLoading, error, lookup, clear };
