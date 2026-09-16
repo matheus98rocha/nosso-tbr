@@ -219,6 +219,14 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
   - **Gráfico de pizza** (`PieChart`) – colaboração/leitura entre leitores.
 - Permite selecionar leitor via `<Select>`; rota é sincronizada com query string (`/stats?reader=Nome`).
 
+### 🤝 Comunidade (`/community`)
+
+- Tela autenticada para **descobrir leitores** (exceto o usuário logado): avatar, nome, quantidade de livros cadastrados e lidos, livro em leitura quando houver, seguir / deixar de seguir.
+- Contagens de **seguindo** e **seguidores**; recortes **Todos** / **Seguidores** / **Seguindo** (`?view=`).
+- Busca local por nome. Modal com a mesma atividade, gênero mais lido, gênero com mais livros cadastrados e atalho ao perfil do membro.
+- Gêneros via RPC `get_community_reader_genres()` e atividade via `get_community_reader_activity()`, ambas **SECURITY INVOKER** (respeitam RLS de livros privados).
+- Meu perfil deixa de listar o diretório completo e aponta para esta tela.
+
 ### 🔐 Autenticação & Recuperação de Senha
 
 - **Login (`/auth`)**

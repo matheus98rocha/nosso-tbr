@@ -91,4 +91,9 @@ export const QUERY_KEYS = {
     users: ["admin", "users"] as const,
     invites: ["admin", "invites"] as const,
   },
+  community: {
+    all: ["community"] as const,
+    snapshot: (userId: string) =>
+      [...QUERY_KEYS.community.all, "snapshot", userId] as const,
+  },
 } as const;

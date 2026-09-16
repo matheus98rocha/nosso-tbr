@@ -1,14 +1,16 @@
 import { useMemo } from "react";
 import Link from "next/link";
-import { BarChart3, BookUser, Home, Library } from "lucide-react";
+import { BarChart3, BookUser, Home, Library, Shield, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IconMap, NavItemProps } from "../../types/desktopNavMenu.types";
 
 const iconMap: IconMap = {
   Início: <Home className="w-[18px] h-[18px]" />,
   Estatisticas: <BarChart3 className="w-[18px] h-[18px]" />,
+  Comunidade: <Users className="w-[18px] h-[18px]" />,
   "Ver Estantes": <Library className="w-[18px] h-[18px]" />,
   Autores: <BookUser className="w-[18px] h-[18px]" />,
+  Administração: <Shield className="w-[18px] h-[18px]" />,
 };
 
 export function NavItem({ item, isActive, onPrefetch }: NavItemProps) {

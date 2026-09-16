@@ -106,6 +106,33 @@ export class UserSocialService {
     return (data ?? []).map((row) => row.following_id as string);
   }
 
+  async getFollowerIds(): Promise<string[]> {
+    const {
+      data: { user },
+      error: authError,
+    } = await this.supabase.auth.getUser();
+
+    if (authError || !user) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from("user_followers")
+      .select("follower_id")
+      .eq("following_id", user.id);
+
+    if (error) {
+      throw new RepositoryError(
+        "Failed to load followers",
+        undefined,
+        undefined,
+        error,
+      );
+    }
+
+    return (data ?? []).map((row) => row.follower_id as string);
+  }
+
   async follow(followingId: string): Promise<void> {
     const {
       data: { user },

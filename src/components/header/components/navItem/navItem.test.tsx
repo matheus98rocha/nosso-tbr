@@ -191,4 +191,22 @@ describe("NavItem", () => {
       expect(onPrefetch).toHaveBeenCalledWith("Autores");
     });
   });
+
+  describe("ícones das abas", () => {
+    it("renderiza o ícone Users na aba Comunidade", () => {
+      renderNavItem({ label: "Comunidade", path: "/community" });
+
+      const link = screen.getByRole("link", { name: /Comunidade/i });
+
+      expect(link.querySelector("svg.lucide-users")).not.toBeNull();
+    });
+
+    it("renderiza o ícone Shield na aba Administração", () => {
+      renderNavItem({ label: "Administração", path: "/admin" });
+
+      const link = screen.getByRole("link", { name: /Administração/i });
+
+      expect(link.querySelector("svg.lucide-shield")).not.toBeNull();
+    });
+  });
 });

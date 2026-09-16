@@ -58,6 +58,7 @@ import { DesktopNavMenu } from "./navMenu";
 const ALLOWED_LABELS = [
   "Início",
   "Estatisticas",
+  "Comunidade",
   "Ver Estantes",
   "Autores",
   "Administração",
@@ -90,6 +91,16 @@ function buildMenuItems() {
         {
           label: "Estatisticas",
           path: "/stats",
+          action: vi.fn(),
+        },
+      ],
+    },
+    {
+      label: "Comunidade",
+      items: [
+        {
+          label: "Comunidade",
+          path: "/community",
           action: vi.fn(),
         },
       ],
@@ -253,7 +264,7 @@ describe("DesktopNavMenu", () => {
   });
 
   describe("filtro ALLOWED_LABELS", () => {
-    it("exibe somente Início, Estatisticas, Ver Estantes e Autores", () => {
+    it("exibe Início, Estatisticas, Comunidade, Ver Estantes e Autores", () => {
       renderDesktopNavMenu();
 
       for (const label of ALLOWED_LABELS) {

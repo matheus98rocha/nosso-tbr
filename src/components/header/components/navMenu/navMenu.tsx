@@ -8,6 +8,7 @@ import { NavItem } from "../navItem";
 const ALLOWED_LABELS = [
   "Início",
   "Estatisticas",
+  "Comunidade",
   "Ver Estantes",
   "Autores",
   "Administração",

@@ -478,6 +478,24 @@ export type Database = {
       }
     }
     Functions: {
+      get_community_reader_activity: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          currently_reading_title: string | null
+          finished_count: number
+          reader_id: string
+          registered_count: number
+        }[]
+      }
+      get_community_reader_genres: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          finished_count: number
+          gender: string
+          reader_id: string
+          registered_count: number
+        }[]
+      }
       get_reader_collaboration_stats: {
         Args: { reader_input: string }
         Returns: {

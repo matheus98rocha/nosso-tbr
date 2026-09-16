@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { type ChangeEvent, useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
+import { COMMUNITY_PATH } from "@/lib/routes/community";
 import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/types/clientProfile.types";
-import { useUserSocial } from "@/modules/profile/hooks";
 import { useClientMounted } from "@/modules/profile/hooks/useClientMounted";
 import {
   formatJoinedDate,
@@ -24,64 +24,28 @@ export function useClientProfile(): ClientProfileViewModel | null {
   const user = useUserStore((state) => state.user);
   const isClientReady = useClientMounted();
   const isLoggedIn = useIsLoggedIn();
+  const queryEnabled = isClientReady && isLoggedIn && Boolean(user?.id);
 
   const { data: ownRow } = useQuery({
     queryKey: ["userSocial", "user", user?.id],
     queryFn: () => service.getUserById(user!.id),
-    enabled: isClientReady && isLoggedIn && !!user?.id,
+    enabled: queryEnabled,
     staleTime: 1000 * 60 * 2,
   });
 
-  const {
-    searchQuery,
-    handleSearchChange,
-    directoryUsers,
-    isLoadingDirectory,
-    isFollowing,
-    toggleFollow,
-    isTogglePending,
-    pendingUserId,
-    followingCount,
-  } = useUserSocial();
+  const { data: followingIds = [] } = useQuery({
+    queryKey: ["userSocial", "following", user?.id],
+    queryFn: () => service.getFollowingIds(),
+    enabled: queryEnabled,
+    staleTime: 1000 * 60 * 2,
+  });
 
-  const onCommunitySearchChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      handleSearchChange(event.target.value);
-    },
-    [handleSearchChange],
-  );
-
-  const onClearCommunitySearch = useCallback(() => {
-    handleSearchChange("");
-  }, [handleSearchChange]);
-
-  const handleFollowPress = useCallback(
-    (memberId: string) => {
-      toggleFollow(memberId);
-    },
-    [toggleFollow],
-  );
-
-  const isToggleLoading = isTogglePending;
-
-  const communityRows = useMemo(() => {
-    return directoryUsers.map((member) => ({
-      memberId: member.id,
-      displayName: member.displayName,
-      email: member.email,
-      isFollowing: isFollowing(member.id),
-      isToggleBusy: isToggleLoading && pendingUserId === member.id,
-      onToggle: () => {
-        handleFollowPress(member.id);
-      },
-    }));
-  }, [
-    directoryUsers,
-    isFollowing,
-    isToggleLoading,
-    pendingUserId,
-    handleFollowPress,
-  ]);
+  const { data: followerIds = [] } = useQuery({
+    queryKey: ["userSocial", "followers", user?.id],
+    queryFn: () => service.getFollowerIds(),
+    enabled: queryEnabled,
+    staleTime: 1000 * 60 * 2,
+  });
 
   return useMemo((): ClientProfileViewModel | null => {
     if (!user?.email) {
@@ -101,24 +65,15 @@ export function useClientProfile(): ClientProfileViewModel | null {
       avatarSeed: ownRow?.avatarSeed ?? null,
       formattedAccountCreated: formatJoinedDate(user.created_at),
       formattedLastSignIn: formatJoinedDate(user.last_sign_in_at),
-      followingCount,
-      searchQuery,
-      onCommunitySearchChange,
-      onClearCommunitySearch,
-      communityRows,
-      isDirectoryLoading: isLoadingDirectory,
-      isCommunityEmpty: directoryUsers.length === 0,
+      followingCount: followingIds.length,
+      followerCount: followerIds.length,
+      communityPath: COMMUNITY_PATH,
     };
   }, [
     user,
     ownRow?.displayName,
     ownRow?.avatarSeed,
-    followingCount,
-    searchQuery,
-    onCommunitySearchChange,
-    onClearCommunitySearch,
-    communityRows,
-    isLoadingDirectory,
-    directoryUsers.length,
+    followingIds.length,
+    followerIds.length,
   ]);
 }

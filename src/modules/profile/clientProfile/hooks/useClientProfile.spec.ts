@@ -2,32 +2,34 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useClientProfile } from "./useClientProfile";
+
 import { useUserStore } from "@/stores/userStore";
-import { useUserSocial } from "@/modules/profile/hooks";
+
+import { useClientProfile } from "./useClientProfile";
 
 vi.mock("@/stores/userStore", () => ({
   useUserStore: vi.fn(),
 }));
 
-vi.mock("@/modules/profile/hooks", () => ({
-  useUserSocial: vi.fn(),
-}));
-
-vi.mock("@/services/userSocial/userSocial.service", () => {
-  const   getUserById = vi.fn().mockResolvedValue({
+const { getUserById, getFollowingIds, getFollowerIds } = vi.hoisted(() => ({
+  getUserById: vi.fn().mockResolvedValue({
     id: "1",
     displayName: "Reader Public",
     email: "reader@tbr.com",
     joinedAt: null,
     avatarSeed: null,
-  });
-  return {
-    UserSocialService: class {
-      getUserById = getUserById;
-    },
-  };
-});
+  }),
+  getFollowingIds: vi.fn().mockResolvedValue(["a", "b", "c", "d", "e"]),
+  getFollowerIds: vi.fn().mockResolvedValue(["x", "y"]),
+}));
+
+vi.mock("@/services/userSocial/userSocial.service", () => ({
+  UserSocialService: class {
+    getUserById = getUserById;
+    getFollowingIds = getFollowingIds;
+    getFollowerIds = getFollowerIds;
+  },
+}));
 
 type UserStoreState = {
   user: {
@@ -61,17 +63,6 @@ describe("useClientProfile", () => {
           },
         }),
     );
-    (useUserSocial as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      searchQuery: "",
-      handleSearchChange: vi.fn(),
-      directoryUsers: [],
-      isLoadingDirectory: false,
-      isFollowing: vi.fn(() => false),
-      toggleFollow: vi.fn(),
-      isTogglePending: true,
-      pendingUserId: "2",
-      followingCount: 3,
-    });
   });
 
   it("usa display_name público quando disponível", async () => {
@@ -94,37 +85,16 @@ describe("useClientProfile", () => {
     expect(result.current).toBeNull();
   });
 
-  it("expõe contagens e linhas da comunidade com estado de toggle quando há membros", async () => {
-    (useUserSocial as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      searchQuery: "",
-      handleSearchChange: vi.fn(),
-      directoryUsers: [
-        {
-          id: "u2",
-          displayName: "Ana",
-          email: "ana@mail.com",
-          joinedAt: null,
-        },
-      ],
-      isLoadingDirectory: false,
-      isFollowing: vi.fn((id: string) => id === "u2"),
-      toggleFollow: vi.fn(),
-      isTogglePending: false,
-      pendingUserId: null,
-      followingCount: 5,
-    });
-
+  it("expõe contagens da rede e atalho da comunidade sem diretório", async () => {
     const { result } = renderHook(() => useClientProfile(), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => {
-      expect(result.current?.displayName).toBe("Reader Public");
+      expect(result.current?.followingCount).toBe(5);
     });
 
-    expect(result.current?.followingCount).toBe(5);
-    expect(result.current?.communityRows).toHaveLength(1);
-    expect(result.current?.communityRows[0]?.isFollowing).toBe(true);
-    expect(result.current?.communityRows[0]?.memberId).toBe("u2");
+    expect(result.current?.followerCount).toBe(2);
+    expect(result.current?.communityPath).toBe("/community");
   });
 });

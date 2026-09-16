@@ -1,15 +1,18 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUserStore } from "@/stores/userStore";
-import { AuthorsService } from "@/modules/authors/services/authors.service";
-import { StatsService } from "@/modules/stats/services/stats.service";
-import { fetchBookShelves } from "@/modules/shelves/services/booksshelves.service";
-import { BookService } from "@/services/books/books.service";
+
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
+import { AuthorsService } from "@/modules/authors/services/authors.service";
+import { CommunityService } from "@/modules/community/services/community.service";
+import { fetchBookShelves } from "@/modules/shelves/services/booksshelves.service";
+import { StatsService } from "@/modules/stats/services/stats.service";
+import { BookService } from "@/services/books/books.service";
+import { useUserStore } from "@/stores/userStore";
 
 const authorsService = new AuthorsService();
 const statsService = new StatsService();
 const bookService = new BookService();
+const communityService = new CommunityService();
 
 export function useDesktopNav() {
   const queryClient = useQueryClient();
@@ -67,6 +70,14 @@ export function useDesktopNav() {
             }),
           ];
           await Promise.allSettled(statsRequests);
+        },
+        Comunidade: async () => {
+          if (!user?.id) return;
+          await queryClient.prefetchQuery({
+            queryKey: QUERY_KEYS.community.snapshot(user.id),
+            queryFn: () => communityService.getSnapshot(user.id),
+            staleTime: 1000 * 60 * 2,
+          });
         },
       };
 

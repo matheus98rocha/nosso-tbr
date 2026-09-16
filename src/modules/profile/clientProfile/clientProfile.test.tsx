@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientProfile from "./clientProfile";
+
 import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/types/clientProfile.types";
+
+import ClientProfile from "./clientProfile";
 
 const baseViewModel: ClientProfileViewModel = {
   displayName: "reader",
@@ -12,12 +13,8 @@ const baseViewModel: ClientProfileViewModel = {
   formattedAccountCreated: "15 de janeiro de 2024",
   formattedLastSignIn: "1 de junho de 2024",
   followingCount: 2,
-  searchQuery: "",
-  onCommunitySearchChange: vi.fn(),
-  onClearCommunitySearch: vi.fn(),
-  communityRows: [],
-  isDirectoryLoading: false,
-  isCommunityEmpty: true,
+  followerCount: 4,
+  communityPath: "/community",
 };
 
 const { mockUseClientProfile } = vi.hoisted(() => ({
@@ -44,12 +41,15 @@ describe("ClientProfile", () => {
     expect(screen.getByText("reader@tbr.com")).toBeInTheDocument();
     expect(screen.getByText("Conta criada")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
   });
 
-  it("chama onClearCommunitySearch ao limpar busca na lista vazia", async () => {
-    const user = userEvent.setup();
+  it("oferece atalho para a Comunidade sem listar membros", () => {
     render(<ClientProfile />);
-    await user.click(screen.getByRole("button", { name: /limpar busca de pessoas/i }));
-    expect(baseViewModel.onClearCommunitySearch).toHaveBeenCalled();
+
+    expect(
+      screen.getByRole("link", { name: /ver comunidade/i }),
+    ).toHaveAttribute("href", "/community");
+    expect(screen.queryByLabelText(/buscar pessoas/i)).not.toBeInTheDocument();
   });
 });

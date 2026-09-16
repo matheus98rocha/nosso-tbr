@@ -1,8 +1,11 @@
+import { usePathname, useRouter } from "next/navigation";
+
 import { useModal } from "@/hooks/";
+import { COMMUNITY_PATH } from "@/lib/routes/community";
+import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { useIsAdmin, useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
-import { usePathname, useRouter } from "next/navigation";
-import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
+
 import { Menu } from "../types/header.types";
 
 export function useHeader() {
@@ -32,6 +35,17 @@ export function useHeader() {
           label: "Estatisticas",
           action: () => router.push("/stats"),
           path: "/stats",
+        },
+      ],
+    },
+    {
+      label: "Comunidade",
+      items: [
+        {
+          label: "Comunidade",
+          action: () => router.push(COMMUNITY_PATH),
+          path: COMMUNITY_PATH,
+          requiresAuth: true,
         },
       ],
     },

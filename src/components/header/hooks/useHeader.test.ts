@@ -51,6 +51,41 @@ describe("useHeader — menu desktop", () => {
     ]);
   });
 
+  it("expõe Comunidade para common-user autenticado", () => {
+    const { result } = renderHook(() => useHeader());
+
+    const allLabels = result.current.menuItems.flatMap((menu) =>
+      menu.items.map((item) => item.label),
+    );
+
+    expect(allLabels).toContain("Comunidade");
+  });
+
+  it("oculta Comunidade quando o usuário não está autenticado", () => {
+    mockUseIsLoggedIn.mockReturnValue(false);
+    const { result } = renderHook(() => useHeader());
+
+    const allLabels = result.current.menuItems.flatMap((menu) =>
+      menu.items.map((item) => item.label),
+    );
+
+    expect(allLabels).not.toContain("Comunidade");
+  });
+
+  it("action de Comunidade navega para /community", () => {
+    const { result } = renderHook(() => useHeader());
+
+    const communityItem = result.current.menuItems
+      .find((menu) => menu.label === "Comunidade")
+      ?.items.find((item) => item.label === "Comunidade");
+
+    communityItem?.action();
+
+    expect(nextNavigationTestState.router.push).toHaveBeenCalledWith(
+      "/community",
+    );
+  });
+
   it("não expõe Autores nem Administração para common-user", () => {
     const { result } = renderHook(() => useHeader());
 

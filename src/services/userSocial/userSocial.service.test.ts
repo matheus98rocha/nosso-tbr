@@ -119,4 +119,38 @@ describe("UserSocialService", () => {
     expect(followersQuery.eq).toHaveBeenNthCalledWith(1, "follower_id", "user-1");
     expect(followersQuery.eq).toHaveBeenNthCalledWith(2, "following_id", "2");
   });
+
+  it("retorna [] quando não há usuário autenticado ao listar seguidores", async () => {
+    getUser.mockResolvedValueOnce({ data: { user: null }, error: null });
+    const service = makeService();
+
+    const result = await service.getFollowerIds();
+
+    expect(result).toEqual([]);
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("consulta following_id do autenticado e mapeia follower_id", async () => {
+    const followersQuery = makeThenableQuery({
+      data: [{ follower_id: "follower-9" }, { follower_id: "follower-8" }],
+      error: null,
+    });
+
+    from.mockImplementation((table: string) => {
+      if (table === "user_followers") {
+        return followersQuery;
+      }
+
+      return makeThenableQuery({ data: [], error: null });
+    });
+
+    const service = makeService();
+    const result = await service.getFollowerIds();
+
+    expect(from).toHaveBeenCalledWith("user_followers");
+    expect(followersQuery.select).toHaveBeenCalledWith("follower_id");
+    expect(followersQuery.eq).toHaveBeenCalledWith("following_id", "user-1");
+    expect(result).toEqual(["follower-9", "follower-8"]);
+  });
 });
+

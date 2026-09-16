@@ -1,17 +1,22 @@
-import { UserSocialService } from "@/services/userSocial/userSocial.service";
-import {
-  FollowToggleMutationContext,
-  FollowToggleVariables,
-} from "@/modules/profile/types/followToggle.types";
 import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
+import { QUERY_KEYS } from "@/constants/keys";
+import {
+  FollowToggleMutationContext,
+  FollowToggleVariables,
+} from "@/modules/profile/types/followToggle.types";
+import { UserSocialService } from "@/services/userSocial/userSocial.service";
+
 const service = new UserSocialService();
 
-export function useOptimisticFollowToggle(currentUserId: string | undefined) {
+export function useOptimisticFollowToggle(
+  currentUserId: string | undefined,
+  options?: { onToggleError?: () => void },
+) {
   const queryClient = useQueryClient();
 
   const followingQueryKey = useMemo(
@@ -44,6 +49,7 @@ export function useOptimisticFollowToggle(currentUserId: string | undefined) {
       if (context) {
         queryClient.setQueryData(followingQueryKey, context.previous);
       }
+      options?.onToggleError?.();
     },
     onSettled: async () => {
       await Promise.all([
@@ -51,6 +57,9 @@ export function useOptimisticFollowToggle(currentUserId: string | undefined) {
           queryKey: ["userSocial", "following"],
         }),
         queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.community.all,
+        }),
       ]);
     },
   });
