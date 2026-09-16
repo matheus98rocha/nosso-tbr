@@ -107,6 +107,10 @@ vi.mock("@/modules/bookUpsert", () => ({
   BookUpsert: () => null,
 }));
 
+vi.mock("@/modules/aiRecommendation", () => ({
+  AiRecommendationDialog: () => null,
+}));
+
 vi.mock(
   "../shelves/components/createEditBookshelves",
   () => ({
