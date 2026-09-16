@@ -45,6 +45,36 @@ export function useBookUpsert({
   );
 
   const {
+    book: foundBook,
+    isLoading: isSearchingBooks,
+    error: lookupError,
+    lookup,
+    clear: clearBookLookup,
+  } = useBookLookupV2();
+
+  const [lookupQuery, setLookupQuery] = useState("");
+  const [authorSearch, setAuthorSearch] = useState("");
+  const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
+  const [pendingAuthorLookup, setPendingAuthorLookup] = useState(false);
+
+  const resetLookupUi = useCallback(() => {
+    setAuthorSearch("");
+    setLookupQuery("");
+    clearBookLookup();
+    setPendingAuthorLookup(false);
+  }, [clearBookLookup]);
+
+  const handleSetIsBookFormOpen = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        resetLookupUi();
+      }
+      setIsBookFormOpen(open);
+    },
+    [resetLookupUi, setIsBookFormOpen],
+  );
+
+  const {
     onSubmit,
     isLoading,
     isAddToShelfEnabled,
@@ -76,22 +106,9 @@ export function useBookUpsert({
   } = useBookDialog({
     isBookFormOpen,
     bookData,
-    setIsBookFormOpen,
+    setIsBookFormOpen: handleSetIsBookFormOpen,
     chosenByOptions,
   });
-
-  const {
-    book: foundBook,
-    isLoading: isSearchingBooks,
-    error: lookupError,
-    lookup,
-    clear: clearBookLookup,
-  } = useBookLookupV2();
-
-  const [lookupQuery, setLookupQuery] = useState("");
-  const [authorSearch, setAuthorSearch] = useState("");
-  const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
-  const [pendingAuthorLookup, setPendingAuthorLookup] = useState(false);
 
   const deferredAuthorSearch = useDeferredValue(authorSearch);
 
@@ -134,14 +151,10 @@ export function useBookUpsert({
       if (!open) {
         reset();
         setSelected("not_started");
-        setAuthorSearch("");
-        setLookupQuery("");
-        clearBookLookup();
-        setPendingAuthorLookup(false);
       }
-      setIsBookFormOpen(open);
+      handleSetIsBookFormOpen(open);
     },
-    [reset, setSelected, setIsBookFormOpen, clearBookLookup],
+    [reset, setSelected, handleSetIsBookFormOpen],
   );
 
   const handleCancelDiscoveryDialog = useCallback(() => {
@@ -217,7 +230,7 @@ export function useBookUpsert({
   }, [pendingAuthorLookup, isLoadingAuthors, authors, deferredAuthorSearch, form]);
 
   useEffect(() => {
-    if (!foundBook) return;
+    if (!foundBook || !isBookFormOpen) return;
     form.setValue("title", foundBook.nome_do_livro);
     if (foundBook.paginas) form.setValue("pages", foundBook.paginas);
     if (foundBook.url_capa) form.setValue("image_url", foundBook.url_capa);
@@ -226,7 +239,7 @@ export function useBookUpsert({
       setAuthorSearch(foundBook.autor);
       setPendingAuthorLookup(true);
     }
-  }, [foundBook, form]);
+  }, [foundBook, form, isBookFormOpen]);
 
   const lastAppliedInitialQuery = useRef<string | null>(null);
 

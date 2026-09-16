@@ -122,6 +122,14 @@ function setupMocks(
   });
 }
 
+function getDialogSetIsBookFormOpen() {
+  const lastCall = (useBookDialog as Mock).mock.calls.at(-1);
+  if (!lastCall?.[0]) {
+    throw new Error("useBookDialog não recebeu props");
+  }
+  return lastCall[0].setIsBookFormOpen as (open: boolean) => void;
+}
+
 const makeBookLookupData = (
   partial: Partial<BookLookupData> = {},
 ): BookLookupData => ({
@@ -405,5 +413,149 @@ describe("useBookUpsert — auto-seleção de autor", () => {
       "author_id",
       expect.anything(),
     );
+  });
+});
+
+describe("useBookUpsert — reset da busca automática após criar livro", () => {
+  it("zera lookupQuery e chama clear ao receber false no setter passado a useBookDialog", () => {
+    setupMocks();
+    const { result } = renderHook(() => useBookUpsert(defaultProps));
+
+    act(() => {
+      result.current.handleLookupQueryChange("Dom Quixote");
+    });
+
+    expect(result.current.lookupQuery).toBe("Dom Quixote");
+
+    act(() => {
+      getDialogSetIsBookFormOpen()(false);
+    });
+
+    expect(result.current.lookupQuery).toBe("");
+    expect(mockClearV2).toHaveBeenCalled();
+    expect(mockSetIsBookFormOpen).toHaveBeenCalledWith(false);
+  });
+
+  it("zera authorSearch ao receber false no setter após foundBook com autor", async () => {
+    setupMocks({
+      lookupV2: {
+        book: makeBookLookupData({ autor: "Miguel de Cervantes" }),
+      },
+    });
+    const { result } = renderHook(() => useBookUpsert(defaultProps));
+
+    await waitFor(() => {
+      expect(result.current.authorSearch).toBe("Miguel de Cervantes");
+    });
+
+    act(() => {
+      getDialogSetIsBookFormOpen()(false);
+    });
+
+    expect(result.current.authorSearch).toBe("");
+  });
+
+  it("não chama form.setValue quando foundBook existe mas isBookFormOpen é false", () => {
+    setupMocks({
+      lookupV2: { book: makeBookLookupData() },
+    });
+    renderHook(() =>
+      useBookUpsert({ ...defaultProps, isBookFormOpen: false }),
+    );
+
+    expect(mockSetValue).not.toHaveBeenCalled();
+  });
+
+  it("não aplica foundBook novamente após fechar pelo setter encapsulado", async () => {
+    setupMocks({
+      lookupV2: { book: makeBookLookupData() },
+    });
+    renderHook(() => useBookUpsert(defaultProps));
+
+    await waitFor(() => {
+      expect(mockSetValue).toHaveBeenCalledWith("title", "Dom Quixote");
+    });
+
+    mockSetValue.mockClear();
+
+    act(() => {
+      getDialogSetIsBookFormOpen()(false);
+    });
+
+    expect(mockSetValue).not.toHaveBeenCalled();
+  });
+
+  it("não limpa a busca ao receber true no setter passado a useBookDialog", () => {
+    setupMocks();
+    const { result } = renderHook(() => useBookUpsert(defaultProps));
+
+    act(() => {
+      result.current.handleLookupQueryChange("Dom Quixote");
+    });
+
+    act(() => {
+      getDialogSetIsBookFormOpen()(true);
+    });
+
+    expect(result.current.lookupQuery).toBe("Dom Quixote");
+    expect(mockClearV2).not.toHaveBeenCalled();
+    expect(mockSetIsBookFormOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("zera lookupQuery e authorSearch ao fechar pelo Cancel/X", async () => {
+    setupMocks({
+      lookupV2: {
+        book: makeBookLookupData({ autor: "Miguel de Cervantes" }),
+      },
+    });
+    const { result } = renderHook(() => useBookUpsert(defaultProps));
+
+    act(() => {
+      result.current.handleLookupQueryChange("Dom Quixote");
+    });
+
+    await waitFor(() => {
+      expect(result.current.authorSearch).toBe("Miguel de Cervantes");
+    });
+
+    act(() => {
+      result.current.handleDialogOpenChange(false);
+    });
+
+    expect(result.current.lookupQuery).toBe("");
+    expect(result.current.authorSearch).toBe("");
+    expect(mockClearV2).toHaveBeenCalled();
+  });
+
+  it("não auto-seleciona autor se o lookup pendente foi resetado ao fechar", async () => {
+    setupMocks({
+      authors: [],
+      isLoadingAuthors: true,
+      lookupV2: { book: makeBookLookupData({ autor: "Miguel de Cervantes" }) },
+    });
+    const { result, rerender } = renderHook(() => useBookUpsert(defaultProps));
+
+    await waitFor(() => {
+      expect(result.current.authorSearch).toBe("Miguel de Cervantes");
+    });
+
+    act(() => {
+      getDialogSetIsBookFormOpen()(false);
+    });
+
+    mockSetValue.mockClear();
+
+    act(() => {
+      result.current.handleAuthorSearchChange("Novo Autor");
+    });
+
+    (useQuery as Mock).mockReturnValue({
+      data: [{ id: "author-99", name: "Novo Autor" }],
+      isLoading: false,
+    });
+
+    rerender();
+
+    expect(mockSetValue).not.toHaveBeenCalledWith("author_id", "author-99");
   });
 });
