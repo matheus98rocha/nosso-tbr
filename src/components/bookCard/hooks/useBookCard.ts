@@ -15,6 +15,8 @@ import { useToggleBookFavorite } from "@/services/bookFavorites/hooks/useToggleB
 import type { BookCreateValidator, Status } from "@/types/books.types";
 import { BookUpsertService } from "@/modules/bookUpsert/services/bookUpsert.service";
 
+import { useAddBookToLibrary } from "./useAddBookToLibrary";
+
 export function useBookCard({
   book,
   isShelf = false,
@@ -41,15 +43,19 @@ export function useBookCard({
     [isSoloBook, currentUser?.id, book.chosen_by],
   );
 
-  const canAccessCollectiveReading = useMemo(() => {
-    if (!isLogged || !BookMapper.isCollectiveReadingBook(book)) return false;
+  const isBookParticipant = useMemo(() => {
     if (!currentUser?.id) return false;
     return canUserParticipateInBook(currentUser.id, {
       user_id: book.user_id,
       chosen_by: book.chosen_by,
       readers: book.readerIds,
     });
-  }, [book, currentUser?.id, isLogged]);
+  }, [book.chosen_by, book.readerIds, book.user_id, currentUser?.id]);
+
+  const canAccessCollectiveReading = useMemo(() => {
+    if (!isLogged || !BookMapper.isCollectiveReadingBook(book)) return false;
+    return isBookParticipant;
+  }, [book, isBookParticipant, isLogged]);
 
   const collectiveReadingHref = useMemo(
     () =>
@@ -285,34 +291,62 @@ export function useBookCard({
   );
 
   const showFavoriteToggle =
-    !hideInteractions && isLogged && book.status === "finished";
+    !hideInteractions &&
+    isLogged &&
+    isBookParticipant &&
+    book.status === "finished";
+
+  const showBookOptionsMenu =
+    !hideInteractions && isLogged && isBookParticipant;
+
+  const showAddToLibrary =
+    isLogged &&
+    !isBookParticipant &&
+    !isShelf &&
+    Boolean(book.authorId) &&
+    book.pages > 0;
+
+  const { addToLibrary, isAddToLibraryPending } = useAddBookToLibrary({
+    book,
+    enabled: showAddToLibrary,
+  });
 
   const showReadingProgress =
-    isLogged && !isShelf && book.status === "reading";
+    isLogged && isBookParticipant && !isShelf && book.status === "reading";
 
   const showStartReadingAction =
     isLogged &&
+    isBookParticipant &&
     !isShelf &&
     (book.status === "not_started" || book.status === "planned");
 
   const showResumeReadingAction =
-    isLogged && !isShelf && book.status === "paused";
+    isLogged && isBookParticipant && !isShelf && book.status === "paused";
 
   const cardReadingActionLabel = showResumeReadingAction
     ? "Reiniciar leitura"
     : "Iniciar leitura";
 
   const showCardFooterAction =
-    showReadingProgress || showStartReadingAction || showResumeReadingAction;
+    showReadingProgress ||
+    showStartReadingAction ||
+    showResumeReadingAction ||
+    showAddToLibrary;
 
   const handleFavoriteClick = useCallback(
     (event?: MouseEvent<HTMLButtonElement>) => {
       event?.preventDefault();
       event?.stopPropagation();
-      if (!book.id || isFavoritePending) return;
+      if (!book.id || isFavoritePending || !showFavoriteToggle) return;
       toggleFavorite(book.id, !book.is_favorite);
     },
-    [book.id, book.is_favorite, isFavoritePending, toggleFavorite],
+    [
+      book.id,
+      book.is_favorite,
+      isFavoritePending,
+      showFavoriteToggle,
+      toggleFavorite,
+    ],
   );
 
   return {
@@ -343,6 +377,7 @@ export function useBookCard({
     statusDisplay,
     isOwnSoloBook,
     showFavoriteToggle,
+    showBookOptionsMenu,
     handleFavoriteClick,
     isFavoritePending,
     canAccessCollectiveReading,
@@ -353,5 +388,8 @@ export function useBookCard({
     showResumeReadingAction,
     cardReadingActionLabel,
     showCardFooterAction,
+    showAddToLibrary,
+    addToLibrary,
+    isAddToLibraryPending,
   };
 }

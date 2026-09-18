@@ -15,7 +15,12 @@ vi.mock("@/modules/bookshelves/services/bookshelvesBooks.service");
 vi.mock("@/hooks/useModal", () => ({
   useModal: () => ({ setIsOpen: vi.fn() }),
 }));
-vi.mock("@/stores/hooks/useAuth", () => ({ useIsLoggedIn: () => true }));
+const toggleFavoriteMock = vi.hoisted(() => vi.fn());
+const isLoggedInMock = vi.hoisted(() => ({ value: true }));
+
+vi.mock("@/stores/hooks/useAuth", () => ({
+  useIsLoggedIn: () => isLoggedInMock.value,
+}));
 vi.mock("@/stores/userStore", () => ({
   useUserStore: vi.fn((selector: (state: unknown) => unknown) =>
     selector({
@@ -23,9 +28,10 @@ vi.mock("@/stores/userStore", () => ({
     }),
   ),
 }));
+
 vi.mock("@/services/bookFavorites/hooks/useToggleBookFavorite", () => ({
   useToggleBookFavorite: () => ({
-    toggle: vi.fn(),
+    toggle: toggleFavoriteMock,
     isPending: false,
   }),
 }));
@@ -35,6 +41,12 @@ vi.mock("@/modules/bookUpsert/services/bookUpsert.service", () => ({
     return {
       edit: vi.fn().mockResolvedValue(undefined),
     };
+  }),
+}));
+vi.mock("./useAddBookToLibrary", () => ({
+  useAddBookToLibrary: () => ({
+    addToLibrary: vi.fn(),
+    isAddToLibraryPending: false,
   }),
 }));
 
@@ -65,26 +77,46 @@ const baseBook: BookDomain = {
   start_date: "2024-01-01",
   end_date: null,
   gender: "Fiction",
+  authorId: "author-1",
   image_url: "https://example.com/test.jpg",
   user_id: "user-123",
   is_reread: false,
   is_favorite: false,
 };
 
+const othersBook: BookDomain = {
+  ...baseBook,
+  user_id: "other-user",
+  chosen_by: "other-user",
+  readerIds: ["other-user"],
+};
+
 const renderBookCardHook = (
   book = baseBook,
-  options?: { isShelf: true; shelfId: string },
+  options?: {
+    hideInteractions?: boolean;
+    isShelf?: boolean;
+    shelfId?: string;
+  },
 ) => {
   const { Wrapper } = createWrapper();
-  const props: BookCardProps = options
-    ? { book, isShelf: true, shelfId: options.shelfId }
-    : { book };
+  const hideInteractions = options?.hideInteractions;
+  const props: BookCardProps =
+    options?.isShelf === true
+      ? {
+          book,
+          isShelf: true,
+          shelfId: options.shelfId ?? "",
+          hideInteractions,
+        }
+      : { book, hideInteractions };
   return renderHook(() => useBookCard(props), { wrapper: Wrapper });
 };
 
 describe("useBookCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    isLoggedInMock.value = true;
   });
 
   describe("useBookCard", () => {
@@ -276,6 +308,120 @@ describe("useBookCard", () => {
       });
     });
 
+    describe("ações de dono (RN42 / RN59)", () => {
+      it("exibe favoritar e menu quando o livro é do usuário e está finished", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "finished",
+        });
+
+        expect(result.current.showFavoriteToggle).toBe(true);
+        expect(result.current.showBookOptionsMenu).toBe(true);
+      });
+
+      it("exibe o menu, mas não o favoritar, quando o livro é do usuário e não está finished", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "reading",
+        });
+
+        expect(result.current.showFavoriteToggle).toBe(false);
+        expect(result.current.showBookOptionsMenu).toBe(true);
+      });
+
+      it("oculta favoritar e menu quando o usuário não participa do livro", () => {
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          status: "finished",
+        });
+
+        expect(result.current.showFavoriteToggle).toBe(false);
+        expect(result.current.showBookOptionsMenu).toBe(false);
+      });
+
+      it("exibe favoritar e menu quando o usuário só aparece em readers", () => {
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          status: "finished",
+          readerIds: ["user-123"],
+        });
+
+        expect(result.current.showFavoriteToggle).toBe(true);
+        expect(result.current.showBookOptionsMenu).toBe(true);
+      });
+
+      it("oculta favoritar e menu com hideInteractions mesmo sendo dono", () => {
+        const { result } = renderBookCardHook(
+          { ...baseBook, status: "finished" },
+          { hideInteractions: true },
+        );
+
+        expect(result.current.showFavoriteToggle).toBe(false);
+        expect(result.current.showBookOptionsMenu).toBe(false);
+      });
+
+      it("exibe favoritar e menu quando o usuário só aparece em chosen_by", () => {
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          status: "finished",
+          chosen_by: "user-123",
+        });
+
+        expect(result.current.showFavoriteToggle).toBe(true);
+        expect(result.current.showBookOptionsMenu).toBe(true);
+      });
+
+      it("oculta favoritar e menu quando não há sessão", () => {
+        isLoggedInMock.value = false;
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "finished",
+        });
+
+        expect(result.current.showFavoriteToggle).toBe(false);
+        expect(result.current.showBookOptionsMenu).toBe(false);
+      });
+
+      it("dispara toggle de favorito em livro finished do usuário", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "finished",
+        });
+
+        act(() => {
+          result.current.handleFavoriteClick();
+        });
+
+        expect(toggleFavoriteMock).toHaveBeenCalledWith("1", true);
+      });
+
+      it("não dispara toggle de favorito em livro do usuário que não está finished", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "reading",
+        });
+
+        act(() => {
+          result.current.handleFavoriteClick();
+        });
+
+        expect(toggleFavoriteMock).not.toHaveBeenCalled();
+      });
+
+      it("não dispara toggle de favorito em livro de outra pessoa", () => {
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          status: "finished",
+        });
+
+        act(() => {
+          result.current.handleFavoriteClick();
+        });
+
+        expect(toggleFavoriteMock).not.toHaveBeenCalled();
+      });
+    });
+
     describe("card footer actions", () => {
       it("exibe ação de iniciar leitura para livros em not_started", () => {
         const { result } = renderBookCardHook({
@@ -321,6 +467,93 @@ describe("useBookCard", () => {
         expect(result.current.showStartReadingAction).toBe(false);
         expect(result.current.showReadingProgress).toBe(true);
         expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("não exibe adicionar à biblioteca no próprio livro", () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "not_started",
+        });
+
+        expect(result.current.showAddToLibrary).toBe(false);
+        expect(result.current.showStartReadingAction).toBe(true);
+      });
+
+      it("oculta adicionar à biblioteca para visitante", () => {
+        isLoggedInMock.value = false;
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          status: "finished",
+        });
+
+        expect(result.current.showAddToLibrary).toBe(false);
+      });
+
+      it("oculta adicionar à biblioteca quando pages é inválido", () => {
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          pages: 0,
+        });
+
+        expect(result.current.showAddToLibrary).toBe(false);
+      });
+
+      it("exibe adicionar à biblioteca e oculta iniciar leitura em livro de outra pessoa", () => {
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          status: "planned",
+        });
+
+        expect(result.current.showAddToLibrary).toBe(true);
+        expect(result.current.showStartReadingAction).toBe(false);
+        expect(result.current.showResumeReadingAction).toBe(false);
+        expect(result.current.showReadingProgress).toBe(false);
+        expect(result.current.showCardFooterAction).toBe(true);
+      });
+
+      it("oculta progresso e reinício em livro de outra pessoa", () => {
+        const reading = renderBookCardHook({
+          ...othersBook,
+          status: "reading",
+        });
+        expect(reading.result.current.showReadingProgress).toBe(false);
+        expect(reading.result.current.showAddToLibrary).toBe(true);
+
+        const paused = renderBookCardHook({
+          ...othersBook,
+          status: "paused",
+        });
+        expect(paused.result.current.showResumeReadingAction).toBe(false);
+        expect(paused.result.current.showAddToLibrary).toBe(true);
+      });
+
+      it("mantém adicionar à biblioteca no perfil mesmo com hideInteractions", () => {
+        const { result } = renderBookCardHook(
+          { ...othersBook, status: "finished" },
+          { hideInteractions: true },
+        );
+
+        expect(result.current.showAddToLibrary).toBe(true);
+        expect(result.current.showFavoriteToggle).toBe(false);
+        expect(result.current.showBookOptionsMenu).toBe(false);
+      });
+
+      it("oculta adicionar à biblioteca na estante", () => {
+        const { result } = renderBookCardHook(
+          { ...othersBook, status: "finished" },
+          { isShelf: true, shelfId: "shelf-abc" },
+        );
+
+        expect(result.current.showAddToLibrary).toBe(false);
+      });
+
+      it("oculta adicionar à biblioteca sem authorId", () => {
+        const { result } = renderBookCardHook({
+          ...othersBook,
+          authorId: undefined,
+        });
+
+        expect(result.current.showAddToLibrary).toBe(false);
       });
 
       it("oculta ações do rodapé na estante", () => {

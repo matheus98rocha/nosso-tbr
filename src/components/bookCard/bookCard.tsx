@@ -5,6 +5,7 @@ import { EllipsisVerticalIcon, Heart, Users } from "lucide-react";
 import { BookCover } from "@/components/bookCover";
 
 import BookCardDetailsModal from "./components/bookCardDetailsModal";
+import { CardAddToLibraryButton } from "./components/cardAddToLibraryButton";
 import { CardStartReadingButton } from "./components/cardStartReadingButton";
 import { AddBookToShelf } from "./components/addBookToShelf";
 import { DropdownBook } from "./components/dropdownBook";
@@ -23,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { formatBookPagesLabel } from "@/utils/formatters";
 
 export function BookCard(props: BookCardProps) {
-  const { isShelf = false, hideInteractions = false, onEditBook } = props;
+  const { isShelf = false, onEditBook } = props;
   const {
     book,
     dialogAddShelfModal,
@@ -50,15 +51,19 @@ export function BookCard(props: BookCardProps) {
     statusDisplay,
     isOwnSoloBook,
     showFavoriteToggle,
+    showBookOptionsMenu,
     handleFavoriteClick,
     isFavoritePending,
     canAccessCollectiveReading,
     showReadingProgress,
     showCardFooterAction,
     cardReadingActionLabel,
+    showAddToLibrary,
+    addToLibrary,
+    isAddToLibraryPending,
   } = useBookCard(props);
 
-  const showTopActions = showFavoriteToggle || (isLogged && !hideInteractions);
+  const showTopActions = showFavoriteToggle || showBookOptionsMenu;
   const showReadersOnCard = isLogged && Boolean(book.readersDisplay?.trim());
 
   const coverSizes = isShelf
@@ -301,7 +306,7 @@ export function BookCard(props: BookCardProps) {
                       />
                     </button>
                   )}
-                  {isLogged && !hideInteractions && (
+                  {showBookOptionsMenu && (
                     <DropdownBook
                       isOpen={dropdownModal.isOpen}
                       onOpenChange={dropdownModal.setIsOpen}
@@ -351,7 +356,13 @@ export function BookCard(props: BookCardProps) {
             </div>
             {showCardFooterAction && !isShelf && (
               <div className="flex min-w-0 w-full flex-col items-center border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800/80">
-                {showReadingProgress ? (
+                {showAddToLibrary ? (
+                  <CardAddToLibraryButton
+                    bookTitle={book.title}
+                    onAddToLibrary={addToLibrary}
+                    isPending={isAddToLibraryPending}
+                  />
+                ) : showReadingProgress ? (
                   <CardReadingProgressIndicator
                     bookId={book.id}
                     onNavigateToSchedule={handleNavigateToSchedule}
