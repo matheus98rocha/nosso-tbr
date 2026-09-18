@@ -47,6 +47,10 @@ vi.mock("@/modules/schedule/components/readingProgressIndicator", () => ({
   ),
 }));
 
+vi.mock("@/modules/bookRating", () => ({
+  CardReadingRatingButton: () => null,
+}));
+
 const mockedUseBookCard = vi.mocked(useBookCard);
 
 const baseBook: BookDomain = {
@@ -100,6 +104,10 @@ function presetUseBookCard(
     dropdownModal: ModalMock;
     bookDetailsModal: ModalMock;
     showFavoriteToggle: boolean;
+    showBookOptionsMenu: boolean;
+    showAddToLibrary: boolean;
+    addToLibrary: () => void;
+    isAddToLibraryPending: boolean;
     canAccessCollectiveReading: boolean;
     statusDisplay: {
       label: string;
@@ -140,8 +148,12 @@ function presetUseBookCard(
     showStartReadingAction =
       book.status === "not_started" || book.status === "planned",
     showResumeReadingAction = book.status === "paused",
+    showAddToLibrary = false,
     showCardFooterAction =
-      showReadingProgress || showStartReadingAction || showResumeReadingAction,
+      showReadingProgress ||
+      showStartReadingAction ||
+      showResumeReadingAction ||
+      showAddToLibrary,
     cardReadingActionLabel =
       book.status === "paused" ? "Reiniciar leitura" : "Iniciar leitura",
     onStartReading = vi.fn(),
@@ -177,6 +189,10 @@ function presetUseBookCard(
     statusDisplay,
     isOwnSoloBook,
     showFavoriteToggle: patch.showFavoriteToggle ?? false,
+    showBookOptionsMenu: patch.showBookOptionsMenu ?? isLogged,
+    showAddToLibrary: patch.showAddToLibrary ?? false,
+    addToLibrary: patch.addToLibrary ?? vi.fn(),
+    isAddToLibraryPending: patch.isAddToLibraryPending ?? false,
     handleFavoriteClick: vi.fn(),
     isFavoritePending: false,
     canAccessCollectiveReading: patch.canAccessCollectiveReading ?? false,
@@ -260,6 +276,65 @@ describe("BookCard", () => {
     expect(moreBtn.className).toMatch(/w-11/);
     expect(moreBtn.className).toMatch(/h-11/);
     expect(container.querySelector("img")).toBeTruthy();
+  });
+
+  it("quando o hook oculta as flags, não renderiza favoritar nem o menu de opções", () => {
+    const finishedBook = { ...baseBook, status: "finished" as const };
+    presetUseBookCard(finishedBook, {
+      isLogged: true,
+      showFavoriteToggle: false,
+      showBookOptionsMenu: false,
+    });
+    render(<BookCard book={finishedBook} />);
+
+    expect(
+      screen.queryByRole("button", {
+        name: 'Mais opções para "Memórias Póstumas"',
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: /favorito/i,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("quando o hook habilita adicionar à biblioteca, renderiza o botão no rodapé", () => {
+    const otherBook = { ...baseBook, status: "finished" as const };
+    const addToLibrary = vi.fn();
+    presetUseBookCard(otherBook, {
+      showAddToLibrary: true,
+      showBookOptionsMenu: false,
+      addToLibrary,
+    });
+    render(<BookCard book={otherBook} />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: 'Adicionar "Memórias Póstumas" à minha biblioteca',
+      }),
+    );
+
+    expect(addToLibrary).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: "Iniciar leitura" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("quando o hook habilita favoritar, renderiza o botão de coração", () => {
+    const finishedBook = { ...baseBook, status: "finished" as const };
+    presetUseBookCard(finishedBook, {
+      isLogged: true,
+      showFavoriteToggle: true,
+      showBookOptionsMenu: true,
+    });
+    render(<BookCard book={finishedBook} />);
+
+    expect(
+      screen.getByRole("button", {
+        name: 'Marcar "Memórias Póstumas" como favorito',
+      }),
+    ).toBeInTheDocument();
   });
 
   it("RN55: na estante, o diálogo de remoção descreve apenas o vínculo com a estante", () => {

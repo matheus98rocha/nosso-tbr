@@ -124,7 +124,7 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 
 - Lista de **todos os livros** cadastrados para visitantes e, para usuários logados, visões combinadas pela seção **Visão** na própria home.
 - Abas **`Todos`** / **`Leituras conjuntas`** / **`Seguindo`** (`?view=` `todos` \| `joint` \| `seguindo`) usando `router.replace` na query string (**SPA**, sem reload de página inteira): ao alternar, o React Query dispara nova busca pela chave atualizada.
-- **`Seguindo`**: lista livros relacionados apenas a **`following_id`** em `user_followers` para o usuário atual (consulta restrita aos IDs obtidos pelo `UserSocialService.getFollowingIds`), **excluindo** livros em que o próprio usuário aparece em **`readers`** ou é **`chosen_by`**. Leituras **individuais privadas** (RN56) permanecem ocultas para quem não segue o dono; **seguidores** enxergam esses livros na aba Seguindo e no perfil do membro.
+- **`Seguindo`**: lista livros relacionados apenas a **`following_id`** em `user_followers` para o usuário atual (consulta restrita aos IDs obtidos pelo `UserSocialService.getFollowingIds`), **excluindo** livros em que o próprio usuário aparece em **`readers`** ou é **`chosen_by`**. Leituras **individuais privadas** (RN56) permanecem ocultas para quem não segue o dono; **seguidores** enxergam esses livros na aba Seguindo e no perfil do membro. Nessa visão o `BookCard` **não** exibe favoritar nem o menu **⋮** (o livro não é do usuário logado) e mostra **Adicionar à biblioteca**.
 - **`Todos`** (usuário logado): continua unindo você e perfis que você segue nos chips de leitor.
 - **Filtros avançados** usando `BookQueryBuilder`:
   - Gênero (`gender`)
@@ -137,6 +137,7 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
   - **Avaliar leitura finalizada com 1–5 estrelas** (tabela `book_reading_ratings`, apenas para o próprio usuário): convite opcional depois de marcar como **Terminei a Leitura** e ajustes no próprio cartão quando o livro não está em modo estante.
   - **Criar/editar estante** via modal `CreateEditBookshelves`.
   - **Adicionar livro à estante** a partir do card (`AddBookToShelf`): persiste na API e exibe toast de confirmação **sem redirecionar** para `/bookshelves/[id]`; o acesso à tela de estantes continua pelo menu ou links explícitos.
+  - **Favoritar** (coração) e **menu ⋮** do `BookCard` só para quem **participa** do livro (`user_id`, `chosen_by` ou `readers`). Favoritar exige ainda status `finished`. Livros de outras pessoas continuam visíveis (detalhes, leitores, status), sem esses controles, e ganham o botão **Adicionar à biblioteca** (cria uma cópia sua em `not_started`, sem alterar o livro original).
 
 ### 📖 Minhas Leituras (`/my-books`)
 
