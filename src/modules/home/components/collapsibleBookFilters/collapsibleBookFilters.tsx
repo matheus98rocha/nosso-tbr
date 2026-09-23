@@ -119,7 +119,7 @@ export default function CollapsibleBookFilters({
   }
 
   return (
-    <div className="dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+    <div className="max-sm:hidden dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
       <div
         className={cn(
           "flex items-center justify-between gap-3 px-4 py-3",

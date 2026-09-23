@@ -131,7 +131,7 @@ function Header() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="flex w-[min(92vw,24rem)] max-h-[calc(100dvh-1rem)] flex-col p-0 sm:max-w-sm"
+              className="flex w-[min(92vw,24rem)] max-h-[calc(100dvh-1rem)] flex-col p-0 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-sm"
             >
             <SheetHeader className="border-b px-6 py-5">
               <SheetTitle className="text-base font-semibold tracking-tight">

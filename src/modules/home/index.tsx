@@ -127,7 +127,7 @@ export default function ClientHome() {
   return (
     <div
       className={cn(
-        "home-atmosphere mx-auto w-full max-w-7xl px-4 py-7",
+        "home-atmosphere mx-auto w-full max-w-7xl px-4 py-7 lg:px-6 lg:py-10",
         isLoggedIn && FAB_CONTENT_PADDING_CLASS,
       )}
     >
@@ -157,8 +157,8 @@ export default function ClientHome() {
         />
       )}
 
-      <header className="mb-5 flex flex-col gap-4">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+      <header className="mb-5 flex flex-col gap-4 lg:gap-5">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end lg:gap-6">
           <div className="space-y-1.5">
             {isLoading ? (
               <Skeleton className="h-full w-40" />
