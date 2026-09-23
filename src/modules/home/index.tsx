@@ -164,7 +164,7 @@ export default function ClientHome() {
               <Skeleton className="h-full w-40" />
             ) : (
               <div className="flex items-baseline gap-2.5">
-                <span className="brand-display page-title tabular-nums text-[oklch(0.22_0.05_264)] dark:text-zinc-100">
+                <span className="brand-display page-title tabular-nums text-[var(--reading-ink)]">
                   {allBooks?.total || 0}
                 </span>
                 <span className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
@@ -198,7 +198,10 @@ export default function ClientHome() {
           )}
         </div>
         {isLoggedIn ? (
-          <CollapsibleBookFilters activeFilterLabels={activeFilterLabels}>
+          <CollapsibleBookFilters
+            activeFilterLabels={activeFilterLabels}
+            onClearAll={handleClearAllFilters}
+          >
             <div className="p-4 space-y-2.5">
               <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
                 <Users size={11} />

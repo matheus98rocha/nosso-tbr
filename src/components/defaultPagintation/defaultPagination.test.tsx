@@ -48,6 +48,18 @@ describe("DefaultPagination", () => {
     expect(setCurrentPage).toHaveBeenCalledWith(1);
   });
 
+  it("shows a compact page summary for narrow screens", () => {
+    render(
+      <Pagination
+        currentPage={1}
+        totalPages={8}
+        setCurrentPage={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Página 2 de 8")).toBeInTheDocument();
+  });
+
   it("renders nothing when only one page exists", () => {
     const { container } = render(
       <Pagination currentPage={0} totalPages={1} setCurrentPage={vi.fn()} />,

@@ -23,6 +23,7 @@ function DefaultPaginationComponent(props: DefaultPaginationProps) {
     shouldRender,
     tokens,
     currentPage,
+    totalPages,
     isFirstPage,
     isLastPage,
     prevText,
@@ -51,7 +52,12 @@ function DefaultPaginationComponent(props: DefaultPaginationProps) {
         </PaginationItem>
 
         <PaginationItem className="flex min-h-11 min-w-0 flex-1 items-center justify-center sm:flex-none">
-          <div className="flex max-h-11 min-h-11 w-full min-w-0 flex-1 touch-pan-x overflow-x-auto overscroll-x-contain scroll-smooth motion-reduce:scroll-auto [-ms-overflow-style:none] [scrollbar-gutter:stable] [scrollbar-width:thin] sm:flex-none sm:max-h-none sm:overflow-visible [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:max-md:h-0 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="flex min-h-11 w-full min-w-0 items-center justify-center sm:hidden">
+            <span className="text-sm font-medium text-foreground" aria-live="polite">
+              Página {currentPage + 1} de {totalPages}
+            </span>
+          </div>
+          <div className="hidden max-h-11 min-h-11 w-full min-w-0 flex-1 touch-pan-x overflow-x-auto overscroll-x-contain scroll-smooth motion-reduce:scroll-auto [-ms-overflow-style:none] [scrollbar-gutter:stable] [scrollbar-width:thin] sm:flex sm:max-w-max sm:flex-none sm:overflow-visible [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:max-md:h-0 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
             <ul
               aria-label="Page numbers"
               className="mx-auto flex max-w-max min-w-0 flex-nowrap items-center justify-center gap-0.5 px-1 sm:gap-1 md:gap-1.5"
