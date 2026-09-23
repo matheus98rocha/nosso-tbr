@@ -17,7 +17,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useBookCard } from "./hooks/useBookCard";
 import { BookCardProps } from "./types/bookCard.types";
 import { cn } from "@/lib/utils";
@@ -87,7 +89,7 @@ export function BookCard(props: BookCardProps) {
       type="button"
       onClick={handleOpenBookDetails}
       className={cn(
-        "flex min-w-0 flex-1 cursor-pointer gap-3 rounded-md border-0 bg-transparent p-0 transition-opacity duration-200 hover:opacity-95 active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950",
+        "flex min-w-0 flex-1 cursor-pointer gap-3 rounded-md border-0 bg-transparent p-0 text-left transition-opacity duration-200 hover:opacity-95 active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         isShelf ? "gap-2.5 text-left" : "gap-3 text-center",
       )}
       aria-label={`Ver detalhes: ${book.title}`}
@@ -110,7 +112,7 @@ export function BookCard(props: BookCardProps) {
           <TooltipTrigger asChild>
             <p
               className={cn(
-                "min-w-0 font-semibold leading-snug text-zinc-900 line-clamp-2 dark:text-zinc-100",
+                "min-w-0 font-semibold leading-snug text-foreground line-clamp-2",
                 isShelf ? "text-xs" : "text-sm",
               )}
             >
@@ -126,7 +128,7 @@ export function BookCard(props: BookCardProps) {
           <TooltipTrigger asChild>
             <p
               className={cn(
-                "min-w-0 text-zinc-600 dark:text-zinc-400",
+                "min-w-0 text-muted-foreground",
                 isShelf
                   ? "line-clamp-1 text-[11px]"
                   : "line-clamp-2 text-xs leading-snug",
@@ -142,7 +144,7 @@ export function BookCard(props: BookCardProps) {
         {pagesLabel && (
           <p
             className={cn(
-              "shrink-0 tabular-nums text-zinc-500 dark:text-zinc-500",
+              "shrink-0 tabular-nums text-muted-foreground/80",
               isShelf
                 ? "text-[10px] leading-tight"
                 : "text-[11px] leading-tight",
@@ -165,21 +167,23 @@ export function BookCard(props: BookCardProps) {
             {showReadersOnCard && (
               <span
                 className={cn(
-                  "flex max-w-full min-w-0 items-center justify-center gap-1 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400",
+                  "flex max-w-full min-w-0 items-center justify-center gap-1 text-[11px] leading-relaxed text-muted-foreground",
                 )}
               >
                 <Users aria-hidden className="size-2.5 shrink-0" />
-                <span className="truncate">{book.readersDisplay}</span>
+                <Badge variant="outline" className="min-w-0 max-w-full font-normal">
+                  <span className="truncate">{book.readersDisplay}</span>
+                </Badge>
               </span>
             )}
             {statusDisplay && (
-              <span
+              <Badge
+                variant="secondary"
                 className={cn(
                   "mx-auto inline-flex w-fit items-center gap-1 rounded-full font-semibold",
                   isShelf
                     ? "h-4 gap-0.5 px-1.5 py-0 text-[9px]"
                     : "px-2 py-0.5 text-[10px]",
-                  statusDisplay.colorClass,
                 )}
               >
                 <span
@@ -190,7 +194,7 @@ export function BookCard(props: BookCardProps) {
                   )}
                 />
                 {statusDisplay.label}
-              </span>
+              </Badge>
             )}
           </div>
         )}
@@ -247,7 +251,7 @@ export function BookCard(props: BookCardProps) {
           "group gap-0 overflow-hidden py-0",
           isShelf
             ? "h-full border-0 bg-transparent shadow-none transition-colors duration-200"
-            : "border-zinc-200 bg-zinc-50/30 dark:border-zinc-800 dark:bg-zinc-900/40 transition-shadow duration-200 hover:shadow-md",
+            : "border-border/70 bg-card/80 shadow-sm transition-shadow duration-200 hover:shadow-md",
         )}
       >
         <CardContent
@@ -274,8 +278,10 @@ export function BookCard(props: BookCardProps) {
                   onKeyDown={(e) => e.stopPropagation()}
                 >
                   {showFavoriteToggle && (
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={handleFavoriteClick}
                       disabled={isFavoritePending}
                       title={
@@ -290,11 +296,11 @@ export function BookCard(props: BookCardProps) {
                       }
                       aria-pressed={book.is_favorite}
                       className={cn(
-                        "flex cursor-pointer items-center justify-center rounded-full border transition-colors duration-200 disabled:opacity-60",
-                        isShelf ? "h-7 w-7" : "h-9 w-9",
+                        "rounded-full border border-transparent transition-colors duration-200",
+                        isShelf ? "size-7" : "size-9",
                         book.is_favorite
-                          ? "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/60"
-                          : "border-zinc-200 bg-zinc-50/80 text-zinc-400 hover:border-rose-200 hover:text-rose-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:border-rose-800 dark:hover:text-rose-400",
+                          ? "border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/15"
+                          : "text-muted-foreground hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive",
                       )}
                     >
                       <Heart
@@ -304,7 +310,7 @@ export function BookCard(props: BookCardProps) {
                         )}
                         aria-hidden
                       />
-                    </button>
+                    </Button>
                   )}
                   {showBookOptionsMenu && (
                     <DropdownBook
@@ -314,17 +320,19 @@ export function BookCard(props: BookCardProps) {
                       isFavorite={book.is_favorite}
                       favoriteActionBusy={isFavoritePending}
                       trigger={
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           aria-label={`Mais opções para "${book.title}"`}
                           className={cn(
-                            "flex shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 hover:bg-zinc-100 active:opacity-70 dark:hover:bg-zinc-800",
-                            isShelf ? "h-8 w-8" : "h-11 w-11",
+                            "shrink-0 rounded-full text-muted-foreground active:opacity-70",
+                            isShelf ? "size-8" : "size-11",
                           )}
                         >
                           <EllipsisVerticalIcon
                             className={cn(
-                              "text-zinc-400",
+                              "text-muted-foreground",
                               isShelf ? "size-3.5" : "size-4",
                             )}
                             aria-hidden
@@ -332,7 +340,7 @@ export function BookCard(props: BookCardProps) {
                             onTouchEnd={dropdownTap.handleTouchEnd}
                             onClick={dropdownTap.handleClick}
                           />
-                        </button>
+                        </Button>
                       }
                       editBook={() =>
                         onEditBook
@@ -355,7 +363,7 @@ export function BookCard(props: BookCardProps) {
               )}
             </div>
             {showCardFooterAction && !isShelf && (
-              <div className="flex min-w-0 w-full flex-col items-center border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800/80">
+              <CardFooter className="flex min-w-0 w-full flex-col items-center gap-2 border-t border-border/70 px-0 pt-2.5">
                 {showAddToLibrary ? (
                   <CardAddToLibraryButton
                     bookTitle={book.title}
@@ -375,7 +383,7 @@ export function BookCard(props: BookCardProps) {
                     label={cardReadingActionLabel}
                   />
                 )}
-              </div>
+              </CardFooter>
             )}
             {!isShelf && book.status === "finished" && (
               <CardReadingRatingButton book={book} />

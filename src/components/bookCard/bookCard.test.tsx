@@ -229,6 +229,26 @@ describe("BookCard", () => {
     expect(screen.getByText("Lendo agora")).toBeInTheDocument();
   });
 
+  it("apresenta status e leitores como badges legÃ­veis", () => {
+    presetUseBookCard(baseBook);
+    render(<BookCard book={baseBook} />);
+
+    expect(screen.getByText("Lendo agora")).toHaveAttribute(
+      "data-slot",
+      "badge",
+    );
+    expect(screen.getByText("Eu").closest('[data-slot="badge"]')).toBeInTheDocument();
+  });
+
+  it("organiza a aÃ§Ã£o principal no rodapÃ© semÃ¢ntico do card", () => {
+    presetUseBookCard(baseBook);
+    render(<BookCard book={baseBook} />);
+
+    expect(
+      screen.getByTestId("card-reading-progress").closest('[data-slot="card-footer"]'),
+    ).toBeInTheDocument();
+  });
+
   it("clique no alvo principal do card chama abertura do modal de detalhes", () => {
     const handleOpenBookDetails = vi.fn();
     presetUseBookCard(baseBook, { handleOpenBookDetails });
@@ -273,8 +293,7 @@ describe("BookCard", () => {
       name: 'Mais opções para "Memórias Póstumas"',
     });
     expect(moreBtn).toBeInTheDocument();
-    expect(moreBtn.className).toMatch(/w-11/);
-    expect(moreBtn.className).toMatch(/h-11/);
+    expect(moreBtn.className).toMatch(/size-11/);
     expect(container.querySelector("img")).toBeTruthy();
   });
 
@@ -382,8 +401,7 @@ describe("BookCard", () => {
     const moreBtn = screen.getByRole("button", {
       name: 'Mais opções para "Memórias Póstumas"',
     });
-    expect(moreBtn.className).toMatch(/w-8/);
-    expect(moreBtn.className).toMatch(/h-8/);
+    expect(moreBtn.className).toMatch(/size-8/);
   });
 
   it("exibe selo Releitura e chip de gênero no modal quando o livro traz esses campos", () => {
