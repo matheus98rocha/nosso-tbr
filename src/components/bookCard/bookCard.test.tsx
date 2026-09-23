@@ -242,6 +242,28 @@ describe("BookCard", () => {
     expect(screen.getByText("Eu").closest('[data-slot="badge"]')).toBeInTheDocument();
   });
 
+  it("reserva duas linhas para o tÃ­tulo no card normal", () => {
+    presetUseBookCard(baseBook);
+    render(<BookCard book={baseBook} />);
+
+    const title = screen
+      .getByRole("button", { name: /Ver detalhes:/i })
+      .querySelector('[data-slot="tooltip-trigger"]');
+
+    expect(title).toHaveClass("min-h-10", "leading-5");
+  });
+
+  it("reserva duas linhas para o tÃ­tulo na variante de estante", () => {
+    presetUseBookCard(baseBook);
+    render(<BookCard book={baseBook} isShelf shelfId="shelf-1" />);
+
+    const title = screen
+      .getByRole("button", { name: /Ver detalhes:/i })
+      .querySelector('[data-slot="tooltip-trigger"]');
+
+    expect(title).toHaveClass("min-h-8", "leading-4");
+  });
+
   it("organiza a aÃ§Ã£o principal no rodapÃ© semÃ¢ntico do card", () => {
     presetUseBookCard(baseBook);
     render(<BookCard book={baseBook} />);

@@ -116,8 +116,8 @@ export function BookCard(props: BookCardProps) {
           <TooltipTrigger asChild>
             <p
               className={cn(
-                "min-w-0 font-semibold leading-snug text-foreground line-clamp-2",
-                isShelf ? "text-xs" : "text-sm",
+                "min-w-0 shrink-0 font-semibold text-foreground line-clamp-2",
+                isShelf ? "min-h-8 text-xs leading-4" : "min-h-10 text-sm leading-5",
               )}
             >
               {book.title}
