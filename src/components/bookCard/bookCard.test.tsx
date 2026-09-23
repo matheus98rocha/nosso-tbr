@@ -305,9 +305,12 @@ describe("BookCard", () => {
     presetUseBookCard(finishedBook);
     render(<BookCard book={finishedBook} />);
 
-    expect(
-      screen.getByTestId("card-reading-rating").closest('[data-slot="card-footer"]'),
-    ).toBeInTheDocument();
+    const ratingFooter = screen
+      .getByTestId("card-reading-rating")
+      .closest('[data-slot="card-footer"]');
+
+    expect(ratingFooter).toBeInTheDocument();
+    expect(ratingFooter?.parentElement).toHaveClass("gap-2.5");
   });
 
   it("RN20: sem sessão, não exibe o menu de mais opções", () => {

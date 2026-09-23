@@ -267,7 +267,10 @@ export function BookCard(props: BookCardProps) {
           <div
             className={cn(
               "flex min-w-0 flex-col",
-              showCardFooterAction && !isShelf ? "gap-2.5" : "gap-0",
+              (showCardFooterAction && !isShelf) ||
+                (!isShelf && book.status === "finished")
+                ? "gap-2.5"
+                : "gap-0",
             )}
           >
             <div className={cn("flex min-w-0", isShelf ? "gap-2.5" : "gap-3")}>
