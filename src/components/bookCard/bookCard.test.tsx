@@ -261,6 +261,21 @@ describe("BookCard", () => {
     expect(handleOpenBookDetails).toHaveBeenCalledTimes(1);
   });
 
+  it("exibe apenas o status no card quando a leitura foi finalizada", () => {
+    const finishedBook = { ...baseBook, status: "finished" as const };
+    presetUseBookCard(finishedBook, {
+      statusDisplay: {
+        label: "Finalizado em 15/04/26",
+        colorClass: "bg-emerald-100",
+        dotClass: "bg-emerald-500",
+      },
+    });
+    render(<BookCard book={finishedBook} />);
+
+    expect(screen.getByText("Leitura finalizada")).toBeInTheDocument();
+    expect(screen.queryByText("Finalizado em 15/04/26")).not.toBeInTheDocument();
+  });
+
   it("RN20: sem sessão, não exibe o menu de mais opções", () => {
     presetUseBookCard(baseBook, { isLogged: false });
     render(<BookCard book={baseBook} />);

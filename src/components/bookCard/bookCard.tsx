@@ -67,6 +67,10 @@ export function BookCard(props: BookCardProps) {
 
   const showTopActions = showFavoriteToggle || showBookOptionsMenu;
   const showReadersOnCard = isLogged && Boolean(book.readersDisplay?.trim());
+  const cardStatusDisplay =
+    statusDisplay && book.status === "finished"
+      ? { ...statusDisplay, label: "Leitura finalizada" }
+      : statusDisplay;
 
   const coverSizes = isShelf
     ? {
@@ -154,7 +158,7 @@ export function BookCard(props: BookCardProps) {
           </p>
         )}
 
-        {(showReadersOnCard || statusDisplay) && (
+        {(showReadersOnCard || cardStatusDisplay) && (
           <div
             className={cn(
               "flex min-w-0 flex-col",
@@ -176,7 +180,7 @@ export function BookCard(props: BookCardProps) {
                 </Badge>
               </span>
             )}
-            {statusDisplay && (
+            {cardStatusDisplay && (
               <Badge
                 variant="secondary"
                 className={cn(
@@ -190,10 +194,10 @@ export function BookCard(props: BookCardProps) {
                   className={cn(
                     "shrink-0 rounded-full",
                     isShelf ? "h-1 w-1" : "h-1.5 w-1.5",
-                    statusDisplay.dotClass,
+                    cardStatusDisplay.dotClass,
                   )}
                 />
-                {statusDisplay.label}
+                {cardStatusDisplay.label}
               </Badge>
             )}
           </div>
