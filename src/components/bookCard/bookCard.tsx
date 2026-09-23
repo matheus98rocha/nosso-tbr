@@ -390,7 +390,9 @@ export function BookCard(props: BookCardProps) {
               </CardFooter>
             )}
             {!isShelf && book.status === "finished" && (
-              <CardReadingRatingButton book={book} />
+              <CardFooter className="flex min-w-0 w-full flex-col items-center gap-2 border-t border-border/70 px-0 pt-2.5">
+                <CardReadingRatingButton book={book} />
+              </CardFooter>
             )}
           </div>
         </CardContent>

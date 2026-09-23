@@ -20,7 +20,7 @@ export default function CardReadingRatingButton(props: CardReadingRatingButtonPr
 
   return (
     <>
-      <div className="flex min-w-0 w-full flex-col border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800/80">
+      <div className="flex min-w-0 w-full flex-col">
         <Button
           type="button"
           variant="outline"

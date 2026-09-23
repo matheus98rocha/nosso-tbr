@@ -48,7 +48,9 @@ vi.mock("@/modules/schedule/components/readingProgressIndicator", () => ({
 }));
 
 vi.mock("@/modules/bookRating", () => ({
-  CardReadingRatingButton: () => null,
+  CardReadingRatingButton: () => (
+    <div data-testid="card-reading-rating">Avaliar leitura</div>
+  ),
 }));
 
 const mockedUseBookCard = vi.mocked(useBookCard);
@@ -274,6 +276,16 @@ describe("BookCard", () => {
 
     expect(screen.getByText("Leitura finalizada")).toBeInTheDocument();
     expect(screen.queryByText("Finalizado em 15/04/26")).not.toBeInTheDocument();
+  });
+
+  it("mantém a avaliação de leitura no mesmo rodapé dos CTAs de status", () => {
+    const finishedBook = { ...baseBook, status: "finished" as const };
+    presetUseBookCard(finishedBook);
+    render(<BookCard book={finishedBook} />);
+
+    expect(
+      screen.getByTestId("card-reading-rating").closest('[data-slot="card-footer"]'),
+    ).toBeInTheDocument();
   });
 
   it("RN20: sem sessão, não exibe o menu de mais opções", () => {

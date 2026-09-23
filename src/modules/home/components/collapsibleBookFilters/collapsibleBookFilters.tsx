@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Sheet,
   SheetClose,
@@ -46,38 +53,42 @@ export default function CollapsibleBookFilters({
   if (isMobile) {
     return (
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetTrigger asChild>
+        <Card className="gap-0 border-border/70 bg-card/80 py-0 shadow-sm sm:hidden">
+          <CardContent className="p-0">
+            <SheetTrigger asChild>
           <Button
             type="button"
-            variant="outline"
-            className="flex h-auto min-h-12 w-full items-center justify-between rounded-2xl border-zinc-200 bg-card px-4 py-3 text-left shadow-sm dark:border-zinc-800"
+            variant="ghost"
+            className="flex h-auto min-h-14 w-full items-center justify-between rounded-xl px-4 py-3 text-left"
             aria-expanded={isSheetOpen}
             aria-controls="mobile-book-filters-content"
           >
             <span className="flex min-w-0 flex-col items-start gap-1">
-              <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
-                <SlidersHorizontal size={12} />
+              <span className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <SlidersHorizontal data-icon="inline-start" />
                 Filtros
                 {hasActiveFilters && (
-                  <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold tracking-normal text-violet-700 normal-case dark:bg-violet-950/50 dark:text-violet-300">
+                  <Badge variant="secondary" className="text-[10px]">
                     {activeFilterLabels.length} ativos
-                  </span>
+                  </Badge>
                 )}
               </span>
               {hasActiveFilters && (
-                <span className="max-w-full truncate text-xs italic text-zinc-500 dark:text-zinc-400">
+                <span className="max-w-full truncate text-xs text-muted-foreground">
                   {activeFilterLabels.join(" â€¢ ")}
                 </span>
               )}
             </span>
-            <ChevronDown size={16} className="shrink-0 text-zinc-400" />
+            <ChevronDown aria-hidden className="size-4 shrink-0 text-muted-foreground" />
           </Button>
-        </SheetTrigger>
+            </SheetTrigger>
+          </CardContent>
+        </Card>
         <SheetContent
           side="bottom"
           className="max-h-[90dvh] gap-0 rounded-t-3xl p-0"
         >
-          <SheetHeader className="border-b px-5 py-4 text-left">
+          <SheetHeader className="border-b border-border/70 px-5 py-4 text-left">
             <SheetTitle>Filtros</SheetTitle>
             <SheetDescription>
               Ajuste a visão da sua estante e aplique quando terminar.
@@ -85,11 +96,11 @@ export default function CollapsibleBookFilters({
           </SheetHeader>
           <div
             id="mobile-book-filters-content"
-            className="min-h-0 flex-1 divide-y divide-zinc-200 overflow-y-auto dark:divide-zinc-800"
+            className="min-h-0 flex-1 divide-y divide-border/70 overflow-y-auto"
           >
             {children}
           </div>
-          <SheetFooter className="border-t bg-background px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+          <SheetFooter className="border-t border-border/70 bg-background px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
             <SheetClose asChild>
               <Button className="h-11 w-full">Aplicar filtros</Button>
             </SheetClose>
@@ -119,23 +130,23 @@ export default function CollapsibleBookFilters({
   }
 
   return (
-    <div className="max-sm:hidden dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-      <div
+    <Card className="max-sm:hidden gap-0 overflow-hidden border-border/70 bg-card/80 py-0 shadow-sm">
+      <CardHeader
         className={cn(
-          "flex items-center justify-between gap-3 px-4 py-3",
-          !isCollapsed && "border-b border-zinc-200 dark:border-zinc-800",
+          "flex grid-cols-[1fr_auto] items-center gap-3 px-4 py-3",
+          !isCollapsed && "border-b border-border/70",
         )}
       >
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
-            <SlidersHorizontal size={11} />
-            Filtros
+          <CardTitle className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+            <SlidersHorizontal data-icon="inline-start" />
+            <span>Filtros</span>
             {hasActiveFilters && (
-              <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold tracking-normal text-violet-700 normal-case dark:bg-violet-950/50 dark:text-violet-300 sm:hidden">
+              <Badge variant="secondary" className="text-[10px] sm:hidden">
                 {activeFilterLabels.length} ativos
-              </span>
+              </Badge>
             )}
-          </p>
+          </CardTitle>
           <AnimatePresence initial={false}>
             {isCollapsed && hasActiveFilters && (
               <motion.p
@@ -147,7 +158,7 @@ export default function CollapsibleBookFilters({
                   duration: reduceMotion ? 0 : 0.2,
                   ease: collapseTransition.ease,
                 }}
-                className="truncate text-xs text-zinc-500 dark:text-zinc-400 italic overflow-hidden"
+                className="truncate overflow-hidden text-xs text-muted-foreground"
               >
                 {activeFilterLabels.join(" • ")}
               </motion.p>
@@ -159,7 +170,7 @@ export default function CollapsibleBookFilters({
           variant="ghost"
           size="sm"
           onClick={toggleCollapse}
-          className="h-8 shrink-0 gap-1.5 px-2.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+          className="h-8 shrink-0 gap-1.5 px-2.5 text-xs text-muted-foreground"
           aria-expanded={!isCollapsed}
           aria-controls={contentId}
           aria-label={
@@ -169,16 +180,16 @@ export default function CollapsibleBookFilters({
           {isCollapsed ? (
             <>
               <span>Expandir</span>
-              <ChevronDown size={14} />
+              <ChevronDown aria-hidden className="size-4" />
             </>
           ) : (
             <>
               <span>Recolher</span>
-              <ChevronUp size={14} />
+              <ChevronUp aria-hidden className="size-4" />
             </>
           )}
         </Button>
-      </div>
+      </CardHeader>
 
       <motion.div
         id={contentId}
@@ -193,10 +204,10 @@ export default function CollapsibleBookFilters({
         }}
         className="overflow-hidden"
       >
-        <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-          {children}
-        </div>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border/70">{children}</div>
+        </CardContent>
       </motion.div>
-    </div>
+    </Card>
   );
 }

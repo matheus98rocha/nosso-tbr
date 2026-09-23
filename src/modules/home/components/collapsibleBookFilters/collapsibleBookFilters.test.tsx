@@ -37,6 +37,21 @@ describe("CollapsibleBookFilters", () => {
     ).toHaveAttribute("aria-expanded", "true");
   });
 
+  it("uses the shared card composition for the desktop filter surface", () => {
+    render(
+      <CollapsibleBookFilters>
+        <div>filter-content</div>
+      </CollapsibleBookFilters>,
+    );
+
+    expect(
+      screen.getByText("filter-content").closest('[data-slot="card"]'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Filtros").closest('[data-slot="card-header"]'),
+    ).toBeInTheDocument();
+  });
+
   it("hides filter content when collapsed again", async () => {
     const user = userEvent.setup();
 
@@ -69,6 +84,9 @@ describe("CollapsibleBookFilters", () => {
     );
 
     expect(screen.getByText("2 ativos")).toBeInTheDocument();
+    expect(
+      screen.getByText("2 ativos").closest('[data-slot="badge"]'),
+    ).toBeInTheDocument();
   });
 
   it("opens grouped filters in a mobile sheet", async () => {

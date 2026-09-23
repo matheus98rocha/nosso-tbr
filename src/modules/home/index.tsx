@@ -202,12 +202,12 @@ export default function ClientHome() {
             activeFilterLabels={activeFilterLabels}
             onClearAll={handleClearAllFilters}
           >
-            <div className="p-4 space-y-2.5">
-              <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+            <div className="flex flex-col gap-2.5 p-4">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <Users size={11} />
                 Visão
               </p>
-              <div className="flex items-start justify-start gap-2 ">
+              <div className="flex w-full items-start justify-start gap-2">
                 {isLoading ? (
                   <div className="flex gap-2">
                     <Skeleton className="h-8 w-40 rounded-full" />
@@ -216,7 +216,7 @@ export default function ClientHome() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center flex-col gap-2">
+                  <div className="flex w-full flex-col items-start gap-2">
                     <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
@@ -311,16 +311,16 @@ export default function ClientHome() {
                         </Button>
                       )}
                     </div>
-                    <div className="flex flex-col gap-1.5 items-start justify-start w-full">
+                    <div className="flex w-full flex-col items-start gap-1.5">
                       {!isMyBooksActive && !isAllBooksActive && (
                         <>
                           <div className="flex flex-wrap gap-2">
                             {followingFeedEmpty ? (
-                              <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed max-w-md">
+                              <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
                                 Você ainda não segue ninguém. Em{" "}
                                 <Link
                                   href="/profile"
-                                  className="text-violet-600 dark:text-violet-400 font-medium underline-offset-2 hover:underline"
+                                  className="font-medium text-primary underline-offset-2 hover:underline"
                                 >
                                   Perfil
                                 </Link>{" "}
@@ -363,16 +363,16 @@ export default function ClientHome() {
                           </div>
 
                           {isFollowingFeedActive && !followingFeedEmpty && (
-                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-snug">
+                            <p className="text-[10px] leading-snug text-muted-foreground">
                               Leituras privadas só de quem você segue não
                               aparecem aqui.
                             </p>
                           )}
 
                           {lockedReaderId && (
-                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-snug">
+                            <p className="text-[10px] leading-snug text-muted-foreground">
                               {needsExtraReader ? (
-                                <span className="text-amber-500 dark:text-amber-400 font-medium">
+                                <span className="font-medium text-amber-600 dark:text-amber-400">
                                   Selecione pelo menos outro(a) leitor(a) para
                                   ver leituras conjuntas.
                                 </span>
@@ -389,13 +389,13 @@ export default function ClientHome() {
               </div>
             </div>
 
-            <div className="p-4 space-y-2.5">
-              <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+            <div className="flex flex-col gap-2.5 p-4">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <Tag size={11} />
                 Status de leitura
               </p>
               {isLoading ? (
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-2">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <Skeleton
                       key={`status-sk-${i}`}
@@ -419,8 +419,8 @@ export default function ClientHome() {
               />
             </div>
 
-            <div className="p-4 space-y-2.5">
-              <p className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+            <div className="flex flex-col gap-2.5 p-4">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <ArrowDownUp size={11} />
                 Ordenação
               </p>
