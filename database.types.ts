@@ -302,6 +302,54 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          actor_id: string
+          book_count: number
+          created_at: string
+          id: string
+          notification_type: string
+          read_at: string | null
+          recipient_id: string
+          updated_at: string
+        }
+        Insert: {
+          actor_id: string
+          book_count: number
+          created_at?: string
+          id?: string
+          notification_type?: string
+          read_at?: string | null
+          recipient_id: string
+          updated_at?: string
+        }
+        Update: {
+          actor_id?: string
+          book_count?: number
+          created_at?: string
+          id?: string
+          notification_type?: string
+          read_at?: string | null
+          recipient_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_fk"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_fk"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           book_id: string
@@ -441,6 +489,45 @@ export type Database = {
           },
         ]
       }
+      user_notification_preferences: {
+        Row: {
+          book_notifications_enabled: boolean
+          created_at: string
+          follower_id: string
+          following_id: string
+          updated_at: string
+        }
+        Insert: {
+          book_notifications_enabled?: boolean
+          created_at?: string
+          follower_id: string
+          following_id: string
+          updated_at?: string
+        }
+        Update: {
+          book_notifications_enabled?: boolean
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notification_preferences_follower_fk"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_notification_preferences_following_fk"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           display_name: string
@@ -525,6 +612,22 @@ export type Database = {
           total_pages: number
           year: number
         }[]
+      }
+      is_book_visible_to_user: {
+        Args: {
+          p_chosen_by: string
+          p_readers: string[]
+          p_viewer_id: string
+        }
+        Returns: boolean
+      }
+      is_book_visible_to_current_user: {
+        Args: { p_chosen_by: string; p_readers: string[] }
+        Returns: boolean
+      }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: undefined
       }
       immutable_unaccent: { Args: { "": string }; Returns: string }
       reorder_custom_shelf_books: {
