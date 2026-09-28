@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 
 import type { ReadingNowStatusActionsProps } from "../readingNow.types";
 
+const actionButtonClassName =
+  "h-8 min-h-8 min-w-0 flex-1 gap-1 px-2 text-[11px] sm:flex-none sm:px-2.5";
+
 export default function ReadingNowStatusActions({
   onFinish,
   onPause,
@@ -15,19 +18,19 @@ export default function ReadingNowStatusActions({
   className,
 }: ReadingNowStatusActionsProps) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-1", className)}>
+    <div className={cn("grid grid-cols-3 gap-1.5 sm:flex sm:flex-nowrap", className)}>
       <Button
         type="button"
         variant="outline"
         size="sm"
         disabled={isPending}
-        className="h-6 gap-1 px-2 text-[10px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className={actionButtonClassName}
         onClick={(event) => {
           event.stopPropagation();
           onFinish();
         }}
       >
-        <CheckCircle2 size={12} aria-hidden />
+        <CheckCircle2 className="size-3.5" aria-hidden />
         Finalizar
       </Button>
       <Button
@@ -35,13 +38,13 @@ export default function ReadingNowStatusActions({
         variant="outline"
         size="sm"
         disabled={isPending}
-        className="h-6 gap-1 px-2 text-[10px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className={actionButtonClassName}
         onClick={(event) => {
           event.stopPropagation();
           onPause();
         }}
       >
-        <PauseCircle size={12} aria-hidden />
+        <PauseCircle className="size-3.5" aria-hidden />
         Pausar
       </Button>
       <Button
@@ -49,13 +52,13 @@ export default function ReadingNowStatusActions({
         variant="outline"
         size="sm"
         disabled={isPending}
-        className="h-6 gap-1 px-2 text-[10px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className={actionButtonClassName}
         onClick={(event) => {
           event.stopPropagation();
           onAbandon();
         }}
       >
-        <Ban size={12} aria-hidden />
+        <Ban className="size-3.5" aria-hidden />
         Abandonar
       </Button>
     </div>

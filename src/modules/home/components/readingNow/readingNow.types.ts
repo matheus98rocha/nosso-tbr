@@ -7,6 +7,11 @@ export type ReadingNowBookItem = {
   daysReading: number | null;
 };
 
+export const READING_NOW_COVER_SIZE = {
+  width: 56,
+  height: 84,
+} as const;
+
 export type ReadingNowProps = {
   className?: string;
 };

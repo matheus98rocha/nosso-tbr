@@ -280,5 +280,9 @@ describe("ReadingNow", () => {
     expect(
       screen.getByRole("button", { name: "Criar cronograma" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("310 páginas · sem cronograma")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Cronograma" }),
+    ).not.toBeInTheDocument();
   });
 });

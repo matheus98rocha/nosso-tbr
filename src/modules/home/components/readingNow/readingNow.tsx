@@ -27,7 +27,6 @@ export default function ReadingNow({ className }: ReadingNowProps) {
     scrollRef,
     items,
     activeIndex,
-    activeBookTitle,
     hasMultipleBooks,
     shouldRender,
     isLoading,
@@ -99,84 +98,72 @@ export default function ReadingNow({ className }: ReadingNowProps) {
           ease: sectionTransition.ease,
         }}
         className={cn(
-          "overflow-hidden rounded-xl border border-[oklch(0.22_0.05_264/0.12)] bg-card/95 shadow-[0_12px_40px_-28px_oklch(0.25_0.05_264/0.35)]",
-          "dark:border-zinc-800 dark:bg-zinc-900/70 dark:shadow-none",
+          "overflow-hidden rounded-xl border border-border bg-card shadow-[0_12px_40px_-28px_oklch(0.25_0.05_264/0.28)]",
           className,
         )}
         aria-label="Lendo agora"
       >
-        <div className="flex flex-col gap-1.5 border-b border-[oklch(0.22_0.05_264/0.1)] bg-[oklch(0.22_0.05_264/0.03)] px-3 py-2.5 dark:border-zinc-800/80 dark:bg-transparent">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <p className="brand-display flex items-center gap-1.5 text-[13px] font-semibold tracking-tight text-[oklch(0.28_0.05_264)] dark:text-zinc-300">
-                <BookOpen
-                  size={13}
-                  aria-hidden
-                  className="text-[oklch(0.45_0.08_264)] dark:text-zinc-500"
-                />
-                Lendo agora
-              </p>
-              {!isLoading && items.length > 0 && (
-                <span className="rounded-full bg-[oklch(0.22_0.05_264/0.08)] px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground dark:bg-zinc-800 dark:text-zinc-400">
-                  {items.length}
-                </span>
-              )}
-            </div>
-
-            <div className="flex shrink-0 items-center gap-1">
-              {hasMultipleBooks && (
-                <>
-                  <span className="mr-1 hidden text-[10px] font-medium tabular-nums text-zinc-400 sm:inline">
-                    {activeIndex + 1}/{items.length}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 text-zinc-500"
-                    onClick={goToPrevious}
-                    disabled={!canGoPrevious}
-                    aria-label="Livro anterior"
-                  >
-                    <ChevronLeft size={16} />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 text-zinc-500"
-                    onClick={goToNext}
-                    disabled={!canGoNext}
-                    aria-label="Próximo livro"
-                  >
-                    <ChevronRight size={16} />
-                  </Button>
-                </>
-              )}
-
-              {!isLoading && activeScheduleHref && (
-                <Link
-                  href={activeScheduleHref}
-                  className="ml-1 rounded-md px-2 py-1 text-[10px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                >
-                  Registrar progresso
-                </Link>
-              )}
-            </div>
+        <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <p className="brand-display flex min-w-0 items-center gap-1.5 text-[13px] font-semibold tracking-tight text-[var(--reading-ink)]">
+              <BookOpen
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
+              Lendo agora
+            </p>
+            {!isLoading && items.length > 0 && (
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
+                {items.length}
+              </span>
+            )}
           </div>
 
-          {!isLoading && hasMultipleBooks && activeBookTitle && (
-            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                {activeBookTitle}
-              </span>
-            </p>
-          )}
+          <div className="flex shrink-0 items-center gap-0.5">
+            {hasMultipleBooks && (
+              <>
+                <span className="mr-1 hidden text-[11px] font-medium tabular-nums text-muted-foreground sm:inline">
+                  {activeIndex + 1}/{items.length}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted-foreground"
+                  onClick={goToPrevious}
+                  disabled={!canGoPrevious}
+                  aria-label="Livro anterior"
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted-foreground"
+                  onClick={goToNext}
+                  disabled={!canGoNext}
+                  aria-label="Próximo livro"
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </>
+            )}
+
+            {!isLoading && activeScheduleHref && (
+              <Link
+                href={activeScheduleHref}
+                className="ml-1 inline-flex max-w-[9.5rem] truncate rounded-md px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground"
+              >
+                Registrar progresso
+              </Link>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="flex gap-3 px-4 py-3" aria-busy="true">
-            <Skeleton className="h-[66px] w-11 shrink-0 rounded-md" />
+          <div className="flex gap-3 px-3 py-3" aria-busy="true">
+            <Skeleton className="h-[84px] w-14 shrink-0 rounded-md" />
             <div className="flex flex-1 flex-col justify-center gap-2">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-3 w-1/2" />
@@ -185,7 +172,7 @@ export default function ReadingNow({ className }: ReadingNowProps) {
           </div>
         ) : isError ? (
           <div className="px-3 py-3 text-center">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-muted-foreground">
               Não foi possível carregar seus livros em leitura.
             </p>
           </div>
