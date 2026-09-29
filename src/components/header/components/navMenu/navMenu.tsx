@@ -1,37 +1,19 @@
-import { useMemo } from "react";
+import { useDesktopNav } from "../../hooks/useDesktopNav";
 import { useHeader } from "../../hooks/useHeader";
 import { DesktopNavMenuProps } from "../../types/desktopNavMenu.types";
-import { useDesktopNav } from "../../hooks/useDesktopNav";
-import { NavSkeleton } from "../navSkeleton";
 import { NavItem } from "../navItem";
-
-const ALLOWED_LABELS = [
-  "Início",
-  "Estatisticas",
-  "Comunidade",
-  "Ver Estantes",
-  "Autores",
-  "Administração",
-];
+import { NavSkeleton } from "../navSkeleton";
 
 export function DesktopNavMenu({ isLoading }: DesktopNavMenuProps) {
-  const { menuItems, pathname } = useHeader();
+  const { desktopNavItems, pathname } = useHeader();
   const { handlePrefetch } = useDesktopNav();
-
-  const filteredItems = useMemo(
-    () =>
-      menuItems.flatMap((menu) =>
-        menu.items.filter((item) => ALLOWED_LABELS.includes(item.label)),
-      ),
-    [menuItems],
-  );
 
   if (isLoading) return <NavSkeleton />;
 
   return (
-    <nav className="desktop-nav" aria-label="Navegação principal">
+    <nav className="desktop-nav shrink-0" aria-label="Navegação principal">
       <ul>
-        {filteredItems.map((item) => (
+        {desktopNavItems.map((item) => (
           <NavItem
             key={item.label}
             item={item}

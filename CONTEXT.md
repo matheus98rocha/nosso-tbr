@@ -20,6 +20,24 @@ _Avoid_: dono do livro, leitor responsável
 Leitor associado ao livro como pessoa que o escolheu ou lê. Não é necessariamente o ator que cadastrou o livro.
 _Avoid_: autor da atividade
 
+**Administrador**:
+Leitor com acesso às telas de Administração e Autores.
+_Avoid_: admin user, superuser, operador
+
+## Livros e organização
+
+**Livro**:
+Título acompanhado na aplicação por um ou mais leitores, com status de leitura. Mangá e manhwa são livros. O cadastro existe pelo ato do leitor, não por um catálogo externo.
+_Avoid_: obra, edição, work, volume como tipo distinto
+
+**Autor**:
+Pessoa creditada no livro. Não é o Leitor. A tela Autores é a gestão desses registros, só para Administrador.
+_Avoid_: papel de leitor, author account
+
+**Estante**:
+Coleção curada por um leitor para organizar livros segundo um critério próprio.
+_Avoid_: série, saga, prateleira
+
 ## Notificações sociais
 
 **Notificação de novos livros**:

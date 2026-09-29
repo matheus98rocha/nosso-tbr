@@ -1,28 +1,21 @@
 import { useMemo } from "react";
 import Link from "next/link";
-import { BarChart3, BookUser, Home, Library, Shield, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { IconMap, NavItemProps } from "../../types/desktopNavMenu.types";
 
-const iconMap: IconMap = {
-  Início: <Home className="w-[18px] h-[18px]" />,
-  Estatisticas: <BarChart3 className="w-[18px] h-[18px]" />,
-  Comunidade: <Users className="w-[18px] h-[18px]" />,
-  "Ver Estantes": <Library className="w-[18px] h-[18px]" />,
-  Autores: <BookUser className="w-[18px] h-[18px]" />,
-  Administração: <Shield className="w-[18px] h-[18px]" />,
-};
+import { cn } from "@/lib/utils";
+
+import { NavItemProps } from "../../types/desktopNavMenu.types";
+import NavDestinationIcon from "../navDestinationIcon";
 
 export function NavItem({ item, isActive, onPrefetch }: NavItemProps) {
   const itemClassName = useMemo(
     () =>
       cn(
-        "desktop-nav__link flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl",
-        "min-w-[52px] min-h-[44px] justify-center",
-        "transition-colors duration-200 relative z-0",
+        "desktop-nav__link flex flex-col items-center gap-1.5 px-3 py-2",
+        "min-h-[44px] min-w-[52px] justify-center",
+        "relative z-0 transition-colors duration-200",
         isActive
-          ? "text-primary cursor-default"
-          : "text-zinc-500 hover:text-primary cursor-pointer",
+          ? "cursor-default text-[var(--reading-ink)]"
+          : "cursor-pointer text-[color-mix(in_oklch,var(--reading-ink)_55%,white)] hover:text-[var(--reading-ink)]",
       ),
     [isActive],
   );
@@ -36,8 +29,8 @@ export function NavItem({ item, isActive, onPrefetch }: NavItemProps) {
         className={itemClassName}
         aria-current={isActive ? "page" : undefined}
       >
-        {iconMap[item.label]}
-        <span className="text-[11px] font-medium leading-none">{item.label}</span>
+        <NavDestinationIcon label={item.label} />
+        <span className="text-[11px] leading-none font-medium">{item.label}</span>
       </Link>
     </li>
   );

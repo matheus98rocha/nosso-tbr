@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function NavSkeleton() {
   return (
     <nav
-      className="desktop-nav"
+      className="desktop-nav shrink-0"
       aria-hidden="true"
     >
       <ul>

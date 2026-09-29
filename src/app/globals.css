@@ -209,24 +209,49 @@
 
   .desktop-nav {
     position: relative;
-    width: fit-content;
+    width: max-content;
+    min-width: min-content;
+    flex-shrink: 0;
     margin-inline: auto;
-    margin-bottom: 0.5rem;
-    background: hsl(0 0% 0% / 0.04);
-    padding: 6px;
-    border-radius: 12px;
+    background: transparent;
+    padding: 0 0 0.15rem;
+    border-radius: 0;
     isolation: isolate;
+    color: color-mix(in oklch, var(--reading-ink) 56%, transparent);
 
     > ul {
       padding: 0;
       margin: 0;
       list-style: none;
       display: flex;
-      gap: 0.15rem;
+      gap: 0.1rem;
     }
 
     .desktop-nav__link {
       display: flex;
+      border-radius: 0;
+      background: transparent;
+      font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: 0.04em;
+      color: inherit;
+      text-decoration: none;
+      transition: color 200ms ease;
+    }
+
+    .desktop-nav__link:hover,
+    .desktop-nav__link:focus-visible {
+      color: var(--reading-ink);
+      background: transparent;
+    }
+
+    .desktop-nav__link[aria-current="page"] {
+      color: var(--reading-ink);
+      background: transparent;
+    }
+
+    .desktop-nav__link:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 3px;
     }
   }
 
@@ -246,11 +271,9 @@
       &::after {
         content: "";
         position: absolute;
-        top: calc(anchor(bottom) - 8px);
-        left: calc(anchor(left) + 0.75rem);
-        right: calc(anchor(right) + 0.75rem);
-        bottom: calc(anchor(bottom) + 4px);
-        border-radius: 10px;
+        left: calc(anchor(left) + 0.9rem);
+        right: calc(anchor(right) + 0.9rem);
+        border-radius: 0;
         position-anchor: --hovered-nav-link;
         pointer-events: none;
         opacity: 0;
@@ -275,18 +298,16 @@
 
       &::before {
         z-index: -1;
-        background: rgb(0 0 0 / 0.06);
-        backdrop-filter: blur(2px);
+        top: calc(anchor(bottom) - 1.5px);
+        bottom: anchor(bottom);
+        background: var(--reading-ink);
       }
 
       &::after {
         z-index: -2;
-        background-image: linear-gradient(
-          135deg,
-          oklch(0.55 0.12 264 / 0.22),
-          oklch(0.72 0.08 280 / 0.28),
-          oklch(0.45 0.1 250 / 0.18)
-        );
+        top: calc(anchor(bottom) - 4px);
+        bottom: calc(anchor(bottom) - 1.5px);
+        background: color-mix(in oklch, var(--reading-ink) 16%, transparent);
       }
 
       &:has(a:is(:hover, :focus-visible), button:is(:hover, :focus-visible))::before,
@@ -294,45 +315,172 @@
       &:has([aria-current="page"])::before,
       &:has([aria-current="page"])::after {
         opacity: 1;
-        top: anchor(top);
-        left: anchor(left);
-        right: anchor(right);
+        left: calc(anchor(left) + 0.55rem);
+        right: calc(anchor(right) + 0.55rem);
+      }
+
+      &:has(a:is(:hover, :focus-visible), button:is(:hover, :focus-visible))::before,
+      &:has([aria-current="page"])::before {
+        top: calc(anchor(bottom) - 1.5px);
         bottom: anchor(bottom);
-
-        @supports (corner-shape: squircle) {
-          corner-shape: squircle;
-          border-radius: 50%;
-        }
       }
 
-      &:has(li:first-of-type a:is(:hover, :focus-visible), li:first-of-type button:is(:hover, :focus-visible))::before,
-      &:has(li:first-of-type a:is(:hover, :focus-visible), li:first-of-type button:is(:hover, :focus-visible))::after {
-        @supports (corner-shape: squircle) {
-          border-radius: 32px 50% 50% 32px;
-        }
-      }
-
-      &:has(li:last-of-type a:is(:hover, :focus-visible), li:last-of-type button:is(:hover, :focus-visible))::before,
-      &:has(li:last-of-type a:is(:hover, :focus-visible), li:last-of-type button:is(:hover, :focus-visible))::after {
-        @supports (corner-shape: squircle) {
-          border-radius: 50% 32px 32px 50%;
-        }
-      }
-
-      @supports (corner-shape: squircle) {
-        border-radius: 24px;
-        corner-shape: squircle;
+      &:has(a:is(:hover, :focus-visible), button:is(:hover, :focus-visible))::after,
+      &:has([aria-current="page"])::after {
+        top: calc(anchor(bottom) - 4px);
+        bottom: calc(anchor(bottom) - 1.5px);
       }
     }
   }
 
   @supports not (anchor-name: --hovered-nav-link) {
-    .desktop-nav .desktop-nav__link:hover {
-      background-color: oklch(0.967 0.003 264.542);
+    .desktop-nav .desktop-nav__link:hover,
+    .desktop-nav .desktop-nav__link:focus-visible {
+      background-color: transparent;
+      box-shadow: inset 0 -1.5px 0 0 color-mix(in oklch, var(--reading-ink) 45%, transparent);
     }
 
     .desktop-nav .desktop-nav__link[aria-current="page"] {
-      background-color: oklch(0.21 0.034 264.665 / 0.08);
+      background-color: transparent;
+      box-shadow: inset 0 -1.5px 0 0 var(--reading-ink);
+    }
+  }
+
+  .app-topbar {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 50;
+    background-color: color-mix(in oklch, var(--reading-surface) 96%, transparent);
+    color: var(--reading-ink);
+    border-bottom: 1px solid color-mix(in oklch, var(--reading-ink) 12%, transparent);
+    box-shadow: 0 1px 0 color-mix(in oklch, var(--reading-ink) 4%, transparent);
+    backdrop-filter: saturate(1.04) blur(5px);
+    padding-top: calc(0.7rem + env(safe-area-inset-top, 0px));
+    padding-bottom: 0.7rem;
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      padding 200ms ease;
+  }
+
+  .app-topbar.is-scrolled {
+    padding-top: calc(0.4rem + env(safe-area-inset-top, 0px));
+    padding-bottom: 0.4rem;
+    background-color: color-mix(in oklch, var(--reading-surface) 92%, transparent);
+  }
+
+  .dark .app-topbar {
+    background-color: color-mix(in oklch, var(--reading-surface) 94%, transparent);
+    border-bottom-color: var(--border);
+    box-shadow: 0 1px 0 color-mix(in oklch, var(--reading-ink) 6%, transparent);
+  }
+
+  .app-bottom-nav {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 50;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-items: stretch;
+    background-color: var(--reading-surface);
+    color: color-mix(in oklch, var(--reading-ink) 58%, transparent);
+    border-top: 1px solid color-mix(in oklch, var(--reading-ink) 12%, transparent);
+    padding-inline: 0.15rem;
+    padding-top: 0.2rem;
+    padding-bottom: max(0.3rem, env(safe-area-inset-bottom, 0px));
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .dark .app-bottom-nav {
+    border-top-color: var(--border);
+  }
+
+  .app-bottom-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-height: 44px;
+    min-width: 44px;
+    width: 100%;
+    padding-block: 0.35rem;
+    padding-inline: 0.2rem;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    transition: color 200ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-bottom-nav__item:hover,
+  .app-bottom-nav__item:focus-visible {
+    color: var(--primary);
+    background: transparent;
+  }
+
+  .app-bottom-nav__item:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+  }
+
+  .app-bottom-nav__item[aria-current="page"],
+  .app-bottom-nav__item.is-active {
+    color: var(--reading-ink);
+    background: transparent;
+    box-shadow: inset 0 1.5px 0 0 var(--reading-ink);
+  }
+
+  .app-more-sheet {
+    background-color: var(--reading-surface);
+    color: var(--reading-ink);
+    border: 1px solid color-mix(in oklch, var(--reading-ink) 12%, transparent);
+    border-bottom: 0;
+    border-radius: 1.15rem 1.15rem 0 0;
+    padding: 0.85rem 1.25rem max(1.25rem, env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -10px 28px color-mix(in oklch, var(--reading-ink) 8%, transparent);
+  }
+
+  .dark .app-more-sheet {
+    border-color: var(--border);
+  }
+
+  .app-more-sheet::before {
+    content: "";
+    display: block;
+    width: 2.35rem;
+    height: 3px;
+    margin: 0.15rem auto 1rem;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--reading-ink) 22%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .desktop-nav::before,
+    .desktop-nav::after,
+    .desktop-nav .desktop-nav__link,
+    .app-topbar,
+    .app-bottom-nav,
+    .app-bottom-nav__item,
+    .app-more-sheet {
+      transition: none;
+      animation: none;
     }
   }
 }

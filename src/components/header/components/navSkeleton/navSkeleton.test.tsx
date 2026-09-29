@@ -27,6 +27,7 @@ describe("NavSkeleton", () => {
 
     const nav = screen.getByRole("navigation", { hidden: true });
     expect(nav.className).toMatch(/desktop-nav/);
+    expect(nav.className).toMatch(/shrink-0/);
   });
 
   it("aplica desktop-nav__link em cada placeholder de item", () => {

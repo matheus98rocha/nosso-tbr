@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import type { UserTier } from "@/lib/auth/userTier";
 import { useUserStore } from "@/stores/userStore";
@@ -18,10 +18,12 @@ export function UserProvider({
   const syncedKeyRef = useRef<string | undefined>(undefined);
   const key = `${initialUser?.id ?? "__null__"}:${initialTier ?? "__null__"}`;
 
-  if (syncedKeyRef.current !== key) {
+  useEffect(() => {
+    if (syncedKeyRef.current === key) return;
+
     syncedKeyRef.current = key;
     useUserStore.getState().setSession(initialUser, initialTier);
-  }
+  }, [initialTier, initialUser, key]);
 
   return <>{children}</>;
 }

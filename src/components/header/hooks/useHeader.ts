@@ -1,12 +1,17 @@
 import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useMemo } from "react";
 
 import { useModal } from "@/hooks/";
-import { COMMUNITY_PATH } from "@/lib/routes/community";
-import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 import { useIsAdmin, useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
 
-import { Menu } from "../types/header.types";
+import { NAV_DESTINATIONS } from "../constants/navCatalog";
+import {
+  filterNavDestinations,
+  selectBySurface,
+} from "../lib/filterNavDestinations";
+import type { Menu, MenuItem } from "../types/header.types";
+import type { NavDestination } from "../types/navCatalog.types";
 
 export function useHeader() {
   const router = useRouter();
@@ -17,120 +22,86 @@ export function useHeader() {
   const isLoggedIn = useIsLoggedIn();
   const isAdmin = useIsAdmin();
 
-  const allMenuItems: Menu[] = [
-    {
-      label: "Início",
-      items: [
-        {
-          label: "Início",
-          action: () => router.push("/"),
-          path: "/",
-        },
-      ],
-    },
-    {
-      label: "Estatisticas",
-      items: [
-        {
-          label: "Estatisticas",
-          action: () => router.push("/stats"),
-          path: "/stats",
-        },
-      ],
-    },
-    {
-      label: "Comunidade",
-      items: [
-        {
-          label: "Comunidade",
-          action: () => router.push(COMMUNITY_PATH),
-          path: COMMUNITY_PATH,
-          requiresAuth: true,
-        },
-      ],
-    },
-    {
-      label: "Estantes",
-      items: [
-        {
-          label: "Ver Estantes",
-          action: () => router.push(SHELVES_LIST_PATH),
-          path: SHELVES_LIST_PATH,
-        },
-        {
-          label: "Adicionar Estante",
-          action: () => createShelfDialog.setIsOpen(true),
-          requiresAuth: false,
-        },
-      ],
-    },
-    {
-      label: "Autores",
-      items: [
-        {
-          label: "Autores",
-          action: () => router.push("/authors"),
-          path: "/authors",
-          requiresAdmin: true,
-        },
-      ],
-    },
-    {
-      label: "Administração",
-      items: [
-        {
-          label: "Administração",
-          action: () => router.push("/admin"),
-          path: "/admin",
-          requiresAdmin: true,
-        },
-      ],
-    },
-    {
-      label: "Conta",
-      items: [
-        {
-          label: "Perfil",
-          action: () => router.push("/profile"),
-          path: "/profile",
-          requiresAuth: true,
-        },
-        {
-          label: "Login",
-          action: () => router.push("/auth"),
-          path: "/auth",
-          requiresAuth: false,
-          hideIfLoggedIn: true,
-        },
-      ],
-    },
-    {
-      label: "Conta",
-      items: [
-        {
-          label: "Logout",
-          action: () => logout(),
-          requiresAuth: true,
-          hideIfLoggedIn: false,
-        },
-      ],
-    },
-  ];
+  const bindDestination = useCallback(
+    (destination: NavDestination): MenuItem => {
+      const path = destination.path;
+      let action: () => void = () => {
+        return;
+      };
 
-  const menuItems = allMenuItems
-    .map((menu) => ({
-      ...menu,
-      items: menu.items.filter((item) => {
-        if (item.requiresAuth && !isLoggedIn) return false;
-        if (item.requiresAdmin && !isAdmin) return false;
-        if (item.hideIfLoggedIn && isLoggedIn) return false;
-        return true;
+      if (destination.label === "Adicionar Estante") {
+        action = () => createShelfDialog.setIsOpen(true);
+      } else if (destination.label === "Logout") {
+        action = () => {
+          void logout();
+        };
+      } else if (path) {
+        action = () => router.push(path);
+      }
+
+      return {
+        label: destination.label,
+        path,
+        action,
+        requiresAuth: destination.requiresAuth,
+        requiresAdmin: destination.requiresAdmin,
+        hideIfLoggedIn: destination.hideIfLoggedIn,
+      };
+    },
+    [createShelfDialog, logout, router],
+  );
+
+  const visibleDestinations = useMemo(
+    () =>
+      filterNavDestinations(NAV_DESTINATIONS, {
+        isLoggedIn,
+        isAdmin,
       }),
-    }))
-    .filter((menu) => menu.items.length > 0);
+    [isAdmin, isLoggedIn],
+  );
+
+  const menuItems = useMemo((): Menu[] => {
+    const groups: Menu[] = [];
+
+    for (const destination of visibleDestinations) {
+      const groupLabel = destination.groupLabel ?? destination.label;
+      const item = bindDestination(destination);
+      const last = groups.at(-1);
+
+      if (last?.label === groupLabel) {
+        last.items.push(item);
+      } else {
+        groups.push({ label: groupLabel, items: [item] });
+      }
+    }
+
+    return groups;
+  }, [bindDestination, visibleDestinations]);
+
+  const desktopNavItems = useMemo(
+    () => selectBySurface(visibleDestinations, "desktop").map(bindDestination),
+    [bindDestination, visibleDestinations],
+  );
+
+  const mobilePrimaryItems = useMemo(
+    () =>
+      selectBySurface(visibleDestinations, "mobilePrimary").map(bindDestination),
+    [bindDestination, visibleDestinations],
+  );
+
+  const mobileOverflowItems = useMemo(
+    () =>
+      selectBySurface(visibleDestinations, "mobileOverflow").map(
+        bindDestination,
+      ),
+    [bindDestination, visibleDestinations],
+  );
 
   return {
     menuItems,
+    desktopNavItems,
+    mobilePrimaryItems,
+    mobileOverflowItems,
     createShelfDialog,
     logout,
     isLoggedIn,

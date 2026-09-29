@@ -152,6 +152,17 @@ function buildMenuItems() {
   ];
 }
 
+function desktopNavItemsFromMenu() {
+  return [
+    { label: "Início", path: "/", action: vi.fn() },
+    { label: "Estatisticas", path: "/stats", action: vi.fn() },
+    { label: "Comunidade", path: "/community", action: vi.fn() },
+    { label: "Ver Estantes", path: "/shelves", action: vi.fn() },
+    { label: "Autores", path: "/authors", action: vi.fn() },
+    { label: "Administração", path: "/admin", action: vi.fn() },
+  ];
+}
+
 function renderDesktopNavMenu(
   overrides: {
     pathname?: string;
@@ -160,6 +171,7 @@ function renderDesktopNavMenu(
 ) {
   mockUseHeader.mockReturnValue({
     menuItems: buildMenuItems(),
+    desktopNavItems: desktopNavItemsFromMenu(),
     pathname: overrides.pathname ?? "/",
   });
 
@@ -187,6 +199,7 @@ describe("DesktopNavMenu", () => {
 
       const nav = screen.getByRole("navigation");
       expect(nav.className).toMatch(/desktop-nav/);
+      expect(nav.className).toMatch(/shrink-0/);
       expect(nav).toHaveAttribute("aria-label", "Navegação principal");
     });
   });
@@ -263,7 +276,7 @@ describe("DesktopNavMenu", () => {
     });
   });
 
-  describe("filtro ALLOWED_LABELS", () => {
+  describe("destinos recebidos", () => {
     it("exibe Início, Estatisticas, Comunidade, Ver Estantes e Autores", () => {
       renderDesktopNavMenu();
 

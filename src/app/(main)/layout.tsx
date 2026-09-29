@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Newsreader } from "next/font/google";
-import { Suspense, cache } from "react";
+import { cache } from "react";
 
 import Header from "@/components/header";
+import { mainContentClassName } from "@/components/header/constants/headerLayout";
 import { UserProvider } from "@/providers/UserProvider";
 import { getCurrentUserSession } from "@/services/users/service/getCurrentUser.service";
 
@@ -28,6 +29,7 @@ export default async function MainLayout({
   children: React.ReactNode;
 }>) {
   const session = await getCachedSession();
+  const isLoggedIn = Boolean(session?.user);
 
   return (
     <UserProvider
@@ -35,19 +37,8 @@ export default async function MainLayout({
       initialTier={session?.tier ?? null}
     >
       <div className={newsreader.variable}>
-        <Suspense
-          fallback={
-            <svg
-              className="mr-3 size-5 animate-spin ..."
-              viewBox="0 0 24 24"
-            ></svg>
-          }
-        >
-          <Header />
-        </Suspense>
-        <div className="flex flex-col items-center gap-6 p-6 pt-36">
-          {children}
-        </div>
+        <Header />
+        <div className={mainContentClassName(isLoggedIn)}>{children}</div>
       </div>
     </UserProvider>
   );
