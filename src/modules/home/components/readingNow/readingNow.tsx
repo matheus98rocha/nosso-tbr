@@ -98,12 +98,12 @@ export default function ReadingNow({ className }: ReadingNowProps) {
           ease: sectionTransition.ease,
         }}
         className={cn(
-          "overflow-hidden rounded-xl border border-border bg-card shadow-[0_12px_40px_-28px_oklch(0.25_0.05_264/0.28)]",
+          "w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-card shadow-[0_12px_40px_-28px_oklch(0.25_0.05_264/0.28)]",
           className,
         )}
         aria-label="Lendo agora"
       >
-        <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
+        <div className="flex min-w-0 items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <p className="brand-display flex min-w-0 items-center gap-1.5 text-[13px] font-semibold tracking-tight text-[var(--reading-ink)]">
               <BookOpen
@@ -113,23 +113,23 @@ export default function ReadingNow({ className }: ReadingNowProps) {
               Lendo agora
             </p>
             {!isLoading && items.length > 0 && (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
+              <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
                 {items.length}
               </span>
             )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-0.5">
+          <div className="flex min-w-0 shrink-0 items-center gap-0.5">
             {hasMultipleBooks && (
               <>
-                <span className="mr-1 hidden text-[11px] font-medium tabular-nums text-muted-foreground sm:inline">
+                <span className="mr-1 hidden text-[11px] font-medium tabular-nums text-muted-foreground md:inline">
                   {activeIndex + 1}/{items.length}
                 </span>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-8 text-muted-foreground"
+                  className="size-7 text-muted-foreground sm:size-8"
                   onClick={goToPrevious}
                   disabled={!canGoPrevious}
                   aria-label="Livro anterior"
@@ -140,7 +140,7 @@ export default function ReadingNow({ className }: ReadingNowProps) {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-8 text-muted-foreground"
+                  className="size-7 text-muted-foreground sm:size-8"
                   onClick={goToNext}
                   disabled={!canGoNext}
                   aria-label="Próximo livro"
@@ -153,7 +153,7 @@ export default function ReadingNow({ className }: ReadingNowProps) {
             {!isLoading && activeScheduleHref && (
               <Link
                 href={activeScheduleHref}
-                className="ml-1 inline-flex max-w-[9.5rem] truncate rounded-md px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground"
+                className="ml-1 hidden max-w-[9.5rem] truncate rounded-md px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground md:inline-flex"
               >
                 Registrar progresso
               </Link>
@@ -182,7 +182,7 @@ export default function ReadingNow({ className }: ReadingNowProps) {
               ref={scrollRef}
               onScroll={handleScroll}
               className={cn(
-                "flex overflow-x-auto overscroll-x-contain scroll-smooth",
+                "flex w-full min-w-0 overflow-x-auto overscroll-x-contain scroll-smooth",
                 hasMultipleBooks
                   ? "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                   : "overflow-x-hidden",

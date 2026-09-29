@@ -63,6 +63,16 @@ describe("ReadingNowBookSlide", () => {
     expect(
       screen.getByRole("button", { name: "Ver detalhes: O Hobbit" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("article")).toHaveClass(
+      "w-full",
+      "min-w-0",
+      "basis-full",
+    );
+    expect(screen.getByRole("article")).not.toHaveClass("min-w-full");
+    expect(screen.getByRole("button", { name: "Finalizar" }).parentElement).toHaveClass(
+      "min-w-0",
+      "flex-wrap",
+    );
     expect(screen.getByText("13 dias lendo")).toBeInTheDocument();
     expect(screen.getByText("Cronograma: 4/10 dias")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cronograma" })).toBeInTheDocument();
@@ -89,6 +99,9 @@ describe("ReadingNowBookSlide", () => {
     expect(
       screen.getByRole("button", { name: "Criar cronograma" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Criar cronograma" }).parentElement,
+    ).toHaveClass("grid-cols-1");
     expect(
       screen.queryByRole("button", { name: "Cronograma" }),
     ).not.toBeInTheDocument();

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import type { ReadingNowStatusActionsProps } from "../readingNow.types";
 
 const actionButtonClassName =
-  "h-8 min-h-8 min-w-0 flex-1 gap-1 px-2 text-[11px] sm:flex-none sm:px-2.5";
+  "h-8 min-h-8 min-w-0 flex-1 basis-[5.25rem] shrink gap-1 overflow-hidden px-1.5 text-[11px] sm:flex-none sm:basis-auto sm:px-2.5";
 
 export default function ReadingNowStatusActions({
   onFinish,
@@ -18,7 +18,7 @@ export default function ReadingNowStatusActions({
   className,
 }: ReadingNowStatusActionsProps) {
   return (
-    <div className={cn("grid grid-cols-3 gap-1.5 sm:flex sm:flex-nowrap", className)}>
+    <div className={cn("flex min-w-0 flex-wrap items-center gap-1.5", className)}>
       <Button
         type="button"
         variant="outline"
@@ -31,7 +31,7 @@ export default function ReadingNowStatusActions({
         }}
       >
         <CheckCircle2 className="size-3.5" aria-hidden />
-        Finalizar
+        <span className="truncate">Finalizar</span>
       </Button>
       <Button
         type="button"
@@ -45,7 +45,7 @@ export default function ReadingNowStatusActions({
         }}
       >
         <PauseCircle className="size-3.5" aria-hidden />
-        Pausar
+        <span className="truncate">Pausar</span>
       </Button>
       <Button
         type="button"
@@ -59,7 +59,7 @@ export default function ReadingNowStatusActions({
         }}
       >
         <Ban className="size-3.5" aria-hidden />
-        Abandonar
+        <span className="truncate">Abandonar</span>
       </Button>
     </div>
   );

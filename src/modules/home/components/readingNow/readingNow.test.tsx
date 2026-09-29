@@ -130,6 +130,11 @@ describe("ReadingNow", () => {
     render(<ReadingNow />);
 
     expect(screen.getByLabelText("Lendo agora")).toBeInTheDocument();
+    expect(screen.getByLabelText("Lendo agora")).toHaveClass(
+      "w-full",
+      "min-w-0",
+      "max-w-full",
+    );
     expect(screen.getByText("O Hobbit")).toBeInTheDocument();
     expect(screen.getByText("J.R.R. Tolkien")).toBeInTheDocument();
     expect(screen.getByText("Cronograma: 4/10 dias")).toBeInTheDocument();
@@ -137,6 +142,9 @@ describe("ReadingNow", () => {
     expect(
       screen.getByRole("link", { name: "Registrar progresso" }),
     ).toHaveAttribute("href", "/schedule/book-1/O Hobbit");
+    expect(
+      screen.getByRole("link", { name: "Registrar progresso" }),
+    ).toHaveClass("hidden", "md:inline-flex");
 
     await user.click(screen.getByRole("button", { name: "Ver detalhes: O Hobbit" }));
     expect(mockOpenBookDetails).toHaveBeenCalledWith(sampleItem.book);

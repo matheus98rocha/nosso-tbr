@@ -461,7 +461,7 @@ export default function ClientHome() {
         ) : null}
       </header>
 
-      {isLoggedIn && <ReadingNow className="mb-5 max-w-2xl" />}
+      {isLoggedIn && <ReadingNow className="mb-5 w-full min-w-0 max-w-2xl" />}
 
       {shouldSuggestFollowing ? (
         <div

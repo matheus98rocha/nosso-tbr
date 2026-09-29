@@ -26,7 +26,7 @@ const readingProgressTrackClassName = cn(
 const readingProgressIndicatorClassName = "bg-emerald-600 dark:bg-emerald-400";
 
 const toolButtonClassName =
-  "h-8 min-h-8 w-full gap-1.5 px-2 text-[11px] sm:w-auto sm:px-2.5";
+  "h-8 min-h-8 min-w-0 w-full shrink gap-1.5 overflow-hidden px-2 text-[11px] md:w-auto md:px-2.5";
 
 export default function ReadingNowBookSlide({
   item,
@@ -45,11 +45,11 @@ export default function ReadingNowBookSlide({
   const emptyScheduleLabel = formatReadingNowEmptyScheduleLabel(book.pages);
 
   return (
-    <article className="flex min-w-full shrink-0 snap-start snap-always flex-col gap-3 px-3 py-3">
+    <article className="flex w-full min-w-0 shrink-0 basis-full snap-start snap-always flex-col gap-3 px-3 py-3">
       <button
         type="button"
         onClick={onOpenDetails}
-        className="flex min-w-0 cursor-pointer gap-3 rounded-lg border-0 bg-transparent p-0 text-left transition-opacity duration-200 hover:opacity-95 active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex w-full min-w-0 cursor-pointer gap-3 rounded-lg border-0 bg-transparent p-0 text-left transition-opacity duration-200 hover:opacity-95 active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         aria-label={`Ver detalhes: ${book.title}`}
       >
         <BookCover
@@ -86,8 +86,8 @@ export default function ReadingNowBookSlide({
               className={cn("h-1.5 min-h-1.5 w-full", readingProgressTrackClassName)}
               indicatorClassName={readingProgressIndicatorClassName}
             />
-            <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-              <span className="tabular-nums">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+              <span className="min-w-0 tabular-nums">
                 Cronograma: {scheduleProgress.completed}/{scheduleProgress.total}{" "}
                 dias
               </span>
@@ -101,16 +101,21 @@ export default function ReadingNowBookSlide({
         )}
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-border pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      <div className="flex min-w-0 flex-col gap-2 border-t border-border pt-2.5 md:flex-row md:items-center md:justify-between md:gap-3">
         <ReadingNowStatusActions
-          className="min-w-0 flex-1"
+          className="min-w-0 w-full md:flex-1"
           isPending={isStatusPending}
           onFinish={onFinishReading}
           onPause={onPauseReading}
           onAbandon={onAbandonReading}
         />
 
-        <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto">
+        <div
+          className={cn(
+            "grid w-full min-w-0 gap-1.5 md:flex md:w-auto",
+            hasSchedule ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-2",
+          )}
+        >
           <Button
             type="button"
             variant="outline"
