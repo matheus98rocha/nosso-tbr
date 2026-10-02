@@ -15,8 +15,8 @@ export default async function CommunityPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto w-full max-w-3xl px-4 py-7">
-          <Skeleton className="h-112 w-full rounded-2xl" />
+        <div className="mx-auto w-full max-w-6xl">
+          <Skeleton className="h-112 w-full rounded-[1.75rem]" />
         </div>
       }
     >

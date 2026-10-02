@@ -190,6 +190,38 @@ export class UserSocialService {
     }
   }
 
+  async removeFollower(followerId: string): Promise<void> {
+    const {
+      data: { user },
+      error: authError,
+    } = await this.supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new RepositoryError("Unauthorized", undefined, undefined, authError);
+    }
+
+    if (user.id === followerId) {
+      throw new RepositoryError("Cannot remove yourself");
+    }
+
+    const { data, error } = await this.supabase
+      .from("user_followers")
+      .delete()
+      .eq("following_id", user.id)
+      .eq("follower_id", followerId)
+      .select("follower_id");
+
+    if (error || !data?.length) {
+      throw new RepositoryError(
+        "Failed to remove follower",
+        undefined,
+        undefined,
+        error,
+        { followerId },
+      );
+    }
+  }
+
   async updateAvatarSeed(avatarSeed: string): Promise<void> {
     if (!isReadingAvatarSeed(avatarSeed)) {
       throw new RepositoryError("Invalid avatar seed", undefined, undefined, undefined, {

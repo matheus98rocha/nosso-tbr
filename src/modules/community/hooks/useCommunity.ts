@@ -16,10 +16,12 @@ import type {
   CommunityView,
   CommunityViewModel,
 } from "../types/community.types";
+import { countMutualFollows } from "../utils/communityRelation";
 import {
   filterCommunityMembers,
   parseCommunityView,
 } from "../utils/filterCommunityMembers";
+import { useRemoveFollower } from "./useRemoveFollower";
 
 const communityService = new CommunityService();
 const userSocialService = new UserSocialService();
@@ -37,6 +39,7 @@ export function useCommunity(): CommunityViewModel {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [removalMemberId, setRemovalMemberId] = useState<string | null>(null);
 
   const view = parseCommunityView(searchParams.get("view"));
   const selfId = user?.id ?? "";
@@ -68,13 +71,26 @@ export function useCommunity(): CommunityViewModel {
     onToggleError: handleToggleError,
   });
 
+  const {
+    removeFollower,
+    isRemovePending,
+    pendingRemovalUserId,
+  } = useRemoveFollower(selfId);
+
   const followingIds = useMemo(
     () => followingQuery.data ?? snapshotQuery.data?.followingIds ?? [],
     [followingQuery.data, snapshotQuery.data?.followingIds],
   );
 
-  const followerIds = snapshotQuery.data?.followerIds ?? [];
+  const followerIds = useMemo(
+    () => snapshotQuery.data?.followerIds ?? [],
+    [snapshotQuery.data?.followerIds],
+  );
   const followingSet = useMemo(() => new Set(followingIds), [followingIds]);
+  const mutualCount = useMemo(
+    () => countMutualFollows(followingIds, followerIds),
+    [followingIds, followerIds],
+  );
 
   const members = useMemo(() => {
     return (snapshotQuery.data?.members ?? []).map((member) => ({
@@ -96,6 +112,11 @@ export function useCommunity(): CommunityViewModel {
   const selectedMember = useMemo(
     () => members.find((member) => member.id === selectedMemberId) ?? null,
     [members, selectedMemberId],
+  );
+
+  const removalMember = useMemo(
+    () => members.find((member) => member.id === removalMemberId) ?? null,
+    [members, removalMemberId],
   );
 
   const setView = useCallback(
@@ -141,6 +162,37 @@ export function useCommunity(): CommunityViewModel {
     [enqueueFollowToggle, members],
   );
 
+  const onRequestRemoveFollower = useCallback(
+    (memberId: string) => {
+      const member = members.find((item) => item.id === memberId);
+      if (!member?.isFollower || memberId === selfId) {
+        return;
+      }
+
+      setSelectedMemberId(null);
+      setRemovalMemberId(memberId);
+    },
+    [members, selfId],
+  );
+
+  const onCancelRemoveFollower = useCallback(() => {
+    if (isRemovePending) {
+      return;
+    }
+
+    setRemovalMemberId(null);
+  }, [isRemovePending]);
+
+  const onConfirmRemoveFollower = useCallback(() => {
+    if (!removalMemberId) {
+      return;
+    }
+
+    removeFollower(removalMemberId, {
+      onSuccess: () => setRemovalMemberId(null),
+    });
+  }, [removalMemberId, removeFollower]);
+
   const onRetry = useCallback(() => {
     void snapshotQuery.refetch();
   }, [snapshotQuery]);
@@ -160,6 +212,7 @@ export function useCommunity(): CommunityViewModel {
     onClearSearch,
     followingCount: followingIds.length,
     followerCount: followerIds.length,
+    mutualCount,
     members: visibleMembers,
     isLoading: snapshotQuery.isLoading,
     isError: snapshotQuery.isError,
@@ -172,5 +225,11 @@ export function useCommunity(): CommunityViewModel {
     pendingUserId,
     isTogglePending,
     onOpenMemberProfile,
+    removalMember,
+    onRequestRemoveFollower,
+    onCancelRemoveFollower,
+    onConfirmRemoveFollower,
+    isRemovePending,
+    pendingRemovalUserId,
   };
 }

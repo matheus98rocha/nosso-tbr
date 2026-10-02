@@ -26,8 +26,10 @@ describe("CommunityReaderModal", () => {
         member={member}
         open
         isToggleBusy={false}
+        isRemoveBusy={false}
         onOpenChange={vi.fn()}
         onToggleFollow={vi.fn()}
+        onRemoveFollower={vi.fn()}
         onOpenProfile={vi.fn()}
       />,
     );
@@ -45,8 +47,10 @@ describe("CommunityReaderModal", () => {
         member={{ ...member, currentlyReadingTitle: null }}
         open
         isToggleBusy={false}
+        isRemoveBusy={false}
         onOpenChange={vi.fn()}
         onToggleFollow={vi.fn()}
+        onRemoveFollower={vi.fn()}
         onOpenProfile={vi.fn()}
       />,
     );
@@ -60,8 +64,10 @@ describe("CommunityReaderModal", () => {
         member={{ ...member, mostReadGender: null, mostRegisteredGender: null }}
         open
         isToggleBusy={false}
+        isRemoveBusy={false}
         onOpenChange={vi.fn()}
         onToggleFollow={vi.fn()}
+        onRemoveFollower={vi.fn()}
         onOpenProfile={vi.fn()}
       />,
     );
@@ -87,8 +93,10 @@ describe("CommunityReaderModal", () => {
         member={member}
         open
         isToggleBusy={false}
+        isRemoveBusy={false}
         onOpenChange={vi.fn()}
         onToggleFollow={vi.fn()}
+        onRemoveFollower={vi.fn()}
         onOpenProfile={onOpenProfile}
       />,
     );

@@ -4,7 +4,12 @@ import type {
 } from "../types/community.types";
 
 export function parseCommunityView(raw: string | null | undefined): CommunityView {
-  if (raw === "seguidores" || raw === "seguindo" || raw === "todos") {
+  if (
+    raw === "seguidores" ||
+    raw === "seguindo" ||
+    raw === "mutuos" ||
+    raw === "todos"
+  ) {
     return raw;
   }
 
@@ -38,6 +43,10 @@ export function filterCommunityMembers(
 
       if (options.view === "seguindo") {
         return member.isFollowing;
+      }
+
+      if (options.view === "mutuos") {
+        return member.isFollowing && member.isFollower;
       }
 
       return true;

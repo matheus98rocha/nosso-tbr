@@ -1,4 +1,4 @@
-export type CommunityView = "todos" | "seguidores" | "seguindo";
+export type CommunityView = "todos" | "seguidores" | "seguindo" | "mutuos";
 
 export type CommunityMember = {
   id: string;
@@ -46,6 +46,7 @@ export type CommunityViewModel = {
   onClearSearch: () => void;
   followingCount: number;
   followerCount: number;
+  mutualCount: number;
   members: CommunityMember[];
   isLoading: boolean;
   isError: boolean;
@@ -58,4 +59,10 @@ export type CommunityViewModel = {
   pendingUserId: string | null;
   isTogglePending: boolean;
   onOpenMemberProfile: (memberId: string) => void;
+  removalMember: CommunityMember | null;
+  onRequestRemoveFollower: (memberId: string) => void;
+  onCancelRemoveFollower: () => void;
+  onConfirmRemoveFollower: () => void;
+  isRemovePending: boolean;
+  pendingRemovalUserId: string | null;
 };

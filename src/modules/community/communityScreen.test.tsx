@@ -37,6 +37,13 @@ const viewModel: CommunityViewModel = {
   pendingUserId: null,
   isTogglePending: false,
   onOpenMemberProfile: vi.fn(),
+  mutualCount: 0,
+  removalMember: null,
+  onRequestRemoveFollower: vi.fn(),
+  onCancelRemoveFollower: vi.fn(),
+  onConfirmRemoveFollower: vi.fn(),
+  isRemovePending: false,
+  pendingRemovalUserId: null,
 };
 
 const { mockUseCommunity } = vi.hoisted(() => ({
@@ -65,8 +72,10 @@ describe("CommunityScreen", () => {
     expect(screen.queryByText("Fantasia")).not.toBeInTheDocument();
     expect(screen.getByText("12 cadastrados · 8 lidos")).toBeInTheDocument();
     expect(screen.getByText("Lendo O Nome do Vento")).toBeInTheDocument();
+    expect(screen.getByText("Te segue")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText("0")).toBeInTheDocument();
   });
 
   it("mostra estado vazio em pt-BR", () => {
@@ -89,5 +98,16 @@ describe("CommunityScreen", () => {
 
     await user.click(screen.getByText("Ana"));
     expect(viewModel.onOpenMember).toHaveBeenCalledWith("ana");
+  });
+
+  it("pede para remover quem segue o usuário", async () => {
+    const user = userEvent.setup();
+    render(<CommunityScreen />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Remover Ana dos seguidores" }),
+    );
+
+    expect(viewModel.onRequestRemoveFollower).toHaveBeenCalledWith("ana");
   });
 });

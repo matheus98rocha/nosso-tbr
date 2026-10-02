@@ -39,14 +39,14 @@ const snapshot: CommunitySnapshot = {
   ],
 };
 
-const { getSnapshot, getFollowingIds, toggleFollow, toastError } = vi.hoisted(
-  () => ({
+const { getSnapshot, getFollowingIds, toggleFollow, removeFollower, toastError } =
+  vi.hoisted(() => ({
     getSnapshot: vi.fn(),
     getFollowingIds: vi.fn(),
     toggleFollow: vi.fn(),
+    removeFollower: vi.fn(),
     toastError: vi.fn(),
-  }),
-);
+  }));
 
 vi.mock("../services/community.service", () => ({
   CommunityService: vi.fn(function CommunityServiceMock(this: {
@@ -61,6 +61,14 @@ vi.mock("@/services/userSocial/userSocial.service", () => ({
     getFollowingIds: typeof getFollowingIds;
   }) {
     this.getFollowingIds = getFollowingIds;
+  }),
+}));
+
+vi.mock("./useRemoveFollower", () => ({
+  useRemoveFollower: () => ({
+    removeFollower,
+    isRemovePending: false,
+    pendingRemovalUserId: null,
   }),
 }));
 
@@ -173,5 +181,40 @@ describe("useCommunity", () => {
     });
 
     expect(toggleFollow).toHaveBeenCalledWith("bruno", true);
+  });
+
+  it("conta mútuos pela interseção e pede remoção só de quem segue o usuário", async () => {
+    getSnapshot.mockResolvedValue({
+      ...snapshot,
+      followingIds: ["ana", "bruno"],
+      members: snapshot.members.map((member) =>
+        member.id === "bruno" ? { ...member, isFollowing: true } : member,
+      ),
+    });
+    getFollowingIds.mockResolvedValue(["ana", "bruno"]);
+
+    const { result } = renderHook(() => useCommunity(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.mutualCount).toBe(1);
+    });
+
+    act(() => {
+      result.current.onRequestRemoveFollower("ana");
+    });
+    expect(result.current.removalMember).toBeNull();
+
+    act(() => {
+      result.current.onRequestRemoveFollower("bruno");
+    });
+    expect(result.current.removalMember?.displayName).toBe("Bruno");
+
+    act(() => {
+      result.current.onConfirmRemoveFollower();
+    });
+
+    expect(removeFollower).toHaveBeenCalledWith("bruno", expect.any(Object));
   });
 });

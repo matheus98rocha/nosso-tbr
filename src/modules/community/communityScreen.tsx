@@ -12,6 +12,7 @@ import {
   CommunityCounts,
   CommunityMemberRow,
   CommunityReaderModal,
+  CommunityRemoveFollowerDialog,
 } from "./components";
 import { useCommunity } from "./hooks/useCommunity";
 import type { CommunityView } from "./types/community.types";
@@ -20,6 +21,7 @@ const VIEW_OPTIONS: { value: CommunityView; label: string }[] = [
   { value: "todos", label: "Todos" },
   { value: "seguidores", label: "Seguidores" },
   { value: "seguindo", label: "Seguindo" },
+  { value: "mutuos", label: "Mútuos" },
 ];
 
 function emptyCopy(view: CommunityView, hasSearch: boolean): string {
@@ -35,6 +37,10 @@ function emptyCopy(view: CommunityView, hasSearch: boolean): string {
     return "Você ainda não segue ninguém.";
   }
 
+  if (view === "mutuos") {
+    return "Ainda não há seguidores mútuos.";
+  }
+
   return "Ainda não há outros leitores por aqui.";
 }
 
@@ -43,79 +49,95 @@ function CommunityScreenView() {
   const hasSearch = viewModel.searchQuery.trim().length > 0;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-7">
-      <header className="space-y-2 border-b border-border pb-6">
-        <h1 className="page-title text-zinc-900 dark:text-zinc-100">
-          Comunidade
-        </h1>
-        <p className="max-w-xl text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Descubra outros leitores, veja um recorte de gêneros e siga quem fizer
-          sentido para a sua estante.
-        </p>
+    <div className="relative w-full max-w-6xl space-y-5 sm:space-y-6">
+      <header className="relative overflow-hidden rounded-[1.75rem] border border-[color-mix(in_oklch,var(--reading-ink)_12%,transparent)] bg-[var(--reading-surface)] px-4 py-5 sm:px-6 sm:py-7">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,oklch(0.62_0.09_55/0.2),transparent_52%),radial-gradient(ellipse_at_100%_0%,oklch(0.42_0.07_264/0.14),transparent_48%)]"
+        />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-xl space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[color-mix(in_oklch,var(--reading-ink)_58%,transparent)]">
+              Sala de leitura
+            </p>
+            <h1 className="brand-display text-[2.15rem] leading-none font-semibold tracking-tight text-[var(--reading-ink)] sm:text-5xl">
+              Comunidade
+            </h1>
+            <p className="max-w-md text-sm leading-relaxed text-[color-mix(in_oklch,var(--reading-ink)_74%,transparent)] sm:text-base">
+              Veja quem você segue, quem te segue e quem lê nos dois sentidos.
+              Se alguém não deve mais acompanhar a sua estante, remova o
+              seguidor.
+            </p>
+          </div>
+          <CommunityCounts
+            followingCount={viewModel.followingCount}
+            followerCount={viewModel.followerCount}
+            mutualCount={viewModel.mutualCount}
+            activeView={viewModel.view}
+            onSelectView={viewModel.setView}
+          />
+        </div>
       </header>
 
-      <CommunityCounts
-        followingCount={viewModel.followingCount}
-        followerCount={viewModel.followerCount}
-        activeView={viewModel.view}
-        onSelectView={viewModel.setView}
-      />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div
+          role="tablist"
+          aria-label="Recortes da comunidade"
+          className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:mx-0 lg:px-0"
+        >
+          {VIEW_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="tab"
+              aria-selected={viewModel.view === option.value}
+              onClick={() => viewModel.setView(option.value)}
+              className={cn(
+                "h-11 shrink-0 cursor-pointer rounded-full border px-4 text-sm font-medium transition-colors",
+                viewModel.view === option.value
+                  ? "border-transparent bg-[var(--reading-ink)] text-[var(--reading-surface)]"
+                  : "border-[color-mix(in_oklch,var(--reading-ink)_16%,transparent)] bg-white/80 text-zinc-700 hover:bg-white dark:bg-zinc-950/40 dark:text-zinc-200",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
 
-      <div
-        role="tablist"
-        aria-label="Recortes da comunidade"
-        className="flex flex-wrap gap-2"
-      >
-        {VIEW_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            role="tab"
-            aria-selected={viewModel.view === option.value}
-            onClick={() => viewModel.setView(option.value)}
-            className={cn(
-              "h-11 min-w-11 cursor-pointer rounded-xl border px-4 text-sm font-medium transition-colors",
-              viewModel.view === option.value
-                ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-                : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900",
-            )}
-          >
-            {option.label}
-          </button>
-        ))}
+        <div className="relative w-full lg:w-80">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            value={viewModel.searchQuery}
+            onChange={(event) => viewModel.onSearchChange(event.target.value)}
+            placeholder="Buscar por nome..."
+            className="h-11 rounded-full border-zinc-200 bg-white/90 pl-10 text-base md:text-sm dark:border-zinc-800 dark:bg-zinc-950/60"
+            aria-label="Buscar leitores por nome"
+            autoComplete="off"
+          />
+        </div>
       </div>
 
-      <div className="relative">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400"
-          aria-hidden
-        />
-        <Input
-          type="search"
-          value={viewModel.searchQuery}
-          onChange={(event) => viewModel.onSearchChange(event.target.value)}
-          placeholder="Buscar por nome..."
-          className="h-11 rounded-xl border-zinc-200 pl-10 text-base md:text-sm dark:border-zinc-800"
-          aria-label="Buscar leitores por nome"
-          autoComplete="off"
-        />
-      </div>
-
-      <section
-        className="overflow-hidden rounded-2xl border border-zinc-200 shadow-sm dark:border-zinc-800"
-        aria-labelledby="community-list-heading"
-      >
+      <section aria-labelledby="community-list-heading">
         <h2 id="community-list-heading" className="sr-only">
           Lista de leitores
         </h2>
         {viewModel.isLoading ? (
-          <div className="space-y-3 p-4" aria-busy="true" aria-label="Carregando leitores">
-            <Skeleton className="h-16 w-full rounded-xl" />
-            <Skeleton className="h-16 w-full rounded-xl" />
-            <Skeleton className="h-16 w-full rounded-xl" />
+          <div
+            className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4"
+            aria-busy="true"
+            aria-label="Carregando leitores"
+          >
+            <Skeleton className="h-36 w-full rounded-[1.35rem]" />
+            <Skeleton className="h-36 w-full rounded-[1.35rem]" />
+            <Skeleton className="h-36 w-full rounded-[1.35rem]" />
+            <Skeleton className="hidden h-36 w-full rounded-[1.35rem] lg:block" />
           </div>
         ) : viewModel.isError ? (
-          <div className="space-y-4 px-4 py-12 text-center">
+          <div className="space-y-4 rounded-[1.35rem] border border-dashed border-zinc-300 px-4 py-14 text-center dark:border-zinc-700">
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Não foi possível carregar a comunidade. Tente de novo.
             </p>
@@ -129,7 +151,7 @@ function CommunityScreenView() {
             </Button>
           </div>
         ) : viewModel.isEmpty ? (
-          <div className="space-y-4 px-4 py-12 text-center">
+          <div className="space-y-4 rounded-[1.35rem] border border-dashed border-zinc-300 px-4 py-14 text-center dark:border-zinc-700">
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {emptyCopy(viewModel.view, hasSearch)}
             </p>
@@ -146,9 +168,12 @@ function CommunityScreenView() {
             ) : null}
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-200 dark:divide-zinc-800" role="list">
+          <ul
+            className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4"
+            role="list"
+          >
             {viewModel.members.map((member) => (
-              <li key={member.id}>
+              <li key={member.id} className="min-w-0">
                 <CommunityMemberRow
                   memberId={member.id}
                   displayName={member.displayName}
@@ -157,12 +182,20 @@ function CommunityScreenView() {
                   finishedCount={member.finishedCount}
                   currentlyReadingTitle={member.currentlyReadingTitle}
                   isFollowing={member.isFollowing}
+                  isFollower={member.isFollower}
                   isToggleBusy={
                     viewModel.isTogglePending &&
                     viewModel.pendingUserId === member.id
                   }
+                  isRemoveBusy={
+                    viewModel.isRemovePending &&
+                    viewModel.pendingRemovalUserId === member.id
+                  }
                   onOpen={() => viewModel.onOpenMember(member.id)}
                   onToggleFollow={() => viewModel.onToggleFollow(member.id)}
+                  onRemoveFollower={() =>
+                    viewModel.onRequestRemoveFollower(member.id)
+                  }
                 />
               </li>
             ))}
@@ -177,6 +210,10 @@ function CommunityScreenView() {
           viewModel.isTogglePending &&
           viewModel.pendingUserId === viewModel.selectedMember?.id
         }
+        isRemoveBusy={
+          viewModel.isRemovePending &&
+          viewModel.pendingRemovalUserId === viewModel.selectedMember?.id
+        }
         onOpenChange={(open) => {
           if (!open) {
             viewModel.onCloseMember();
@@ -187,11 +224,28 @@ function CommunityScreenView() {
             viewModel.onToggleFollow(viewModel.selectedMember.id);
           }
         }}
+        onRemoveFollower={() => {
+          if (viewModel.selectedMember) {
+            viewModel.onRequestRemoveFollower(viewModel.selectedMember.id);
+          }
+        }}
         onOpenProfile={() => {
           if (viewModel.selectedMember) {
             viewModel.onOpenMemberProfile(viewModel.selectedMember.id);
           }
         }}
+      />
+
+      <CommunityRemoveFollowerDialog
+        displayName={viewModel.removalMember?.displayName ?? null}
+        open={Boolean(viewModel.removalMember)}
+        isPending={viewModel.isRemovePending}
+        onOpenChange={(open) => {
+          if (!open) {
+            viewModel.onCancelRemoveFollower();
+          }
+        }}
+        onConfirm={viewModel.onConfirmRemoveFollower}
       />
     </div>
   );

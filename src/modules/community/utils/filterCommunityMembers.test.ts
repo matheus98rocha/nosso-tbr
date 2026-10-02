@@ -57,10 +57,11 @@ const members: CommunityMember[] = [bruno, self, jose, ana];
 
 describe("parseCommunityView", () => {
   describe("RN-COM-12", () => {
-    it("aceita todos, seguidores e seguindo", () => {
+    it("aceita todos, seguidores, seguindo e mútuos", () => {
       expect(parseCommunityView("todos")).toBe("todos");
       expect(parseCommunityView("seguidores")).toBe("seguidores");
       expect(parseCommunityView("seguindo")).toBe("seguindo");
+      expect(parseCommunityView("mutuos")).toBe("mutuos");
     });
 
     it("cai em todos quando o valor é nulo ou inválido", () => {
@@ -76,7 +77,7 @@ describe("parseCommunityView", () => {
 describe("filterCommunityMembers", () => {
   describe("RN-COM-02 / RN-COM-03 / RN-COM-04", () => {
     it("nunca inclui o selfId em nenhum recorte", () => {
-      const views = ["todos", "seguidores", "seguindo"] as const;
+      const views = ["todos", "seguidores", "seguindo", "mutuos"] as const;
 
       for (const view of views) {
         const result = filterCommunityMembers(members, {
@@ -108,6 +109,19 @@ describe("filterCommunityMembers", () => {
 
       expect(result.map((item) => item.id)).toEqual(["bruno", "jose"]);
       expect(result.every((item) => item.isFollower)).toBe(true);
+    });
+
+    it("no recorte mútuos lista só quem segue e é seguido", () => {
+      const result = filterCommunityMembers(members, {
+        view: "mutuos",
+        search: "",
+        selfId: SELF_ID,
+      });
+
+      expect(result.map((item) => item.id)).toEqual(["bruno"]);
+      expect(result.every((item) => item.isFollowing && item.isFollower)).toBe(
+        true,
+      );
     });
 
     it("no recorte seguindo lista só quem tem isFollowing", () => {

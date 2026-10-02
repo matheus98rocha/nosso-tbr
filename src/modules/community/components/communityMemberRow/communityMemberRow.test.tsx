@@ -14,9 +14,12 @@ function renderRow(overrides: Partial<CommunityMemberRowProps> = {}) {
     finishedCount: 0,
     currentlyReadingTitle: null,
     isFollowing: false,
+    isFollower: false,
     isToggleBusy: false,
+    isRemoveBusy: false,
     onOpen: vi.fn(),
     onToggleFollow: vi.fn(),
+    onRemoveFollower: vi.fn(),
     ...overrides,
   };
 
@@ -65,6 +68,25 @@ describe("CommunityMemberRow", () => {
 
       expect(screen.queryByText(/Lendo /)).not.toBeInTheDocument();
     });
+  });
+
+  it("mostra quando o usuário segue o leitor e permite remover quem te segue", async () => {
+    const user = userEvent.setup();
+    const onRemoveFollower = vi.fn();
+
+    renderRow({
+      isFollowing: true,
+      isFollower: true,
+      onRemoveFollower,
+    });
+
+    expect(screen.getByText("Você segue")).toBeInTheDocument();
+    expect(screen.getByText("Te segue")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Remover Ana dos seguidores" }),
+    );
+    expect(onRemoveFollower).toHaveBeenCalledOnce();
   });
 
   it("abre o leitor ao tocar no nome e segue no botão dedicado", async () => {

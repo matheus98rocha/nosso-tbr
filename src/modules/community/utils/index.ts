@@ -1,4 +1,8 @@
 export {
+  countMutualFollows,
+  listCommunityRelationMarks,
+} from "./communityRelation";
+export {
   filterCommunityMembers,
   normalizeCommunitySearch,
   parseCommunityView,

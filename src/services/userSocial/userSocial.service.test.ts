@@ -110,6 +110,42 @@ describe("UserSocialService", () => {
     await expect(service.follow("user-1")).rejects.toThrow("Cannot follow yourself");
   });
 
+  it("executa removeFollower com following_id do autenticado e follower_id do alvo", async () => {
+    const service = makeService();
+    await service.removeFollower("follower-9");
+
+    const followersQuery = from.mock.results[0].value as ThenableQuery<unknown>;
+    expect(followersQuery.delete).toHaveBeenCalled();
+    expect(followersQuery.eq).toHaveBeenNthCalledWith(1, "following_id", "user-1");
+    expect(followersQuery.eq).toHaveBeenNthCalledWith(2, "follower_id", "follower-9");
+    expect(followersQuery.select).toHaveBeenCalledWith("follower_id");
+  });
+
+  it("falha quando nenhuma linha de seguidor é removida", async () => {
+    from.mockImplementation((table: string) => {
+      if (table === "user_followers") {
+        return makeThenableQuery({ data: [], error: null });
+      }
+
+      return makeThenableQuery({ data: [], error: null });
+    });
+
+    const service = makeService();
+
+    await expect(service.removeFollower("follower-9")).rejects.toThrow(
+      "Failed to remove follower",
+    );
+  });
+
+  it("bloqueia remover a si mesmo da lista de seguidores", async () => {
+    const service = makeService();
+
+    await expect(service.removeFollower("user-1")).rejects.toThrow(
+      "Cannot remove yourself",
+    );
+    expect(from).not.toHaveBeenCalled();
+  });
+
   it("executa unfollow com follower_id + following_id", async () => {
     const service = makeService();
     await service.unfollow("2");

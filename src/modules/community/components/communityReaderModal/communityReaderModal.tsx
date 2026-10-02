@@ -18,14 +18,17 @@ import { ProfileAvatar } from "@/modules/profile/components";
 import { initialsFromDisplayName } from "@/modules/profile/utils";
 
 import { formatCommunityMemberActivity } from "../../utils/formatCommunityMemberActivity";
+import CommunityRelationMarks from "../communityRelationMarks";
 import type { CommunityReaderModalProps } from "./types/communityReaderModal.types";
 
 function CommunityReaderModalComponent({
   member,
   open,
   isToggleBusy,
+  isRemoveBusy,
   onOpenChange,
   onToggleFollow,
+  onRemoveFollower,
   onOpenProfile,
 }: CommunityReaderModalProps) {
   const mostReadLabel = member?.mostReadGender
@@ -55,9 +58,15 @@ function CommunityReaderModalComponent({
                 alt={`Avatar de ${member.displayName}`}
                 className="mx-auto"
               />
-              <DialogTitle className="pt-2 text-center">
+              <DialogTitle className="brand-display pt-2 text-center text-3xl font-semibold">
                 {member.displayName}
               </DialogTitle>
+              <div className="flex justify-center">
+                <CommunityRelationMarks
+                  isFollowing={member.isFollowing}
+                  isFollower={member.isFollower}
+                />
+              </div>
               <DialogDescription className="text-center">
                 Recorte de gêneros visíveis para você.
               </DialogDescription>
@@ -75,7 +84,7 @@ function CommunityReaderModalComponent({
               ) : null}
             </DialogHeader>
             <dl className="space-y-3">
-              <div className="rounded-xl border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+              <div className="rounded-2xl border border-zinc-200 px-4 py-3 dark:border-zinc-800">
                 <dt className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                   Gênero mais lido
                 </dt>
@@ -96,7 +105,7 @@ function CommunityReaderModalComponent({
                   )}
                 </dd>
               </div>
-              <div className="rounded-xl border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+              <div className="rounded-2xl border border-zinc-200 px-4 py-3 dark:border-zinc-800">
                 <dt className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                   Gênero com mais livros cadastrados
                 </dt>
@@ -118,19 +127,11 @@ function CommunityReaderModalComponent({
                 </dd>
               </div>
             </dl>
-            <DialogFooter className="gap-2 sm:justify-between">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 cursor-pointer rounded-xl"
-                onClick={onOpenProfile}
-              >
-                Ver perfil
-              </Button>
+            <DialogFooter className="flex-col gap-2 sm:flex-col sm:justify-stretch">
               <Button
                 type="button"
                 variant={member.isFollowing ? "secondary" : "default"}
-                className="h-11 min-w-[120px] cursor-pointer rounded-xl"
+                className="h-11 w-full cursor-pointer rounded-xl"
                 disabled={isToggleBusy}
                 onClick={onToggleFollow}
                 aria-busy={isToggleBusy}
@@ -142,6 +143,27 @@ function CommunityReaderModalComponent({
                 }
               >
                 {member.isFollowing ? "Seguindo" : "Seguir"}
+              </Button>
+              {member.isFollower ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full cursor-pointer rounded-xl"
+                  disabled={isRemoveBusy}
+                  onClick={onRemoveFollower}
+                  aria-busy={isRemoveBusy}
+                  aria-label={`Remover ${member.displayName} dos seguidores`}
+                >
+                  Remover
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 w-full cursor-pointer rounded-xl"
+                onClick={onOpenProfile}
+              >
+                Ver perfil
               </Button>
             </DialogFooter>
           </>
