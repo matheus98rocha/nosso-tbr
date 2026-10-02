@@ -613,6 +613,10 @@ export type Database = {
           year: number
         }[]
       }
+      import_reader_books: {
+        Args: { p_rows: Json }
+        Returns: Json
+      }
       is_book_visible_to_user: {
         Args: {
           p_chosen_by: string

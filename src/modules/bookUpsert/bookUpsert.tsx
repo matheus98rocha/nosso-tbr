@@ -5,6 +5,7 @@ import {
   Search,
   XIcon,
 } from "lucide-react";
+import { useCallback } from "react";
 
 import { BlurOverlay } from "@/components";
 import { DatePicker } from "@/components/datePicker";
@@ -38,11 +39,15 @@ import { DateUtils } from "@/utils";
 import { CreateBookProps } from "./bookUpsert.types";
 import {
   AutocompleteInput,
+  BookEntryModeSwitch,
+  BookImportPanel,
   BookLookupPanel,
   BookParticipationBlockedDialog,
   FoundCatalogBookDialog,
 } from "./components";
 import BookUpsertSection from "./components/bookUpsertSection";
+import useBookImportEntry from "./hooks/useBookImportEntry";
+import useImportBooks from "./hooks/useImportBooks";
 import { useBookUpsert } from "./hooks/useBookUpsert";
 
 export function BookUpsert(props: CreateBookProps) {
@@ -97,6 +102,19 @@ export function BookUpsert(props: CreateBookProps) {
     handleDismissRatingPrompt,
   } = useBookUpsert(props);
 
+  const isCreate = !props.bookData;
+  const importEntry = useBookImportEntry({
+    isOpen: props.isBookFormOpen && isCreate,
+    onImportBooks: props.onImportBooks,
+  });
+  const closeAfterImport = useCallback(() => {
+    handleDialogOpenChange(false);
+  }, [handleDialogOpenChange]);
+  const importBooks = useImportBooks({
+    isOpen: props.isBookFormOpen && isCreate,
+    onImported: closeAfterImport,
+  });
+  const isBulkImport = isCreate && importEntry.isBulk;
   const coverUrl = form.watch("image_url");
 
   return (
@@ -130,18 +148,14 @@ export function BookUpsert(props: CreateBookProps) {
         <DialogContent
           showCloseButton={false}
           className={cn(
-            "inset-x-0 bottom-0 top-auto left-0 translate-x-0 translate-y-0",
-            "max-w-none rounded-t-3xl rounded-b-none h-[92dvh]",
-            "sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-w-lg",
-            "sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl sm:h-[80%]",
-            "flex flex-col gap-0 overflow-hidden border-zinc-200/80 p-0",
+            "book-upsert-dialog gap-0 border-zinc-200/80 p-0",
             "bg-[linear-gradient(180deg,#fffdf8_0%,#faf7f2_48%,#ffffff_100%)]",
             "dark:border-zinc-700/80 dark:bg-[linear-gradient(180deg,#27272a_0%,#18181b_100%)]",
           )}
         >
           <BlurOverlay showOverlay={!isLoggedIn}>
             <div
-              className="flex justify-center pt-3 pb-1 sm:hidden"
+              className="book-upsert-grabber justify-center pt-3 pb-1"
               aria-hidden="true"
             >
               <div className="h-1 w-10 rounded-full bg-muted-foreground/25" />
@@ -149,7 +163,7 @@ export function BookUpsert(props: CreateBookProps) {
 
             <div
               className={cn(
-                "shrink-0 border-b border-zinc-200/80 px-4 py-4 sm:px-6",
+                "shrink-0 space-y-4 border-b border-zinc-200/80 px-4 py-4 sm:px-6",
                 "dark:border-zinc-700/70",
               )}
             >
@@ -169,12 +183,16 @@ export function BookUpsert(props: CreateBookProps) {
                     <DialogTitle className="text-lg font-semibold tracking-tight">
                       {props.bookData
                         ? "Editar Livro"
-                        : "Adicione um novo livro"}
+                        : isBulkImport
+                          ? "Traga vários livros"
+                          : "Adicione um novo livro"}
                     </DialogTitle>
                     <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                       {props.bookData
                         ? "Atualize os dados e o andamento da leitura."
-                        : "Busque pelo título ou preencha os detalhes na mão."}
+                        : isBulkImport
+                          ? "A biblioteca inteira, num arquivo só."
+                          : "Busque pelo título ou preencha os detalhes na mão."}
                     </p>
                   </div>
                 </div>
@@ -186,6 +204,12 @@ export function BookUpsert(props: CreateBookProps) {
                   <span className="sr-only">Fechar</span>
                 </DialogClose>
               </div>
+              {isCreate ? (
+                <BookEntryModeSwitch
+                  mode={importEntry.mode}
+                  onModeChange={importEntry.setMode}
+                />
+              ) : null}
             </div>
 
             <div
@@ -194,12 +218,29 @@ export function BookUpsert(props: CreateBookProps) {
                 isLoggedIn ? "overflow-y-auto" : "overflow-hidden",
               )}
             >
-              <Form {...form}>
-                <form
-                  id="book-upsert-form"
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="grid gap-4 py-5"
-                >
+              <div className="grid gap-4 py-5">
+                {isBulkImport ? (
+                  <BookImportPanel
+                    fileName={importEntry.fileSummary?.name ?? null}
+                    fileSizeLabel={importEntry.fileSummary?.sizeLabel ?? null}
+                    isDragging={importEntry.isDragging}
+                    result={props.importResult ?? importBooks.result}
+                    onDragLeave={importEntry.handleDragLeave}
+                    onDragOver={importEntry.handleDragOver}
+                    onDrop={importEntry.handleDrop}
+                    onFileInputChange={importEntry.handleInputChange}
+                    onRemoveFile={() => {
+                      importEntry.removeFile();
+                      importBooks.reset();
+                    }}
+                  />
+                ) : (
+                  <Form {...form}>
+                    <form
+                      id="book-upsert-form"
+                      onSubmit={handleSubmit(onSubmit)}
+                      className="grid gap-4"
+                    >
                   {!isEdit && (
                     <BookUpsertSection
                       title="Busca automática"
@@ -600,13 +641,15 @@ export function BookUpsert(props: CreateBookProps) {
                       )}
                     </BookUpsertSection>
                   )}
-                </form>
-              </Form>
+                    </form>
+                  </Form>
+                )}
+              </div>
             </div>
 
             <div
               className={cn(
-                "shrink-0 border-t border-zinc-200/80 bg-white/90 px-4 py-4 backdrop-blur-md sm:px-6",
+                "shrink-0 border-t border-zinc-200/80 bg-white/95 px-4 py-4 shadow-[0_-10px_24px_-18px_rgba(24,24,27,0.45)] backdrop-blur-md sm:px-6",
                 "dark:border-zinc-700/70 dark:bg-zinc-950/80",
                 !isLoggedIn ? "pointer-events-none opacity-50" : "",
               )}
@@ -617,18 +660,43 @@ export function BookUpsert(props: CreateBookProps) {
                     Cancelar
                   </Button>
                 </DialogClose>
-                <Button
-                  type="submit"
-                  form="book-upsert-form"
-                  isLoading={isLoading}
-                  className={cn(
-                    "w-full sm:w-auto",
-                    "bg-zinc-900 text-zinc-50 hover:bg-zinc-800",
-                    "dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white",
-                  )}
-                >
-                  {bookData ? "Editar" : "Adicionar"}
-                </Button>
+                {isBulkImport ? (
+                  <Button
+                    type="button"
+                    disabled={!importEntry.canImport}
+                    isLoading={importBooks.isImporting}
+                    onClick={() => {
+                      if (props.onImportBooks) {
+                        importEntry.handleImport();
+                        return;
+                      }
+
+                      if (!importEntry.file) return;
+
+                      void importBooks.importFile(importEntry.file);
+                    }}
+                    className={cn(
+                      "w-full sm:w-auto",
+                      "bg-zinc-900 text-zinc-50 hover:bg-zinc-800",
+                      "dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white",
+                    )}
+                  >
+                    Importar livros
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    form="book-upsert-form"
+                    isLoading={isLoading}
+                    className={cn(
+                      "w-full sm:w-auto",
+                      "bg-zinc-900 text-zinc-50 hover:bg-zinc-800",
+                      "dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white",
+                    )}
+                  >
+                    {bookData ? "Editar" : "Adicionar"}
+                  </Button>
+                )}
               </DialogFooter>
             </div>
           </BlurOverlay>

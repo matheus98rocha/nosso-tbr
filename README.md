@@ -134,6 +134,7 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 - **Paginação** com tamanho de página fixo.
 - Ações principais:
   - **Criar/editar livro** via modal `BookUpsert`. Após criar (ou cancelar), o formulário — inclusive a busca automática por título/ISBN — volta ao estado vazio.
+  - **Importar vários livros** no mesmo modal, na opção **Vários livros**: envia um CSV do modelo Nosso TBR ou um export do Goodreads (`POST /api/books/import`). Cada linha inválida fica de fora; a importação não gera notificação de novos livros.
   - **Avaliar leitura finalizada com 1–5 estrelas** (tabela `book_reading_ratings`, apenas para o próprio usuário): convite opcional depois de marcar como **Terminei a Leitura** e ajustes no próprio cartão quando o livro não está em modo estante.
   - **Criar/editar estante** via modal `CreateEditBookshelves`.
   - **Adicionar livro à estante** a partir do card (`AddBookToShelf`): persiste na API e exibe toast de confirmação **sem redirecionar** para `/bookshelves/[id]`; o acesso à tela de estantes continua pelo menu ou links explícitos.

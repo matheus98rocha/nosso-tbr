@@ -38,6 +38,18 @@ _Avoid_: papel de leitor, author account
 Coleção curada por um leitor para organizar livros segundo um critério próprio.
 _Avoid_: série, saga, prateleira
 
+**Importação**:
+Ato do leitor de registrar vários livros de uma vez a partir de um arquivo. Não é atividade para seguidores.
+_Avoid_: sincronização, catálogo externo, migração
+
+**Modelo de importação**:
+Arquivo com as colunas obrigatórias do Nosso TBR (`titulo`, `autor`, `paginas`, `status`) e uma linha de exemplo.
+_Avoid_: export do Goodreads, planilha livre
+
+**Linha de exemplo**:
+Linha do modelo de importação que mostra o formato e não é um livro. O título é `Exemplo: não importar`.
+_Avoid_: primeiro registro, livro de teste
+
 ## Notificações sociais
 
 **Notificação de novos livros**:
