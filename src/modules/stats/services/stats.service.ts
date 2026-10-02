@@ -10,29 +10,18 @@ import {
   StatsDomain,
 } from "../types/stats.types";
 
-async function getMutualFollowPeerIds(
+async function getFollowingPeerIds(
   supabase: SupabaseClient<Database>,
   userId: string,
 ): Promise<string[]> {
-  const [{ data: following }, { data: followers }] = await Promise.all([
-    supabase
-      .from("user_followers")
-      .select("following_id")
-      .eq("follower_id", userId),
-    supabase
-      .from("user_followers")
-      .select("follower_id")
-      .eq("following_id", userId),
-  ]);
+  const { data: following } = await supabase
+    .from("user_followers")
+    .select("following_id")
+    .eq("follower_id", userId);
 
-  const followingIds = new Set(
-    (following ?? []).map((row) => row.following_id as string),
-  );
-  const followerIds = new Set(
-    (followers ?? []).map((row) => row.follower_id as string),
-  );
-
-  return [...followingIds].filter((id) => followerIds.has(id));
+  return [
+    ...new Set((following ?? []).map((row) => row.following_id as string)),
+  ];
 }
 
 export class StatsService {
@@ -95,12 +84,12 @@ export class StatsService {
       return [];
     }
 
-    const mutualPeerIds = await getMutualFollowPeerIds(
+    const followingPeerIds = await getFollowingPeerIds(
       this.supabase,
       user.id,
     );
 
-    if (mutualPeerIds.length === 0) {
+    if (followingPeerIds.length === 0) {
       return [];
     }
 
@@ -117,7 +106,7 @@ export class StatsService {
       throw error;
     }
 
-    const allowedIds = new Set([user.id, ...mutualPeerIds]);
+    const allowedIds = new Set([user.id, ...followingPeerIds]);
 
     return (data ?? [])
       .filter((row) => allowedIds.has(row.reader_id))

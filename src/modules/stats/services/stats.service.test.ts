@@ -61,11 +61,11 @@ describe("StatsService.getReadingLeaderboard", () => {
     vi.clearAllMocks();
   });
 
-  it("returns empty when viewer has no mutual follows", async () => {
+  it("returns empty when viewer follows nobody, even if others follow them", async () => {
     const supabase = createSupabaseMock({
       userId: "me",
-      followingIds: ["a"],
-      followerIds: ["b"],
+      followingIds: [],
+      followerIds: ["fan"],
       leaderboardRows: [
         {
           reader_id: "me",
@@ -74,8 +74,8 @@ describe("StatsService.getReadingLeaderboard", () => {
           total_pages: 100,
         },
         {
-          reader_id: "a",
-          display_name: "A",
+          reader_id: "fan",
+          display_name: "Fan",
           books_read: 5,
           total_pages: 200,
         },
@@ -89,11 +89,11 @@ describe("StatsService.getReadingLeaderboard", () => {
     expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
-  it("keeps only self and mutual peers from RPC rows", async () => {
+  it("keeps self and people the viewer follows, including one-way follows", async () => {
     const supabase = createSupabaseMock({
       userId: "me",
       followingIds: ["peer", "one-way"],
-      followerIds: ["peer", "other"],
+      followerIds: ["peer", "fan"],
       leaderboardRows: [
         {
           reader_id: "stranger",
@@ -102,10 +102,22 @@ describe("StatsService.getReadingLeaderboard", () => {
           total_pages: 999,
         },
         {
+          reader_id: "fan",
+          display_name: "Fan",
+          books_read: 8,
+          total_pages: 800,
+        },
+        {
           reader_id: "peer",
           display_name: "Peer",
           books_read: 4,
           total_pages: 400,
+        },
+        {
+          reader_id: "one-way",
+          display_name: "One Way",
+          books_read: 3,
+          total_pages: 300,
         },
         {
           reader_id: "me",
@@ -122,7 +134,11 @@ describe("StatsService.getReadingLeaderboard", () => {
     expect(supabase.rpc).toHaveBeenCalledWith("get_reading_leaderboard", {
       year_input: 2024,
     });
-    expect(result.map((row) => row.readerId)).toEqual(["peer", "me"]);
+    expect(result.map((row) => row.readerId)).toEqual([
+      "peer",
+      "one-way",
+      "me",
+    ]);
   });
 
   it("returns empty when there is no authenticated user", async () => {

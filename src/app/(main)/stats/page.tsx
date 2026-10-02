@@ -40,7 +40,7 @@ export default async function StatsPage() {
         <h1 className="page-title">Estatísticas de Leitura</h1>
         <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground md:mx-0">
           Visão geral dos seus livros lidos, páginas e hábitos. Comparações e
-          ranking consideram apenas leitores com quem você se segue mutuamente.
+          ranking consideram apenas leitores que você segue.
         </p>
       </header>
 

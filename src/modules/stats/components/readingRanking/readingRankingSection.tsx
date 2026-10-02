@@ -67,8 +67,8 @@ export function ReadingRankingSection() {
             </CardTitle>
             <CardDescription className="text-base leading-relaxed">
               Livros concluídos por leitor (com data de término). Inclui você e
-              quem se segue mutuamente; use os filtros para período e critério
-              de ordenação.
+              quem você segue; use os filtros para período e critério de
+              ordenação.
             </CardDescription>
           </div>
 
@@ -208,8 +208,8 @@ export function ReadingRankingSection() {
             </div>
           ) : safeRanked.length === 0 ? (
             <p className="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 px-4 text-center text-sm text-muted-foreground">
-              Nenhum ranking disponível. Ele aparece quando você e outro leitor
-              se seguem mutuamente e há livros concluídos no período.
+              Nenhum ranking disponível. Ele aparece quando você segue outro
+              leitor e há livros concluídos no período.
             </p>
           ) : (
             <div className="space-y-8">
