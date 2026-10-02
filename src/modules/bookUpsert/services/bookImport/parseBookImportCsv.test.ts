@@ -28,6 +28,7 @@ describe("parseBookImportCsv", () => {
           pages: 412,
           status: "finished",
           endDate: "2020-05-01",
+          imageUrl: null,
         },
         {
           title: "O Hobbit",
@@ -35,6 +36,7 @@ describe("parseBookImportCsv", () => {
           pages: 320,
           status: "reading",
           endDate: null,
+          imageUrl: null,
         },
       ],
       rejectedRows: [],
@@ -60,6 +62,7 @@ describe("parseBookImportCsv", () => {
         pages: 271,
         status: "not_started",
         endDate: null,
+        imageUrl: null,
       },
     ]);
     expect(parsed.rejectedRows).toEqual([
@@ -101,6 +104,7 @@ describe("parseBookImportCsv", () => {
           pages: 412,
           status: "finished",
           endDate: "2020-05-01",
+          imageUrl: null,
         },
         {
           title: "Sol",
@@ -108,9 +112,44 @@ describe("parseBookImportCsv", () => {
           pages: 80,
           status: "not_started",
           endDate: null,
+          imageUrl: null,
         },
       ],
       rejectedRows: [{ title: "Parado", reason: "invalid" }],
+    });
+  });
+
+  it("guarda a capa quando a url_imagem é de um host aceito", () => {
+    const parsed = parseBookImportCsv(
+      [
+        "titulo,autor,paginas,status,data_fim,url_imagem",
+        "O Sobrinho do Mago,C. S. Lewis,184,not_started,,https://m.media-amazon.com/images/I/713q0iE1VJL._AC_UL320_.jpg",
+        "Sem capa,C. S. Lewis,100,not_started,,https://example.com/capa.jpg",
+      ].join("\n"),
+    );
+
+    expect(parsed).toEqual({
+      kind: "rows",
+      candidates: [
+        {
+          title: "O Sobrinho do Mago",
+          authorName: "C. S. Lewis",
+          pages: 184,
+          status: "not_started",
+          endDate: null,
+          imageUrl:
+            "https://m.media-amazon.com/images/I/713q0iE1VJL._AC_UL320_.jpg",
+        },
+        {
+          title: "Sem capa",
+          authorName: "C. S. Lewis",
+          pages: 100,
+          status: "not_started",
+          endDate: null,
+          imageUrl: null,
+        },
+      ],
+      rejectedRows: [],
     });
   });
 

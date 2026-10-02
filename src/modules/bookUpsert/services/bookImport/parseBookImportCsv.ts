@@ -1,3 +1,7 @@
+import {
+  BOOK_COVER_PLACEHOLDER_SRC,
+  resolveBookCoverUrl,
+} from "@/constants/bookCover";
 import { stripLatinDiacritics } from "@/utils/stripLatinDiacritics";
 
 import {
@@ -217,6 +221,13 @@ function goodreadsStatus(raw: string): BookImportStatus | null {
   return null;
 }
 
+function coverFromCell(raw: string): string | null {
+  const resolved = resolveBookCoverUrl(raw);
+  if (resolved === BOOK_COVER_PLACEHOLDER_SRC) return null;
+
+  return resolved;
+}
+
 function reject(
   rejectedRows: BookImportRejectedRow[],
   title: string,
@@ -262,6 +273,7 @@ export function parseBookImportCsv(raw: string): ParsedBookImport {
     header,
     detected.kind === "template" ? "data_fim" : "date read",
   );
+  const imageIndex = columnIndex(header, "url_imagem");
 
   const dataRows = records.slice(1).filter((row) => !isBlankRow(row));
   const countable = dataRows.filter((row) => {
@@ -334,6 +346,7 @@ export function parseBookImportCsv(raw: string): ParsedBookImport {
       pages,
       status,
       endDate,
+      imageUrl: coverFromCell(cell(row, imageIndex)),
     });
   }
 

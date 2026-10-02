@@ -18,6 +18,6 @@ Regras do CSV:
 - status: not_started, a menos que eu tenha pedido outro. Só aceita not_started, reading ou finished.
 - data_fim: vazio, a menos que o status seja finished. Aí use AAAA-MM-DD.
 - Campo com vírgula ou aspas vai entre aspas duplas. Aspas internas dobram.
-- url_imagem, só se eu pedir imagens: URL direta da capa dessa mesma edição, de preferência https://m.media-amazon.com/images/I/... Não invente URL. Se não achar, deixe a célula vazia e avise depois do CSV.`;
+- url_imagem, só se eu pedir imagens: URL https direta da capa dessa mesma edição. Só servem m.media-amazon.com, outro host media-amazon.com, books.google.com ou covers.openlibrary.org. Prefira https://m.media-amazon.com/images/I/... Não invente URL. Se não achar, deixe a célula vazia e avise depois do CSV.`;
 
 export default BOOK_IMPORT_AI_PROMPT;

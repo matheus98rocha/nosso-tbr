@@ -43,7 +43,7 @@ Ato do leitor de registrar vários livros de uma vez a partir de um arquivo. Nã
 _Avoid_: sincronização, catálogo externo, migração
 
 **Modelo de importação**:
-Arquivo com as colunas obrigatórias do Nosso TBR (`titulo`, `autor`, `paginas`, `status`) e uma linha de exemplo.
+Arquivo com as colunas obrigatórias do Nosso TBR (`titulo`, `autor`, `paginas`, `status`) e uma linha de exemplo. A coluna opcional `url_imagem` grava a capa quando a URL é de um host de capa já aceito pelo app.
 _Avoid_: export do Goodreads, planilha livre
 
 **Linha de exemplo**:

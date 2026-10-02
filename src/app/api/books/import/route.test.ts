@@ -93,6 +93,7 @@ describe("POST /api/books/import", () => {
           pages: 10,
           status: "not_started",
           end_date: null,
+          image_url: null,
         },
       ],
     });

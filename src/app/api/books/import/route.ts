@@ -64,6 +64,7 @@ export async function POST(request: Request) {
       pages: candidate.pages,
       status: candidate.status,
       end_date: candidate.endDate,
+      image_url: candidate.imageUrl,
     })),
   });
 

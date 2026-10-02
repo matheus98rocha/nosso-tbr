@@ -13,6 +13,7 @@ export type BookImportCandidate = {
   pages: number;
   status: BookImportStatus;
   endDate: string | null;
+  imageUrl: string | null;
 };
 
 export type ParsedBookImport =
