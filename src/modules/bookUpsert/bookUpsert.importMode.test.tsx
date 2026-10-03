@@ -196,11 +196,19 @@ describe("entrada de vários livros", () => {
     await user.click(screen.getByRole("button", { name: "Vários livros" }));
     await user.upload(
       screen.getByLabelText(/Escolher arquivo \.csv/),
-      new File(["oi"], "notas.txt", { type: "text/plain" }),
+      new File(["oi"], "notas.pdf", { type: "application/pdf" }),
     );
 
-    expect(screen.queryByText("notas.txt")).not.toBeInTheDocument();
+    expect(screen.queryByText("notas.pdf")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Importar livros" })).toBeDisabled();
+
+    await user.upload(
+      screen.getByLabelText(/Escolher arquivo \.csv/),
+      new File(["titulo,autor\n"], "estante.txt", { type: "text/plain" }),
+    );
+
+    expect(screen.getByText("estante.txt")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Importar livros" })).toBeEnabled();
 
     await user.upload(screen.getByLabelText(/Escolher arquivo \.csv/), file);
 

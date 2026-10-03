@@ -14,8 +14,9 @@ import type {
   UseBookImportEntryParams,
 } from "../components/bookImportPanel/bookImportPanel.types";
 
-function isCsvFile(file: File): boolean {
-  return file.name.toLowerCase().endsWith(".csv");
+function isImportFile(file: File): boolean {
+  const name = file.name.toLowerCase();
+  return name.endsWith(".csv") || name.endsWith(".txt");
 }
 
 function formatFileSize(bytes: number): string {
@@ -90,7 +91,7 @@ export default function useBookImportEntry({
     setIsDragging(false);
     const next = event.dataTransfer.files.item(0);
 
-    if (!next || !isCsvFile(next)) return;
+    if (!next || !isImportFile(next)) return;
 
     setFile(next);
   }, []);
@@ -99,7 +100,7 @@ export default function useBookImportEntry({
     (event: ChangeEvent<HTMLInputElement>) => {
       const next = event.target.files?.item(0) ?? null;
 
-      if (next && isCsvFile(next)) {
+      if (next && isImportFile(next)) {
         setFile(next);
       }
 

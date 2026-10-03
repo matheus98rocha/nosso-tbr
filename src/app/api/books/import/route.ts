@@ -33,12 +33,12 @@ export async function POST(request: Request) {
   try {
     form = await request.formData();
   } catch {
-    return refused("Escolha um arquivo .csv.", 400);
+    return refused("Escolha um arquivo .csv ou .txt.", 400);
   }
 
   const file = form.get("file");
   if (typeof file === "string" || !file || typeof file.text !== "function") {
-    return refused("Escolha um arquivo .csv.", 400);
+    return refused("Escolha um arquivo .csv ou .txt.", 400);
   }
 
   const parsed = parseBookImportCsv(await file.text());

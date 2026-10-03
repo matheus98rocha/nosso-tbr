@@ -106,8 +106,8 @@ function BookImportPanel({
       >
         <div className="grid gap-1.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
           <p>
-            Aceita o modelo do Nosso TBR ou um export do Goodreads. Vírgula ou
-            ponto e vírgula.
+            Aceita .csv e .txt no modelo do Nosso TBR ou no export do
+            Goodreads. Vírgula ou ponto e vírgula.
           </p>
           <p>Até 5000 livros. A linha de exemplo do modelo não entra.</p>
         </div>
@@ -127,7 +127,7 @@ function BookImportPanel({
         >
           <FileUp className="size-4 text-zinc-500" aria-hidden />
           <span className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-            Escolher arquivo .csv
+            Escolher arquivo .csv ou .txt
           </span>
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
             Clique ou solte o arquivo aqui
@@ -135,7 +135,7 @@ function BookImportPanel({
           <input
             id="book-import-csv"
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,.txt,text/csv,text/plain"
             className="sr-only"
             onChange={onFileInputChange}
           />

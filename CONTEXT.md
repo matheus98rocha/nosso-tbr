@@ -39,7 +39,7 @@ Coleção curada por um leitor para organizar livros segundo um critério própr
 _Avoid_: série, saga, prateleira
 
 **Importação**:
-Ato do leitor de registrar vários livros de uma vez a partir de um arquivo. Não é atividade para seguidores.
+Ato do leitor de registrar vários livros de uma vez a partir de um arquivo .csv ou .txt com o mesmo conteúdo. Não é atividade para seguidores.
 _Avoid_: sincronização, catálogo externo, migração
 
 **Modelo de importação**:
