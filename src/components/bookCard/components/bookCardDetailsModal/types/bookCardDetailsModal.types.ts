@@ -18,7 +18,8 @@ export type BookDetailsActionIcon =
   | "check"
   | "library"
   | "finish"
-  | "trash";
+  | "trash"
+  | "reader";
 
 export type BookDetailsInsight = {
   id: string;

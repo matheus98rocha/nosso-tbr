@@ -11,6 +11,7 @@ import {
 import { CardReadingRatingButton } from "@/modules/bookRating";
 import { CardReadingProgressIndicator } from "@/modules/schedule/components/readingProgressIndicator";
 
+import AddBookReaderDialog from "./components/addBookReaderDialog";
 import {
   BookDetailsCommandGrid,
   BookDetailsFooter,
@@ -37,6 +38,7 @@ export default function BookCardDetailsModal(props: BookCardDetailsModalProps) {
     primary,
     secondary,
     commands,
+    addReader,
   } = useBookCardDetailsModal(props);
 
   const showSchedule =
@@ -118,6 +120,19 @@ export default function BookCardDetailsModal(props: BookCardDetailsModalProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AddBookReaderDialog
+        open={addReader.open}
+        bookTitle={book.title}
+        term={addReader.term}
+        candidates={addReader.candidates}
+        isSearching={addReader.isSearching}
+        shouldSearch={addReader.shouldSearch}
+        pendingUserId={addReader.pendingUserId}
+        onOpenChange={addReader.onOpenChange}
+        onTermChange={addReader.onTermChange}
+        onSelect={addReader.onSelect}
+      />
     </>
   );
 }

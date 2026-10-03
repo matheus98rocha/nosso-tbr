@@ -55,6 +55,7 @@ export default function ReadingNowBookDetailsModal({
       showScheduleProgress={isLogged && book.status === "reading"}
       isFavoritePending={isFavoritePending}
       isStatusPending={isStatusPending}
+      showLibraryActions={isLogged}
     />
   );
 }

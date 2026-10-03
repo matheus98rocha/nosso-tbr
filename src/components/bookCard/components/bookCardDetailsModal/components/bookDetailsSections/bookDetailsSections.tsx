@@ -19,6 +19,7 @@ import {
   Share2,
   Star,
   Trash2,
+  UserPlus,
   Users,
 } from "lucide-react";
 
@@ -61,6 +62,7 @@ const actionIcons: Record<BookDetailsActionIcon, typeof CalendarDays> = {
   library: BookPlus,
   finish: CheckCircle2,
   trash: Trash2,
+  reader: UserPlus,
 };
 
 const primaryToneClassName: Record<BookDetailsPrimaryTone, string> = {

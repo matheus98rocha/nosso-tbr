@@ -16,6 +16,7 @@ import {
   buildBookTimeline,
   splitReaderLabels,
 } from "../utils";
+import { useAddBookReader } from "./useAddBookReader";
 
 const SCHEDULE_DISABLED_REASON =
   "Cronograma indisponível para livros finalizados";
@@ -67,6 +68,10 @@ export function useBookCardDetailsModal({
 }: BookCardDetailsModalProps) {
   const [abandonConfirmationOpen, setAbandonConfirmationOpen] = useState(false);
   const [referenceCopied, setReferenceCopied] = useState(false);
+  const addReader = useAddBookReader({
+    bookId: book.id,
+    enabled: showLibraryActions,
+  });
 
   useEffect(() => {
     if (!referenceCopied) return;
@@ -272,6 +277,17 @@ export function useBookCardDetailsModal({
       });
     }
 
+    if (showLibraryActions && book.id) {
+      items.push({
+        id: "add-reader",
+        label: "Adicionar novo leitor",
+        hint: "Quem você segue",
+        icon: "reader",
+        disabled: false,
+        onSelect: addReader.openDialog,
+      });
+    }
+
     if (showLibraryActions && onAddToShelf) {
       items.push({
         id: "shelf",
@@ -320,6 +336,8 @@ export function useBookCardDetailsModal({
 
     return items;
   }, [
+    addReader.openDialog,
+    book.id,
     book.is_favorite,
     canAccessCollectiveReading,
     copyReference,
@@ -354,5 +372,6 @@ export function useBookCardDetailsModal({
     primary,
     secondary,
     commands,
+    addReader,
   };
 }

@@ -1,5 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render as renderWithoutQuery, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { BookDomain } from "@/types/books.types";
@@ -54,6 +56,19 @@ vi.mock("@/modules/bookRating", () => ({
 }));
 
 const mockedUseBookCard = vi.mocked(useBookCard);
+
+function render(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return renderWithoutQuery(
+    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
+  );
+}
 
 const baseBook: BookDomain = {
   id: "book-1",

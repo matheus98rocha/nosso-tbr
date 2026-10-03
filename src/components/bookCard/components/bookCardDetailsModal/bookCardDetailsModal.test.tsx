@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -77,7 +78,18 @@ function renderModal(
     ...override,
   };
 
-  render(<BookCardDetailsModal {...props} />);
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  render(
+    <QueryClientProvider client={client}>
+      <BookCardDetailsModal {...props} />
+    </QueryClientProvider>,
+  );
   return props;
 }
 
@@ -190,6 +202,81 @@ describe("BookCardDetailsModal", () => {
     expect(screen.getByLabelText("Nota 4 de 5")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Iniciar leitura" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("abre a busca por nome ou e-mail de quem você segue", async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("button", { name: /Adicionar novo leitor/ }));
+
+    const dialog = screen.getByRole("dialog", { name: "Adicionar novo leitor" });
+    expect(
+      within(dialog).getByPlaceholderText("Nome ou e-mail de quem você segue"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Digite o nome ou o e-mail de uma pessoa que você segue.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("adiciona à leitura a pessoa seguida escolhida na busca", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes("/reader-candidates")) {
+        return new Response(
+          JSON.stringify({
+            candidates: [
+              {
+                id: "22222222-2222-4222-8222-222222222222",
+                displayName: "Bianca",
+                email: "bia@mail.com",
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderModal();
+
+    await user.click(screen.getByRole("button", { name: /Adicionar novo leitor/ }));
+    await user.type(
+      screen.getByPlaceholderText("Nome ou e-mail de quem você segue"),
+      "bia",
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Adicionar novo leitor" });
+    await user.click(await within(dialog).findByRole("button", { name: /Bianca/ }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/books/book-1/readers",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            userId: "22222222-2222-4222-8222-222222222222",
+          }),
+        }),
+      );
+    });
+  });
+
+  it("esconde adicionar leitor quando a pessoa não participa da leitura", () => {
+    renderModal({ showLibraryActions: false });
+
+    expect(
+      screen.queryByRole("button", { name: /Adicionar novo leitor/ }),
     ).not.toBeInTheDocument();
   });
 });
