@@ -47,7 +47,7 @@ describe("BookImportPanel", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Cole no Gemini ou em outra IA. No texto, escreva o nome de cada livro e diga se quer as imagens das capas.",
+        "Cole no Gemini ou em outra IA. Escreva o nome de cada livro e diga se quer as imagens. Salve a resposta como .csv ou .txt: os dois servem.",
       ),
     ).toBeInTheDocument();
   });

@@ -21,6 +21,8 @@ describe("useCopyBookImportPrompt", () => {
     expect(writeText).toHaveBeenCalledWith(BOOK_IMPORT_AI_PROMPT);
     expect(BOOK_IMPORT_AI_PROMPT).toContain("LISTA DE LIVROS:");
     expect(BOOK_IMPORT_AI_PROMPT).toContain("QUERO AS IMAGENS DAS CAPAS:");
+    expect(BOOK_IMPORT_AI_PROMPT).toContain(".csv ou .txt");
+    expect(BOOK_IMPORT_AI_PROMPT).toContain("sem bloco de código");
     expect(result.current.copied).toBe(true);
   });
 });

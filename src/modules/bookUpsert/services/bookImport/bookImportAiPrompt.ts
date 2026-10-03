@@ -1,4 +1,4 @@
-const BOOK_IMPORT_AI_PROMPT = `Gere um CSV para importar livros no Nosso TBR. A resposta deve ser o arquivo, e depois uma lista só do que ficou faltando.
+const BOOK_IMPORT_AI_PROMPT = `Gere o arquivo para importar livros no Nosso TBR. O texto é o mesmo em .csv ou .txt: entregue só o arquivo, sem bloco de código, para não perder aspas nem vírgulas. Depois do arquivo, liste só o que ficou faltando. O usuário pode salvar como .csv ou .txt.
 
 Antes de gerar, confira se eu preenchi as duas partes abaixo. Se a lista de livros estiver vazia, não invente títulos: peça os nomes. Se eu não disser se quero as imagens, pergunte antes de gerar.
 
@@ -8,7 +8,7 @@ LISTA DE LIVROS:
 QUERO AS IMAGENS DAS CAPAS:
 (escreva sim ou não)
 
-Regras do CSV:
+Regras do arquivo, iguais para .csv e .txt:
 - Separador vírgula. No máximo 5000 livros. Sem linha de exemplo.
 - Cabeçalho: titulo,autor,paginas,status,data_fim
 - Se eu escrever sim em imagens, acrescente url_imagem no final do cabeçalho. Se eu escrever não, não inclua essa coluna.
