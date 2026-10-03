@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisVerticalIcon, Heart, Users } from "lucide-react";
+import { Heart, Users } from "lucide-react";
 
 import { BookCover } from "@/components/bookCover";
 
@@ -8,7 +8,6 @@ import BookCardDetailsModal from "./components/bookCardDetailsModal";
 import { CardAddToLibraryButton } from "./components/cardAddToLibraryButton";
 import { CardStartReadingButton } from "./components/cardStartReadingButton";
 import { AddBookToShelf } from "./components/addBookToShelf";
-import { DropdownBook } from "./components/dropdownBook";
 import { CardReadingProgressIndicator } from "@/modules/schedule/components/readingProgressIndicator";
 import { CardReadingRatingButton } from "@/modules/bookRating";
 import { ConfirmDialog } from "@/components/confirmDialog";
@@ -26,28 +25,27 @@ import { cn } from "@/lib/utils";
 import { formatBookPagesLabel } from "@/utils/formatters";
 
 export function BookCard(props: BookCardProps) {
-  const { isShelf = false, onEditBook } = props;
+  const { isShelf = false } = props;
   const {
     book,
     dialogAddShelfModal,
     dialogDeleteModal,
-    dialogEditModal,
-    dropdownModal,
     bookDetailsModal,
     handleOpenBookDetails,
     handleAuthorSearchFromDetails,
     handleCollectiveReadingFromDetails,
     handleScheduleFromDetails,
     handleQuotesFromDetails,
+    handleEditFromDetails,
+    handleAddToShelfFromDetails,
+    handleDeleteFromDetails,
     onStartReading: handleStartReading,
     onFinishReading: handleFinishReading,
     onPauseReading: handlePauseReading,
     onAbandonReading: handleAbandonReading,
     isStatusPending,
-    dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
-    handleNavigateToQuotes,
     isLogged,
     handleConfirmDelete,
     statusDisplay,
@@ -65,7 +63,7 @@ export function BookCard(props: BookCardProps) {
     isAddToLibraryPending,
   } = useBookCard(props);
 
-  const showTopActions = showFavoriteToggle || showBookOptionsMenu;
+  const showTopActions = showFavoriteToggle;
   const showReadersOnCard = isLogged && Boolean(book.readersDisplay?.trim());
   const cardStatusDisplay =
     statusDisplay && book.status === "finished"
@@ -226,6 +224,26 @@ export function BookCard(props: BookCardProps) {
         onFinishReading={handleFinishReading}
         onPauseReading={handlePauseReading}
         onAbandonReading={handleAbandonReading}
+        onShare={shareOnWhatsApp}
+        onToggleFavorite={
+          showFavoriteToggle ? () => handleFavoriteClick() : undefined
+        }
+        onAddToShelf={
+          showBookOptionsMenu ? handleAddToShelfFromDetails : undefined
+        }
+        onEdit={showBookOptionsMenu ? handleEditFromDetails : undefined}
+        onDelete={showBookOptionsMenu ? handleDeleteFromDetails : undefined}
+        deleteLabel={isShelf ? "Remover da estante" : "Deletar livro"}
+        deleteHint={
+          isShelf ? "Continua na biblioteca" : "Some da biblioteca"
+        }
+        onAddToLibrary={showAddToLibrary ? addToLibrary : undefined}
+        showFavoriteToggle={showFavoriteToggle}
+        showLibraryActions={showBookOptionsMenu}
+        showScheduleProgress={showReadingProgress}
+        showAddToLibrary={showAddToLibrary}
+        isFavoritePending={isFavoritePending}
+        isAddToLibraryPending={isAddToLibraryPending}
         isStatusPending={isStatusPending}
       />
 
@@ -293,8 +311,8 @@ export function BookCard(props: BookCardProps) {
                       disabled={isFavoritePending}
                       title={
                         book.is_favorite
-                          ? "Remover dos favoritos (também no menu ⋮)"
-                          : "Marcar como favorito (também no menu ⋮)"
+                          ? "Remover dos favoritos"
+                          : "Marcar como favorito"
                       }
                       aria-label={
                         book.is_favorite
@@ -318,53 +336,6 @@ export function BookCard(props: BookCardProps) {
                         aria-hidden
                       />
                     </Button>
-                  )}
-                  {showBookOptionsMenu && (
-                    <DropdownBook
-                      isOpen={dropdownModal.isOpen}
-                      onOpenChange={dropdownModal.setIsOpen}
-                      onToggleFavorite={() => handleFavoriteClick()}
-                      isFavorite={book.is_favorite}
-                      favoriteActionBusy={isFavoritePending}
-                      trigger={
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Mais opções para "${book.title}"`}
-                          className={cn(
-                            "shrink-0 rounded-full text-muted-foreground active:opacity-70",
-                            isShelf ? "size-8" : "size-11",
-                          )}
-                        >
-                          <EllipsisVerticalIcon
-                            className={cn(
-                              "text-muted-foreground",
-                              isShelf ? "size-3.5" : "size-4",
-                            )}
-                            aria-hidden
-                            onTouchStart={dropdownTap.handleTouchStart}
-                            onTouchEnd={dropdownTap.handleTouchEnd}
-                            onClick={dropdownTap.handleClick}
-                          />
-                        </Button>
-                      }
-                      editBook={() =>
-                        onEditBook
-                          ? onEditBook()
-                          : dialogEditModal.setIsOpen(true)
-                      }
-                      removeBook={() => dialogDeleteModal.setIsOpen(true)}
-                      removeBookLabel={
-                        isShelf ? "Remover livro da estante" : "Remover livro"
-                      }
-                      addToShelf={() => dialogAddShelfModal.setIsOpen(true)}
-                      shareOnWhatsApp={shareOnWhatsApp}
-                      schedule={handleNavigateToSchedule}
-                      quotes={handleNavigateToQuotes}
-                      isFinishedReading={book.status === "finished"}
-                      quotesDisabled={book.status !== "not_started"}
-                    />
                   )}
                 </div>
               )}

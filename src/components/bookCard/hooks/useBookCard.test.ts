@@ -97,10 +97,12 @@ const renderBookCardHook = (
     hideInteractions?: boolean;
     isShelf?: boolean;
     shelfId?: string;
+    onEditBook?: () => void;
   },
 ) => {
   const { Wrapper } = createWrapper();
   const hideInteractions = options?.hideInteractions;
+  const onEditBook = options?.onEditBook;
   const props: BookCardProps =
     options?.isShelf === true
       ? {
@@ -108,8 +110,9 @@ const renderBookCardHook = (
           isShelf: true,
           shelfId: options.shelfId ?? "",
           hideInteractions,
+          onEditBook,
         }
-      : { book, hideInteractions };
+      : { book, hideInteractions, onEditBook };
   return renderHook(() => useBookCard(props), { wrapper: Wrapper });
 };
 
@@ -587,6 +590,42 @@ describe("useBookCard", () => {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareUrl)}`;
 
         expect(window.open).toHaveBeenCalledWith(whatsappUrl, "_blank");
+      });
+    });
+
+    describe("ações da ficha", () => {
+      it("fecha a ficha e abre a edição interna quando não há onEditBook", () => {
+        const { result } = renderBookCardHook();
+
+        act(() => {
+          result.current.handleEditFromDetails();
+        });
+
+        expect(result.current.bookDetailsModal.isOpen).toBe(false);
+        expect(result.current.dialogEditModal.isOpen).toBe(true);
+      });
+
+      it("prioriza onEditBook e não abre a edição interna", () => {
+        const onEditBook = vi.fn();
+        const { result } = renderBookCardHook(baseBook, { onEditBook });
+
+        act(() => {
+          result.current.handleEditFromDetails();
+        });
+
+        expect(onEditBook).toHaveBeenCalledTimes(1);
+        expect(result.current.dialogEditModal.isOpen).toBe(false);
+      });
+
+      it("fecha a ficha e abre a confirmação de exclusão", () => {
+        const { result } = renderBookCardHook();
+
+        act(() => {
+          result.current.handleDeleteFromDetails();
+        });
+
+        expect(result.current.bookDetailsModal.isOpen).toBe(false);
+        expect(result.current.dialogDeleteModal.isOpen).toBe(true);
       });
     });
   });

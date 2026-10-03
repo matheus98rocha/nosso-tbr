@@ -122,6 +122,9 @@ function presetUseBookCard(
     handleCollectiveReadingFromDetails: () => void;
     handleScheduleFromDetails: () => void;
     handleQuotesFromDetails: () => void;
+    handleEditFromDetails?: () => void;
+    handleAddToShelfFromDetails?: () => void;
+    handleDeleteFromDetails?: () => void;
     showReadingProgress?: boolean;
     showStartReadingAction?: boolean;
     showResumeReadingAction?: boolean;
@@ -181,6 +184,9 @@ function presetUseBookCard(
     handleCollectiveReadingFromDetails,
     handleScheduleFromDetails,
     handleQuotesFromDetails,
+    handleEditFromDetails: patch.handleEditFromDetails ?? vi.fn(),
+    handleAddToShelfFromDetails: patch.handleAddToShelfFromDetails ?? vi.fn(),
+    handleDeleteFromDetails: patch.handleDeleteFromDetails ?? vi.fn(),
     dropdownTap: tapStub(),
     shareOnWhatsApp: vi.fn(),
     handleNavigateToSchedule: vi.fn(),
@@ -337,15 +343,15 @@ describe("BookCard", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("com sessão, exibe o menu de mais opções (alvo tocável ampliado)", () => {
+  it("com sessão, o card não mostra os três pontos e a capa segue visível", () => {
     presetUseBookCard(baseBook, { isLogged: true });
     const { container } = render(<BookCard book={baseBook} />);
 
-    const moreBtn = screen.getByRole("button", {
-      name: 'Mais opções para "Memórias Póstumas"',
-    });
-    expect(moreBtn).toBeInTheDocument();
-    expect(moreBtn.className).toMatch(/size-11/);
+    expect(
+      screen.queryByRole("button", {
+        name: 'Mais opções para "Memórias Póstumas"',
+      }),
+    ).not.toBeInTheDocument();
     expect(container.querySelector("img")).toBeTruthy();
   });
 
@@ -445,15 +451,16 @@ describe("BookCard", () => {
     expect(screen.getByText("Privado")).toBeInTheDocument();
   });
 
-  it("no contexto de estante, reduz o alvo tocável do menu (RN15 contexto denso)", () => {
+  it("no contexto de estante, o card não mostra o menu de três pontos", () => {
     const shelfBook = { ...baseBook, id: "s-2" };
     presetUseBookCard(shelfBook);
     render(<BookCard book={shelfBook} isShelf shelfId="shelf-42" />);
 
-    const moreBtn = screen.getByRole("button", {
-      name: 'Mais opções para "Memórias Póstumas"',
-    });
-    expect(moreBtn.className).toMatch(/size-8/);
+    expect(
+      screen.queryByRole("button", {
+        name: 'Mais opções para "Memórias Póstumas"',
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("exibe selo Releitura e chip de gênero no modal quando o livro traz esses campos", () => {
@@ -469,15 +476,15 @@ describe("BookCard", () => {
     expect(screen.getByText("Romance")).toBeInTheDocument();
   });
 
-  it("RN55: no menu da estante, a remoção é «Remover livro da estante»", () => {
+  it("RN55: na ficha da estante, a remoção é «Remover da estante»", () => {
     const shelfBook = { ...baseBook, id: "s-3" };
     presetUseBookCard(shelfBook, {
-      dropdownModal: modalState(true),
+      bookDetailsModal: modalState(true),
     });
     render(<BookCard book={shelfBook} isShelf shelfId="shelf-42" />);
 
     expect(
-      screen.getByRole("menuitem", { name: "Remover livro da estante" }),
+      screen.getByRole("button", { name: /Remover da estante/ }),
     ).toBeInTheDocument();
   });
 
@@ -529,63 +536,47 @@ describe("BookCard", () => {
     expect(onStartReading).toHaveBeenCalledTimes(1);
   });
 
-  it("ao acionar Editar Livro no menu, abre o fluxo de edição (setIsOpen true)", async () => {
+  it("ao acionar Editar livro na ficha, chama o fluxo de edição", async () => {
     const user = userEvent.setup();
-    const setEditOpen = vi.fn();
+    const handleEditFromDetails = vi.fn();
     presetUseBookCard(baseBook, {
-      dialogEditModal: { ...modalState(false), setIsOpen: setEditOpen },
-      dropdownModal: modalState(true),
+      bookDetailsModal: modalState(true),
+      handleEditFromDetails,
     });
     render(<BookCard book={baseBook} />);
 
-    await user.click(screen.getByRole("menuitem", { name: "Editar Livro" }));
+    await user.click(screen.getByRole("button", { name: /Editar livro/ }));
 
-    expect(setEditOpen).toHaveBeenCalledWith(true);
+    expect(handleEditFromDetails).toHaveBeenCalledTimes(1);
   });
 
-  it("prioriza onEditBook do pai em vez do modal interno ao editar", async () => {
+  it("ao acionar Deletar livro na ficha, chama a confirmação de exclusão", async () => {
     const user = userEvent.setup();
-    const onEditBook = vi.fn();
-    const setEditOpen = vi.fn();
+    const handleDeleteFromDetails = vi.fn();
     presetUseBookCard(baseBook, {
-      dialogEditModal: { ...modalState(false), setIsOpen: setEditOpen },
-      dropdownModal: modalState(true),
+      bookDetailsModal: modalState(true),
+      handleDeleteFromDetails,
     });
-    render(<BookCard book={baseBook} onEditBook={onEditBook} />);
+    render(<BookCard book={baseBook} />);
 
-    await user.click(screen.getByRole("menuitem", { name: "Editar Livro" }));
+    await user.click(screen.getByRole("button", { name: /Deletar livro/ }));
 
-    expect(onEditBook).toHaveBeenCalledTimes(1);
-    expect(setEditOpen).not.toHaveBeenCalled();
+    expect(handleDeleteFromDetails).toHaveBeenCalledTimes(1);
   });
 
-  it("ao acionar Adicionar Livro a Estante, abre o modal de estantes", async () => {
+  it("ao acionar Adicionar à estante na ficha, abre o fluxo de estantes", async () => {
     const user = userEvent.setup();
-    const setAddShelfOpen = vi.fn();
+    const handleAddToShelfFromDetails = vi.fn();
     presetUseBookCard(baseBook, {
-      dialogAddShelfModal: { ...modalState(false), setIsOpen: setAddShelfOpen },
-      dropdownModal: modalState(true),
+      bookDetailsModal: modalState(true),
+      handleAddToShelfFromDetails,
     });
     render(<BookCard book={baseBook} />);
 
     await user.click(
-      screen.getByRole("menuitem", { name: "Adicionar Livro a Estante" }),
+      screen.getByRole("button", { name: /Adicionar à estante/ }),
     );
 
-    expect(setAddShelfOpen).toHaveBeenCalledWith(true);
-  });
-
-  it("ao acionar Remover livro no menu (biblioteca), abre o diálogo de exclusão", async () => {
-    const user = userEvent.setup();
-    const setDeleteOpen = vi.fn();
-    presetUseBookCard(baseBook, {
-      dialogDeleteModal: { ...modalState(false), setIsOpen: setDeleteOpen },
-      dropdownModal: modalState(true),
-    });
-    render(<BookCard book={baseBook} />);
-
-    await user.click(screen.getByRole("menuitem", { name: "Remover livro" }));
-
-    expect(setDeleteOpen).toHaveBeenCalledWith(true);
+    expect(handleAddToShelfFromDetails).toHaveBeenCalledTimes(1);
   });
 });

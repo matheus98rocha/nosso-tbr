@@ -1,4 +1,4 @@
-import { useModal, useSafeTap } from "@/hooks";
+import { useModal } from "@/hooks";
 import { BookCardProps, StatusDisplay } from "../types/bookCard.types";
 import { useRouter } from "next/navigation";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
@@ -22,8 +22,8 @@ export function useBookCard({
   isShelf = false,
   shelfId,
   hideInteractions = false,
+  onEditBook,
 }: BookCardProps) {
-  const dropdownModal = useModal();
   const dialogEditModal = useModal();
   const dialogDeleteModal = useModal();
   const dialogAddShelfModal = useModal();
@@ -33,7 +33,6 @@ export function useBookCard({
   const queryClient = useQueryClient();
   const isLogged = useIsLoggedIn();
   const currentUser = useUserStore((state) => state.user);
-  const dropdownTap = useSafeTap(() => dropdownModal.setIsOpen(true));
   const { toggle: toggleFavorite, isPending: isFavoritePending } =
     useToggleBookFavorite();
 
@@ -111,6 +110,25 @@ export function useBookCard({
     bookDetailsModal.setIsOpen(false);
     handleNavigateToQuotes();
   }, [bookDetailsModal.setIsOpen, handleNavigateToQuotes]);
+
+  const handleEditFromDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(false);
+    if (onEditBook) {
+      onEditBook();
+      return;
+    }
+    dialogEditModal.setIsOpen(true);
+  }, [bookDetailsModal.setIsOpen, dialogEditModal.setIsOpen, onEditBook]);
+
+  const handleAddToShelfFromDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(false);
+    dialogAddShelfModal.setIsOpen(true);
+  }, [bookDetailsModal.setIsOpen, dialogAddShelfModal.setIsOpen]);
+
+  const handleDeleteFromDetails = useCallback(() => {
+    bookDetailsModal.setIsOpen(false);
+    dialogDeleteModal.setIsOpen(true);
+  }, [bookDetailsModal.setIsOpen, dialogDeleteModal.setIsOpen]);
 
   const statusTransitionMutation = useMutation({
     mutationFn: async (nextStatus: Status) => {
@@ -350,7 +368,6 @@ export function useBookCard({
   );
 
   return {
-    dropdownModal,
     dialogEditModal,
     dialogDeleteModal,
     dialogAddShelfModal,
@@ -360,13 +377,15 @@ export function useBookCard({
     handleCollectiveReadingFromDetails,
     handleScheduleFromDetails,
     handleQuotesFromDetails,
+    handleEditFromDetails,
+    handleAddToShelfFromDetails,
+    handleDeleteFromDetails,
     onStartReading: () => changeBookStatus("reading"),
     onFinishReading: () => changeBookStatus("finished"),
     onPauseReading: () => changeBookStatus("paused"),
     onAbandonReading: () => changeBookStatus("abandoned"),
     isStatusPending: statusTransitionMutation.isPending,
     isLogged,
-    dropdownTap,
     shareOnWhatsApp,
     handleNavigateToSchedule,
     handleNavigateToAuthor,

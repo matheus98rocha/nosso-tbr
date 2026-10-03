@@ -23,6 +23,10 @@ export default function ReadingNowBookDetailsModal({
     handleCollectiveReadingFromDetails,
     handleScheduleFromDetails,
     handleQuotesFromDetails,
+    shareOnWhatsApp,
+    showFavoriteToggle,
+    handleFavoriteClick,
+    isFavoritePending,
   } = useBookCard({ book, isShelf: false });
 
   return (
@@ -43,6 +47,13 @@ export default function ReadingNowBookDetailsModal({
       onFinishReading={onFinishReading}
       onPauseReading={onPauseReading}
       onAbandonReading={onAbandonReading}
+      onShare={shareOnWhatsApp}
+      onToggleFavorite={
+        showFavoriteToggle ? () => handleFavoriteClick() : undefined
+      }
+      showFavoriteToggle={showFavoriteToggle}
+      showScheduleProgress={isLogged && book.status === "reading"}
+      isFavoritePending={isFavoritePending}
       isStatusPending={isStatusPending}
     />
   );
