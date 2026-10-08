@@ -31,7 +31,7 @@ function ReadingRecapModal({ isOpen, onOpenChange }: ReadingRecapModalProps) {
       >
         <DialogHeader className="gap-1.5 sm:text-left">
           <DialogTitle className="brand-display text-2xl font-semibold tracking-tight text-[var(--reading-ink)]">
-            Recap de leitura
+            Compartilhar leituras
           </DialogTitle>
           <DialogDescription>
             As capas das suas leituras, em imagens prontas para baixar e postar

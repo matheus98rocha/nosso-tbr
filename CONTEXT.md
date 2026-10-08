@@ -83,7 +83,7 @@ _Avoid_: livros públicos
 ## Recap de leitura
 
 **Recap de leitura**:
-Imagens que o próprio Leitor gera com as capas dos livros que ele finalizou num dia, mês ou ano calendário, segundo o Filtro do recap. Não cita outros leitores.
+Imagens que o próprio Leitor gera com as capas dos livros que ele finalizou num dia, mês ou ano calendário, segundo o Filtro do recap. Não cita outros leitores. Na Home, o botão e o título do modal usam a copy **Compartilhar leituras**.
 _Avoid_: highlight, wrapped, citação, recap anual como tipo distinto
 
 **Filtro do recap**:
