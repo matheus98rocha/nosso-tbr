@@ -1,34 +1,37 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { isRegisteredBookCoverUrl } from "@/constants/bookCover";
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
-import type { UseVisibleRecapCoversResult } from "../types";
+import type { RecapImageCover, UseVisibleRecapCoversResult } from "../types";
 
 export function useVisibleRecapCovers(
-  coverSrcs: string[],
+  covers: RecapImageCover[],
 ): UseVisibleRecapCoversResult {
-  const [failedSrcs, setFailedSrcs] = useState<string[]>([]);
-  const coverKey = coverSrcs.join("\0");
+  const [failedBookIds, setFailedBookIds] = useState<string[]>([]);
+  const coverKey = covers.map((cover) => `${cover.bookId}:${cover.src}`).join("\0");
 
   useEffect(() => {
-    setFailedSrcs([]);
+    setFailedBookIds([]);
   }, [coverKey]);
 
-  const visibleCoverSrcs = useMemo(() => {
-    const failed = new Set(failedSrcs);
-    return coverSrcs.filter(
-      (src) => isRegisteredBookCoverUrl(src) && !failed.has(src),
-    );
-  }, [coverSrcs, failedSrcs]);
+  const visibleCovers = useMemo(() => {
+    const failed = new Set(failedBookIds);
+    return covers.map((cover) => ({
+      ...cover,
+      src: failed.has(cover.bookId)
+        ? BOOK_COVER_PLACEHOLDER_SRC
+        : cover.src,
+    }));
+  }, [covers, failedBookIds]);
 
-  const handleCoverError = useCallback((src: string) => {
-    setFailedSrcs((current) =>
-      current.includes(src) ? current : [...current, src],
+  const handleCoverError = useCallback((bookId: string) => {
+    setFailedBookIds((current) =>
+      current.includes(bookId) ? current : [...current, bookId],
     );
   }, []);
 
   return {
-    visibleCoverSrcs,
+    visibleCovers,
     handleCoverError,
   };
 }

@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
@@ -10,8 +10,9 @@ const GOOD = "https://m.media-amazon.com/images/I/good.jpg";
 const DEAD = "https://m.media-amazon.com/images/I/dead.jpg";
 const LOCAL = "/x.svg";
 
-function book(title: string, imageUrl: string): RecapBook {
+function book(title: string, imageUrl: string | null): RecapBook {
   return {
+    id: title,
     title,
     endDate: "2026-01-01",
     gender: null,
@@ -44,7 +45,7 @@ describe("useLoadableRecapBooks", () => {
     vi.unstubAllGlobals();
   });
 
-  it("espera o probe e fica só com capas que carregaram", async () => {
+  it("espera o probe e mantém todos os livros, inclusive o cuja capa falhou", async () => {
     stubImage([GOOD, LOCAL]);
     const { result } = renderHook(() =>
       useLoadableRecapBooks([
@@ -60,40 +61,26 @@ describe("useLoadableRecapBooks", () => {
       expect(result.current.isProbing).toBe(false);
     });
 
-    expect(result.current.loadableBooks.map((item) => item.title)).toEqual([
+    expect(result.current.loadableBooks.map((item) => item.id)).toEqual([
       "Ok",
+      "Morto",
       "Local",
     ]);
   });
 
-  it("exclui placeholder e host não permitido sem probe", () => {
+  it("mantém livros com placeholder ou host não permitido", () => {
     const { result } = renderHook(() =>
       useLoadableRecapBooks([
         book("Placeholder", BOOK_COVER_PLACEHOLDER_SRC),
         book("Host inválido", "https://example.com/cover.jpg"),
+        book("Sem capa", null),
       ]),
     );
 
-    expect(result.current.isProbing).toBe(false);
-    expect(result.current.loadableBooks).toEqual([]);
-  });
-
-  it("marca falha depois e tira o livro da lista", async () => {
-    stubImage([GOOD]);
-    const { result } = renderHook(() =>
-      useLoadableRecapBooks([book("Ok", GOOD)]),
-    );
-
-    await waitFor(() => {
-      expect(result.current.isProbing).toBe(false);
-    });
-    expect(result.current.loadableBooks).toHaveLength(1);
-
-    act(() => {
-      result.current.markCoverFailed(GOOD);
-    });
-
-    expect(result.current.loadableBooks).toEqual([]);
-    expect(result.current.isProbing).toBe(false);
+    expect(result.current.loadableBooks.map((item) => item.title)).toEqual([
+      "Placeholder",
+      "Host inválido",
+      "Sem capa",
+    ]);
   });
 });

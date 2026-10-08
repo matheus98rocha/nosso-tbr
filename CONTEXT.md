@@ -31,7 +31,7 @@ Título acompanhado na aplicação por um ou mais leitores, com status de leitur
 _Avoid_: obra, edição, work, volume como tipo distinto
 
 **Capa**:
-Imagem que representa o livro. Capa cadastrada é a mesma que a Home mostraria: URL de host permitido ou path local, nunca o placeholder. No Recap de leitura, é o único elemento do livro que aparece na imagem gerada; livro sem capa cadastrada não entra.
+Imagem que representa o livro. Capa cadastrada é a mesma que a Home mostraria: URL de host permitido ou path local, nunca o placeholder. No Recap de leitura, é o único elemento do livro que aparece na imagem gerada; sem capa cadastrada, o placeholder ocupa o slot.
 _Avoid_: poster, thumbnail, highlight
 
 **Gênero**:
@@ -91,5 +91,5 @@ Período (dia, mês ou ano calendário; ao abrir, o ano civil de hoje) e, opcion
 _Avoid_: filtro da estante, filtro da home
 
 **Imagem do recap**:
-Uma das imagens que formam um Recap de leitura. Só inclui livros com Capa cadastrada, no mesmo critério da Home. Placeholder não entra e não ocupa slot. Se o preview falhar o load de uma capa, ela some e a paginação recompõe. Até 12 capas por imagem (3×4, tamanho do BookCard). O modal abre com skeleton do conjunto e só revela filtros, preview e ações juntos depois do probe das capas da primeira vista. Com mais de uma imagem, o preview mostra uma por vez com setas e dots; com uma imagem, vazio, carregamento ou erro, não há setas nem dots.
+Uma das imagens que formam um Recap de leitura. Inclui todas as leituras finalizadas do período; sem Capa cadastrada, o placeholder ocupa o slot. Preview e PNG usam os mesmos livros na mesma ordem. Falha de load não tira o livro: o slot fica com o placeholder. O Leitor pode tirar um livro pelo X no preview; a paginação recompõe. Até 12 capas por imagem (3×4, tamanho do BookCard). O modal abre com skeleton do conjunto e só revela filtros, preview e ações juntos depois do probe das capas da primeira vista. Com mais de uma imagem, o preview mostra uma por vez com setas e dots; com uma imagem, vazio, carregamento ou erro, não há setas nem dots.
 _Avoid_: capa, highlight, story

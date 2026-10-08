@@ -4,19 +4,29 @@ import { describe, expect, it, vi } from "vitest";
 
 import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
-import type { ReadingRecapPreviewProps } from "../../types";
+import type { RecapImage, RecapImageCover, ReadingRecapPreviewProps } from "../../types";
 import ReadingRecapPreview from "./readingRecapPreview";
 
 const PREVIEW_FRAME_WIDTH_CLASS = "w-[min(100%,360px)]";
+const AMAZON_A = "https://m.media-amazon.com/images/I/81abc.jpg";
+const AMAZON_B = "https://m.media-amazon.com/images/I/81def.jpg";
 
-const filledImage = {
-  title: "Leituras de 7 de outubro de 2026",
-  subtitle: null,
-  coverSrcs: [
-    "https://m.media-amazon.com/images/I/81abc.jpg",
-    "https://m.media-amazon.com/images/I/81def.jpg",
-  ],
-};
+function recapImageFromCovers(
+  covers: RecapImageCover[],
+  title = "Leituras de 7 de outubro de 2026",
+): RecapImage {
+  return {
+    title,
+    subtitle: null,
+    covers,
+    coverSrcs: covers.map((cover) => cover.src),
+  };
+}
+
+const filledImage = recapImageFromCovers([
+  { bookId: "book-a", title: "Duna", src: AMAZON_A },
+  { bookId: "book-b", title: "Neuromancer", src: AMAZON_B },
+]);
 
 const defaultPreviewProps: ReadingRecapPreviewProps = {
   image: filledImage,
@@ -102,73 +112,138 @@ describe("ReadingRecapPreview", () => {
 
     const covers = container.querySelectorAll("img");
     expect(covers).toHaveLength(2);
-    expect(covers[0]).toHaveAttribute(
-      "src",
-      "https://m.media-amazon.com/images/I/81abc.jpg",
-    );
-    expect(covers[1]).toHaveAttribute(
-      "src",
-      "https://m.media-amazon.com/images/I/81def.jpg",
-    );
+    expect(covers[0]).toHaveAttribute("src", AMAZON_A);
+    expect(covers[1]).toHaveAttribute("src", AMAZON_B);
     for (const cover of covers) {
       expect(cover.getAttribute("src") ?? "").not.toContain("/api/book-covers");
     }
   });
 
-  it("não renderiza placeholder, mostra path local permitido e some com a capa que falha", () => {
-    const onCoverError = vi.fn();
+  it("mostra placeholder cadastrado e troca só o src da capa que falha, sem reflow", () => {
+    const onRemoveBook = vi.fn();
     const { container } = render(
       <ReadingRecapPreview
-        image={{
-          ...filledImage,
-          coverSrcs: [
-            "https://m.media-amazon.com/images/I/81abc.jpg",
-            BOOK_COVER_PLACEHOLDER_SRC,
-            "/x.svg",
-            "https://m.media-amazon.com/images/I/81def.jpg",
-          ],
-        }}
+        image={recapImageFromCovers([
+          { bookId: "book-a", title: "Duna", src: AMAZON_A },
+          {
+            bookId: "book-p",
+            title: "Placeholder",
+            src: BOOK_COVER_PLACEHOLDER_SRC,
+          },
+          { bookId: "book-l", title: "Local", src: "/x.svg" },
+          { bookId: "book-b", title: "Neuromancer", src: AMAZON_B },
+        ])}
         periodTitle="Leituras de 7 de outubro de 2026"
         isEmpty={false}
         isLoading={false}
         isError={false}
-        onCoverError={onCoverError}
+        onRemoveBook={onRemoveBook}
       />,
     );
 
     const covers = container.querySelectorAll("img");
-    expect(covers).toHaveLength(3);
+    expect(covers).toHaveLength(4);
     expect(Array.from(covers).map((cover) => cover.getAttribute("src"))).toEqual([
-      "https://m.media-amazon.com/images/I/81abc.jpg",
+      AMAZON_A,
+      BOOK_COVER_PLACEHOLDER_SRC,
       "/x.svg",
-      "https://m.media-amazon.com/images/I/81def.jpg",
+      AMAZON_B,
     ]);
-    expect(
-      Array.from(covers).some((cover) =>
-        (cover.getAttribute("src") ?? "").includes("book-cover-placeholder"),
-      ),
-    ).toBe(false);
-    expect(
-      Array.from(covers).some((cover) =>
-        (cover.getAttribute("src") ?? "").includes("/api/book-covers"),
-      ),
-    ).toBe(false);
 
     fireEvent.error(covers[0]);
-    expect(onCoverError).toHaveBeenCalledWith(
-      "https://m.media-amazon.com/images/I/81abc.jpg",
-    );
+    expect(onRemoveBook).not.toHaveBeenCalled();
 
     const remaining = container.querySelectorAll("img");
-    expect(remaining).toHaveLength(2);
-    expect(Array.from(remaining).map((cover) => cover.getAttribute("src"))).toEqual(
-      ["/x.svg", "https://m.media-amazon.com/images/I/81def.jpg"],
+    expect(remaining).toHaveLength(4);
+    expect(Array.from(remaining).map((cover) => cover.getAttribute("src"))).toEqual([
+      BOOK_COVER_PLACEHOLDER_SRC,
+      BOOK_COVER_PLACEHOLDER_SRC,
+      "/x.svg",
+      AMAZON_B,
+    ]);
+  });
+
+  it("mostra botão Remover por capa só quando onRemoveBook é passado", async () => {
+    const user = userEvent.setup();
+    const onRemoveBook = vi.fn();
+
+    const { rerender } = render(
+      <ReadingRecapPreview
+        image={filledImage}
+        periodTitle="Leituras de 7 de outubro de 2026"
+        isEmpty={false}
+        isLoading={false}
+        isError={false}
+      />,
     );
+
     expect(
-      Array.from(remaining).some((cover) =>
-        (cover.getAttribute("src") ?? "").includes("book-cover-placeholder"),
+      screen.queryByRole("button", { name: "Remover Duna do recap" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Remover .+ do recap/ }),
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <ReadingRecapPreview
+        image={filledImage}
+        periodTitle="Leituras de 7 de outubro de 2026"
+        isEmpty={false}
+        isLoading={false}
+        isError={false}
+        onRemoveBook={onRemoveBook}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Remover Duna do recap" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Remover Neuromancer do recap" }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Remover Duna do recap" }),
+    );
+    expect(onRemoveBook).toHaveBeenCalledWith("book-a");
+  });
+
+  it("mostra a copy de vazio quando não há leituras no período", () => {
+    render(
+      <ReadingRecapPreview
+        {...defaultPreviewProps}
+        image={null}
+        isEmpty
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Nenhuma leitura finalizada neste período. Troque o ano, o mês ou o dia.",
       ),
-    ).toBe(false);
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "Nenhuma leitura com capa cadastrada neste período. Troque o ano, o mês ou o dia.",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("usa emptyCaption quando o recap ficou vazio por exclusão manual", () => {
+    render(
+      <ReadingRecapPreview
+        {...defaultPreviewProps}
+        image={null}
+        isEmpty
+        emptyCaption="Você removeu todas as capas. Feche e abra de novo para restaurá-las."
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Você removeu todas as capas. Feche e abra de novo para restaurá-las.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("usa grade de 4 fileiras e não a grade antiga de 5", () => {

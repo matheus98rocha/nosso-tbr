@@ -39,6 +39,7 @@ export function useReadingRecap(isOpen: boolean) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isGenderFilterEnabled, setIsGenderFilterEnabled] = useState(false);
   const [hasRevealed, setHasRevealed] = useState(false);
+  const [excludedBookIds, setExcludedBookIds] = useState<string[]>([]);
 
   useEffect(() => {
     setFilter(createDefaultRecapFilter());
@@ -46,6 +47,7 @@ export function useReadingRecap(isOpen: boolean) {
     setIsDownloading(false);
     setIsGenderFilterEnabled(false);
     setHasRevealed(false);
+    setExcludedBookIds([]);
   }, [isOpen]);
 
   const queryEnabled = isOpen && isLoggedIn && Boolean(userId);
@@ -62,11 +64,15 @@ export function useReadingRecap(isOpen: boolean) {
     () => selectRecapBooks(finishedQuery.data ?? [], filter),
     [filter, finishedQuery.data],
   );
-  const { loadableBooks, isProbing, markCoverFailed } =
-    useLoadableRecapBooks(selectedBooks);
+  const { isProbing } = useLoadableRecapBooks(selectedBooks);
+  const visibleBooks = useMemo(
+    () =>
+      selectedBooks.filter((book) => !excludedBookIds.includes(book.id)),
+    [excludedBookIds, selectedBooks],
+  );
   const images = useMemo(
-    () => paginateRecapImages(loadableBooks, filter),
-    [filter, loadableBooks],
+    () => paginateRecapImages(visibleBooks, filter),
+    [filter, visibleBooks],
   );
 
   useEffect(() => {
@@ -83,13 +89,20 @@ export function useReadingRecap(isOpen: boolean) {
   const isShellPending = Boolean(isOpen && !hasRevealed && isContentPending);
   const isEmpty = !isLoading && images.length === 0;
   const canDownload = !isEmpty && !isDownloading && !isLoading;
-  const coverCount = loadableBooks.length;
+  const coverCount = visibleBooks.length;
   const countLabel = useMemo(() => {
     if (isLoading || coverCount === 0) return null;
     const covers = coverCount === 1 ? "1 capa" : `${coverCount} capas`;
     if (images.length <= 1) return `${covers} neste recap`;
     return `${covers} · ${images.length} imagens`;
   }, [coverCount, images.length, isLoading]);
+  const emptyCaption = useMemo(() => {
+    if (!isEmpty) return null;
+    if (selectedBooks.length > 0) {
+      return "Você removeu todas as capas. Feche e abra de novo para restaurá-las.";
+    }
+    return "Nenhuma leitura finalizada neste período. Troque o ano, o mês ou o dia.";
+  }, [isEmpty, selectedBooks.length]);
 
   useEffect(() => {
     if (isOpen && !isContentPending) {
@@ -207,6 +220,12 @@ export function useReadingRecap(isOpen: boolean) {
     [images.length],
   );
 
+  const handleRemoveBook = useCallback((bookId: string) => {
+    setExcludedBookIds((current) =>
+      current.includes(bookId) ? current : [...current, bookId],
+    );
+  }, []);
+
   const downloadImages = useCallback(
     async (targets: typeof images) => {
       if (targets.length === 0) return;
@@ -252,9 +271,10 @@ export function useReadingRecap(isOpen: boolean) {
     isShellPending,
     isGenderFilterEnabled,
     isError: finishedQuery.isError,
-    markCoverFailed,
     periodTitle,
     countLabel,
+    emptyCaption,
+    handleRemoveBook,
     anchorDate,
     yearOptions,
     monthOptions,

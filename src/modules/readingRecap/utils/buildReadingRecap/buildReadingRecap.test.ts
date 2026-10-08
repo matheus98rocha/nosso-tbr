@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { RecapBook, RecapFilter, RecapPeriod } from "../../types";
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
+
+import type { RecapBook, RecapFilter, RecapImage, RecapPeriod } from "../../types";
 import {
   applyRecapAnchorDate,
   applyRecapPeriodKind,
@@ -9,7 +11,7 @@ import {
   toRecapDownloadFilename,
 } from "./buildReadingRecap";
 
-const PLACEHOLDER = "/book-cover-placeholder.svg";
+const PLACEHOLDER = BOOK_COVER_PLACEHOLDER_SRC;
 const COVER = "https://m.media-amazon.com/images/I/81abc.jpg";
 const GOOGLE_COVER = "https://books.google.com/books/content?id=abc";
 const OPEN_LIBRARY_COVER = "https://covers.openlibrary.org/b/id/12345-L.jpg";
@@ -23,6 +25,7 @@ function book(
   extra: Partial<RecapBook> = {},
 ): RecapBook {
   return {
+    id: title,
     title,
     endDate,
     gender: null,
@@ -40,6 +43,11 @@ function recap(books: RecapBook[], period: RecapPeriod, genders: string[] = []) 
     books,
     filter: filter(period, genders),
   });
+}
+
+function expectSyncedCovers(image: RecapImage) {
+  expect(image.coverSrcs).toEqual(image.covers.map((cover) => cover.src));
+  expect(image.coverSrcs).toHaveLength(image.covers.length);
 }
 
 describe("buildReadingRecap", () => {
@@ -79,7 +87,10 @@ describe("buildReadingRecap", () => {
     expect(images).toHaveLength(1);
     expect(images[0].title).toBe("Leituras de 7 de outubro de 2026");
     expect(images[0].subtitle).toBeNull();
-    expect(images[0].coverSrcs).toEqual([COVER]);
+    expect(images[0].covers).toEqual([
+      { bookId: "Hoje", title: "Hoje", src: COVER },
+    ]);
+    expectSyncedCovers(images[0]);
   });
 
   it("coloca 31 de março no recap de março e 1º de abril no de abril", () => {
@@ -92,6 +103,7 @@ describe("buildReadingRecap", () => {
     expect(march).toHaveLength(1);
     expect(march[0].title).toBe("Leituras de março de 2026");
     expect(march[0].coverSrcs).toHaveLength(1);
+    expectSyncedCovers(march[0]);
 
     const april = recap(books, {
       kind: "month",
@@ -113,6 +125,7 @@ describe("buildReadingRecap", () => {
 
     expect(images[0].title).toBe("Leituras do ano 2026");
     expect(images[0].coverSrcs).toHaveLength(1);
+    expect(images[0].covers[0]?.bookId).toBe("Bruno 2026");
   });
 
   it("aceita end_date em ISO datetime vindo do mapper", () => {
@@ -170,26 +183,34 @@ describe("buildReadingRecap", () => {
       year,
     );
 
+    expect(images[0].covers.map((cover) => cover.bookId)).toEqual([
+      "Mais novo",
+      "Mais antigo",
+    ]);
     expect(images[0].coverSrcs).toEqual([
       "https://m.media-amazon.com/images/I/novo.jpg",
       "https://m.media-amazon.com/images/I/antigo.jpg",
     ]);
+    expectSyncedCovers(images[0]);
   });
 
   it("ordena empate do mesmo dia por título A–Z em pt-BR", () => {
-    const images = recap(
-      [book("Zebra", "2026-10-07"), book("Água", "2026-10-07")],
+    const aguaFirst = recap(
+      [
+        book("Zebra", "2026-10-07", {
+          imageUrl: "https://m.media-amazon.com/images/I/zebra.jpg",
+        }),
+        book("Água", "2026-10-07", {
+          imageUrl: "https://m.media-amazon.com/images/I/agua.jpg",
+        }),
+      ],
       day,
     );
 
-    const aguaFirst = buildReadingRecap({
-      books: [
-        book("Zebra", "2026-10-07", { imageUrl: "https://m.media-amazon.com/images/I/zebra.jpg" }),
-        book("Água", "2026-10-07", { imageUrl: "https://m.media-amazon.com/images/I/agua.jpg" }),
-      ],
-      filter: filter(day),
-    });
-
+    expect(aguaFirst[0].covers.map((cover) => cover.title)).toEqual([
+      "Água",
+      "Zebra",
+    ]);
     expect(aguaFirst[0].coverSrcs).toEqual([
       "https://m.media-amazon.com/images/I/agua.jpg",
       "https://m.media-amazon.com/images/I/zebra.jpg",
@@ -206,6 +227,7 @@ describe("buildReadingRecap", () => {
     expect(single).toHaveLength(1);
     expect(single[0].title).toBe("Leituras de 7 de outubro de 2026");
     expect(single[0].coverSrcs).toHaveLength(12);
+    expectSyncedCovers(single[0]);
 
     const two = recap(thirteen, day);
     expect(two).toHaveLength(2);
@@ -213,6 +235,8 @@ describe("buildReadingRecap", () => {
     expect(two[0].coverSrcs).toHaveLength(12);
     expect(two[1].title).toBe("Leituras de 7 de outubro de 2026 · 2/2");
     expect(two[1].coverSrcs).toHaveLength(1);
+    expectSyncedCovers(two[0]);
+    expectSyncedCovers(two[1]);
   });
 
   it("não preenche a última imagem com placeholder nos slots vazios", () => {
@@ -224,10 +248,12 @@ describe("buildReadingRecap", () => {
     expect(images).toHaveLength(2);
     expect(images[0].coverSrcs).toHaveLength(12);
     expect(images[1].coverSrcs).toEqual([COVER, COVER, COVER, COVER]);
+    expect(images[1].covers).toHaveLength(4);
     expect(images[1].coverSrcs).not.toContain(PLACEHOLDER);
+    expectSyncedCovers(images[1]);
   });
 
-  it("exclui livro com capa vazia, em branco ou de host não permitido", () => {
+  it("usa placeholder para capa vazia, em branco ou de host não permitido, sem descartar o livro", () => {
     const images = recap(
       [
         book("Sem capa", "2026-10-07", { imageUrl: null }),
@@ -238,10 +264,17 @@ describe("buildReadingRecap", () => {
       day,
     );
 
-    expect(images).toEqual([]);
+    expect(images).toHaveLength(1);
+    expect(images[0].covers).toEqual([
+      { bookId: "Espaços", title: "Espaços", src: PLACEHOLDER },
+      { bookId: "Host inválido", title: "Host inválido", src: PLACEHOLDER },
+      { bookId: "Sem capa", title: "Sem capa", src: PLACEHOLDER },
+      { bookId: "Vazia", title: "Vazia", src: PLACEHOLDER },
+    ]);
+    expectSyncedCovers(images[0]);
   });
 
-  it("inclui path local permitido e ainda exclui placeholder", () => {
+  it("inclui path local permitido e o placeholder cadastrado como capa", () => {
     const images = recap(
       [
         book("Path local", "2026-10-07", { imageUrl: "/x.svg" }),
@@ -253,11 +286,18 @@ describe("buildReadingRecap", () => {
     );
 
     expect(images).toHaveLength(1);
-    expect(images[0].coverSrcs).toEqual(["/x.svg"]);
-    expect(images[0].coverSrcs).not.toContain(PLACEHOLDER);
+    expect(images[0].covers).toEqual([
+      { bookId: "Path local", title: "Path local", src: "/x.svg" },
+      {
+        bookId: "Placeholder com query",
+        title: "Placeholder com query",
+        src: PLACEHOLDER,
+      },
+    ]);
+    expectSyncedCovers(images[0]);
   });
 
-  it("exclui livro com capa igual ao placeholder do cadastro", () => {
+  it("inclui livro com capa igual ao placeholder do cadastro", () => {
     const images = recap(
       [
         book("Placeholder", "2026-10-07", { imageUrl: PLACEHOLDER }),
@@ -268,10 +308,16 @@ describe("buildReadingRecap", () => {
       day,
     );
 
-    expect(images).toEqual([]);
+    expect(images).toHaveLength(1);
+    expect(images[0].coverSrcs).toEqual([PLACEHOLDER, PLACEHOLDER]);
+    expect(images[0].covers.map((cover) => cover.bookId)).toEqual([
+      "Placeholder",
+      "Placeholder com espaços",
+    ]);
+    expectSyncedCovers(images[0]);
   });
 
-  it("devolve lista vazia quando o período só tem livros sem capa cadastrada", () => {
+  it("não devolve vazio quando o período só tem livros sem capa cadastrada", () => {
     const images = recap(
       [
         book("Sem capa", "2026-10-07", { imageUrl: null }),
@@ -282,10 +328,17 @@ describe("buildReadingRecap", () => {
       day,
     );
 
-    expect(images).toEqual([]);
+    expect(images).toHaveLength(1);
+    expect(images[0].covers).toHaveLength(4);
+    expect(images[0].coverSrcs).toEqual([
+      PLACEHOLDER,
+      PLACEHOLDER,
+      PLACEHOLDER,
+      PLACEHOLDER,
+    ]);
   });
 
-  it("na lista mista inclui só capas cadastradas e preserva a ordem", () => {
+  it("na lista mista inclui todos os livros e usa placeholder nas capas inválidas", () => {
     const novo = "https://m.media-amazon.com/images/I/novo.jpg";
     const antigo = "https://m.media-amazon.com/images/I/antigo.jpg";
     const agua = "https://m.media-amazon.com/images/I/agua.jpg";
@@ -305,11 +358,23 @@ describe("buildReadingRecap", () => {
     );
 
     expect(images).toHaveLength(1);
-    expect(images[0].coverSrcs).toEqual([novo, agua, zebra, antigo]);
-    expect(images[0].coverSrcs).not.toContain(PLACEHOLDER);
+    expect(images[0].covers).toEqual([
+      { bookId: "Novo com capa", title: "Novo com capa", src: novo },
+      { bookId: "Novo sem capa", title: "Novo sem capa", src: PLACEHOLDER },
+      { bookId: "Água", title: "Água", src: agua },
+      { bookId: "Host inválido", title: "Host inválido", src: PLACEHOLDER },
+      { bookId: "Zebra", title: "Zebra", src: zebra },
+      { bookId: "Antigo com capa", title: "Antigo com capa", src: antigo },
+      {
+        bookId: "Antigo placeholder",
+        title: "Antigo placeholder",
+        src: PLACEHOLDER,
+      },
+    ]);
+    expectSyncedCovers(images[0]);
   });
 
-  it("na lista mista pagina só capas cadastradas e não preenche slots vazios", () => {
+  it("na lista mista pagina todos os livros e não preenche slots vazios da última página", () => {
     const covered = Array.from({ length: 16 }, (_, index) =>
       book(`Capa ${String(index + 1).padStart(2, "0")}`, "2026-10-07", {
         imageUrl: `https://m.media-amazon.com/images/I/${index + 1}.jpg`,
@@ -333,16 +398,19 @@ describe("buildReadingRecap", () => {
       ),
     );
     expect(images[1].title).toBe("Leituras de 7 de outubro de 2026 · 2/2");
-    expect(images[1].coverSrcs).toHaveLength(4);
+    expect(images[1].covers).toHaveLength(7);
     expect(images[1].coverSrcs).toEqual([
       "https://m.media-amazon.com/images/I/13.jpg",
       "https://m.media-amazon.com/images/I/14.jpg",
       "https://m.media-amazon.com/images/I/15.jpg",
       "https://m.media-amazon.com/images/I/16.jpg",
-    ]);
-    expect(images.flatMap((image) => image.coverSrcs)).not.toContain(
       PLACEHOLDER,
-    );
+      PLACEHOLDER,
+      PLACEHOLDER,
+    ]);
+    expect(images[1].coverSrcs).toHaveLength(7);
+    expectSyncedCovers(images[0]);
+    expectSyncedCovers(images[1]);
   });
 
   it("preserva URL de capa de host permitido", () => {
@@ -362,6 +430,26 @@ describe("buildReadingRecap", () => {
       GOOGLE_COVER,
       OPEN_LIBRARY_COVER,
     ]);
+    expect(images[0].covers.map((cover) => cover.bookId)).toEqual([
+      "Amazon",
+      "Amazon SSL",
+      "Google",
+      "Open Library",
+    ]);
+    expectSyncedCovers(images[0]);
+  });
+
+  it("usa o id do RecapBook em covers.bookId", () => {
+    const images = recap(
+      [book("Duna", "2026-10-07", { id: "book-uuid-1" })],
+      day,
+    );
+
+    expect(images[0].covers[0]).toEqual({
+      bookId: "book-uuid-1",
+      title: "Duna",
+      src: COVER,
+    });
   });
 });
 

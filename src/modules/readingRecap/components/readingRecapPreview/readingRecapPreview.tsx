@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 
 import { useVisibleRecapCovers } from "../../hooks/useVisibleRecapCovers";
 import type { ReadingRecapPreviewProps } from "../../types";
+import { recapImageCovers } from "../../utils/buildReadingRecap";
+import RecapPreviewCover from "./recapPreviewCover";
 import ReadingRecapPreviewSkeleton from "./readingRecapPreviewSkeleton";
 
 function ReadingRecapPreview({
@@ -17,13 +19,14 @@ function ReadingRecapPreview({
   isError,
   imageCount = 0,
   imageIndex = 0,
+  emptyCaption,
   onPrevious,
   onNext,
   onSelectImage,
-  onCoverError,
+  onRemoveBook,
 }: ReadingRecapPreviewProps) {
-  const covers = image?.coverSrcs ?? [];
-  const { visibleCoverSrcs, handleCoverError } = useVisibleRecapCovers(covers);
+  const slots = recapImageCovers(image);
+  const { visibleCovers, handleCoverError } = useVisibleRecapCovers(slots);
 
   if (isLoading) {
     return <ReadingRecapPreviewSkeleton />;
@@ -43,6 +46,9 @@ function ReadingRecapPreview({
   const title = image?.title ?? periodTitle;
   const subtitle = image?.subtitle ?? null;
   const showNavigation = !isEmpty && imageCount > 1;
+  const caption =
+    emptyCaption ??
+    "Nenhuma leitura finalizada neste período. Troque o ano, o mês ou o dia.";
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -90,21 +96,13 @@ function ReadingRecapPreview({
                 ) : null}
               </div>
               <div className="mt-3 grid min-h-0 flex-1 grid-cols-3 grid-rows-4 gap-1.5">
-                {visibleCoverSrcs.map((src, index) => (
-                  <div
-                    key={`${src}-${index}`}
-                    className="flex min-h-0 min-w-0 items-center justify-center"
-                  >
-                    <img
-                      src={src}
-                      alt=""
-                      className="aspect-[90/130] h-full max-h-full w-auto max-w-full rounded-md object-cover shadow-sm"
-                      onError={() => {
-                        handleCoverError(src);
-                        onCoverError?.(src);
-                      }}
-                    />
-                  </div>
+                {visibleCovers.map((cover) => (
+                  <RecapPreviewCover
+                    key={cover.bookId}
+                    cover={cover}
+                    onRemove={onRemoveBook}
+                    onCoverError={handleCoverError}
+                  />
                 ))}
               </div>
               <p className="mt-2 text-center text-[0.55rem] font-semibold tracking-[0.18em] text-[#5B4BDB] uppercase">
@@ -114,8 +112,11 @@ function ReadingRecapPreview({
           </div>
           {isEmpty ? (
             <figcaption className="mt-3 text-center text-sm text-muted-foreground">
-              Nenhuma leitura com capa cadastrada neste período. Troque o ano,
-              o mês ou o dia.
+              {caption}
+            </figcaption>
+          ) : onRemoveBook ? (
+            <figcaption className="mt-3 text-center text-xs text-muted-foreground">
+              Toque no X para tirar um livro.
             </figcaption>
           ) : null}
         </figure>

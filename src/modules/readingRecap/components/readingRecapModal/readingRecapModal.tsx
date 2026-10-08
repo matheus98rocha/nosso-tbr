@@ -78,10 +78,11 @@ function ReadingRecapModal({ isOpen, onOpenChange }: ReadingRecapModalProps) {
                 isError={recap.isError}
                 imageCount={recap.images.length}
                 imageIndex={recap.imageIndex}
+                emptyCaption={recap.emptyCaption ?? undefined}
                 onPrevious={recap.handlePreviousImage}
                 onNext={recap.handleNextImage}
                 onSelectImage={recap.handleSelectImage}
-                onCoverError={recap.markCoverFailed}
+                onRemoveBook={recap.handleRemoveBook}
               />
             </div>
 
