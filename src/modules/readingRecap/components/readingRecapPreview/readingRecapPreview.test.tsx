@@ -215,7 +215,7 @@ describe("ReadingRecapPreview", () => {
       />,
     );
 
-    const skeleton = screen.getByLabelText("Carregando recap de leitura");
+    const skeleton = screen.getByLabelText("Carregando imagens das leituras");
     expect(skeleton.className).toContain(PREVIEW_FRAME_WIDTH_CLASS);
     expect(skeleton.className).not.toContain("220px");
   });

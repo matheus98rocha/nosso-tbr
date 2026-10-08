@@ -219,7 +219,7 @@ describe("ClientHome FAB Adicionar livro", () => {
     expect(mockSetBookFormOpen).toHaveBeenCalledWith(true);
   });
 
-  it("mostra Recap de leitura no chrome da Home quando logado", () => {
+  it("mostra o recap no chrome da Home quando logado", () => {
     vi.mocked(useHome).mockReturnValueOnce({
       ...baseUseHome,
       allBooks: { data: [{ id: "b1" } as never], total: 1 },
@@ -231,7 +231,7 @@ describe("ClientHome FAB Adicionar livro", () => {
     expect(screen.getByText("reading-recap")).toBeInTheDocument();
   });
 
-  it("não mostra Recap de leitura quando deslogado", () => {
+  it("não mostra o recap quando deslogado", () => {
     vi.mocked(useHome).mockReturnValueOnce({
       ...baseUseHome,
       isLoggedIn: false,

@@ -67,10 +67,10 @@ describe("ReadingRecapModal", () => {
     render(<ReadingRecapModal isOpen onOpenChange={vi.fn()} />);
 
     expect(
-      screen.getByRole("heading", { name: "Recap de leitura" }),
+      screen.getByRole("heading", { name: "Compartilhar leituras" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByLabelText("Carregando recap de leitura"),
+      screen.getByLabelText("Carregando imagens das leituras"),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ano" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Baixar" })).not.toBeInTheDocument();
@@ -83,7 +83,7 @@ describe("ReadingRecapModal", () => {
     render(<ReadingRecapModal isOpen onOpenChange={vi.fn()} />);
 
     expect(
-      screen.getByRole("heading", { name: "Recap de leitura" }),
+      screen.getByRole("heading", { name: "Compartilhar leituras" }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
