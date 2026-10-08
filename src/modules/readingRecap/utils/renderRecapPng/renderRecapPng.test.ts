@@ -87,8 +87,8 @@ describe("renderRecapImageToPng", () => {
     vi.restoreAllMocks();
   });
 
-  it("só desenha capa remota cadastrada e nunca carrega o placeholder", async () => {
-    const assigned = stubImage([AMAZON_PROXY]);
+  it("só desenha capa cadastrada e nunca carrega o placeholder", async () => {
+    const assigned = stubImage([AMAZON_PROXY, "/x.svg"]);
     const { fills, drawImage } = stubCanvas();
 
     await renderRecapImageToPng({
@@ -102,9 +102,9 @@ describe("renderRecapImageToPng", () => {
       ],
     });
 
-    expect(assigned).toEqual([AMAZON_PROXY]);
+    expect(assigned).toEqual([AMAZON_PROXY, "/x.svg"]);
     expect(assigned).not.toContain(BOOK_COVER_PLACEHOLDER_SRC);
-    expect(drawImage).toHaveBeenCalledOnce();
+    expect(drawImage).toHaveBeenCalledTimes(2);
     expect(fills).not.toContain("#E7E0D4");
   });
 

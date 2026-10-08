@@ -87,7 +87,7 @@ function formatRecapSubtitle(genders: string[]): string | null {
   return genders.map((gender) => getGenderLabel(gender) ?? gender).join(" · ");
 }
 
-function registeredCoverSrc(imageUrl: string | null): string | null {
+export function recapBookCoverSrc(imageUrl: string | null): string | null {
   const trimmed = imageUrl?.trim() ?? "";
   if (!isRegisteredBookCoverUrl(trimmed)) return null;
   return trimmed;
@@ -102,27 +102,32 @@ function compareRecapBooks(left: RecapBook, right: RecapBook): number {
   return left.title.localeCompare(right.title, "pt-BR");
 }
 
-export function buildReadingRecap({
-  books,
-  filter,
-}: BuildReadingRecapInput): RecapImage[] {
+export function selectRecapBooks(
+  books: RecapBook[],
+  filter: RecapFilter,
+): RecapBook[] {
   const matched = books.filter((book) => {
     const civilDate = civilDateFromEndDate(book.endDate);
     if (!civilDate) return false;
     if (!matchesPeriod(civilDate, filter.period)) return false;
-    if (!registeredCoverSrc(book.imageUrl)) return false;
+    if (!recapBookCoverSrc(book.imageUrl)) return false;
     if (filter.genders.length === 0) return true;
     if (!book.gender) return false;
     return filter.genders.includes(book.gender);
   });
 
-  matched.sort(compareRecapBooks);
+  return matched.slice().sort(compareRecapBooks);
+}
 
-  if (matched.length === 0) return [];
+export function paginateRecapImages(
+  books: RecapBook[],
+  filter: RecapFilter,
+): RecapImage[] {
+  if (books.length === 0) return [];
 
   const pages: RecapBook[][] = [];
-  for (let index = 0; index < matched.length; index += RECAP_COVERS_PER_IMAGE) {
-    pages.push(matched.slice(index, index + RECAP_COVERS_PER_IMAGE));
+  for (let index = 0; index < books.length; index += RECAP_COVERS_PER_IMAGE) {
+    pages.push(books.slice(index, index + RECAP_COVERS_PER_IMAGE));
   }
 
   const subtitle = formatRecapSubtitle(filter.genders);
@@ -131,17 +136,24 @@ export function buildReadingRecap({
     title: formatRecapTitle(filter.period, index + 1, pages.length),
     subtitle,
     coverSrcs: pageBooks.flatMap((pageBook) => {
-      const coverSrc = registeredCoverSrc(pageBook.imageUrl);
+      const coverSrc = recapBookCoverSrc(pageBook.imageUrl);
       return coverSrc ? [coverSrc] : [];
     }),
   }));
+}
+
+export function buildReadingRecap({
+  books,
+  filter,
+}: BuildReadingRecapInput): RecapImage[] {
+  return paginateRecapImages(selectRecapBooks(books, filter), filter);
 }
 
 export function createDefaultRecapFilter(now: Date = new Date()): RecapFilter {
   const today = getTodayInSaoPaulo(now);
   return {
     period: {
-      kind: "day",
+      kind: "year",
       year: today.getFullYear(),
       month: today.getMonth() + 1,
       day: today.getDate(),

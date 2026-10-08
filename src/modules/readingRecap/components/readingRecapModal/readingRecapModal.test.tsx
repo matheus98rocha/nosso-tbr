@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const recapState = {
   filter: {
-    period: { kind: "day" as const, year: 2026, month: 10, day: 7 },
+    period: { kind: "year" as const, year: 2026, month: 10, day: 7 },
     genders: [] as string[],
   },
   images: [] as { title: string; subtitle: string | null; coverSrcs: string[] }[],
@@ -18,8 +18,12 @@ const recapState = {
   canDownload: false,
   isDownloading: false,
   isLoading: false,
+  isProbing: false,
+  isShellPending: false,
+  isGenderFilterEnabled: false,
   isError: false,
-  periodTitle: "Leituras de 7 de outubro de 2026",
+  periodTitle: "Leituras do ano 2026",
+  countLabel: null as string | null,
   anchorDate: new Date(2026, 9, 7, 12),
   yearOptions: [2026],
   monthOptions: [{ value: "10", label: "outubro" }],
@@ -28,6 +32,7 @@ const recapState = {
   handleMonthChange: vi.fn(),
   handleYearChange: vi.fn(),
   handleToggleGender: vi.fn(),
+  handleGenderFilterEnabledChange: vi.fn(),
   handlePreviousImage: vi.fn(),
   handleNextImage: vi.fn(),
   handleSelectImage: vi.fn(),
@@ -45,13 +50,36 @@ describe("ReadingRecapModal", () => {
   beforeEach(() => {
     recapState.isEmpty = true;
     recapState.canDownload = false;
+    recapState.isLoading = false;
+    recapState.isShellPending = false;
+    recapState.isGenderFilterEnabled = false;
+    recapState.countLabel = null;
     recapState.images = [];
     recapState.currentImage = null;
     recapState.downloadCurrent.mockClear();
     recapState.downloadAll.mockClear();
+    recapState.handleGenderFilterEnabledChange.mockClear();
   });
 
-  it("mostra estado vazio e desabilita o download", () => {
+  it("mostra o skeleton do modal inteiro enquanto o recap não está pronto", () => {
+    recapState.isShellPending = true;
+    recapState.isLoading = true;
+    render(<ReadingRecapModal isOpen onOpenChange={vi.fn()} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Recap de leitura" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Carregando recap de leitura"),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ano" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Baixar" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Filtrar por gênero" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("mostra estado vazio, esconde gênero e desabilita o download", () => {
     render(<ReadingRecapModal isOpen onOpenChange={vi.fn()} />);
 
     expect(
@@ -59,9 +87,16 @@ describe("ReadingRecapModal", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Nenhuma leitura com capa cadastrada neste período. Tente outro dia, mês ou ano.",
+        "Nenhuma leitura com capa cadastrada neste período. Troque o ano, o mês ou o dia.",
       ),
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ano" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.queryByRole("button", { name: "Romance" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Baixar" })).toBeDisabled();
     expect(
       screen.queryByRole("button", { name: "Baixar todas" }),
@@ -72,14 +107,15 @@ describe("ReadingRecapModal", () => {
     const user = userEvent.setup();
     recapState.isEmpty = false;
     recapState.canDownload = true;
+    recapState.countLabel = "2 capas · 2 imagens";
     recapState.images = [
       {
-        title: "Leituras de 7 de outubro de 2026 · 1/2",
+        title: "Leituras do ano 2026 · 1/2",
         subtitle: null,
         coverSrcs: ["/a.jpg"],
       },
       {
-        title: "Leituras de 7 de outubro de 2026 · 2/2",
+        title: "Leituras do ano 2026 · 2/2",
         subtitle: null,
         coverSrcs: ["/b.jpg"],
       },
@@ -88,6 +124,7 @@ describe("ReadingRecapModal", () => {
 
     render(<ReadingRecapModal isOpen onOpenChange={vi.fn()} />);
 
+    expect(screen.getByText("2 capas · 2 imagens")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Baixar" }));
     await user.click(screen.getByRole("button", { name: "Baixar todas" }));
 

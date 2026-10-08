@@ -12,14 +12,16 @@ import type { RecapFilter, RecapPeriodKind } from "../types";
 import {
   applyRecapAnchorDate,
   applyRecapPeriodKind,
-  buildReadingRecap,
   createDefaultRecapFilter,
   formatRecapPeriodTitle,
+  paginateRecapImages,
   recapPeriodToDate,
   renderRecapImageToPng,
+  selectRecapBooks,
   toRecapDownloadFilename,
   triggerPngDownload,
 } from "../utils";
+import { useLoadableRecapBooks } from "./useLoadableRecapBooks";
 
 const readingRecapService = new ReadingRecapService();
 
@@ -35,11 +37,15 @@ export function useReadingRecap(isOpen: boolean) {
   );
   const [imageIndex, setImageIndex] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isGenderFilterEnabled, setIsGenderFilterEnabled] = useState(false);
+  const [hasRevealed, setHasRevealed] = useState(false);
 
   useEffect(() => {
     setFilter(createDefaultRecapFilter());
     setImageIndex(0);
     setIsDownloading(false);
+    setIsGenderFilterEnabled(false);
+    setHasRevealed(false);
   }, [isOpen]);
 
   const queryEnabled = isOpen && isLoggedIn && Boolean(userId);
@@ -52,13 +58,15 @@ export function useReadingRecap(isOpen: boolean) {
     refetchOnMount: "always",
   });
 
-  const images = useMemo(
-    () =>
-      buildReadingRecap({
-        books: finishedQuery.data ?? [],
-        filter,
-      }),
+  const selectedBooks = useMemo(
+    () => selectRecapBooks(finishedQuery.data ?? [], filter),
     [filter, finishedQuery.data],
+  );
+  const { loadableBooks, isProbing, markCoverFailed } =
+    useLoadableRecapBooks(selectedBooks);
+  const images = useMemo(
+    () => paginateRecapImages(loadableBooks, filter),
+    [filter, loadableBooks],
   );
 
   useEffect(() => {
@@ -69,8 +77,25 @@ export function useReadingRecap(isOpen: boolean) {
   }, [images.length]);
 
   const currentImage = images[imageIndex] ?? null;
-  const isEmpty = images.length === 0;
-  const canDownload = !isEmpty && !isDownloading && !finishedQuery.isLoading;
+  const isQueryPending = finishedQuery.isPending;
+  const isContentPending = isQueryPending || isProbing;
+  const isLoading = isContentPending;
+  const isShellPending = Boolean(isOpen && !hasRevealed && isContentPending);
+  const isEmpty = !isLoading && images.length === 0;
+  const canDownload = !isEmpty && !isDownloading && !isLoading;
+  const coverCount = loadableBooks.length;
+  const countLabel = useMemo(() => {
+    if (isLoading || coverCount === 0) return null;
+    const covers = coverCount === 1 ? "1 capa" : `${coverCount} capas`;
+    if (images.length <= 1) return `${covers} neste recap`;
+    return `${covers} · ${images.length} imagens`;
+  }, [coverCount, images.length, isLoading]);
+
+  useEffect(() => {
+    if (isOpen && !isContentPending) {
+      setHasRevealed(true);
+    }
+  }, [isOpen, isContentPending]);
   const periodTitle = useMemo(
     () => formatRecapPeriodTitle(filter.period),
     [filter.period],
@@ -153,6 +178,15 @@ export function useReadingRecap(isOpen: boolean) {
     setImageIndex(0);
   }, []);
 
+  const handleGenderFilterEnabledChange = useCallback((enabled: boolean) => {
+    setIsGenderFilterEnabled(enabled);
+    if (enabled) return;
+    setFilter((current) =>
+      current.genders.length === 0 ? current : { ...current, genders: [] },
+    );
+    setImageIndex(0);
+  }, []);
+
   const handlePreviousImage = useCallback(() => {
     setImageIndex((current) => Math.max(0, current - 1));
   }, []);
@@ -213,9 +247,14 @@ export function useReadingRecap(isOpen: boolean) {
     isEmpty,
     canDownload,
     isDownloading,
-    isLoading: finishedQuery.isLoading,
+    isLoading,
+    isProbing,
+    isShellPending,
+    isGenderFilterEnabled,
     isError: finishedQuery.isError,
+    markCoverFailed,
     periodTitle,
+    countLabel,
     anchorDate,
     yearOptions,
     monthOptions,
@@ -224,6 +263,7 @@ export function useReadingRecap(isOpen: boolean) {
     handleMonthChange,
     handleYearChange,
     handleToggleGender,
+    handleGenderFilterEnabledChange,
     handlePreviousImage,
     handleNextImage,
     handleSelectImage,

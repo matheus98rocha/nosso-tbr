@@ -3,12 +3,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 import { useVisibleRecapCovers } from "../../hooks/useVisibleRecapCovers";
 import type { ReadingRecapPreviewProps } from "../../types";
-import { toSameOriginCoverSrc } from "../../utils";
+import ReadingRecapPreviewSkeleton from "./readingRecapPreviewSkeleton";
 
 function ReadingRecapPreview({
   image,
@@ -21,17 +20,13 @@ function ReadingRecapPreview({
   onPrevious,
   onNext,
   onSelectImage,
+  onCoverError,
 }: ReadingRecapPreviewProps) {
   const covers = image?.coverSrcs ?? [];
   const { visibleCoverSrcs, handleCoverError } = useVisibleRecapCovers(covers);
 
   if (isLoading) {
-    return (
-      <Skeleton
-        className="mx-auto aspect-[9/16] w-[min(100%,360px)] rounded-2xl"
-        aria-label="Carregando recap de leitura"
-      />
-    );
+    return <ReadingRecapPreviewSkeleton />;
   }
 
   if (isError) {
@@ -75,15 +70,15 @@ function ReadingRecapPreview({
         <figure className="mx-auto w-[min(100%,360px)]">
           <div
             className={cn(
-              "relative aspect-[9/16] overflow-hidden rounded-2xl",
+              "relative isolate aspect-[9/16] overflow-hidden rounded-2xl",
               "bg-[#F3EDE3] text-[#1C1917]",
               "shadow-[0_18px_40px_-24px_rgba(28,25,23,0.55)]",
             )}
             aria-label={title}
           >
-            <div className="pointer-events-none absolute -left-10 -top-16 size-40 rounded-full bg-[#E8DFD2]" />
-            <div className="pointer-events-none absolute -bottom-10 -right-8 size-36 rounded-full bg-[#E4D9F2]/80" />
-            <div className="relative flex h-full flex-col px-3 pb-3 pt-4">
+            <div className="pointer-events-none absolute -left-10 -top-16 z-0 size-40 rounded-full bg-[#E8DFD2]" />
+            <div className="pointer-events-none absolute -bottom-10 -right-8 z-0 size-36 rounded-full bg-[#E4D9F2]/80" />
+            <div className="relative z-10 flex h-full min-h-0 flex-col px-3 pb-3 pt-4">
               <div className="text-center">
                 <p className="brand-display text-[0.7rem] leading-tight font-semibold tracking-tight">
                   {title}
@@ -94,15 +89,22 @@ function ReadingRecapPreview({
                   </p>
                 ) : null}
               </div>
-              <div className="mt-3 grid flex-1 grid-cols-3 grid-rows-4 place-items-center gap-1.5">
+              <div className="mt-3 grid min-h-0 flex-1 grid-cols-3 grid-rows-4 gap-1.5">
                 {visibleCoverSrcs.map((src, index) => (
-                  <img
+                  <div
                     key={`${src}-${index}`}
-                    src={toSameOriginCoverSrc(src)}
-                    alt=""
-                    className="h-[130px] w-[90px] rounded-md object-cover shadow-sm"
-                    onError={() => handleCoverError(src)}
-                  />
+                    className="flex min-h-0 min-w-0 items-center justify-center"
+                  >
+                    <img
+                      src={src}
+                      alt=""
+                      className="aspect-[90/130] h-full max-h-full w-auto max-w-full rounded-md object-cover shadow-sm"
+                      onError={() => {
+                        handleCoverError(src);
+                        onCoverError?.(src);
+                      }}
+                    />
+                  </div>
                 ))}
               </div>
               <p className="mt-2 text-center text-[0.55rem] font-semibold tracking-[0.18em] text-[#5B4BDB] uppercase">
@@ -112,8 +114,8 @@ function ReadingRecapPreview({
           </div>
           {isEmpty ? (
             <figcaption className="mt-3 text-center text-sm text-muted-foreground">
-              Nenhuma leitura com capa cadastrada neste período. Tente outro dia,
-              mês ou ano.
+              Nenhuma leitura com capa cadastrada neste período. Troque o ano,
+              o mês ou o dia.
             </figcaption>
           ) : null}
         </figure>
