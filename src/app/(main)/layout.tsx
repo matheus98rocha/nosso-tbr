@@ -9,7 +9,6 @@ import { getCurrentUserSession } from "@/services/users/service/getCurrentUser.s
 
 const newsreader = Newsreader({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
   variable: "--font-auth-display",
   display: "swap",
 });

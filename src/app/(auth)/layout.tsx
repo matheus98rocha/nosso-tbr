@@ -3,7 +3,6 @@ import { Newsreader } from "next/font/google";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
   variable: "--font-auth-display",
   display: "swap",
 });
