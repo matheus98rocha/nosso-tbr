@@ -139,6 +139,7 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
   - **Criar/editar estante** via modal `CreateEditBookshelves`.
   - **Adicionar livro à estante** a partir do card (`AddBookToShelf`): persiste na API e exibe toast de confirmação **sem redirecionar** para `/bookshelves/[id]`; o acesso à tela de estantes continua pelo menu ou links explícitos.
   - **Favoritar** (coração) e **menu ⋮** do `BookCard` só para quem **participa** do livro (`user_id`, `chosen_by` ou `readers`). Favoritar exige ainda status `finished`. Livros de outras pessoas continuam visíveis (detalhes, leitores, status), sem esses controles, e ganham o botão **Adicionar à biblioteca** (cria uma cópia sua em `not_started`, sem alterar o livro original).
+  - **Recap de leitura** (módulo `src/modules/readingRecap`, só com sessão): botão no chrome da Home (não no dock de Adicionar livro / Indicação com IA) abre um modal com filtro próprio de dia, mês ou ano e gênero opcional. Gera PNG 9:16 só com capas dos livros `finished` cujo `end_date` cai no período; o app baixa o arquivo e não publica nem abre rede social. Independente do filtro de ano da Home.
 
 ### 📖 Minhas Leituras (`/my-books`)
 
@@ -330,6 +331,7 @@ src/
 
   modules/
     home/
+    readingRecap/
     myBooks/
     shelves/
     bookshelves/

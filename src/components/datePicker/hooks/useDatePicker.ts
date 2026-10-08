@@ -16,7 +16,8 @@ export function useDatePicker({
   );
 
   const displayLabel = useMemo(
-    () => (value ? value.toLocaleDateString() : "Selecione uma data"),
+    () =>
+      value ? value.toLocaleDateString("pt-BR") : "Selecione uma data",
     [value],
   );
 

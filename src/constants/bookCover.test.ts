@@ -39,6 +39,7 @@ describe("bookCover", () => {
     expect(isAllowedBookCoverUrl("http://m.media-amazon.com/images/I/x.jpg")).toBe(
       false,
     );
+    expect(isAllowedBookCoverUrl("//evil.example/cover.jpg")).toBe(false);
   });
 
   it("resolve capa padrão para URL vazia ou inválida", () => {

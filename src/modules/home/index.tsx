@@ -33,6 +33,7 @@ import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFil
 import HomeQuickActions from "@/modules/home/components/homeQuickActions";
 import ReadingNow from "@/modules/home/components/readingNow";
 import { useHome } from "@/modules/home/hooks/useHome";
+import ReadingRecap from "@/modules/readingRecap";
 import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
 import { useUserStore } from "@/stores/userStore";
 
@@ -185,17 +186,22 @@ export default function ClientHome() {
             ) : null}
           </div>
 
-          {!isLoading && canClear && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearAllFilters}
-              className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 self-start sm:self-auto"
-              aria-label="Limpar todos os filtros"
-            >
-              Limpar tudo
-            </Button>
-          )}
+          {isLoggedIn || (!isLoading && canClear) ? (
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              {isLoggedIn ? <ReadingRecap /> : null}
+              {!isLoading && canClear && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAllFilters}
+                  className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  aria-label="Limpar todos os filtros"
+                >
+                  Limpar tudo
+                </Button>
+              )}
+            </div>
+          ) : null}
         </div>
         {isLoggedIn ? (
           <CollapsibleBookFilters

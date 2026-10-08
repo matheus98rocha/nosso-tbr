@@ -224,6 +224,20 @@ describe("QUERY_KEYS.stats", () => {
   });
 });
 
+describe("QUERY_KEYS.readingRecap", () => {
+  it("finished diferencia o id do leitor", () => {
+    const userId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    expect(QUERY_KEYS.readingRecap.finished(userId)).toEqual([
+      ...QUERY_KEYS.readingRecap.all,
+      "finished",
+      userId,
+    ]);
+    expect(
+      JSON.stringify(QUERY_KEYS.readingRecap.finished("a")),
+    ).not.toBe(JSON.stringify(QUERY_KEYS.readingRecap.finished("b")));
+  });
+});
+
 describe("QUERY_KEYS.search.autocomplete (RN22 — chave por termo)", () => {
   it("prefixa com search.all e diferencia o termo normalizado na chave", () => {
     expect(QUERY_KEYS.search.autocomplete("dune")).toEqual([

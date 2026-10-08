@@ -1,0 +1,1 @@
+export { toSameOriginCoverSrc } from "./toSameOriginCoverSrc";

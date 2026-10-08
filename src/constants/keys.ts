@@ -96,4 +96,9 @@ export const QUERY_KEYS = {
     snapshot: (userId: string) =>
       [...QUERY_KEYS.community.all, "snapshot", userId] as const,
   },
+  readingRecap: {
+    all: ["readingRecap"] as const,
+    finished: (userId: string) =>
+      [...QUERY_KEYS.readingRecap.all, "finished", userId] as const,
+  },
 } as const;

@@ -1,7 +1,7 @@
 export const BOOK_COVER_PLACEHOLDER_SRC = "/book-cover-placeholder.svg" as const;
 
 function isLocalBookCoverSrc(url: string): boolean {
-  return url.startsWith("/");
+  return url.startsWith("/") && !url.startsWith("//");
 }
 
 export function isAllowedBookCoverUrl(url: string): boolean {

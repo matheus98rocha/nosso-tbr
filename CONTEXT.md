@@ -30,6 +30,14 @@ _Avoid_: admin user, superuser, operador
 Título acompanhado na aplicação por um ou mais leitores, com status de leitura. Mangá e manhwa são livros. O cadastro existe pelo ato do leitor, não por um catálogo externo.
 _Avoid_: obra, edição, work, volume como tipo distinto
 
+**Capa**:
+Imagem que representa o livro. No Recap de leitura, é o único elemento do livro que aparece na imagem gerada.
+_Avoid_: poster, thumbnail, highlight
+
+**Gênero**:
+Classificação temática do livro escolhida no cadastro.
+_Avoid_: gender, categoria, tag
+
 **Autor**:
 Pessoa creditada no livro. Não é o Leitor. A tela Autores é a gestão desses registros, só para Administrador.
 _Avoid_: papel de leitor, author account
@@ -71,3 +79,17 @@ _Avoid_: pendente, nova notificação
 **Livros visíveis**:
 Livros que o destinatário pode consultar segundo as regras atuais de privacidade e relacionamento. Uma notificação não concede acesso adicional a livros.
 _Avoid_: livros públicos
+
+## Recap de leitura
+
+**Recap de leitura**:
+Imagens que o próprio Leitor gera com as capas dos livros que ele finalizou num dia, mês ou ano calendário, segundo o Filtro do recap. Não cita outros leitores.
+_Avoid_: highlight, wrapped, citação, recap anual como tipo distinto
+
+**Filtro do recap**:
+Período (dia, mês ou ano calendário) e, opcionalmente, um ou mais Gêneros. É independente do filtro da Home.
+_Avoid_: filtro da estante, filtro da home
+
+**Imagem do recap**:
+Uma das imagens que formam um Recap de leitura.
+_Avoid_: capa, highlight, story

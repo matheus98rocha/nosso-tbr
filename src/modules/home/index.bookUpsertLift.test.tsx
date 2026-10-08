@@ -190,6 +190,10 @@ vi.mock("@/modules/aiRecommendation", () => ({
   AiRecommendationDialog: () => null,
 }));
 
+vi.mock("@/modules/readingRecap", () => ({
+  default: () => null,
+}));
+
 vi.mock("@/modules/home/components/homeQuickActions", () => ({
   default: () => null,
 }));

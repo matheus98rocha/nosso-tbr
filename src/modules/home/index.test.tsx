@@ -111,6 +111,10 @@ vi.mock("@/modules/aiRecommendation", () => ({
   AiRecommendationDialog: () => null,
 }));
 
+vi.mock("@/modules/readingRecap", () => ({
+  default: () => <div>reading-recap</div>,
+}));
+
 vi.mock(
   "../shelves/components/createEditBookshelves",
   () => ({
@@ -213,6 +217,29 @@ describe("ClientHome FAB Adicionar livro", () => {
     await user.click(screen.getByRole("button", { name: "Adicionar livro" }));
 
     expect(mockSetBookFormOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("mostra Recap de leitura no chrome da Home quando logado", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      allBooks: { data: [{ id: "b1" } as never], total: 1 },
+      isLoggedIn: true,
+    } as unknown as ReturnType<typeof useHome>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    expect(screen.getByText("reading-recap")).toBeInTheDocument();
+  });
+
+  it("não mostra Recap de leitura quando deslogado", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      isLoggedIn: false,
+    } as unknown as ReturnType<typeof useHome>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    expect(screen.queryByText("reading-recap")).not.toBeInTheDocument();
   });
 
   it("não exibe FAB Adicionar livro quando deslogado", () => {
