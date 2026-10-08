@@ -2,10 +2,28 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
+import type { RecapImage } from "../../types";
 import { renderRecapImageToPng } from "./renderRecapPng";
 
 const AMAZON = "https://m.media-amazon.com/images/I/81abc.jpg";
 const AMAZON_PROXY = `/api/book-covers?url=${encodeURIComponent(AMAZON)}`;
+const LOCAL = "/x.svg";
+const INVALID = "https://example.com/cover.jpg";
+
+function recapImage(coverSrcs: string[]): RecapImage {
+  const covers = coverSrcs.map((src, index) => ({
+    bookId: `book-${index + 1}`,
+    title: `Livro ${index + 1}`,
+    src,
+  }));
+
+  return {
+    title: "Leituras de 7 de outubro de 2026",
+    subtitle: null,
+    covers,
+    coverSrcs: covers.map((cover) => cover.src),
+  };
+}
 
 function stubImage(succeedFor: string[]) {
   const assigned: string[] = [];
@@ -87,40 +105,54 @@ describe("renderRecapImageToPng", () => {
     vi.restoreAllMocks();
   });
 
-  it("só desenha capa cadastrada e nunca carrega o placeholder", async () => {
-    const assigned = stubImage([AMAZON_PROXY, "/x.svg"]);
-    const { fills, drawImage } = stubCanvas();
+  it("desenha capa cadastrada, path local e placeholder no mesmo número de slots", async () => {
+    const assigned = stubImage([
+      AMAZON_PROXY,
+      LOCAL,
+      BOOK_COVER_PLACEHOLDER_SRC,
+    ]);
+    const { drawImage } = stubCanvas();
 
-    await renderRecapImageToPng({
-      title: "Leituras de 7 de outubro de 2026",
-      subtitle: null,
-      coverSrcs: [
-        AMAZON,
-        BOOK_COVER_PLACEHOLDER_SRC,
-        "/x.svg",
-        "https://example.com/cover.jpg",
-      ],
-    });
+    await renderRecapImageToPng(
+      recapImage([AMAZON, BOOK_COVER_PLACEHOLDER_SRC, LOCAL, INVALID]),
+    );
 
-    expect(assigned).toEqual([AMAZON_PROXY, "/x.svg"]);
-    expect(assigned).not.toContain(BOOK_COVER_PLACEHOLDER_SRC);
-    expect(drawImage).toHaveBeenCalledTimes(2);
-    expect(fills).not.toContain("#E7E0D4");
+    expect(assigned).toContain(AMAZON_PROXY);
+    expect(assigned).toContain(LOCAL);
+    expect(assigned).toContain(BOOK_COVER_PLACEHOLDER_SRC);
+    expect(assigned.filter((src) => src === BOOK_COVER_PLACEHOLDER_SRC).length).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(drawImage).toHaveBeenCalledTimes(4);
   });
 
-  it("se a capa remota falha o load, não cai no placeholder nem desenha slot vazio", async () => {
-    const assigned = stubImage([]);
-    const { fills, drawImage } = stubCanvas();
+  it("se a capa remota falha o load, desenha o placeholder no mesmo slot", async () => {
+    const assigned = stubImage([BOOK_COVER_PLACEHOLDER_SRC]);
+    const { drawImage } = stubCanvas();
 
-    await renderRecapImageToPng({
-      title: "Leituras de 7 de outubro de 2026",
-      subtitle: null,
-      coverSrcs: [AMAZON],
-    });
+    await renderRecapImageToPng(recapImage([AMAZON]));
 
-    expect(assigned).toEqual([AMAZON_PROXY]);
-    expect(assigned).not.toContain(BOOK_COVER_PLACEHOLDER_SRC);
-    expect(drawImage).not.toHaveBeenCalled();
-    expect(fills).not.toContain("#E7E0D4");
+    expect(assigned).toEqual([AMAZON_PROXY, BOOK_COVER_PLACEHOLDER_SRC]);
+    expect(drawImage).toHaveBeenCalledTimes(1);
+  });
+
+  it("não reordena nem omite slot quando só a capa do meio falha", async () => {
+    const second = "https://m.media-amazon.com/images/I/81def.jpg";
+    const secondProxy = `/api/book-covers?url=${encodeURIComponent(second)}`;
+    const assigned = stubImage([AMAZON_PROXY, BOOK_COVER_PLACEHOLDER_SRC, LOCAL]);
+    const { drawImage } = stubCanvas();
+
+    await renderRecapImageToPng(recapImage([AMAZON, second, LOCAL]));
+
+    expect(assigned).toEqual(
+      expect.arrayContaining([
+        AMAZON_PROXY,
+        secondProxy,
+        BOOK_COVER_PLACEHOLDER_SRC,
+        LOCAL,
+      ]),
+    );
+    expect(assigned).toHaveLength(4);
+    expect(drawImage).toHaveBeenCalledTimes(3);
   });
 });

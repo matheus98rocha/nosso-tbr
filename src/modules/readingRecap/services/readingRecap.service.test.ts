@@ -51,6 +51,7 @@ describe("ReadingRecapService.getFinishedBooks", () => {
     });
     expect(books).toEqual([
       {
+        id: "Duna|2026-10-07T15:00:00.000Z|https://m.media-amazon.com/images/I/81abc.jpg",
         title: "Duna",
         endDate: "2026-10-07T15:00:00.000Z",
         gender: "science_fiction",

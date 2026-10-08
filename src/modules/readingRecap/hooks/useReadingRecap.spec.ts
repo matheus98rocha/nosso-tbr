@@ -41,12 +41,14 @@ import { useReadingRecap } from "./useReadingRecap";
 const COVER = "https://m.media-amazon.com/images/I/81abc.jpg";
 
 function recapBook(overrides: Partial<RecapBook> = {}): RecapBook {
+  const title = overrides.title ?? "Duna";
   return {
-    title: "Duna",
     endDate: "2026-10-07",
     gender: "science_fiction",
     imageUrl: COVER,
     ...overrides,
+    id: overrides.id ?? title,
+    title,
   };
 }
 
@@ -155,7 +157,7 @@ describe("useReadingRecap", () => {
     expect(result.current.isShellPending).toBe(false);
   });
 
-  it("devolve imagens vazias quando os livros do ano só têm capa placeholder", async () => {
+  it("inclui leituras sem capa cadastrada usando o placeholder", async () => {
     getFinishedBooks.mockResolvedValueOnce([
       recapBook({
         title: "Sem capa cadastrada",
@@ -177,12 +179,19 @@ describe("useReadingRecap", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.images).toEqual([]);
-    expect(result.current.isEmpty).toBe(true);
-    expect(result.current.canDownload).toBe(false);
+    expect(result.current.isEmpty).toBe(false);
+    expect(result.current.canDownload).toBe(true);
+    expect(result.current.images).toHaveLength(1);
+    expect(result.current.images[0]?.coverSrcs).toEqual([
+      BOOK_COVER_PLACEHOLDER_SRC,
+      BOOK_COVER_PLACEHOLDER_SRC,
+    ]);
+    expect(result.current.images[0]?.covers.map((cover) => cover.bookId)).toEqual(
+      ["Capa nula", "Sem capa cadastrada"],
+    );
   });
 
-  it("na lista mista do ano entrega capas que a Home mostraria", async () => {
+  it("na lista mista do ano inclui placeholder e host inválido, sem descartar livros", async () => {
     getFinishedBooks.mockResolvedValueOnce([
       recapBook({
         title: "Com capa",
@@ -215,8 +224,17 @@ describe("useReadingRecap", () => {
     });
 
     expect(result.current.images).toHaveLength(1);
-    expect(result.current.images[0]?.coverSrcs).toEqual([COVER, "/x.svg"]);
+    expect(result.current.images[0]?.coverSrcs).toEqual([
+      COVER,
+      BOOK_COVER_PLACEHOLDER_SRC,
+      "/x.svg",
+      BOOK_COVER_PLACEHOLDER_SRC,
+    ]);
+    expect(result.current.images[0]?.covers.map((cover) => cover.title)).toEqual(
+      ["Com capa", "Host inválido", "Path local", "Placeholder"],
+    );
     expect(result.current.canDownload).toBe(true);
+    expect(result.current.countLabel).toBe("4 capas neste recap");
   });
 
   it("desabilita download quando o período filtrado está vazio", async () => {
@@ -235,6 +253,9 @@ describe("useReadingRecap", () => {
     expect(result.current.isEmpty).toBe(true);
     expect(result.current.canDownload).toBe(false);
     expect(result.current.images).toEqual([]);
+    expect(result.current.emptyCaption).toBe(
+      "Nenhuma leitura finalizada neste período. Troque o ano, o mês ou o dia.",
+    );
   });
 
   it("habilita download quando há capas no recap do ano", async () => {
@@ -318,7 +339,7 @@ describe("useReadingRecap", () => {
     ]);
   });
 
-  it("pagina 14 capas cadastradas em 12+2 depois do probe", async () => {
+  it("pagina 14 leituras em 12+2 depois do probe", async () => {
     getFinishedBooks.mockResolvedValueOnce(
       Array.from({ length: 14 }, (_, index) =>
         recapBook({
@@ -340,10 +361,13 @@ describe("useReadingRecap", () => {
     expect(result.current.images).toHaveLength(2);
     expect(result.current.images[0]?.coverSrcs).toHaveLength(12);
     expect(result.current.images[1]?.coverSrcs).toHaveLength(2);
+    expect(result.current.images[0]?.coverSrcs).toEqual(
+      result.current.images[0]?.covers.map((cover) => cover.src),
+    );
   });
 
-  it("reparte para 12+1 depois de markCoverFailed em uma capa", async () => {
-    const failed = "https://m.media-amazon.com/images/I/0.jpg";
+  it("handleRemoveBook tira o livro do preview e do download e recompõe a paginação", async () => {
+    const removedSrc = "https://m.media-amazon.com/images/I/0.jpg";
     getFinishedBooks.mockResolvedValueOnce(
       Array.from({ length: 14 }, (_, index) =>
         recapBook({
@@ -364,7 +388,7 @@ describe("useReadingRecap", () => {
     });
 
     act(() => {
-      result.current.markCoverFailed(failed);
+      result.current.handleRemoveBook("Livro 01");
     });
 
     expect(result.current.images).toHaveLength(2);
@@ -372,7 +396,74 @@ describe("useReadingRecap", () => {
     expect(result.current.images[1]?.coverSrcs).toHaveLength(1);
     expect(
       result.current.images.flatMap((image) => image.coverSrcs),
-    ).not.toContain(failed);
+    ).not.toContain(removedSrc);
+    expect(
+      result.current.images.flatMap((image) => image.covers.map((cover) => cover.bookId)),
+    ).not.toContain("Livro 01");
+  });
+
+  it("esvazia o recap quando o leitor remove todos os livros", async () => {
+    const { result } = renderHook(() => useReadingRecap(true), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.images[0]?.covers.length).toBeGreaterThan(0);
+    });
+
+    act(() => {
+      result.current.handleRemoveBook("Duna");
+      result.current.handleRemoveBook("Ontem");
+      result.current.handleRemoveBook("Romance de março");
+    });
+
+    expect(result.current.images).toEqual([]);
+    expect(result.current.isEmpty).toBe(true);
+    expect(result.current.canDownload).toBe(false);
+    expect(result.current.currentImage).toBeNull();
+    expect(result.current.emptyCaption).toBe(
+      "Você removeu todas as capas. Feche e abra de novo para restaurá-las.",
+    );
+    expect(result.current.emptyCaption).toBe(
+      "Você removeu todas as capas. Feche e abra de novo para restaurá-las.",
+    );
+  });
+
+  it("descarta exclusões manuais quando isOpen muda", async () => {
+    const { result, rerender } = renderHook(
+      ({ isOpen }: { isOpen: boolean }) => useReadingRecap(isOpen),
+      {
+        wrapper: createWrapper(),
+        initialProps: { isOpen: true },
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    act(() => {
+      result.current.handleRemoveBook("Duna");
+    });
+
+    expect(
+      result.current.images.flatMap((image) =>
+        image.covers.map((cover) => cover.bookId),
+      ),
+    ).not.toContain("Duna");
+
+    rerender({ isOpen: false });
+    rerender({ isOpen: true });
+
+    await waitFor(() => {
+      expect(
+        result.current.images.flatMap((image) =>
+          image.covers.map((cover) => cover.bookId),
+        ),
+      ).toContain("Duna");
+    });
+    expect(result.current.isEmpty).toBe(false);
   });
 
   it("handleSelectImage vai direto para o índice informado", async () => {

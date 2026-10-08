@@ -1,4 +1,4 @@
-import { isRegisteredBookCoverUrl } from "@/constants/bookCover";
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 
 import {
   measureRecapCoverGrid,
@@ -20,7 +20,9 @@ function loadImage(src: string): Promise<HTMLImageElement> {
       image.src = "";
       reject(new Error("cover-load-timeout"));
     }, COVER_LOAD_TIMEOUT_MS);
-    image.crossOrigin = "anonymous";
+    if (!src.startsWith("/") || src.startsWith("//")) {
+      image.crossOrigin = "anonymous";
+    }
     image.onload = () => {
       window.clearTimeout(timer);
       resolve(image);
@@ -33,13 +35,38 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function loadCoverImage(src: string): Promise<HTMLImageElement | null> {
-  if (!isRegisteredBookCoverUrl(src)) return null;
+async function tryLoadCover(src: string): Promise<HTMLImageElement | null> {
   try {
-    return await loadImage(toSameOriginCoverSrc(src));
+    const image = await loadImage(src);
+    return image.width > 0 ? image : null;
   } catch {
     return null;
   }
+}
+
+async function loadCoverImage(src: string): Promise<HTMLImageElement | null> {
+  const primary = toSameOriginCoverSrc(src);
+  const loaded = await tryLoadCover(primary);
+  if (loaded) return loaded;
+  if (primary !== BOOK_COVER_PLACEHOLDER_SRC) {
+    return tryLoadCover(BOOK_COVER_PLACEHOLDER_SRC);
+  }
+  return null;
+}
+
+function drawEmptyCoverSlot(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  ctx.save();
+  roundRectPath(ctx, x, y, width, height, radius);
+  ctx.fillStyle = "#E8DFD2";
+  ctx.fill();
+  ctx.restore();
 }
 
 function roundRectPath(
@@ -125,9 +152,9 @@ export async function renderRecapImageToPng(image: RecapImage): Promise<Blob> {
     throw new Error("canvas-unavailable");
   }
 
-  const covers = (
-    await Promise.all(image.coverSrcs.map((src) => loadCoverImage(src)))
-  ).filter((cover): cover is HTMLImageElement => cover !== null);
+  const covers = await Promise.all(
+    image.coverSrcs.map((src) => loadCoverImage(src)),
+  );
 
   ctx.fillStyle = "#F3EDE3";
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -176,15 +203,24 @@ export async function renderRecapImageToPng(image: RecapImage): Promise<Blob> {
   const coverRadius =
     (BOOK_CARD_COVER_RADIUS / RECAP_COVER_WIDTH) * grid.cellWidth;
 
-  covers
-    .filter((cover) => cover.width > 0)
-    .forEach((cover, index) => {
-      const column = index % RECAP_GRID_COLUMNS;
-      const row = Math.floor(index / RECAP_GRID_COLUMNS);
-      const x = contentX + grid.offsetX + column * (grid.cellWidth + gap);
-      const y = gridTop + grid.offsetY + row * (grid.cellHeight + gap);
+  covers.forEach((cover, index) => {
+    const column = index % RECAP_GRID_COLUMNS;
+    const row = Math.floor(index / RECAP_GRID_COLUMNS);
+    const x = contentX + grid.offsetX + column * (grid.cellWidth + gap);
+    const y = gridTop + grid.offsetY + row * (grid.cellHeight + gap);
+    if (cover) {
       drawCover(ctx, cover, x, y, grid.cellWidth, grid.cellHeight, coverRadius);
-    });
+      return;
+    }
+    drawEmptyCoverSlot(
+      ctx,
+      x,
+      y,
+      grid.cellWidth,
+      grid.cellHeight,
+      coverRadius,
+    );
+  });
 
   ctx.fillStyle = "#5B4BDB";
   ctx.font = '600 28px ui-sans-serif, system-ui, sans-serif';

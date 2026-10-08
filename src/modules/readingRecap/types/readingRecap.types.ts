@@ -13,15 +13,23 @@ export type RecapFilter = {
 };
 
 export type RecapBook = {
+  id: string;
   title: string;
   endDate: string;
   gender: string | null;
   imageUrl: string | null;
 };
 
+export type RecapImageCover = {
+  bookId: string;
+  title: string;
+  src: string;
+};
+
 export type RecapImage = {
   title: string;
   subtitle: string | null;
+  covers: RecapImageCover[];
   coverSrcs: string[];
 };
 
@@ -36,14 +44,13 @@ export type ReadingRecapModalProps = {
 };
 
 export type UseVisibleRecapCoversResult = {
-  visibleCoverSrcs: string[];
-  handleCoverError: (src: string) => void;
+  visibleCovers: RecapImageCover[];
+  handleCoverError: (bookId: string) => void;
 };
 
 export type UseLoadableRecapBooksResult = {
   loadableBooks: RecapBook[];
   isProbing: boolean;
-  markCoverFailed: (src: string) => void;
 };
 
 export type ReadingRecapPreviewProps = {
@@ -54,10 +61,17 @@ export type ReadingRecapPreviewProps = {
   isError: boolean;
   imageCount?: number;
   imageIndex?: number;
+  emptyCaption?: string;
   onPrevious?: () => void;
   onNext?: () => void;
   onSelectImage?: (index: number) => void;
-  onCoverError?: (src: string) => void;
+  onRemoveBook?: (bookId: string) => void;
+};
+
+export type RecapPreviewCoverProps = {
+  cover: RecapImageCover;
+  onRemove?: (bookId: string) => void;
+  onCoverError?: (bookId: string) => void;
 };
 
 export type RecapSelectOption = {

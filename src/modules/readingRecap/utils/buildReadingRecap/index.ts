@@ -6,6 +6,7 @@ export {
   formatRecapPeriodTitle,
   paginateRecapImages,
   recapBookCoverSrc,
+  recapImageCovers,
   recapPeriodToDate,
   RECAP_COVERS_PER_IMAGE,
   selectRecapBooks,
