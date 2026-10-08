@@ -41,6 +41,30 @@ describe("CommunityReaderModal", () => {
     expect(screen.getByText("Lendo O Nome do Vento")).toBeInTheDocument();
   });
 
+  it("omite cadastrados e lidos quando ninguém segue ninguém", () => {
+    render(
+      <CommunityReaderModal
+        member={{
+          ...member,
+          isFollowing: false,
+          isFollower: false,
+        }}
+        open
+        isToggleBusy={false}
+        isRemoveBusy={false}
+        onOpenChange={vi.fn()}
+        onToggleFollow={vi.fn()}
+        onRemoveFollower={vi.fn()}
+        onOpenProfile={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByText("12 cadastrados · 8 lidos"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Lendo O Nome do Vento")).toBeInTheDocument();
+  });
+
   it("omite o livro em leitura quando o leitor não está lendo", () => {
     render(
       <CommunityReaderModal

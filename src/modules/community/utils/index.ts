@@ -1,6 +1,15 @@
 export {
+  COMMUNITY_PAGE_SIZE,
+  COMMUNITY_SUGGESTION_LIMIT,
+  COMMUNITY_SUGGESTION_MIN_LENGTH,
+  parseCommunityPage,
+  resolveCommunityMemberIds,
+  toCommunityNamePattern,
+} from "./communityDirectoryQuery";
+export {
   countMutualFollows,
   listCommunityRelationMarks,
+  shouldShowCommunityLibraryCounts,
 } from "./communityRelation";
 export {
   filterCommunityMembers,

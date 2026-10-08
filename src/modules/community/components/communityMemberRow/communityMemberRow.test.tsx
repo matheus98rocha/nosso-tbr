@@ -43,20 +43,37 @@ describe("CommunityMemberRow", () => {
   });
 
   describe("RN-COM-13", () => {
-    it("mostra cadastrados e lidos na label do leitor", () => {
+    it("mostra cadastrados e lidos quando existe relação de follow", () => {
       renderRow({
         registeredCount: 12,
         finishedCount: 8,
+        isFollowing: true,
       });
 
       expect(screen.getByText("Ana")).toBeInTheDocument();
       expect(screen.getByText("12 cadastrados · 8 lidos")).toBeInTheDocument();
     });
 
+    it("oculta cadastrados e lidos quando ninguém segue ninguém", () => {
+      renderRow({
+        registeredCount: 12,
+        finishedCount: 8,
+        isFollowing: false,
+        isFollower: false,
+        currentlyReadingTitle: "O Nome do Vento",
+      });
+
+      expect(
+        screen.queryByText("12 cadastrados · 8 lidos"),
+      ).not.toBeInTheDocument();
+      expect(screen.getByText("Lendo O Nome do Vento")).toBeInTheDocument();
+    });
+
     it("mostra o livro em leitura quando existir", () => {
       renderRow({
         registeredCount: 12,
         finishedCount: 8,
+        isFollower: true,
         currentlyReadingTitle: "O Nome do Vento",
       });
 

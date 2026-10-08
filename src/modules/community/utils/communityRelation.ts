@@ -20,6 +20,13 @@ export function listCommunityRelationMarks(input: {
   return marks;
 }
 
+export function shouldShowCommunityLibraryCounts(input: {
+  isFollowing: boolean;
+  isFollower: boolean;
+}): boolean {
+  return input.isFollowing || input.isFollower;
+}
+
 export function countMutualFollows(
   followingIds: readonly string[],
   followerIds: readonly string[],

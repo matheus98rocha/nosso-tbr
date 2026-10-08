@@ -8,8 +8,17 @@ const viewModel: CommunityViewModel = {
   view: "todos",
   setView: vi.fn(),
   searchQuery: "",
-  onSearchChange: vi.fn(),
+  inputValue: "",
+  onSearchInputChange: vi.fn(),
+  onSubmitSearch: vi.fn(),
+  onSelectSuggestion: vi.fn(),
+  suggestions: [],
+  isLoadingSuggestions: false,
+  shouldSearchSuggestions: false,
   onClearSearch: vi.fn(),
+  currentPage: 0,
+  totalPages: 1,
+  onPageChange: vi.fn(),
   followingCount: 1,
   followerCount: 2,
   members: [
@@ -56,9 +65,27 @@ vi.mock("./hooks/useCommunity", () => ({
 
 import CommunityScreen from "./communityScreen";
 
+function stubMatchMedia() {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes("(min-width: 640px)"),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
 describe("CommunityScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    stubMatchMedia();
     mockUseCommunity.mockReturnValue(viewModel);
   });
 
@@ -73,6 +100,12 @@ describe("CommunityScreen", () => {
     expect(screen.getByText("12 cadastrados · 8 lidos")).toBeInTheDocument();
     expect(screen.getByText("Lendo O Nome do Vento")).toBeInTheDocument();
     expect(screen.getByText("Te segue")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Buscar leitores" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("navigation", { name: "pagination" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("0")).toBeInTheDocument();

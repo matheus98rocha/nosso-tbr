@@ -9,6 +9,7 @@ export type InputWithButtonProps = {
   onBlur?: (value: string) => void;
   onFocus?: () => void;
   onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
+  buttonLabel?: string;
 };
 
 export type InputWithButtonRef = {

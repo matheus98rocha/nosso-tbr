@@ -95,6 +95,10 @@ export const QUERY_KEYS = {
     all: ["community"] as const,
     snapshot: (userId: string) =>
       [...QUERY_KEYS.community.all, "snapshot", userId] as const,
+    page: (userId: string, view: string, search: string, page: number) =>
+      [...QUERY_KEYS.community.all, "page", userId, view, search, page] as const,
+    suggestions: (userId: string, term: string) =>
+      [...QUERY_KEYS.community.all, "suggestions", userId, term] as const,
   },
   readingRecap: {
     all: ["readingRecap"] as const,

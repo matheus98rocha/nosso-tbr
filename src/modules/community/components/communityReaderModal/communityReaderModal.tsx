@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { ProfileAvatar } from "@/modules/profile/components";
 import { initialsFromDisplayName } from "@/modules/profile/utils";
 
+import { shouldShowCommunityLibraryCounts } from "../../utils/communityRelation";
 import { formatCommunityMemberActivity } from "../../utils/formatCommunityMemberActivity";
 import CommunityRelationMarks from "../communityRelationMarks";
 import type { CommunityReaderModalProps } from "./types/communityReaderModal.types";
@@ -37,6 +38,12 @@ function CommunityReaderModalComponent({
   const mostRegisteredLabel = member?.mostRegisteredGender
     ? getGenderLabel(member.mostRegisteredGender)
     : null;
+  const showLibraryCounts = member
+    ? shouldShowCommunityLibraryCounts({
+        isFollowing: member.isFollowing,
+        isFollower: member.isFollower,
+      })
+    : false;
   const activity = member
     ? formatCommunityMemberActivity({
         registeredCount: member.registeredCount,
@@ -44,6 +51,8 @@ function CommunityReaderModalComponent({
         currentlyReadingTitle: member.currentlyReadingTitle,
       })
     : null;
+  const showActivity =
+    Boolean(activity?.currentlyReadingLabel) || showLibraryCounts;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,11 +79,13 @@ function CommunityReaderModalComponent({
               <DialogDescription className="text-center">
                 Recorte de gêneros visíveis para você.
               </DialogDescription>
-              {activity ? (
+              {showActivity && activity ? (
                 <div className="space-y-1 text-center">
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {activity.countsLabel}
-                  </p>
+                  {showLibraryCounts ? (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {activity.countsLabel}
+                    </p>
+                  ) : null}
                   {activity.currentlyReadingLabel ? (
                     <p className="text-sm text-zinc-700 dark:text-zinc-300">
                       {activity.currentlyReadingLabel}

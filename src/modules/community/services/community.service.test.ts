@@ -24,8 +24,13 @@ vi.mock("@/services/userSocial/userSocial.service", () => ({
 type QueryResult<T> = { data: T; error: unknown };
 
 type ThenableQuery<T> = {
-  select: (columns?: string) => ThenableQuery<T>;
+  select: (columns?: string, options?: { count?: "exact" }) => ThenableQuery<T>;
   order: (column?: string, options?: { ascending: boolean }) => ThenableQuery<T>;
+  neq: (column?: string, value?: string) => ThenableQuery<T>;
+  in: (column?: string, values?: string[]) => ThenableQuery<T>;
+  ilike: (column?: string, pattern?: string) => ThenableQuery<T>;
+  range: (from?: number, to?: number) => ThenableQuery<T>;
+  limit: (count?: number) => ThenableQuery<T>;
   then: (resolve: (value: QueryResult<T>) => unknown) => Promise<unknown>;
 };
 
@@ -34,6 +39,11 @@ function makeThenableQuery<T>(result: QueryResult<T>): ThenableQuery<T> {
 
   query.select = vi.fn(() => query);
   query.order = vi.fn(() => query);
+  query.neq = vi.fn(() => query);
+  query.in = vi.fn(() => query);
+  query.ilike = vi.fn(() => query);
+  query.range = vi.fn(() => query);
+  query.limit = vi.fn(() => query);
   query.then = (resolve) => Promise.resolve(result).then(resolve);
 
   return query;
@@ -295,5 +305,119 @@ describe("CommunityService.getSnapshot", () => {
 
       consoleError.mockRestore();
     });
+  });
+});
+
+describe("CommunityService.getMembersPage", () => {
+  const from = vi.fn();
+  const rpc = vi.fn();
+  let usersQuery: ThenableQuery<UserRow[]> & { count?: number };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    usersQuery = makeThenableQuery({
+      data: [
+        {
+          id: "ana",
+          display_name: "Ana",
+          avatar_seed: "ana-seed",
+        },
+      ],
+      error: null,
+    });
+
+    from.mockImplementation((table: string) => {
+      if (table === "users") {
+        return usersQuery;
+      }
+
+      throw new Error(`tabela inesperada ${table}`);
+    });
+
+    rpc.mockImplementation((name: string) => {
+      if (name === "get_community_reader_genres") {
+        return Promise.resolve({ data: genreRows, error: null });
+      }
+
+      if (name === "get_community_reader_activity") {
+        return Promise.resolve({ data: activityRows, error: null });
+      }
+
+      throw new Error(`rpc inesperada ${name}`);
+    });
+
+    getFollowingIds.mockResolvedValue(["ana"]);
+    getFollowerIds.mockResolvedValue(["bruno"]);
+  });
+
+  function makeService() {
+    return new CommunityService(
+      { from, rpc } as never,
+      {
+        getFollowingIds,
+        getFollowerIds,
+      } as never,
+    );
+  }
+
+  it("pagina leitores no banco e não filtra no cliente", async () => {
+    Object.assign(usersQuery, {
+      then: (resolve: (value: QueryResult<UserRow[]> & { count: number }) => unknown) =>
+        Promise.resolve({
+          data: [
+            {
+              id: "ana",
+              display_name: "Ana",
+              avatar_seed: "ana-seed",
+            },
+          ],
+          error: null,
+          count: 20,
+        }).then(resolve),
+    });
+
+    const service = makeService();
+    const page = await service.getMembersPage({
+      selfId: SELF_ID,
+      view: "todos",
+      search: "Ana",
+      page: 1,
+      pageSize: 12,
+    });
+
+    expect(usersQuery.neq).toHaveBeenCalledWith("id", SELF_ID);
+    expect(usersQuery.ilike).toHaveBeenCalledWith("display_name", "%Ana%");
+    expect(usersQuery.in).not.toHaveBeenCalled();
+    expect(usersQuery.range).toHaveBeenCalledWith(12, 23);
+    expect(page.total).toBe(20);
+    expect(page.members[0]?.displayName).toBe("Ana");
+    expect(page.members[0]?.registeredCount).toBe(8);
+  });
+
+  it("restringe seguindo aos ids da rede e devolve vazio sem consultar usuários", async () => {
+    getFollowingIds.mockResolvedValue([]);
+
+    const service = makeService();
+    const page = await service.getMembersPage({
+      selfId: SELF_ID,
+      view: "seguindo",
+      search: "",
+      page: 0,
+      pageSize: 12,
+    });
+
+    expect(page).toEqual({ members: [], total: 0 });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("busca sugestões de nome com limite e sem o próprio usuário", async () => {
+    const service = makeService();
+    const suggestions = await service.searchSuggestions(SELF_ID, "An");
+
+    expect(usersQuery.neq).toHaveBeenCalledWith("id", SELF_ID);
+    expect(usersQuery.ilike).toHaveBeenCalledWith("display_name", "%An%");
+    expect(usersQuery.limit).toHaveBeenCalledWith(8);
+    expect(suggestions[0]?.displayName).toBe("Ana");
   });
 });

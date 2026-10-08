@@ -9,7 +9,7 @@ const {
   mockGetCollaboration,
   mockFetchBookShelves,
   mockGetAllBooks,
-  mockGetSnapshot,
+  mockGetMembersPage,
   mockUseUserStore,
 } = vi.hoisted(() => ({
   mockGetAuthors: vi.fn().mockResolvedValue([]),
@@ -17,10 +17,9 @@ const {
   mockGetCollaboration: vi.fn().mockResolvedValue([]),
   mockFetchBookShelves: vi.fn().mockResolvedValue([]),
   mockGetAllBooks: vi.fn().mockResolvedValue({ data: [], total: 0 }),
-  mockGetSnapshot: vi.fn().mockResolvedValue({
+  mockGetMembersPage: vi.fn().mockResolvedValue({
     members: [],
-    followingIds: [],
-    followerIds: [],
+    total: 0,
   }),
   mockUseUserStore: vi.fn(),
 }));
@@ -54,7 +53,7 @@ vi.mock("@/services/books/books.service", () => ({
 
 vi.mock("@/modules/community/services/community.service", () => ({
   CommunityService: vi.fn(function (this: Record<string, unknown>) {
-    this.getSnapshot = mockGetSnapshot;
+    this.getMembersPage = mockGetMembersPage;
   }),
 }));
 
@@ -172,17 +171,23 @@ describe("useDesktopNav — handlePrefetch", () => {
 
       await result.current.handlePrefetch("Comunidade");
 
-      expect(mockGetSnapshot).not.toHaveBeenCalled();
+      expect(mockGetMembersPage).not.toHaveBeenCalled();
     });
 
-    it("prefetch o snapshot com o id do usuário autenticado", async () => {
+    it("prefetch a primeira página com o id do usuário autenticado", async () => {
       mockUser(AUTHENTICATED_USER);
       const { wrapper } = makeWrapper();
       const { result } = renderHook(() => useDesktopNav(), { wrapper });
 
       await result.current.handlePrefetch("Comunidade");
 
-      expect(mockGetSnapshot).toHaveBeenCalledWith(AUTHENTICATED_USER.id);
+      expect(mockGetMembersPage).toHaveBeenCalledWith({
+        selfId: AUTHENTICATED_USER.id,
+        view: "todos",
+        search: "",
+        page: 0,
+        pageSize: 12,
+      });
     });
   });
 

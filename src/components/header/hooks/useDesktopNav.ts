@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { INITIAL_FILTERS, QUERY_KEYS } from "@/constants/keys";
 import { AuthorsService } from "@/modules/authors/services/authors.service";
 import { CommunityService } from "@/modules/community/services/community.service";
+import { COMMUNITY_PAGE_SIZE } from "@/modules/community/utils/communityDirectoryQuery";
 import { fetchBookShelves } from "@/modules/shelves/services/booksshelves.service";
 import { StatsService } from "@/modules/stats/services/stats.service";
 import { BookService } from "@/services/books/books.service";
@@ -74,9 +75,16 @@ export function useDesktopNav() {
         Comunidade: async () => {
           if (!user?.id) return;
           await queryClient.prefetchQuery({
-            queryKey: QUERY_KEYS.community.snapshot(user.id),
-            queryFn: () => communityService.getSnapshot(user.id),
-            staleTime: 1000 * 60 * 2,
+            queryKey: QUERY_KEYS.community.page(user.id, "todos", "", 0),
+            queryFn: () =>
+              communityService.getMembersPage({
+                selfId: user.id,
+                view: "todos",
+                search: "",
+                page: 0,
+                pageSize: COMMUNITY_PAGE_SIZE,
+              }),
+            staleTime: 1000 * 30,
           });
         },
       };

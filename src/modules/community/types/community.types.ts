@@ -25,6 +25,16 @@ export type CommunityActivityRow = {
   currentlyReadingTitle: string | null;
 };
 
+export type CommunityMemberSuggestion = {
+  id: string;
+  displayName: string;
+};
+
+export type CommunityMembersPage = {
+  members: CommunityMember[];
+  total: number;
+};
+
 export type CommunitySnapshot = {
   members: CommunityMember[];
   followingIds: string[];
@@ -42,8 +52,17 @@ export type CommunityViewModel = {
   view: CommunityView;
   setView: (view: CommunityView) => void;
   searchQuery: string;
-  onSearchChange: (value: string) => void;
+  inputValue: string;
+  onSearchInputChange: (value: string) => void;
+  onSubmitSearch: (value: string) => void;
+  onSelectSuggestion: (suggestion: CommunityMemberSuggestion) => void;
+  suggestions: CommunityMemberSuggestion[];
+  isLoadingSuggestions: boolean;
+  shouldSearchSuggestions: boolean;
   onClearSearch: () => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number | ((currentPage: number) => number)) => void;
   followingCount: number;
   followerCount: number;
   mutualCount: number;

@@ -31,6 +31,7 @@ export const InputWithButton = forwardRef<
       onBlur,
       onFocus,
       onKeyDown,
+      buttonLabel = "Search",
     },
     ref,
   ) => {
@@ -90,7 +91,7 @@ export const InputWithButton = forwardRef<
         onClick={handleSearchClick}
         variant="secondary"
         className="absolute top-1/2 -translate-y-1/2 right-0.5 h-8 w-8 p-0 border-l border border-r-0 border-input border-y-0 rounded-l-none"
-        aria-label="Search"
+        aria-label={buttonLabel}
       >
         <Search className="h-4 w-4" />
       </Button>

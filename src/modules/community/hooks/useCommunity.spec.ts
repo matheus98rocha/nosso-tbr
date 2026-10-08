@@ -39,28 +39,41 @@ const snapshot: CommunitySnapshot = {
   ],
 };
 
-const { getSnapshot, getFollowingIds, toggleFollow, removeFollower, toastError } =
-  vi.hoisted(() => ({
-    getSnapshot: vi.fn(),
-    getFollowingIds: vi.fn(),
-    toggleFollow: vi.fn(),
-    removeFollower: vi.fn(),
-    toastError: vi.fn(),
-  }));
+const {
+  getMembersPage,
+  searchSuggestions,
+  getFollowingIds,
+  getFollowerIds,
+  toggleFollow,
+  removeFollower,
+  toastError,
+} = vi.hoisted(() => ({
+  getMembersPage: vi.fn(),
+  searchSuggestions: vi.fn(),
+  getFollowingIds: vi.fn(),
+  getFollowerIds: vi.fn(),
+  toggleFollow: vi.fn(),
+  removeFollower: vi.fn(),
+  toastError: vi.fn(),
+}));
 
 vi.mock("../services/community.service", () => ({
   CommunityService: vi.fn(function CommunityServiceMock(this: {
-    getSnapshot: typeof getSnapshot;
+    getMembersPage: typeof getMembersPage;
+    searchSuggestions: typeof searchSuggestions;
   }) {
-    this.getSnapshot = getSnapshot;
+    this.getMembersPage = getMembersPage;
+    this.searchSuggestions = searchSuggestions;
   }),
 }));
 
 vi.mock("@/services/userSocial/userSocial.service", () => ({
   UserSocialService: vi.fn(function UserSocialServiceMock(this: {
     getFollowingIds: typeof getFollowingIds;
+    getFollowerIds: typeof getFollowerIds;
   }) {
     this.getFollowingIds = getFollowingIds;
+    this.getFollowerIds = getFollowerIds;
   }),
 }));
 
@@ -111,8 +124,13 @@ describe("useCommunity", () => {
     vi.clearAllMocks();
     nextNavigationTestState.pathname = "/community";
     nextNavigationTestState.searchParamsSerialized = "";
-    getSnapshot.mockResolvedValue(snapshot);
+    getMembersPage.mockResolvedValue({
+      members: snapshot.members,
+      total: snapshot.members.length,
+    });
+    searchSuggestions.mockResolvedValue([]);
     getFollowingIds.mockResolvedValue(["ana"]);
+    getFollowerIds.mockResolvedValue(["bruno"]);
   });
 
   it("expõe contagens pelos IDs da rede independente do recorte", async () => {
@@ -128,7 +146,18 @@ describe("useCommunity", () => {
 
     expect(result.current.followerCount).toBe(1);
     expect(result.current.view).toBe("seguidores");
-    expect(result.current.members.map((member) => member.id)).toEqual(["bruno"]);
+    expect(getMembersPage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        view: "seguidores",
+        search: "",
+        page: 0,
+        pageSize: 12,
+      }),
+    );
+    expect(result.current.members.map((member) => member.id)).toEqual([
+      "ana",
+      "bruno",
+    ]);
   });
 
   it("troca o recorte na URL com router.replace", async () => {
@@ -149,7 +178,7 @@ describe("useCommunity", () => {
     );
   });
 
-  it("filtra por nome sem mudar as contagens", async () => {
+  it("não filtra a lista ao digitar e só envia a busca na URL", async () => {
     const { result } = renderHook(() => useCommunity(), {
       wrapper: createWrapper(),
     });
@@ -159,10 +188,22 @@ describe("useCommunity", () => {
     });
 
     act(() => {
-      result.current.onSearchChange("ana");
+      result.current.onSearchInputChange("ana");
     });
 
-    expect(result.current.members.map((member) => member.id)).toEqual(["ana"]);
+    expect(result.current.members).toHaveLength(2);
+    expect(result.current.inputValue).toBe("ana");
+    expect(getMembersPage).toHaveBeenCalledWith(
+      expect.objectContaining({ search: "", page: 0 }),
+    );
+
+    act(() => {
+      result.current.onSubmitSearch("ana");
+    });
+
+    expect(nextNavigationTestState.router.replace).toHaveBeenCalledWith(
+      "/community?q=ana",
+    );
     expect(result.current.followingCount).toBe(1);
     expect(result.current.followerCount).toBe(1);
   });
@@ -184,14 +225,12 @@ describe("useCommunity", () => {
   });
 
   it("conta mútuos pela interseção e pede remoção só de quem segue o usuário", async () => {
-    getSnapshot.mockResolvedValue({
-      ...snapshot,
-      followingIds: ["ana", "bruno"],
-      members: snapshot.members.map((member) =>
-        member.id === "bruno" ? { ...member, isFollowing: true } : member,
-      ),
+    getMembersPage.mockResolvedValue({
+      members: snapshot.members,
+      total: snapshot.members.length,
     });
     getFollowingIds.mockResolvedValue(["ana", "bruno"]);
+    getFollowerIds.mockResolvedValue(["bruno"]);
 
     const { result } = renderHook(() => useCommunity(), {
       wrapper: createWrapper(),

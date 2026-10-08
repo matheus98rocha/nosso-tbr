@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   countMutualFollows,
   listCommunityRelationMarks,
+  shouldShowCommunityLibraryCounts,
 } from "./communityRelation";
 
 describe("listCommunityRelationMarks", () => {
@@ -31,6 +32,35 @@ describe("listCommunityRelationMarks", () => {
     expect(
       listCommunityRelationMarks({ isFollowing: false, isFollower: false }),
     ).toEqual([]);
+  });
+});
+
+describe("shouldShowCommunityLibraryCounts", () => {
+  it("esconde cadastrados e lidos quando ninguém segue ninguém", () => {
+    expect(
+      shouldShowCommunityLibraryCounts({
+        isFollowing: false,
+        isFollower: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("mostra cadastrados e lidos quando o usuário segue o leitor", () => {
+    expect(
+      shouldShowCommunityLibraryCounts({
+        isFollowing: true,
+        isFollower: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("mostra cadastrados e lidos quando o leitor segue o usuário", () => {
+    expect(
+      shouldShowCommunityLibraryCounts({
+        isFollowing: false,
+        isFollower: true,
+      }),
+    ).toBe(true);
   });
 });
 

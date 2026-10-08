@@ -1,10 +1,9 @@
 "use client";
 
-import { Search } from "lucide-react";
 import { memo } from "react";
 
+import { DefaultPagination } from "@/components";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +12,7 @@ import {
   CommunityMemberRow,
   CommunityReaderModal,
   CommunityRemoveFollowerDialog,
+  CommunitySearch,
 } from "./components";
 import { useCommunity } from "./hooks/useCommunity";
 import type { CommunityView } from "./types/community.types";
@@ -55,12 +55,12 @@ function CommunityScreenView() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_0%_0%,oklch(0.62_0.09_55/0.2),transparent_52%),radial-gradient(ellipse_at_100%_0%,oklch(0.42_0.07_264/0.14),transparent_48%)]"
         />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-xl space-y-3">
+        <div className="relative flex flex-col items-start gap-6 text-left">
+          <div className="max-w-2xl space-y-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[color-mix(in_oklch,var(--reading-ink)_58%,transparent)]">
               Sala de leitura
             </p>
-            <h1 className="brand-display text-[2.15rem] leading-none font-semibold tracking-tight text-[var(--reading-ink)] sm:text-5xl">
+            <h1 className="brand-display text-left text-[2.15rem] leading-none font-semibold tracking-tight text-[var(--reading-ink)] sm:text-5xl">
               Comunidade
             </h1>
             <p className="max-w-md text-sm leading-relaxed text-[color-mix(in_oklch,var(--reading-ink)_74%,transparent)] sm:text-base">
@@ -104,21 +104,15 @@ function CommunityScreenView() {
           ))}
         </div>
 
-        <div className="relative w-full lg:w-80">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400"
-            aria-hidden
-          />
-          <Input
-            type="search"
-            value={viewModel.searchQuery}
-            onChange={(event) => viewModel.onSearchChange(event.target.value)}
-            placeholder="Buscar por nome..."
-            className="h-11 rounded-full border-zinc-200 bg-white/90 pl-10 text-base md:text-sm dark:border-zinc-800 dark:bg-zinc-950/60"
-            aria-label="Buscar leitores por nome"
-            autoComplete="off"
-          />
-        </div>
+        <CommunitySearch
+          inputValue={viewModel.inputValue}
+          suggestions={viewModel.suggestions}
+          isLoadingSuggestions={viewModel.isLoadingSuggestions}
+          shouldSearchSuggestions={viewModel.shouldSearchSuggestions}
+          onInputChange={viewModel.onSearchInputChange}
+          onSubmit={viewModel.onSubmitSearch}
+          onSelectSuggestion={viewModel.onSelectSuggestion}
+        />
       </div>
 
       <section aria-labelledby="community-list-heading">
@@ -201,6 +195,11 @@ function CommunityScreenView() {
             ))}
           </ul>
         )}
+        <DefaultPagination
+          currentPage={viewModel.currentPage}
+          totalPages={viewModel.totalPages}
+          setCurrentPage={viewModel.onPageChange}
+        />
       </section>
 
       <CommunityReaderModal

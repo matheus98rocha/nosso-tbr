@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { QUERY_KEYS } from "@/constants/keys";
@@ -13,14 +13,17 @@ import { useUserStore } from "@/stores/userStore";
 
 import { CommunityService } from "../services/community.service";
 import type {
+  CommunityMemberSuggestion,
   CommunityView,
   CommunityViewModel,
 } from "../types/community.types";
-import { countMutualFollows } from "../utils/communityRelation";
 import {
-  filterCommunityMembers,
-  parseCommunityView,
-} from "../utils/filterCommunityMembers";
+  COMMUNITY_PAGE_SIZE,
+  parseCommunityPage,
+} from "../utils/communityDirectoryQuery";
+import { countMutualFollows } from "../utils/communityRelation";
+import { parseCommunityView } from "../utils/filterCommunityMembers";
+import { useCommunityReaderSuggestions } from "./useCommunityReaderSuggestions";
 import { useRemoveFollower } from "./useRemoveFollower";
 
 const communityService = new CommunityService();
@@ -37,24 +40,42 @@ export function useCommunity(): CommunityViewModel {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [removalMemberId, setRemovalMemberId] = useState<string | null>(null);
 
   const view = parseCommunityView(searchParams.get("view"));
+  const searchQuery = searchParams.get("q") ?? "";
+  const currentPage = parseCommunityPage(searchParams.get("page"));
   const selfId = user?.id ?? "";
   const queryEnabled = isClientReady && isLoggedIn && Boolean(selfId);
+  const [inputValue, setInputValue] = useState(searchQuery);
 
   const handleToggleError = useCallback(() => {
     toast.error(FOLLOW_ERROR_MESSAGE);
   }, []);
 
-  const snapshotQuery = useQuery({
-    queryKey: QUERY_KEYS.community.snapshot(selfId),
-    queryFn: () => communityService.getSnapshot(selfId),
+  const followersQuery = useQuery({
+    queryKey: ["userSocial", "followers", selfId] as const,
+    queryFn: () => userSocialService.getFollowerIds(),
     enabled: queryEnabled,
     staleTime: 1000 * 60 * 2,
   });
+
+  const pageQuery = useQuery({
+    queryKey: QUERY_KEYS.community.page(selfId, view, searchQuery, currentPage),
+    queryFn: () =>
+      communityService.getMembersPage({
+        selfId,
+        view,
+        search: searchQuery,
+        page: currentPage,
+        pageSize: COMMUNITY_PAGE_SIZE,
+      }),
+    enabled: queryEnabled,
+    staleTime: 1000 * 30,
+  });
+
+  const readerSuggestions = useCommunityReaderSuggestions(selfId, inputValue);
 
   const followingQuery = useQuery({
     queryKey: ["userSocial", "following", selfId] as const,
@@ -78,36 +99,38 @@ export function useCommunity(): CommunityViewModel {
   } = useRemoveFollower(selfId);
 
   const followingIds = useMemo(
-    () => followingQuery.data ?? snapshotQuery.data?.followingIds ?? [],
-    [followingQuery.data, snapshotQuery.data?.followingIds],
+    () => followingQuery.data ?? [],
+    [followingQuery.data],
   );
 
   const followerIds = useMemo(
-    () => snapshotQuery.data?.followerIds ?? [],
-    [snapshotQuery.data?.followerIds],
+    () => followersQuery.data ?? [],
+    [followersQuery.data],
   );
   const followingSet = useMemo(() => new Set(followingIds), [followingIds]);
+  const followerSet = useMemo(() => new Set(followerIds), [followerIds]);
   const mutualCount = useMemo(
     () => countMutualFollows(followingIds, followerIds),
     [followingIds, followerIds],
   );
 
   const members = useMemo(() => {
-    return (snapshotQuery.data?.members ?? []).map((member) => ({
+    return (pageQuery.data?.members ?? []).map((member) => ({
       ...member,
       isFollowing: followingSet.has(member.id),
+      isFollower: followerSet.has(member.id),
     }));
-  }, [snapshotQuery.data?.members, followingSet]);
+  }, [followerSet, followingSet, pageQuery.data?.members]);
 
-  const visibleMembers = useMemo(
-    () =>
-      filterCommunityMembers(members, {
-        view,
-        search: searchQuery,
-        selfId,
-      }),
-    [members, view, searchQuery, selfId],
-  );
+  const totalPages = useMemo(() => {
+    const total = pageQuery.data?.total ?? 0;
+
+    if (total === 0) {
+      return 0;
+    }
+
+    return Math.ceil(total / COMMUNITY_PAGE_SIZE);
+  }, [pageQuery.data?.total]);
 
   const selectedMember = useMemo(
     () => members.find((member) => member.id === selectedMemberId) ?? null,
@@ -119,29 +142,86 @@ export function useCommunity(): CommunityViewModel {
     [members, removalMemberId],
   );
 
-  const setView = useCallback(
-    (next: CommunityView) => {
+  const replaceCommunityParams = useCallback(
+    (mutate: (params: URLSearchParams) => void) => {
       const params = new URLSearchParams(searchParams.toString());
-
-      if (next === "todos") {
-        params.delete("view");
-      } else {
-        params.set("view", next);
-      }
-
+      mutate(params);
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname);
     },
     [pathname, router, searchParams],
   );
 
-  const onSearchChange = useCallback((value: string) => {
-    setSearchQuery(value);
+  const setView = useCallback(
+    (next: CommunityView) => {
+      replaceCommunityParams((params) => {
+        if (next === "todos") {
+          params.delete("view");
+        } else {
+          params.set("view", next);
+        }
+
+        params.delete("page");
+      });
+    },
+    [replaceCommunityParams],
+  );
+
+  const onSearchInputChange = useCallback((value: string) => {
+    setInputValue(value);
   }, []);
 
+  const onSubmitSearch = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      setInputValue(trimmed);
+      replaceCommunityParams((params) => {
+        if (trimmed) {
+          params.set("q", trimmed);
+        } else {
+          params.delete("q");
+        }
+
+        params.delete("page");
+      });
+    },
+    [replaceCommunityParams],
+  );
+
+  const onSelectSuggestion = useCallback(
+    (suggestion: CommunityMemberSuggestion) => {
+      onSubmitSearch(suggestion.displayName);
+    },
+    [onSubmitSearch],
+  );
+
   const onClearSearch = useCallback(() => {
-    setSearchQuery("");
-  }, []);
+    setInputValue("");
+    replaceCommunityParams((params) => {
+      params.delete("q");
+      params.delete("page");
+    });
+  }, [replaceCommunityParams]);
+
+  const onPageChange = useCallback(
+    (page: number | ((currentPage: number) => number)) => {
+      const nextPage = typeof page === "function" ? page(currentPage) : page;
+
+      replaceCommunityParams((params) => {
+        if (nextPage <= 0) {
+          params.delete("page");
+          return;
+        }
+
+        params.set("page", String(nextPage));
+      });
+    },
+    [currentPage, replaceCommunityParams],
+  );
+
+  useEffect(() => {
+    setInputValue(searchQuery);
+  }, [searchQuery]);
 
   const onOpenMember = useCallback((memberId: string) => {
     setSelectedMemberId(memberId);
@@ -194,8 +274,8 @@ export function useCommunity(): CommunityViewModel {
   }, [removalMemberId, removeFollower]);
 
   const onRetry = useCallback(() => {
-    void snapshotQuery.refetch();
-  }, [snapshotQuery]);
+    void pageQuery.refetch();
+  }, [pageQuery]);
 
   const onOpenMemberProfile = useCallback(
     (memberId: string) => {
@@ -208,15 +288,24 @@ export function useCommunity(): CommunityViewModel {
     view,
     setView,
     searchQuery,
-    onSearchChange,
+    inputValue,
+    onSearchInputChange,
+    onSubmitSearch,
+    onSelectSuggestion,
+    suggestions: readerSuggestions.suggestions,
+    isLoadingSuggestions: readerSuggestions.isLoadingSuggestions,
+    shouldSearchSuggestions: readerSuggestions.shouldSearchSuggestions,
     onClearSearch,
+    currentPage,
+    totalPages,
+    onPageChange,
     followingCount: followingIds.length,
     followerCount: followerIds.length,
     mutualCount,
-    members: visibleMembers,
-    isLoading: snapshotQuery.isLoading,
-    isError: snapshotQuery.isError,
-    isEmpty: visibleMembers.length === 0,
+    members,
+    isLoading: pageQuery.isLoading,
+    isError: pageQuery.isError,
+    isEmpty: !pageQuery.isLoading && members.length === 0,
     onRetry,
     selectedMember,
     onOpenMember,
