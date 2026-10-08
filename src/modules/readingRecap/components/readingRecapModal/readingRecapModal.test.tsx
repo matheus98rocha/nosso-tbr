@@ -30,6 +30,7 @@ const recapState = {
   handleToggleGender: vi.fn(),
   handlePreviousImage: vi.fn(),
   handleNextImage: vi.fn(),
+  handleSelectImage: vi.fn(),
   downloadCurrent: vi.fn(),
   downloadAll: vi.fn(),
 };
@@ -58,7 +59,7 @@ describe("ReadingRecapModal", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Nenhuma leitura finalizada neste período. Tente outro dia, mês ou ano.",
+        "Nenhuma leitura com capa cadastrada neste período. Tente outro dia, mês ou ano.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Baixar" })).toBeDisabled();
@@ -92,5 +93,6 @@ describe("ReadingRecapModal", () => {
 
     expect(recapState.downloadCurrent).toHaveBeenCalledOnce();
     expect(recapState.downloadAll).toHaveBeenCalledOnce();
+    expect(screen.queryByText("1/2", { exact: true })).not.toBeInTheDocument();
   });
 });

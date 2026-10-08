@@ -31,7 +31,7 @@ Título acompanhado na aplicação por um ou mais leitores, com status de leitur
 _Avoid_: obra, edição, work, volume como tipo distinto
 
 **Capa**:
-Imagem que representa o livro. No Recap de leitura, é o único elemento do livro que aparece na imagem gerada.
+Imagem que representa o livro. No Recap de leitura, é o único elemento do livro que aparece na imagem gerada; livro sem capa cadastrada não entra.
 _Avoid_: poster, thumbnail, highlight
 
 **Gênero**:
@@ -91,5 +91,5 @@ Período (dia, mês ou ano calendário) e, opcionalmente, um ou mais Gêneros. �
 _Avoid_: filtro da estante, filtro da home
 
 **Imagem do recap**:
-Uma das imagens que formam um Recap de leitura.
+Uma das imagens que formam um Recap de leitura. Só inclui livros com Capa cadastrada (URL remota permitida). Placeholder, path local ou capa que falha o load não entram. Grade 3×4; cada capa no tamanho do BookCard. Com mais de uma imagem, o preview mostra uma por vez com setas e dots; com uma imagem, vazio, carregamento ou erro, não há setas nem dots.
 _Avoid_: capa, highlight, story

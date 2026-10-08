@@ -9,4 +9,5 @@ export type {
   ReadingRecapFiltersProps,
   ReadingRecapModalProps,
   ReadingRecapPreviewProps,
+  UseVisibleRecapCoversResult,
 } from "./readingRecap.types";

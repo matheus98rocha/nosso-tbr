@@ -1,7 +1,8 @@
-import { isAllowedBookCoverUrl } from "@/constants/bookCover";
+import { isRegisteredBookCoverUrl } from "@/constants/bookCover";
 import { getGenderLabel } from "@/constants/genders";
 import { DateUtils, getTodayInSaoPaulo } from "@/utils/date";
 
+import { RECAP_COVERS_PER_IMAGE } from "../../constants";
 import type {
   BuildReadingRecapInput,
   RecapBook,
@@ -11,7 +12,7 @@ import type {
   RecapPeriodKind,
 } from "../../types";
 
-export const RECAP_COVERS_PER_IMAGE = 15;
+export { RECAP_COVERS_PER_IMAGE };
 
 function civilDateFromEndDate(endDate: string): string | null {
   const date = DateUtils.toDate(endDate);
@@ -86,14 +87,9 @@ function formatRecapSubtitle(genders: string[]): string | null {
   return genders.map((gender) => getGenderLabel(gender) ?? gender).join(" · ");
 }
 
-function resolveCoverSrc(
-  imageUrl: string | null,
-  placeholderSrc: string,
-): string {
+function registeredCoverSrc(imageUrl: string | null): string | null {
   const trimmed = imageUrl?.trim() ?? "";
-  if (!trimmed || !isAllowedBookCoverUrl(trimmed)) {
-    return placeholderSrc;
-  }
+  if (!isRegisteredBookCoverUrl(trimmed)) return null;
   return trimmed;
 }
 
@@ -109,12 +105,12 @@ function compareRecapBooks(left: RecapBook, right: RecapBook): number {
 export function buildReadingRecap({
   books,
   filter,
-  placeholderSrc,
 }: BuildReadingRecapInput): RecapImage[] {
   const matched = books.filter((book) => {
     const civilDate = civilDateFromEndDate(book.endDate);
     if (!civilDate) return false;
     if (!matchesPeriod(civilDate, filter.period)) return false;
+    if (!registeredCoverSrc(book.imageUrl)) return false;
     if (filter.genders.length === 0) return true;
     if (!book.gender) return false;
     return filter.genders.includes(book.gender);
@@ -134,9 +130,10 @@ export function buildReadingRecap({
   return pages.map((pageBooks, index) => ({
     title: formatRecapTitle(filter.period, index + 1, pages.length),
     subtitle,
-    coverSrcs: pageBooks.map((pageBook) =>
-      resolveCoverSrc(pageBook.imageUrl, placeholderSrc),
-    ),
+    coverSrcs: pageBooks.flatMap((pageBook) => {
+      const coverSrc = registeredCoverSrc(pageBook.imageUrl);
+      return coverSrc ? [coverSrc] : [];
+    }),
   }));
 }
 

@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   BOOK_COVER_PLACEHOLDER_SRC,
   isAllowedBookCoverUrl,
+  isPlaceholderBookCoverSrc,
+  isRegisteredBookCoverUrl,
   resolveBookCoverUrl,
 } from "./bookCover";
 
@@ -54,5 +56,46 @@ describe("bookCover", () => {
   it("preserva URL válida", () => {
     const url = "https://m.media-amazon.com/images/I/81abc.jpg";
     expect(resolveBookCoverUrl(url)).toBe(url);
+  });
+
+  it("reconhece o placeholder mesmo com query ou path absoluto", () => {
+    expect(isPlaceholderBookCoverSrc(BOOK_COVER_PLACEHOLDER_SRC)).toBe(true);
+    expect(isPlaceholderBookCoverSrc("/book-cover-placeholder.svg?v=1")).toBe(
+      true,
+    );
+    expect(
+      isPlaceholderBookCoverSrc(
+        "https://app.example/book-cover-placeholder.svg",
+      ),
+    ).toBe(true);
+    expect(
+      isPlaceholderBookCoverSrc("https://m.media-amazon.com/images/I/81abc.jpg"),
+    ).toBe(false);
+  });
+
+  it("só aceita capa cadastrada remota, nunca placeholder nem path local", () => {
+    expect(
+      isRegisteredBookCoverUrl("https://m.media-amazon.com/images/I/81abc.jpg"),
+    ).toBe(true);
+    expect(isRegisteredBookCoverUrl(BOOK_COVER_PLACEHOLDER_SRC)).toBe(false);
+    expect(isRegisteredBookCoverUrl("/book-cover-placeholder.svg?v=1")).toBe(
+      false,
+    );
+    expect(isRegisteredBookCoverUrl("/x.svg")).toBe(false);
+    expect(isRegisteredBookCoverUrl(null)).toBe(false);
+    expect(isRegisteredBookCoverUrl("")).toBe(false);
+    expect(isRegisteredBookCoverUrl("https://example.com/cover.jpg")).toBe(
+      false,
+    );
+    expect(isRegisteredBookCoverUrl(undefined)).toBe(false);
+    expect(
+      isRegisteredBookCoverUrl("  https://m.media-amazon.com/images/I/81abc.jpg  "),
+    ).toBe(true);
+    expect(
+      isRegisteredBookCoverUrl("http://m.media-amazon.com/images/I/81abc.jpg"),
+    ).toBe(false);
+    expect(
+      isPlaceholderBookCoverSrc("/book-cover-placeholder.svg#cover"),
+    ).toBe(true);
   });
 });

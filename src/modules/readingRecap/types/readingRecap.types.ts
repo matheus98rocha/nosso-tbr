@@ -28,12 +28,16 @@ export type RecapImage = {
 export type BuildReadingRecapInput = {
   books: RecapBook[];
   filter: RecapFilter;
-  placeholderSrc: string;
 };
 
 export type ReadingRecapModalProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+};
+
+export type UseVisibleRecapCoversResult = {
+  visibleCoverSrcs: string[];
+  handleCoverError: (src: string) => void;
 };
 
 export type ReadingRecapPreviewProps = {
@@ -42,6 +46,11 @@ export type ReadingRecapPreviewProps = {
   isEmpty: boolean;
   isLoading: boolean;
   isError: boolean;
+  imageCount?: number;
+  imageIndex?: number;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  onSelectImage?: (index: number) => void;
 };
 
 export type RecapSelectOption = {

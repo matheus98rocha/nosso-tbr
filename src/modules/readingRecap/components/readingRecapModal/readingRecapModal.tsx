@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +23,7 @@ function ReadingRecapModal({ isOpen, onOpenChange }: ReadingRecapModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Recap de leitura</DialogTitle>
           <DialogDescription>
@@ -52,34 +52,12 @@ function ReadingRecapModal({ isOpen, onOpenChange }: ReadingRecapModalProps) {
               isEmpty={recap.isEmpty}
               isLoading={recap.isLoading}
               isError={recap.isError}
+              imageCount={recap.images.length}
+              imageIndex={recap.imageIndex}
+              onPrevious={recap.handlePreviousImage}
+              onNext={recap.handleNextImage}
+              onSelectImage={recap.handleSelectImage}
             />
-            {hasManyImages ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  aria-label="Imagem anterior do recap"
-                  onClick={recap.handlePreviousImage}
-                  disabled={recap.imageIndex === 0}
-                >
-                  <ChevronLeft />
-                </Button>
-                <p className="min-w-12 text-center text-xs text-muted-foreground">
-                  {recap.imageIndex + 1}/{recap.images.length}
-                </p>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  aria-label="Próxima imagem do recap"
-                  onClick={recap.handleNextImage}
-                  disabled={recap.imageIndex >= recap.images.length - 1}
-                >
-                  <ChevronRight />
-                </Button>
-              </div>
-            ) : null}
           </div>
         </div>
 

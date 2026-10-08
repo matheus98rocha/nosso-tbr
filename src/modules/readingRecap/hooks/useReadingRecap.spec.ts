@@ -3,6 +3,8 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
+
 import type { RecapBook } from "../types";
 
 const { getFinishedBooks } = vi.hoisted(() => ({
@@ -96,6 +98,70 @@ describe("useReadingRecap", () => {
     expect(result.current.periodTitle).toBe("Leituras de 15 de março de 2025");
   });
 
+  it("devolve imagens vazias quando os livros do dia só têm capa placeholder", async () => {
+    getFinishedBooks.mockResolvedValueOnce([
+      recapBook({
+        title: "Sem capa cadastrada",
+        endDate: "2025-03-15",
+        imageUrl: BOOK_COVER_PLACEHOLDER_SRC,
+      }),
+      recapBook({
+        title: "Capa nula",
+        endDate: "2025-03-15",
+        imageUrl: null,
+      }),
+    ]);
+
+    const { result } = renderHook(() => useReadingRecap(true), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.images).toEqual([]);
+    expect(result.current.isEmpty).toBe(true);
+    expect(result.current.canDownload).toBe(false);
+  });
+
+  it("na lista mista do dia só entrega a capa remota cadastrada", async () => {
+    getFinishedBooks.mockResolvedValueOnce([
+      recapBook({
+        title: "Com capa",
+        endDate: "2025-03-15",
+        imageUrl: COVER,
+      }),
+      recapBook({
+        title: "Placeholder",
+        endDate: "2025-03-15",
+        imageUrl: BOOK_COVER_PLACEHOLDER_SRC,
+      }),
+      recapBook({
+        title: "Path local",
+        endDate: "2025-03-15",
+        imageUrl: "/x.svg",
+      }),
+      recapBook({
+        title: "Host inválido",
+        endDate: "2025-03-15",
+        imageUrl: "https://example.com/cover.jpg",
+      }),
+    ]);
+
+    const { result } = renderHook(() => useReadingRecap(true), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.images).toHaveLength(1);
+    expect(result.current.images[0]?.coverSrcs).toEqual([COVER]);
+    expect(result.current.canDownload).toBe(true);
+  });
+
   it("desabilita download quando o período filtrado está vazio", async () => {
     getFinishedBooks.mockResolvedValueOnce([
       recapBook({ title: "Outro dia", endDate: "2025-03-14" }),
@@ -163,6 +229,41 @@ describe("useReadingRecap", () => {
     expect(result.current.images[0]?.coverSrcs).toEqual([
       "https://m.media-amazon.com/images/I/romance.jpg",
     ]);
+  });
+
+  it("handleSelectImage vai direto para o índice informado", async () => {
+    getFinishedBooks.mockResolvedValue(
+      Array.from({ length: 13 }, (_, index) =>
+        recapBook({
+          title: `Livro ${String(index + 1).padStart(2, "0")}`,
+          endDate: "2025-03-15",
+          imageUrl: `https://m.media-amazon.com/images/I/${index}.jpg`,
+        }),
+      ),
+    );
+
+    const { result } = renderHook(() => useReadingRecap(true), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.images).toHaveLength(2);
+    });
+
+    expect(result.current.imageIndex).toBe(0);
+
+    act(() => {
+      result.current.handleSelectImage(1);
+    });
+
+    expect(result.current.imageIndex).toBe(1);
+    expect(result.current.currentImage?.title).toContain("2/2");
+
+    act(() => {
+      result.current.handleSelectImage(0);
+    });
+
+    expect(result.current.imageIndex).toBe(0);
   });
 
   it("não busca livros enquanto o modal está fechado", () => {

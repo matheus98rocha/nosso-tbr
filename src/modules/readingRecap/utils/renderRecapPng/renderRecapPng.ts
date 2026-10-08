@@ -1,12 +1,16 @@
-import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
+import { isRegisteredBookCoverUrl } from "@/constants/bookCover";
 
+import {
+  measureRecapCoverGrid,
+  RECAP_COVER_WIDTH,
+  RECAP_GRID_COLUMNS,
+} from "../../constants";
 import type { RecapImage } from "../../types";
 import { toSameOriginCoverSrc } from "../toSameOriginCoverSrc";
 
 const CANVAS_WIDTH = 1080;
 const CANVAS_HEIGHT = 1920;
-const GRID_COLUMNS = 3;
-const GRID_ROWS = 5;
+const BOOK_CARD_COVER_RADIUS = 8;
 const COVER_LOAD_TIMEOUT_MS = 8000;
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -30,16 +34,11 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 async function loadCoverImage(src: string): Promise<HTMLImageElement | null> {
-  const proxied = toSameOriginCoverSrc(src);
+  if (!isRegisteredBookCoverUrl(src)) return null;
   try {
-    return await loadImage(proxied);
+    return await loadImage(toSameOriginCoverSrc(src));
   } catch {
-    if (proxied === BOOK_COVER_PLACEHOLDER_SRC) return null;
-    try {
-      return await loadImage(BOOK_COVER_PLACEHOLDER_SRC);
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
@@ -68,9 +67,10 @@ function drawCover(
   y: number,
   width: number,
   height: number,
+  radius: number,
 ) {
   ctx.save();
-  roundRectPath(ctx, x, y, width, height, 22);
+  roundRectPath(ctx, x, y, width, height, radius);
   ctx.clip();
   const scale = Math.max(width / image.width, height / image.height);
   const drawWidth = image.width * scale;
@@ -125,9 +125,9 @@ export async function renderRecapImageToPng(image: RecapImage): Promise<Blob> {
     throw new Error("canvas-unavailable");
   }
 
-  const covers = await Promise.all(
-    image.coverSrcs.map((src) => loadCoverImage(src)),
-  );
+  const covers = (
+    await Promise.all(image.coverSrcs.map((src) => loadCoverImage(src)))
+  ).filter((cover): cover is HTMLImageElement => cover !== null);
 
   ctx.fillStyle = "#F3EDE3";
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -168,24 +168,23 @@ export async function renderRecapImageToPng(image: RecapImage): Promise<Blob> {
   const footerTop = CANVAS_HEIGHT - 120;
   const gridHeight = footerTop - gridTop - 24;
   const gap = 22;
-  const cellWidth = (contentWidth - gap * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
-  const cellHeight = (gridHeight - gap * (GRID_ROWS - 1)) / GRID_ROWS;
-
-  covers.forEach((cover, index) => {
-    const column = index % GRID_COLUMNS;
-    const row = Math.floor(index / GRID_COLUMNS);
-    const x = contentX + column * (cellWidth + gap);
-    const y = gridTop + row * (cellHeight + gap);
-    if (!cover || cover.width === 0) {
-      ctx.save();
-      roundRectPath(ctx, x, y, cellWidth, cellHeight, 22);
-      ctx.fillStyle = "#E7E0D4";
-      ctx.fill();
-      ctx.restore();
-      return;
-    }
-    drawCover(ctx, cover, x, y, cellWidth, cellHeight);
+  const grid = measureRecapCoverGrid({
+    areaWidth: contentWidth,
+    areaHeight: gridHeight,
+    gap,
   });
+  const coverRadius =
+    (BOOK_CARD_COVER_RADIUS / RECAP_COVER_WIDTH) * grid.cellWidth;
+
+  covers
+    .filter((cover) => cover.width > 0)
+    .forEach((cover, index) => {
+      const column = index % RECAP_GRID_COLUMNS;
+      const row = Math.floor(index / RECAP_GRID_COLUMNS);
+      const x = contentX + grid.offsetX + column * (grid.cellWidth + gap);
+      const y = gridTop + grid.offsetY + row * (grid.cellHeight + gap);
+      drawCover(ctx, cover, x, y, grid.cellWidth, grid.cellHeight, coverRadius);
+    });
 
   ctx.fillStyle = "#5B4BDB";
   ctx.font = '600 28px ui-sans-serif, system-ui, sans-serif';

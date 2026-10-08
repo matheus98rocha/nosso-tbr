@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 import { QUERY_KEYS } from "@/constants/keys";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
@@ -58,7 +57,6 @@ export function useReadingRecap(isOpen: boolean) {
       buildReadingRecap({
         books: finishedQuery.data ?? [],
         filter,
-        placeholderSrc: BOOK_COVER_PLACEHOLDER_SRC,
       }),
     [filter, finishedQuery.data],
   );
@@ -165,6 +163,16 @@ export function useReadingRecap(isOpen: boolean) {
     );
   }, [images.length]);
 
+  const handleSelectImage = useCallback(
+    (index: number) => {
+      setImageIndex(() => {
+        if (images.length === 0) return 0;
+        return Math.min(Math.max(index, 0), images.length - 1);
+      });
+    },
+    [images.length],
+  );
+
   const downloadImages = useCallback(
     async (targets: typeof images) => {
       if (targets.length === 0) return;
@@ -218,6 +226,7 @@ export function useReadingRecap(isOpen: boolean) {
     handleToggleGender,
     handlePreviousImage,
     handleNextImage,
+    handleSelectImage,
     downloadCurrent,
     downloadAll,
   };

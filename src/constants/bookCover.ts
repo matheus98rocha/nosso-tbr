@@ -44,3 +44,20 @@ export function resolveBookCoverUrl(
   }
   return trimmed;
 }
+
+export function isPlaceholderBookCoverSrc(url: string): boolean {
+  const path = url.trim().split("#")[0]?.split("?")[0] ?? "";
+  return (
+    path === BOOK_COVER_PLACEHOLDER_SRC ||
+    path.endsWith("/book-cover-placeholder.svg")
+  );
+}
+
+export function isRegisteredBookCoverUrl(
+  url: string | null | undefined,
+): boolean {
+  const trimmed = typeof url === "string" ? url.trim() : "";
+  if (!trimmed || isPlaceholderBookCoverSrc(trimmed)) return false;
+  if (isLocalBookCoverSrc(trimmed)) return false;
+  return isAllowedBookCoverUrl(trimmed);
+}
