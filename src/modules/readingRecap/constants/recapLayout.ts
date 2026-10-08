@@ -3,6 +3,7 @@ export const RECAP_GRID_ROWS = 4;
 export const RECAP_COVERS_PER_IMAGE = RECAP_GRID_COLUMNS * RECAP_GRID_ROWS;
 export const RECAP_COVER_WIDTH = 90;
 export const RECAP_COVER_HEIGHT = 130;
+export const RECAP_COVER_PROBE_TIMEOUT_MS = 4000;
 
 export function measureRecapCoverGrid({
   areaWidth,

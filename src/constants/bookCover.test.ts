@@ -73,7 +73,7 @@ describe("bookCover", () => {
     ).toBe(false);
   });
 
-  it("só aceita capa cadastrada remota, nunca placeholder nem path local", () => {
+  it("aceita capa remota e path local permitido; rejeita placeholder e host inválido", () => {
     expect(
       isRegisteredBookCoverUrl("https://m.media-amazon.com/images/I/81abc.jpg"),
     ).toBe(true);
@@ -81,7 +81,7 @@ describe("bookCover", () => {
     expect(isRegisteredBookCoverUrl("/book-cover-placeholder.svg?v=1")).toBe(
       false,
     );
-    expect(isRegisteredBookCoverUrl("/x.svg")).toBe(false);
+    expect(isRegisteredBookCoverUrl("/x.svg")).toBe(true);
     expect(isRegisteredBookCoverUrl(null)).toBe(false);
     expect(isRegisteredBookCoverUrl("")).toBe(false);
     expect(isRegisteredBookCoverUrl("https://example.com/cover.jpg")).toBe(

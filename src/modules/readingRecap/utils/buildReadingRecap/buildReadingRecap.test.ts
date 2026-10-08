@@ -241,7 +241,7 @@ describe("buildReadingRecap", () => {
     expect(images).toEqual([]);
   });
 
-  it("exclui capa local que o cadastro usa no lugar de URL remota", () => {
+  it("inclui path local permitido e ainda exclui placeholder", () => {
     const images = recap(
       [
         book("Path local", "2026-10-07", { imageUrl: "/x.svg" }),
@@ -252,7 +252,9 @@ describe("buildReadingRecap", () => {
       day,
     );
 
-    expect(images).toEqual([]);
+    expect(images).toHaveLength(1);
+    expect(images[0].coverSrcs).toEqual(["/x.svg"]);
+    expect(images[0].coverSrcs).not.toContain(PLACEHOLDER);
   });
 
   it("exclui livro com capa igual ao placeholder do cadastro", () => {
@@ -364,19 +366,19 @@ describe("buildReadingRecap", () => {
 });
 
 describe("createDefaultRecapFilter", () => {
-  it("abre no dia civil informado, sem gêneros", () => {
+  it("abre no ano civil informado, sem gêneros", () => {
     expect(createDefaultRecapFilter(new Date(2026, 9, 7, 12, 0, 0, 0))).toEqual({
-      period: { kind: "day", year: 2026, month: 10, day: 7 },
+      period: { kind: "year", year: 2026, month: 10, day: 7 },
       genders: [],
     });
   });
 });
 
 describe("applyRecapPeriodKind", () => {
-  it("preserva a âncora ao trocar dia → mês → ano", () => {
+  it("preserva a âncora ao trocar ano → mês → dia", () => {
     const opened = createDefaultRecapFilter(new Date(2026, 9, 7, 12, 0, 0, 0));
     const asMonth = applyRecapPeriodKind(opened, "month");
-    const asYear = applyRecapPeriodKind(asMonth, "year");
+    const asDay = applyRecapPeriodKind(asMonth, "day");
 
     expect(asMonth.period).toEqual({
       kind: "month",
@@ -384,8 +386,8 @@ describe("applyRecapPeriodKind", () => {
       month: 10,
       day: 7,
     });
-    expect(asYear.period).toEqual({
-      kind: "year",
+    expect(asDay.period).toEqual({
+      kind: "day",
       year: 2026,
       month: 10,
       day: 7,

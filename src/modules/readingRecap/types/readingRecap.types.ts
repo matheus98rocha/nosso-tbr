@@ -40,6 +40,12 @@ export type UseVisibleRecapCoversResult = {
   handleCoverError: (src: string) => void;
 };
 
+export type UseLoadableRecapBooksResult = {
+  loadableBooks: RecapBook[];
+  isProbing: boolean;
+  markCoverFailed: (src: string) => void;
+};
+
 export type ReadingRecapPreviewProps = {
   image: RecapImage | null;
   periodTitle: string;
@@ -51,6 +57,7 @@ export type ReadingRecapPreviewProps = {
   onPrevious?: () => void;
   onNext?: () => void;
   onSelectImage?: (index: number) => void;
+  onCoverError?: (src: string) => void;
 };
 
 export type RecapSelectOption = {
@@ -63,9 +70,11 @@ export type ReadingRecapFiltersProps = {
   anchorDate: Date;
   monthOptions: RecapSelectOption[];
   yearOptions: number[];
+  isGenderFilterEnabled: boolean;
   onPeriodKindChange: (kind: RecapPeriodKind) => void;
   onAnchorDateChange: (date: Date | undefined) => void;
   onMonthChange: (month: string) => void;
   onYearChange: (year: string) => void;
   onToggleGender: (gender: string) => void;
+  onGenderFilterEnabledChange: (enabled: boolean) => void;
 };

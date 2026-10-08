@@ -58,6 +58,5 @@ export function isRegisteredBookCoverUrl(
 ): boolean {
   const trimmed = typeof url === "string" ? url.trim() : "";
   if (!trimmed || isPlaceholderBookCoverSrc(trimmed)) return false;
-  if (isLocalBookCoverSrc(trimmed)) return false;
   return isAllowedBookCoverUrl(trimmed);
 }

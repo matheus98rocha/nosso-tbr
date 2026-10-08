@@ -9,7 +9,7 @@ const AMAZON = "https://m.media-amazon.com/images/I/81abc.jpg";
 const AMAZON_B = "https://m.media-amazon.com/images/I/81def.jpg";
 
 describe("useVisibleRecapCovers", () => {
-  it("esconde placeholder, path local e capa cujo load falhou", () => {
+  it("mostra path local permitido, esconde placeholder e capa cujo load falhou", () => {
     const { result } = renderHook(() =>
       useVisibleRecapCovers([
         AMAZON,
@@ -19,19 +19,22 @@ describe("useVisibleRecapCovers", () => {
       ]),
     );
 
-    expect(result.current.visibleCoverSrcs).toEqual([AMAZON, AMAZON_B]);
+    expect(result.current.visibleCoverSrcs).toEqual([AMAZON, "/x.svg", AMAZON_B]);
+    expect(result.current.visibleCoverSrcs).not.toContain(
+      BOOK_COVER_PLACEHOLDER_SRC,
+    );
 
     act(() => {
       result.current.handleCoverError(AMAZON);
     });
 
-    expect(result.current.visibleCoverSrcs).toEqual([AMAZON_B]);
+    expect(result.current.visibleCoverSrcs).toEqual(["/x.svg", AMAZON_B]);
 
     act(() => {
       result.current.handleCoverError(AMAZON_B);
     });
 
-    expect(result.current.visibleCoverSrcs).toEqual([]);
+    expect(result.current.visibleCoverSrcs).toEqual(["/x.svg"]);
   });
 
   it("volta a mostrar as capas quando a lista muda", () => {

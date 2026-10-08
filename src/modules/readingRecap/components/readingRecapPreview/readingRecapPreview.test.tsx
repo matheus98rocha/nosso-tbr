@@ -42,7 +42,7 @@ function expectNoPreviewNavigation() {
 }
 
 describe("ReadingRecapPreview", () => {
-  it("renderiza capas no tamanho BookCard 90×130", () => {
+  it("escala capas na proporção BookCard 90×130 sem tamanho fixo", () => {
     const { container } = render(
       <ReadingRecapPreview
         image={filledImage}
@@ -56,12 +56,67 @@ describe("ReadingRecapPreview", () => {
     const covers = container.querySelectorAll("img");
     expect(covers).toHaveLength(2);
     for (const cover of covers) {
-      expect(cover.className).toContain("h-[130px]");
-      expect(cover.className).toContain("w-[90px]");
+      expect(cover.className).toContain("aspect-[90/130]");
+      expect(cover.className).not.toContain("h-[130px]");
+      expect(cover.className).not.toContain("w-[90px]");
     }
   });
 
-  it("não renderiza placeholder nem path local e some com a capa que falha", () => {
+  it("mantém as capas acima do círculo decorativo", () => {
+    render(
+      <ReadingRecapPreview
+        image={filledImage}
+        periodTitle="Leituras de 7 de outubro de 2026"
+        isEmpty={false}
+        isLoading={false}
+        isError={false}
+      />,
+    );
+
+    const frame = screen.getByLabelText("Leituras de 7 de outubro de 2026");
+    const circles = [...frame.children].filter((child) =>
+      child.className.includes("rounded-full"),
+    );
+    const content = [...frame.children].find((child) =>
+      child.className.includes("flex"),
+    );
+
+    expect(circles.length).toBeGreaterThan(0);
+    for (const circle of circles) {
+      expect(circle.className).toContain("z-0");
+    }
+    expect(content?.className).toContain("z-10");
+    expect(content?.className).toContain("min-h-0");
+  });
+
+  it("usa a URL original da Amazon no preview, não o proxy de capas", () => {
+    const { container } = render(
+      <ReadingRecapPreview
+        image={filledImage}
+        periodTitle="Leituras de 7 de outubro de 2026"
+        isEmpty={false}
+        isLoading={false}
+        isError={false}
+      />,
+    );
+
+    const covers = container.querySelectorAll("img");
+    expect(covers).toHaveLength(2);
+    expect(covers[0]).toHaveAttribute(
+      "src",
+      "https://m.media-amazon.com/images/I/81abc.jpg",
+    );
+    expect(covers[1]).toHaveAttribute(
+      "src",
+      "https://m.media-amazon.com/images/I/81def.jpg",
+    );
+    for (const cover of covers) {
+      expect(cover.getAttribute("src") ?? "").not.toContain("/api/book-covers");
+    }
+  });
+
+  it("não renderiza placeholder, mostra path local permitido e some com a capa que falha", () => {
+    const onCoverError = vi.fn();
     const { container } = render(
       <ReadingRecapPreview
         image={{
@@ -77,21 +132,38 @@ describe("ReadingRecapPreview", () => {
         isEmpty={false}
         isLoading={false}
         isError={false}
+        onCoverError={onCoverError}
       />,
     );
 
     const covers = container.querySelectorAll("img");
-    expect(covers).toHaveLength(2);
+    expect(covers).toHaveLength(3);
+    expect(Array.from(covers).map((cover) => cover.getAttribute("src"))).toEqual([
+      "https://m.media-amazon.com/images/I/81abc.jpg",
+      "/x.svg",
+      "https://m.media-amazon.com/images/I/81def.jpg",
+    ]);
     expect(
       Array.from(covers).some((cover) =>
         (cover.getAttribute("src") ?? "").includes("book-cover-placeholder"),
       ),
     ).toBe(false);
+    expect(
+      Array.from(covers).some((cover) =>
+        (cover.getAttribute("src") ?? "").includes("/api/book-covers"),
+      ),
+    ).toBe(false);
 
     fireEvent.error(covers[0]);
+    expect(onCoverError).toHaveBeenCalledWith(
+      "https://m.media-amazon.com/images/I/81abc.jpg",
+    );
 
     const remaining = container.querySelectorAll("img");
-    expect(remaining).toHaveLength(1);
+    expect(remaining).toHaveLength(2);
+    expect(Array.from(remaining).map((cover) => cover.getAttribute("src"))).toEqual(
+      ["/x.svg", "https://m.media-amazon.com/images/I/81def.jpg"],
+    );
     expect(
       Array.from(remaining).some((cover) =>
         (cover.getAttribute("src") ?? "").includes("book-cover-placeholder"),
@@ -110,7 +182,7 @@ describe("ReadingRecapPreview", () => {
       />,
     );
 
-    const grid = container.querySelector("img")?.parentElement;
+    const grid = container.querySelector(".grid-rows-4");
     expect(grid?.className).toContain("grid-rows-4");
     expect(grid?.className).not.toContain("grid-rows-5");
   });
