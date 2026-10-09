@@ -4,6 +4,14 @@ function isLocalBookCoverSrc(url: string): boolean {
   return url.startsWith("/") && !url.startsWith("//");
 }
 
+function isOpenLibraryCoverRedirectHost(hostname: string): boolean {
+  return (
+    hostname === "archive.org" ||
+    hostname === "www.archive.org" ||
+    hostname.endsWith(".us.archive.org")
+  );
+}
+
 export function isAllowedBookCoverUrl(url: string): boolean {
   const trimmed = url.trim();
   if (!trimmed) return false;
@@ -51,6 +59,20 @@ export function isPlaceholderBookCoverSrc(url: string): boolean {
     path === BOOK_COVER_PLACEHOLDER_SRC ||
     path.endsWith("/book-cover-placeholder.svg")
   );
+}
+
+export function isAllowedBookCoverRedirectUrl(url: string): boolean {
+  const trimmed = url.trim();
+  if (!trimmed || isLocalBookCoverSrc(trimmed)) return false;
+  if (isAllowedBookCoverUrl(trimmed)) return true;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "https:") return false;
+    return isOpenLibraryCoverRedirectHost(parsed.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
 }
 
 export function isRegisteredBookCoverUrl(

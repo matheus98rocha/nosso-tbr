@@ -7,6 +7,8 @@ import { renderRecapImageToPng } from "./renderRecapPng";
 
 const AMAZON = "https://m.media-amazon.com/images/I/81abc.jpg";
 const AMAZON_PROXY = `/api/book-covers?url=${encodeURIComponent(AMAZON)}`;
+const OPEN_LIBRARY = "https://covers.openlibrary.org/b/id/8570014-L.jpg";
+const OPEN_LIBRARY_PROXY = `/api/book-covers?url=${encodeURIComponent(OPEN_LIBRARY)}`;
 const LOCAL = "/x.svg";
 const INVALID = "https://example.com/cover.jpg";
 
@@ -132,7 +134,21 @@ describe("renderRecapImageToPng", () => {
 
     await renderRecapImageToPng(recapImage([AMAZON]));
 
-    expect(assigned).toEqual([AMAZON_PROXY, BOOK_COVER_PLACEHOLDER_SRC]);
+    expect(assigned).toEqual([
+      AMAZON_PROXY,
+      AMAZON,
+      BOOK_COVER_PLACEHOLDER_SRC,
+    ]);
+    expect(drawImage).toHaveBeenCalledTimes(1);
+  });
+
+  it("se o proxy da Open Library falha, desenha a URL original antes do placeholder", async () => {
+    const assigned = stubImage([OPEN_LIBRARY]);
+    const { drawImage } = stubCanvas();
+
+    await renderRecapImageToPng(recapImage([OPEN_LIBRARY]));
+
+    expect(assigned).toEqual([OPEN_LIBRARY_PROXY, OPEN_LIBRARY]);
     expect(drawImage).toHaveBeenCalledTimes(1);
   });
 
@@ -148,11 +164,12 @@ describe("renderRecapImageToPng", () => {
       expect.arrayContaining([
         AMAZON_PROXY,
         secondProxy,
+        second,
         BOOK_COVER_PLACEHOLDER_SRC,
         LOCAL,
       ]),
     );
-    expect(assigned).toHaveLength(4);
+    expect(assigned).toHaveLength(5);
     expect(drawImage).toHaveBeenCalledTimes(3);
   });
 });

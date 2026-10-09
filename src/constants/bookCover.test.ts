@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   BOOK_COVER_PLACEHOLDER_SRC,
+  isAllowedBookCoverRedirectUrl,
   isAllowedBookCoverUrl,
   isPlaceholderBookCoverSrc,
   isRegisteredBookCoverUrl,
@@ -97,5 +98,50 @@ describe("bookCover", () => {
     expect(
       isPlaceholderBookCoverSrc("/book-cover-placeholder.svg#cover"),
     ).toBe(true);
+  });
+
+  it("aceita hop de redirect da Open Library no CDN do archive.org", () => {
+    expect(
+      isAllowedBookCoverRedirectUrl(
+        "https://covers.openlibrary.org/b/id/8570014-L.jpg",
+      ),
+    ).toBe(true);
+    expect(
+      isAllowedBookCoverRedirectUrl(
+        "https://archive.org/download/l_covers_0008/l_covers_0008_57.zip/0008570014-L.jpg",
+      ),
+    ).toBe(true);
+    expect(
+      isAllowedBookCoverRedirectUrl(
+        "https://ia902809.us.archive.org/view_archive.php?archive=/18/items/l_covers_0008/l_covers_0008_57.zip&file=0008570014-L.jpg",
+      ),
+    ).toBe(true);
+    expect(
+      isAllowedBookCoverRedirectUrl("https://www.archive.org/download/cover.jpg"),
+    ).toBe(true);
+  });
+
+  it("não trata archive.org como capa cadastrável nem como hop aberto", () => {
+    expect(
+      isAllowedBookCoverUrl(
+        "https://archive.org/download/l_covers_0008/l_covers_0008_57.zip/0008570014-L.jpg",
+      ),
+    ).toBe(false);
+    expect(
+      isAllowedBookCoverUrl(
+        "https://ia902809.us.archive.org/view_archive.php?file=0008570014-L.jpg",
+      ),
+    ).toBe(false);
+    expect(
+      isAllowedBookCoverRedirectUrl("https://evil.example/cover.jpg"),
+    ).toBe(false);
+    expect(
+      isAllowedBookCoverRedirectUrl("http://archive.org/download/cover.jpg"),
+    ).toBe(false);
+    expect(
+      isAllowedBookCoverRedirectUrl("https://items.archive.org/cover.jpg"),
+    ).toBe(false);
+    expect(isAllowedBookCoverRedirectUrl("/x.svg")).toBe(false);
+    expect(isAllowedBookCoverRedirectUrl("")).toBe(false);
   });
 });
