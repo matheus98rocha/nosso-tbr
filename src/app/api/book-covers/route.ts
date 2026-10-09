@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { requireUser } from "@/app/api/_utils/requireUser";
-import { isAllowedBookCoverUrl } from "@/constants/bookCover";
+import {
+  isAllowedBookCoverRedirectUrl,
+  isAllowedBookCoverUrl,
+} from "@/constants/bookCover";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -22,7 +25,11 @@ async function fetchAllowedCover(url: string): Promise<Response | null> {
   let current = url;
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-    if (!isProxyableCoverUrl(current)) return null;
+    const allowed =
+      hop === 0
+        ? isProxyableCoverUrl(current)
+        : isAllowedBookCoverRedirectUrl(current);
+    if (!allowed) return null;
 
     const upstream = await fetch(current, {
       redirect: "manual",

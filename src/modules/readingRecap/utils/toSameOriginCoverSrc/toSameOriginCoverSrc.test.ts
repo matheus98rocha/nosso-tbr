@@ -16,6 +16,10 @@ describe("toSameOriginCoverSrc", () => {
     expect(toSameOriginCoverSrc(url)).toBe(
       `/api/book-covers?url=${encodeURIComponent(url)}`,
     );
+    const openLibrary = "https://covers.openlibrary.org/b/id/8570014-L.jpg";
+    expect(toSameOriginCoverSrc(openLibrary)).toBe(
+      `/api/book-covers?url=${encodeURIComponent(openLibrary)}`,
+    );
   });
 
   it("cai no placeholder quando o host não é permitido", () => {
@@ -25,5 +29,10 @@ describe("toSameOriginCoverSrc", () => {
     expect(toSameOriginCoverSrc("//evil.example/cover.jpg")).toBe(
       BOOK_COVER_PLACEHOLDER_SRC,
     );
+    expect(
+      toSameOriginCoverSrc(
+        "https://archive.org/download/l_covers_0008/cover.jpg",
+      ),
+    ).toBe(BOOK_COVER_PLACEHOLDER_SRC);
   });
 });

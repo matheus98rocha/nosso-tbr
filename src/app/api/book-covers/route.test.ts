@@ -98,6 +98,75 @@ describe("GET /api/book-covers", () => {
     expect(new Uint8Array(await res.arrayBuffer())).toEqual(body);
   });
 
+  it("segue redirect da Open Library para archive.org e devolve a imagem", async () => {
+    const openLibrary = "https://covers.openlibrary.org/b/id/8570014-L.jpg";
+    const archive =
+      "https://archive.org/download/l_covers_0008/l_covers_0008_57.zip/0008570014-L.jpg";
+    const ia =
+      "https://ia902809.us.archive.org/view_archive.php?archive=/18/items/l_covers_0008/l_covers_0008_57.zip&file=0008570014-L.jpg";
+    const body = new Uint8Array([4, 5, 6]);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: { Location: archive },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: { Location: ia },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(body, {
+          status: 200,
+          headers: { "Content-Type": "image/jpeg" },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const route = await loadRoute(makeClient("user-1"));
+    const res = await route.GET(
+      new Request(
+        `http://localhost/api/book-covers?url=${encodeURIComponent(openLibrary)}`,
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(body);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      openLibrary,
+      expect.objectContaining({ redirect: "manual" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      archive,
+      expect.objectContaining({ redirect: "manual" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      ia,
+      expect.objectContaining({ redirect: "manual" }),
+    );
+  });
+
+  it("rejeita archive.org como url inicial", async () => {
+    stubUnusedFetch();
+    const route = await loadRoute(makeClient("user-1"));
+    const res = await route.GET(
+      new Request(
+        "http://localhost/api/book-covers?url=" +
+          encodeURIComponent(
+            "https://archive.org/download/l_covers_0008/cover.jpg",
+          ),
+      ),
+    );
+    expect(res.status).toBe(400);
+  });
+
   it("rejeita redirect para host não permitido", async () => {
     vi.stubGlobal(
       "fetch",

@@ -1,4 +1,7 @@
-import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
+import {
+  BOOK_COVER_PLACEHOLDER_SRC,
+  isAllowedBookCoverUrl,
+} from "@/constants/bookCover";
 
 import {
   measureRecapCoverGrid,
@@ -45,9 +48,20 @@ async function tryLoadCover(src: string): Promise<HTMLImageElement | null> {
 }
 
 async function loadCoverImage(src: string): Promise<HTMLImageElement | null> {
-  const primary = toSameOriginCoverSrc(src);
+  const trimmed = src.trim();
+  const primary = toSameOriginCoverSrc(trimmed);
   const loaded = await tryLoadCover(primary);
   if (loaded) return loaded;
+
+  if (
+    primary !== trimmed &&
+    isAllowedBookCoverUrl(trimmed) &&
+    !trimmed.startsWith("/")
+  ) {
+    const remote = await tryLoadCover(trimmed);
+    if (remote) return remote;
+  }
+
   if (primary !== BOOK_COVER_PLACEHOLDER_SRC) {
     return tryLoadCover(BOOK_COVER_PLACEHOLDER_SRC);
   }
