@@ -35,6 +35,7 @@ export function useHome() {
   const queryClient = useQueryClient();
   const { users, isLoadingUsers } = useUser();
   const user = useUserStore((state) => state.user);
+  const sessionReady = useUserStore((state) => state.sessionReady);
   const isLoggedIn = useIsLoggedIn();
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -393,7 +394,7 @@ export function useHome() {
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     refetchOnMount: false,
-    enabled: !shouldWaitForUsers,
+    enabled: sessionReady !== false && !shouldWaitForUsers,
   });
 
   const formattedGenres = useMemo(
@@ -631,7 +632,8 @@ export function useHome() {
     updateUrlWithFilters,
   });
 
-  const isLoadingData = isLoadingUsers || isLoadingAllBooks;
+  const isLoadingData =
+    sessionReady === false || isLoadingUsers || isLoadingAllBooks;
 
   const totalPages = Math.ceil((allBooks?.total || 0) / PAGE_SIZE);
 
