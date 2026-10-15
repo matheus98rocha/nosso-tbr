@@ -5,6 +5,7 @@ type Query = Record<string, ReturnType<typeof vi.fn>>;
 type Client = {
   auth: { getUser: ReturnType<typeof vi.fn> };
   from: ReturnType<typeof vi.fn>;
+  rpc: ReturnType<typeof vi.fn>;
 };
 
 const ME = "11111111-1111-4111-8111-111111111111";
@@ -60,6 +61,7 @@ describe("POST /api/books/[id]/readers", () => {
         }),
       },
       from: vi.fn(),
+      rpc: vi.fn(),
     };
     const route = await loadRoute(client);
     const response = await route.POST(post(BIA), {
@@ -88,6 +90,7 @@ describe("POST /api/books/[id]/readers", () => {
         if (table === "user_followers") return follows;
         throw new Error(table);
       }),
+      rpc: vi.fn(),
     };
     const route = await loadRoute(client);
     const response = await route.POST(post(BIA), {
@@ -99,9 +102,10 @@ describe("POST /api/books/[id]/readers", () => {
       error: "Você só pode adicionar pessoas que segue",
     });
     expect(books.update).not.toHaveBeenCalled();
+    expect(client.rpc).not.toHaveBeenCalled();
   });
 
-  it("inclui a pessoa seguida em readers sem duplicar os atuais", async () => {
+  it("inclui a pessoa seguida sem substituir o array lido antes", async () => {
     const booksSelect = chain({
       data: {
         id: "book-1",
@@ -111,8 +115,6 @@ describe("POST /api/books/[id]/readers", () => {
       },
       error: null,
     });
-    const booksUpdate = chain({ error: null });
-    let bookCalls = 0;
     const follows = chain({
       data: { following_id: BIA },
       error: null,
@@ -121,9 +123,9 @@ describe("POST /api/books/[id]/readers", () => {
       auth: authLogged(ME),
       from: vi.fn((table: string) => {
         if (table === "user_followers") return follows;
-        bookCalls += 1;
-        return bookCalls === 1 ? booksSelect : booksUpdate;
+        return booksSelect;
       }),
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
     };
     const route = await loadRoute(client);
     const response = await route.POST(post(BIA), {
@@ -133,10 +135,11 @@ describe("POST /api/books/[id]/readers", () => {
     expect(response.status).toBe(200);
     expect(follows.eq).toHaveBeenCalledWith("follower_id", ME);
     expect(follows.eq).toHaveBeenCalledWith("following_id", BIA);
-    expect(booksUpdate.update).toHaveBeenCalledWith({
-      readers: [ME, BIA],
+    expect(booksSelect.update).not.toHaveBeenCalled();
+    expect(client.rpc).toHaveBeenCalledWith("append_book_reader", {
+      p_book_id: "book-1",
+      p_reader_id: BIA,
     });
-    expect(booksUpdate.eq).toHaveBeenCalledWith("id", "book-1");
   });
 
   it("não atualiza o livro quando a pessoa já é leitora", async () => {
@@ -152,6 +155,7 @@ describe("POST /api/books/[id]/readers", () => {
     const client: Client = {
       auth: authLogged(ME),
       from: vi.fn(() => books),
+      rpc: vi.fn(),
     };
     const route = await loadRoute(client);
     const response = await route.POST(post(BIA), {
@@ -160,6 +164,7 @@ describe("POST /api/books/[id]/readers", () => {
 
     expect(response.status).toBe(200);
     expect(books.update).not.toHaveBeenCalled();
+    expect(client.rpc).not.toHaveBeenCalled();
     expect(client.from).not.toHaveBeenCalledWith("user_followers");
   });
 });

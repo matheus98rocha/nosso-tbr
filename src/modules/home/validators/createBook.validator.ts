@@ -20,6 +20,7 @@ export const bookCreateSchema = z.object({
   readers: z
     .array(z.string().min(1))
     .min(1, { message: "Selecione ao menos um leitor" }),
+  base_readers: z.array(z.string().min(1)).optional(),
   gender: z.string().nullable().optional(),
   image_url: z
     .string()

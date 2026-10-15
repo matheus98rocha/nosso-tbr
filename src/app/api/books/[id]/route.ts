@@ -6,6 +6,7 @@ import { normalizeDatesForTransition } from "@/modules/bookUpsert/services/bookS
 import {
   validateTransition,
 } from "@/modules/bookUpsert/services/bookUpsert.validation";
+import { mergeBookReaders } from "@/lib/books/mergeBookReaders";
 import { canUserParticipateInBook } from "@/lib/security/bookParticipation";
 import { requireUser } from "@/app/api/_utils/requireUser";
 import type { Status } from "@/types/books.types";
@@ -74,6 +75,16 @@ export async function PATCH(request: Request, ctx: RouteParams) {
   });
   payload.start_date = normalizedDates.start_date;
   payload.end_date = normalizedDates.end_date;
+  const currentReaders = Array.isArray(currentBook.readers)
+    ? currentBook.readers.filter(
+        (readerId): readerId is string => typeof readerId === "string",
+      )
+    : [];
+  payload.readers = mergeBookReaders(
+    currentReaders,
+    parsed.data.readers,
+    parsed.data.base_readers,
+  );
 
   const { error } = await supabase.from("books").update(payload).eq("id", id);
 

@@ -92,12 +92,15 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { error: updateError } = await supabase
-    .from("books")
-    .update({ readers: [...new Set([...currentReaders, userId])] })
-    .eq("id", id);
+  const { data: appended, error: updateError } = await supabase.rpc(
+    "append_book_reader",
+    {
+      p_book_id: id,
+      p_reader_id: userId,
+    },
+  );
 
-  if (updateError) {
+  if (updateError || appended !== true) {
     return NextResponse.json(
       { error: "Não foi possível adicionar o leitor" },
       { status: 500 },

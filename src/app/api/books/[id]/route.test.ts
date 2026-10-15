@@ -214,6 +214,52 @@ describe("PATCH /api/books/[id]", () => {
       expect(eqUpdate).toHaveBeenCalledWith("id", "book-1");
     });
 
+    it("mantém um leitor convidado depois que o cliente carregou o livro", async () => {
+      const invitedId = "invited-reader";
+      const currentBook = {
+        id: "book-1",
+        status: "reading",
+        start_date: "2026-10-01",
+        end_date: null,
+        user_id: "owner-user",
+        chosen_by: "owner-user",
+        readers: ["owner-user", invitedId],
+      };
+      const readBuilder = buildBookSelectSingle(currentBook);
+      const eqUpdate = vi.fn().mockResolvedValue({ error: null });
+      const update = vi.fn(() => ({ eq: eqUpdate }));
+      const client: SupabaseByIdMock = {
+        auth: { getUser: authedGetUser("owner-user") },
+        from: buildTwoTableCalls(
+          { select: readBuilder.select },
+          { update },
+        ),
+      };
+
+      const route = await loadRouteWithClient(client);
+      const response = await route.PATCH(
+        new Request("http://localhost/api/books/book-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...validPatchPayload,
+            status: "finished",
+            readers: ["owner-user"],
+            base_readers: ["owner-user"],
+          }),
+        }),
+        { params: Promise.resolve({ id: "book-1" }) },
+      );
+
+      expect(response.status).toBe(200);
+      expect(update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "finished",
+          readers: ["owner-user", invitedId],
+        }),
+      );
+    });
+
     it("permite PATCH quando o usuário é chosen_by ainda que não esteja em readers", async () => {
       const chooserId = "who-picked";
       const currentBook = {
