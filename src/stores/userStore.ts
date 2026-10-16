@@ -11,6 +11,7 @@ type UserStore = {
   loading: boolean;
   error: string | null;
   isLoggingOut: boolean;
+  sessionReady: boolean;
   setUser: (user: User | null) => void;
   setTier: (tier: UserTier | null) => void;
   setSession: (user: User | null, tier: UserTier | null) => void;
@@ -23,6 +24,7 @@ export const useUserStore = create<UserStore>((set) => ({
   loading: false,
   error: null,
   isLoggingOut: false,
+  sessionReady: false,
 
   setUser: (user) => {
     set({ user });
@@ -33,13 +35,18 @@ export const useUserStore = create<UserStore>((set) => ({
   },
 
   setSession: (user, tier) => {
-    set({ user, tier });
+    set({ user, tier, sessionReady: true });
   },
 
   logout: async () => {
     set({ isLoggingOut: true });
     const supabase = createClient();
     await supabase.auth.signOut();
-    set({ user: null, tier: null, isLoggingOut: false });
+    set({
+      user: null,
+      tier: null,
+      isLoggingOut: false,
+      sessionReady: false,
+    });
   },
 }));
