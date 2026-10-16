@@ -73,8 +73,11 @@ function buildSessionUser(id: string): User {
   };
 }
 
+let homeLoading = false;
+
 function HomeProbe() {
-  useHome();
+  const { isLoadingAllBooks } = useHome();
+  homeLoading = isLoadingAllBooks;
   return null;
 }
 
@@ -112,6 +115,7 @@ function renderHome(initialUser: User | null) {
 
 describe("useHome session hydration", () => {
   beforeEach(() => {
+    homeLoading = false;
     getAll.mockReset();
     getAll.mockResolvedValue({ data: [], total: 0 });
     signOut.mockReset();
@@ -232,7 +236,7 @@ describe("useHome session hydration", () => {
     }
   });
 
-  it("logout deixa sessionReady false junto com usuário e tier nulos", async () => {
+  it("logout conclui com a sessão de visitante pronta", async () => {
     useUserStore.getState().setSession(buildSessionUser("reader-1"), "common_user");
 
     await useUserStore.getState().logout();
@@ -243,8 +247,30 @@ describe("useHome session hydration", () => {
         user: null,
         tier: null,
         isLoggingOut: false,
-        sessionReady: false,
+        sessionReady: true,
       }),
     );
+  });
+
+  it("depois do logout na home busca a lista pública e encerra o carregamento", async () => {
+    const user = buildSessionUser("reader-1");
+    useUserStore.getState().setSession(user, "common_user");
+    render(homeTree(createQueryClient(), user));
+
+    await waitFor(() => {
+      expect(getAll).toHaveBeenCalled();
+    });
+
+    getAll.mockClear();
+
+    await useUserStore.getState().logout();
+
+    await waitFor(() => {
+      expect(getAll).toHaveBeenCalledWith({
+        page: 0,
+        pageSize: 8,
+      });
+      expect(homeLoading).toBe(false);
+    });
   });
 });

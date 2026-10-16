@@ -46,7 +46,7 @@ export const useUserStore = create<UserStore>((set) => ({
       user: null,
       tier: null,
       isLoggingOut: false,
-      sessionReady: false,
+      sessionReady: true,
     });
   },
 }));
