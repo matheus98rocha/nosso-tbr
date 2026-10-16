@@ -633,6 +633,10 @@ export type Database = {
         Args: { p_chosen_by: string; p_readers: string[] }
         Returns: boolean
       }
+      link_current_reader_to_book: {
+        Args: { p_book_id: string }
+        Returns: boolean
+      }
       mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: undefined

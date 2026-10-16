@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 type Client = {
   auth: { getUser: ReturnType<typeof vi.fn> };
   from: ReturnType<typeof vi.fn>;
+  rpc: ReturnType<typeof vi.fn>;
 };
 
 function authLogged(userId: string): Client["auth"] {
@@ -33,6 +34,7 @@ describe("POST /api/books/[id]/link", () => {
           }),
         },
         from: vi.fn(),
+        rpc: vi.fn(),
       };
       const route = await loadRoute(client);
       const res = await route.POST(new Request("http://localhost"), {
@@ -40,6 +42,7 @@ describe("POST /api/books/[id]/link", () => {
       });
       expect(res.status).toBe(401);
       expect(client.from).not.toHaveBeenCalled();
+      expect(client.rpc).not.toHaveBeenCalled();
     });
   });
 
@@ -53,6 +56,7 @@ describe("POST /api/books/[id]/link", () => {
       const client: Client = {
         auth: authLogged("u1"),
         from: vi.fn(() => ({ select })),
+        rpc: vi.fn(),
       };
       const route = await loadRoute(client);
       const res = await route.POST(new Request("http://localhost"), {
@@ -60,29 +64,23 @@ describe("POST /api/books/[id]/link", () => {
       });
       expect(res.status).toBe(404);
       expect(client.from).toHaveBeenCalledWith("books");
-      expect(select).toHaveBeenCalledWith("id,readers");
+      expect(select).toHaveBeenCalledWith("id");
       expect(eq).toHaveBeenCalledWith("id", "missing");
+      expect(client.rpc).not.toHaveBeenCalled();
     });
 
-    it("mescla readers existentes com auth.uid deduplicando e atualiza por id", async () => {
+    it("entra na leitura pela função que acrescenta o leitor atual", async () => {
       const single = vi.fn().mockResolvedValue({
-        data: { id: "b1", readers: ["u0", "u1"] },
+        data: { id: "b1" },
         error: null,
       });
       const eqSel = vi.fn(() => ({ single }));
       const select = vi.fn(() => ({ eq: eqSel }));
-
-      const eqUp = vi.fn().mockResolvedValue({ error: null });
-      const update = vi.fn(() => ({ eq: eqUp }));
-
-      let booksCalls = 0;
+      const update = vi.fn();
       const client: Client = {
         auth: authLogged("u1"),
-        from: vi.fn(() => {
-          booksCalls += 1;
-          if (booksCalls === 1) return { select };
-          return { update };
-        }),
+        from: vi.fn(() => ({ select, update })),
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       };
 
       const route = await loadRoute(client);
@@ -92,56 +90,49 @@ describe("POST /api/books/[id]/link", () => {
 
       expect(res.status).toBe(200);
       await expect(res.json()).resolves.toEqual({ ok: true });
-      expect(update).toHaveBeenCalledWith({
-        readers: ["u0", "u1"],
+      expect(update).not.toHaveBeenCalled();
+      expect(client.rpc).toHaveBeenCalledWith("link_current_reader_to_book", {
+        p_book_id: "b1",
       });
-      expect(eqUp).toHaveBeenCalledWith("id", "b1");
     });
 
-    it("normaliza readers ausentes para lista só com usuário atual", async () => {
+    it("recusa quando a leitura não pode receber o leitor", async () => {
       const single = vi.fn().mockResolvedValue({
-        data: { id: "b1", readers: null },
+        data: { id: "b1" },
         error: null,
       });
       const select = vi.fn(() => ({
         eq: vi.fn(() => ({ single })),
       }));
-      const eqUp = vi.fn().mockResolvedValue({ error: null });
-      const update = vi.fn(() => ({ eq: eqUp }));
-      let n = 0;
+      const update = vi.fn();
       const client: Client = {
         auth: authLogged("u9"),
-        from: vi.fn(() => {
-          n += 1;
-          return n === 1 ? { select } : { update };
-        }),
+        from: vi.fn(() => ({ select, update })),
+        rpc: vi.fn().mockResolvedValue({ data: false, error: null }),
       };
       const route = await loadRoute(client);
       const res = await route.POST(new Request("http://localhost"), {
         params: Promise.resolve({ id: "b1" }),
       });
-      expect(res.status).toBe(200);
-      expect(update).toHaveBeenCalledWith({ readers: ["u9"] });
+      expect(res.status).toBe(403);
+      await expect(res.json()).resolves.toEqual({ error: "Forbidden" });
+      expect(update).not.toHaveBeenCalled();
     });
 
-    it("retorna 500 quando update falha", async () => {
+    it("retorna 500 quando a função falha", async () => {
       const single = vi.fn().mockResolvedValue({
-        data: { id: "b1", readers: [] },
+        data: { id: "b1" },
         error: null,
       });
       const select = vi.fn(() => ({
         eq: vi.fn(() => ({ single })),
       }));
-      const eqUp = vi.fn().mockResolvedValue({
-        error: { message: "write failed" },
-      });
-      const update = vi.fn(() => ({ eq: eqUp }));
-      let n = 0;
       const client: Client = {
         auth: authLogged("u1"),
-        from: vi.fn(() => {
-          n += 1;
-          return n === 1 ? { select } : { update };
+        from: vi.fn(() => ({ select })),
+        rpc: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: "write failed" },
         }),
       };
       const route = await loadRoute(client);
