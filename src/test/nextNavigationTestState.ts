@@ -10,6 +10,7 @@ export const nextNavigationTestState = {
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
+    refresh: vi.fn(),
   },
 };
 
@@ -20,6 +21,7 @@ export function resetNextNavigationTestState() {
   nextNavigationTestState.router.push.mockClear();
   nextNavigationTestState.router.replace.mockClear();
   nextNavigationTestState.router.prefetch.mockClear();
+  nextNavigationTestState.router.refresh.mockClear();
 }
 
 export function presetNextNavigationShelvesList() {

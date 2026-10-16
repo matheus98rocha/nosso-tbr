@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UserProvider } from "@/providers/UserProvider";
 import { useUserStore } from "@/stores/userStore";
+import { nextNavigationTestState } from "@/test/nextNavigationTestState";
 import type { User } from "@/types/user.types";
 
 import { useHome } from "./useHome";
@@ -230,6 +231,35 @@ describe("useHome session hydration", () => {
     } finally {
       consoleError.mockRestore();
     }
+  });
+
+  it("depois do logout pede a sessão do servidor e então busca a lista pública", async () => {
+    const queryClient = createQueryClient();
+    const view = render(homeTree(queryClient, buildSessionUser("reader-1")));
+
+    await waitFor(() => {
+      expect(getAll).toHaveBeenCalledTimes(1);
+    });
+
+    getAll.mockClear();
+    await useUserStore.getState().logout();
+
+    await waitFor(() => {
+      expect(nextNavigationTestState.router.refresh).toHaveBeenCalledTimes(1);
+    });
+
+    expect(getAll).not.toHaveBeenCalled();
+
+    view.rerender(homeTree(queryClient, null));
+
+    await waitFor(() => {
+      expect(getAll).toHaveBeenCalledTimes(1);
+    });
+
+    expect(getAll).toHaveBeenCalledWith({
+      page: 0,
+      pageSize: 8,
+    });
   });
 
   it("logout deixa sessionReady false junto com usuário e tier nulos", async () => {
