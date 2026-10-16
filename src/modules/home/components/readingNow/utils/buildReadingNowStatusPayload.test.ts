@@ -47,4 +47,14 @@ describe("buildReadingNowStatusPayload", () => {
     expect(payload.status).toBe("finished");
     expect(payload.start_date).toBe("2026-08-01");
   });
+
+  it("sends the loaded readers as the snapshot so a newer invite is kept", () => {
+    const payload = buildReadingNowStatusPayload(
+      { ...sampleBook, readerIds: ["user-1", "user-2"] },
+      "finished",
+    );
+
+    expect(payload.readers).toEqual(["user-1", "user-2"]);
+    expect(payload.base_readers).toEqual(["user-1", "user-2"]);
+  });
 });

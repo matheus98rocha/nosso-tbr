@@ -109,6 +109,7 @@ export function useBookDialog({
         title: bookData.title,
         pages: bookData.pages,
         readers: [...bookData.readerIds],
+        base_readers: [...bookData.readerIds],
         chosen_by: bookData.chosen_by,
         user_id: bookData.chosen_by,
         author_id: bookData.authorId ?? "",

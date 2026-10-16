@@ -8,6 +8,7 @@ export function buildReadingNowStatusPayload(
     title: book.title,
     pages: book.pages,
     readers: [...book.readerIds],
+    base_readers: [...book.readerIds],
     chosen_by: book.chosen_by,
     user_id: book.user_id,
     author_id: book.authorId ?? "",

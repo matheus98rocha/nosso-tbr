@@ -565,6 +565,10 @@ export type Database = {
       }
     }
     Functions: {
+      append_book_reader: {
+        Args: { p_book_id: string; p_reader_id: string }
+        Returns: boolean
+      },
       get_community_reader_activity: {
         Args: Record<PropertyKey, never>
         Returns: {
