@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import type { UserTier } from "@/lib/auth/userTier";
+import { useRefreshSessionAfterLogout } from "@/stores/hooks/useRefreshSessionAfterLogout";
 import { SessionSyncContext } from "@/stores/hooks/useSessionSync";
 import { useUserStore } from "@/stores/userStore";
 import { User } from "@/types/user.types";
@@ -19,6 +20,7 @@ export function UserProvider({
   const key = `${initialUser?.id ?? "__null__"}:${initialTier ?? "__null__"}`;
   const [appliedKey, setAppliedKey] = useState<string | undefined>(undefined);
   const sessionInSync = appliedKey === key;
+  useRefreshSessionAfterLogout(sessionInSync);
 
   useEffect(() => {
     if (appliedKey === key) return;
