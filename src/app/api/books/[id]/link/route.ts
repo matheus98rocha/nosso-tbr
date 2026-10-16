@@ -12,7 +12,7 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
   const { data: book, error: loadError } = await supabase
     .from("books")
-    .select("id,readers")
+    .select("id")
     .eq("id", id)
     .single();
 
@@ -20,17 +20,17 @@ export async function POST(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Book not found" }, { status: 404 });
   }
 
-  const nextReaders = Array.isArray(book.readers)
-    ? [...new Set([...book.readers, auth.user.id])]
-    : [auth.user.id];
+  const { data: linked, error: linkError } = await supabase.rpc(
+    "link_current_reader_to_book",
+    { p_book_id: id },
+  );
 
-  const { error: updateError } = await supabase
-    .from("books")
-    .update({ readers: nextReaders })
-    .eq("id", id);
+  if (linkError) {
+    return NextResponse.json({ error: linkError.message }, { status: 500 });
+  }
 
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (linked !== true) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   return NextResponse.json({ ok: true as const });
