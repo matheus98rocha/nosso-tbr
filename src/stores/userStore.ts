@@ -42,6 +42,11 @@ export const useUserStore = create<UserStore>((set) => ({
     set({ isLoggingOut: true });
     const supabase = createClient();
     await supabase.auth.signOut();
-    set({ user: null, tier: null, isLoggingOut: false });
+    set({
+      user: null,
+      tier: null,
+      isLoggingOut: false,
+      sessionReady: false,
+    });
   },
 }));

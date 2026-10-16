@@ -1,6 +1,7 @@
 import { BookService } from "@/services/books/books.service";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/services/users/hooks/useUsers";
+import { useSessionSync } from "@/stores/hooks/useSessionSync";
 import { useUserStore } from "@/stores/userStore";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiltersOptions, SortOption } from "@/types/filters";
@@ -36,6 +37,7 @@ export function useHome() {
   const { users, isLoadingUsers } = useUser();
   const user = useUserStore((state) => state.user);
   const sessionReady = useUserStore((state) => state.sessionReady);
+  const sessionInSync = useSessionSync();
   const isLoggedIn = useIsLoggedIn();
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -394,7 +396,7 @@ export function useHome() {
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     refetchOnMount: false,
-    enabled: sessionReady !== false && !shouldWaitForUsers,
+    enabled: sessionInSync && sessionReady !== false && !shouldWaitForUsers,
   });
 
   const formattedGenres = useMemo(
@@ -633,7 +635,10 @@ export function useHome() {
   });
 
   const isLoadingData =
-    sessionReady === false || isLoadingUsers || isLoadingAllBooks;
+    !sessionInSync ||
+    sessionReady === false ||
+    isLoadingUsers ||
+    isLoadingAllBooks;
 
   const totalPages = Math.ceil((allBooks?.total || 0) / PAGE_SIZE);
 

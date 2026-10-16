@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import type { UserTier } from "@/lib/auth/userTier";
+import { SessionSyncContext } from "@/stores/hooks/useSessionSync";
 import { useUserStore } from "@/stores/userStore";
 import { User } from "@/types/user.types";
 
@@ -11,19 +12,24 @@ export function UserProvider({
   initialUser,
   initialTier = null,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   initialUser: User | null;
   initialTier?: UserTier | null;
 }) {
-  const syncedKeyRef = useRef<string | undefined>(undefined);
   const key = `${initialUser?.id ?? "__null__"}:${initialTier ?? "__null__"}`;
+  const [appliedKey, setAppliedKey] = useState<string | undefined>(undefined);
+  const sessionInSync = appliedKey === key;
 
   useEffect(() => {
-    if (syncedKeyRef.current === key) return;
+    if (appliedKey === key) return;
 
-    syncedKeyRef.current = key;
     useUserStore.getState().setSession(initialUser, initialTier);
-  }, [initialTier, initialUser, key]);
+    setAppliedKey(key);
+  }, [appliedKey, initialTier, initialUser, key]);
 
-  return <>{children}</>;
+  return (
+    <SessionSyncContext.Provider value={sessionInSync}>
+      {children}
+    </SessionSyncContext.Provider>
+  );
 }

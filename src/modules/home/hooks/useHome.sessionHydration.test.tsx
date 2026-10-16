@@ -8,14 +8,24 @@ import type { User } from "@/types/user.types";
 
 import { useHome } from "./useHome";
 
-const { getAll } = vi.hoisted(() => ({
+const { getAll, signOut } = vi.hoisted(() => ({
   getAll: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 vi.mock("@/services/books/books.service", () => ({
   BookService: class {
     getAll = getAll;
   },
+}));
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({
+    auth: {
+      signOut,
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+    },
+  }),
 }));
 
 vi.mock("@/services/users/service/getUsers.service", () => ({
@@ -68,8 +78,8 @@ function HomeProbe() {
   return null;
 }
 
-function renderHome(initialUser: User | null) {
-  const queryClient = new QueryClient({
+function createQueryClient() {
+  return new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
@@ -81,8 +91,10 @@ function renderHome(initialUser: User | null) {
       },
     },
   });
+}
 
-  return render(
+function homeTree(queryClient: QueryClient, initialUser: User | null) {
+  return (
     <QueryClientProvider client={queryClient}>
       <UserProvider
         initialUser={initialUser}
@@ -90,14 +102,20 @@ function renderHome(initialUser: User | null) {
       >
         <HomeProbe />
       </UserProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+}
+
+function renderHome(initialUser: User | null) {
+  return render(homeTree(createQueryClient(), initialUser));
 }
 
 describe("useHome session hydration", () => {
   beforeEach(() => {
     getAll.mockReset();
     getAll.mockResolvedValue({ data: [], total: 0 });
+    signOut.mockReset();
+    signOut.mockResolvedValue({ error: null });
     useUserStore.setState({
       user: null,
       tier: null,
@@ -146,5 +164,87 @@ describe("useHome session hydration", () => {
       page: 0,
       pageSize: 8,
     });
+  });
+
+  it("não busca a lista pública quando a sessão anterior era visitante e o provider recebe usuário logado", async () => {
+    useUserStore.getState().setSession(null, null);
+
+    renderHome(buildSessionUser("reader-1"));
+
+    await waitFor(() => {
+      expect(
+        getAll.mock.calls.some(
+          ([payload]) => payload?.relationshipUserValues?.[0] === "reader-1",
+        ),
+      ).toBe(true);
+    });
+
+    expect(getAll.mock.calls.map(([payload]) => payload)).toEqual([
+      expect.objectContaining({
+        relationshipUserValues: ["reader-1"],
+        page: 0,
+        pageSize: 8,
+      }),
+    ]);
+  });
+
+  it("não busca a lista pública quando o mesmo provider troca o visitante pelo usuário logado", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      useUserStore.getState().setSession(null, null);
+      const queryClient = createQueryClient();
+      const view = render(homeTree(queryClient, null));
+
+      await waitFor(() => {
+        expect(getAll).toHaveBeenCalledTimes(1);
+      });
+
+      getAll.mockClear();
+      consoleError.mockClear();
+      view.rerender(homeTree(queryClient, buildSessionUser("reader-1")));
+
+      await waitFor(() => {
+        expect(
+          getAll.mock.calls.some(
+            ([payload]) => payload?.relationshipUserValues?.[0] === "reader-1",
+          ),
+        ).toBe(true);
+      });
+
+      expect(getAll.mock.calls.map(([payload]) => payload)).toEqual([
+        expect.objectContaining({
+          relationshipUserValues: ["reader-1"],
+          page: 0,
+          pageSize: 8,
+        }),
+      ]);
+      expect(
+        consoleError.mock.calls.some((call) =>
+          call.some(
+            (part) =>
+              typeof part === "string" &&
+              part.includes("Cannot update a component"),
+          ),
+        ),
+      ).toBe(false);
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it("logout deixa sessionReady false junto com usuário e tier nulos", async () => {
+    useUserStore.getState().setSession(buildSessionUser("reader-1"), "common_user");
+
+    await useUserStore.getState().logout();
+
+    expect(signOut).toHaveBeenCalledTimes(1);
+    expect(useUserStore.getState()).toEqual(
+      expect.objectContaining({
+        user: null,
+        tier: null,
+        isLoggingOut: false,
+        sessionReady: false,
+      }),
+    );
   });
 });
