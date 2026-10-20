@@ -98,7 +98,7 @@ export function useReadingNow() {
     queryKey: [...QUERY_KEYS.books.all, "reading-now", userId] as const,
     queryFn: () =>
       bookService.getAll({
-        userId,
+        relationshipUserValues: userId ? [userId] : undefined,
         filters: READING_NOW_FILTERS,
         page: 0,
         pageSize: READING_NOW_PAGE_SIZE,
