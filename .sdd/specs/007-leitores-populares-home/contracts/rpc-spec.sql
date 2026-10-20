@@ -1,8 +1,31 @@
 -- =============================================================================
 -- RPC Contract — get_popular_readers_for_home (feature 007)
 -- SECURITY INVOKER: SELECT em books respeita is_book_visible_to_current_user.
+-- follower_count vem de count_followers_of (DEFINER): RLS de user_followers
+-- só devolve arestas do próprio leitor, então COUNT direto seria sempre 0.
 -- Score MVP: follower_count + 3*shared_genders + 4*shared_authors
 -- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.count_followers_of(p_user_id uuid)
+RETURNS bigint
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  SELECT CASE
+    WHEN auth.uid() IS NULL OR p_user_id IS NULL THEN 0::bigint
+    ELSE (
+      SELECT COUNT(*)::bigint
+      FROM public.user_followers
+      WHERE following_id = p_user_id
+    )
+  END;
+$$;
+
+REVOKE ALL ON FUNCTION public.count_followers_of(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.count_followers_of(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION public.count_followers_of(uuid) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.get_popular_readers_for_home(
   p_limit integer DEFAULT 12
@@ -107,11 +130,7 @@ AS $$
       c.id AS reader_id,
       c.display_name,
       c.avatar_seed,
-      COALESCE((
-        SELECT COUNT(*)::bigint
-        FROM public.user_followers uf
-        WHERE uf.following_id = c.id
-      ), 0) AS follower_count,
+      COALESCE(public.count_followers_of(c.id), 0) AS follower_count,
       COALESCE((
         SELECT COUNT(*)::bigint
         FROM candidate_genders cg
