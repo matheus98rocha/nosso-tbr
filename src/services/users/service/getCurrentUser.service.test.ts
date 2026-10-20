@@ -31,9 +31,12 @@ describe("getCurrentUserSession", () => {
     await expect(getCurrentUserSession()).resolves.toBeNull();
   });
 
-  it("seleciona tier em users e devolve sessão", async () => {
+  it("seleciona tier e welcome_tutorial_seen_at em users e devolve sessão", async () => {
     const maybeSingle = vi.fn().mockResolvedValue({
-      data: { tier: "admin" },
+      data: {
+        tier: "admin",
+        welcome_tutorial_seen_at: "2026-10-20T12:00:00.000Z",
+      },
       error: null,
     });
     const eq = vi.fn(() => ({ maybeSingle }));
@@ -52,7 +55,7 @@ describe("getCurrentUserSession", () => {
     const session = await getCurrentUserSession();
 
     expect(from).toHaveBeenCalledWith("users");
-    expect(select).toHaveBeenCalledWith("tier");
+    expect(select).toHaveBeenCalledWith("tier, welcome_tutorial_seen_at");
     expect(eq).toHaveBeenCalledWith(
       "id",
       "bd12cc9a-51ec-452d-8722-a97547b6e0c0",
@@ -60,10 +63,11 @@ describe("getCurrentUserSession", () => {
     expect(session).toEqual({
       user: { id: "bd12cc9a-51ec-452d-8722-a97547b6e0c0" },
       tier: "admin",
+      welcomeTutorialSeenAt: "2026-10-20T12:00:00.000Z",
     });
   });
 
-  it("retorna tier null quando perfil não tem linha", async () => {
+  it("retorna tier e tutorial null quando perfil não tem linha", async () => {
     createClientMock.mockResolvedValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
@@ -83,6 +87,7 @@ describe("getCurrentUserSession", () => {
     expect(session).toEqual({
       user: { id: "u1" },
       tier: null,
+      welcomeTutorialSeenAt: null,
     });
   });
 });

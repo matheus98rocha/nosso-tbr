@@ -533,16 +533,19 @@ export type Database = {
           display_name: string
           email: string | null
           id: string
+          welcome_tutorial_seen_at: string | null
         }
         Insert: {
           display_name: string
           email?: string | null
           id: string
+          welcome_tutorial_seen_at?: string | null
         }
         Update: {
           display_name?: string
           email?: string | null
           id?: string
+          welcome_tutorial_seen_at?: string | null
         }
         Relationships: []
       }

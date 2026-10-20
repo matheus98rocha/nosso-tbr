@@ -29,6 +29,12 @@ vi.mock("@/modules/profile/avatarSelection", () => ({
   AvatarSelectionPanel: () => <div data-testid="avatar-selection-panel" />,
 }));
 
+vi.mock("@/modules/onboarding", () => ({
+  ProfileWelcomeTutorial: () => (
+    <button type="button">Ver tutorial de novo</button>
+  ),
+}));
+
 describe("ClientProfile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -51,5 +57,12 @@ describe("ClientProfile", () => {
       screen.getByRole("link", { name: /ver comunidade/i }),
     ).toHaveAttribute("href", "/community");
     expect(screen.queryByLabelText(/buscar pessoas/i)).not.toBeInTheDocument();
+  });
+
+  it("oferece reabrir o tutorial", () => {
+    render(<ClientProfile />);
+    expect(
+      screen.getByRole("button", { name: /ver tutorial de novo/i }),
+    ).toBeInTheDocument();
   });
 });
