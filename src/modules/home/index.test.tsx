@@ -262,6 +262,12 @@ describe("ClientHome FAB Adicionar livro", () => {
 
     expect(screen.getByText("reading-now-solo")).toBeInTheDocument();
     expect(screen.getByText("reading-now-collective")).toBeInTheDocument();
+    const soloColumn = screen.getByText("reading-now-solo").parentElement;
+    const collectiveColumn = screen.getByText("reading-now-collective").parentElement;
+
+    expect(soloColumn?.parentElement).toHaveClass("flex", "w-full");
+    expect(soloColumn).toHaveClass("flex-1", "basis-0");
+    expect(collectiveColumn).toHaveClass("flex-1", "basis-0");
   });
 
   it("não mostra os cards de lendo agora quando deslogado", () => {

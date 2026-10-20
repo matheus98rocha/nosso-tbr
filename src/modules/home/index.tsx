@@ -468,9 +468,13 @@ export default function ClientHome() {
       </header>
 
       {isLoggedIn && (
-        <div className="mb-5 flex w-full min-w-0 max-w-2xl flex-col gap-3">
-          <ReadingNow scope="solo" />
-          <ReadingNow scope="collective" />
+        <div className="mb-5 flex w-full min-w-0 items-stretch gap-3">
+          <div className="min-w-0 flex-1 basis-0 empty:hidden">
+            <ReadingNow scope="solo" className="h-full" />
+          </div>
+          <div className="min-w-0 flex-1 basis-0 empty:hidden">
+            <ReadingNow scope="collective" className="h-full" />
+          </div>
         </div>
       )}
 
