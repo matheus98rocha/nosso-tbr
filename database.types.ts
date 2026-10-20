@@ -530,18 +530,21 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_seed: string | null
           display_name: string
           email: string | null
           id: string
           welcome_tutorial_seen_at: string | null
         }
         Insert: {
+          avatar_seed?: string | null
           display_name: string
           email?: string | null
           id: string
           welcome_tutorial_seen_at?: string | null
         }
         Update: {
+          avatar_seed?: string | null
           display_name?: string
           email?: string | null
           id?: string
@@ -588,6 +591,18 @@ export type Database = {
           gender: string
           reader_id: string
           registered_count: number
+        }[]
+      }
+      get_popular_readers_for_home: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_seed: string | null
+          display_name: string | null
+          follower_count: number
+          reader_id: string
+          score: number
+          shared_author_count: number
+          shared_gender_count: number
         }[]
       }
       get_reader_collaboration_stats: {

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FAB_CONTENT_PADDING_CLASS } from "@/constants/floatingActionButton";
 import { useHome } from "@/modules/home/hooks/useHome";
+import usePopularReaders from "@/modules/home/hooks/usePopularReaders";
 import ClientHome from "./index";
 
 const mockSetBookFormOpen = vi.fn();
@@ -66,6 +67,25 @@ const { baseUseHome } = vi.hoisted(() => ({
 
 vi.mock("@/modules/home/hooks/useHome", () => ({
   useHome: vi.fn(() => ({ ...baseUseHome })),
+}));
+
+const { basePopularReaders } = vi.hoisted(() => ({
+  basePopularReaders: {
+    readers: [],
+    isLoading: false,
+    isError: false,
+    isHidden: false,
+    shouldRender: false,
+    isTogglePending: false,
+    pendingUserId: null as string | null,
+    hide: vi.fn(),
+    show: vi.fn(),
+    follow: vi.fn(),
+  },
+}));
+
+vi.mock("@/modules/home/hooks/usePopularReaders", () => ({
+  default: vi.fn(() => ({ ...basePopularReaders })),
 }));
 
 type UserStoreState = {
@@ -385,6 +405,51 @@ describe("ClientHome book suggestions (empty network)", () => {
     );
 
     expect(mockSetBookFormOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("renders popular readers strip when hook shouldRender", () => {
+    vi.mocked(usePopularReaders).mockReturnValueOnce({
+      ...basePopularReaders,
+      shouldRender: true,
+      readers: [
+        {
+          id: "r1",
+          displayName: "Ana",
+          avatarSeed: null,
+          followerCount: 2,
+          sharedGenderCount: 0,
+          sharedAuthorCount: 0,
+          score: 2,
+          isFollowing: false,
+        },
+      ],
+    } as unknown as ReturnType<typeof usePopularReaders>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    expect(
+      screen.getByRole("heading", { name: "Leitores populares" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Seguir Ana" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders reveal control when popular readers are hidden", () => {
+    vi.mocked(usePopularReaders).mockReturnValueOnce({
+      ...basePopularReaders,
+      isHidden: true,
+      shouldRender: false,
+    } as unknown as ReturnType<typeof usePopularReaders>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    expect(
+      screen.getByRole("button", { name: "Mostrar leitores populares" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Leitores populares" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders list grid when there are books (no suggestion panel)", () => {

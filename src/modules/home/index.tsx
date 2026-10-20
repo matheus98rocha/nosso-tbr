@@ -32,8 +32,12 @@ import type { BookSuggestion } from "@/modules/aiRecommendation";
 import { BookUpsert } from "@/modules/bookUpsert";
 import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFilters";
 import HomeQuickActions from "@/modules/home/components/homeQuickActions";
+import PopularReadersStrip, {
+  PopularReadersReveal,
+} from "@/modules/home/components/popularReadersStrip";
 import ReadingNow from "@/modules/home/components/readingNow";
 import { useHome } from "@/modules/home/hooks/useHome";
+import usePopularReaders from "@/modules/home/hooks/usePopularReaders";
 import {
   useFollowRecommendations,
   useWelcomeTutorial,
@@ -81,6 +85,7 @@ export default function ClientHome() {
     needsExtraReader,
     readingProgressBatch,
   } = useHome();
+  const popularReaders = usePopularReaders();
 
   const dialogModal = useModal();
   const editBookDialog = useModal();
@@ -535,6 +540,21 @@ export default function ClientHome() {
           </div>
         ) : null}
       </header>
+
+      {isLoggedIn && popularReaders.isHidden ? (
+        <PopularReadersReveal onShow={popularReaders.show} />
+      ) : null}
+
+      {isLoggedIn && popularReaders.shouldRender ? (
+        <PopularReadersStrip
+          readers={popularReaders.readers}
+          isLoading={popularReaders.isLoading}
+          isTogglePending={popularReaders.isTogglePending}
+          pendingUserId={popularReaders.pendingUserId}
+          onFollow={popularReaders.follow}
+          onHide={popularReaders.hide}
+        />
+      ) : null}
 
       {isLoggedIn && (
         <div className="mb-5 flex w-full min-w-0 items-stretch gap-3">

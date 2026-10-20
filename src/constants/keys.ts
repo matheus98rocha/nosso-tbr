@@ -112,4 +112,9 @@ export const QUERY_KEYS = {
     recommendations: (userId: string) =>
       [...QUERY_KEYS.onboarding.all, "recommendations", userId] as const,
   },
+  popularReaders: {
+    all: ["popularReaders"] as const,
+    list: (userId: string) =>
+      [...QUERY_KEYS.popularReaders.all, "list", userId] as const,
+  },
 } as const;
