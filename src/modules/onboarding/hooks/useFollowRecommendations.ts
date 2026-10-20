@@ -14,7 +14,14 @@ import { OnboardingService } from "../services/onboarding.service";
 const onboardingService = new OnboardingService();
 const userSocialService = new UserSocialService();
 
-export function useFollowRecommendations() {
+type UseFollowRecommendationsOptions = {
+  recommendationsEnabled?: boolean;
+};
+
+export function useFollowRecommendations(
+  options: UseFollowRecommendationsOptions = {},
+) {
+  const { recommendationsEnabled = false } = options;
   const user = useUserStore((state) => state.user);
   const userId = user?.id;
   const queryClient = useQueryClient();
@@ -33,12 +40,15 @@ export function useFollowRecommendations() {
 
   const followingIds = followingQuery.data ?? [];
   const followingCount = followingIds.length;
-  const showNudge = Boolean(userId) && followingQuery.isFetched && followingCount === 0;
+  const isZeroFollowing =
+    Boolean(userId) && followingQuery.isFetched && followingCount === 0;
+  const shouldFetchRecommendations =
+    Boolean(userId) && (isZeroFollowing || recommendationsEnabled);
 
   const recommendationsQuery = useQuery({
     queryKey: QUERY_KEYS.onboarding.recommendations(userId ?? ""),
     queryFn: () => onboardingService.getFollowRecommendations(userId!),
-    enabled: showNudge && Boolean(userId),
+    enabled: shouldFetchRecommendations,
     staleTime: 60_000,
   });
 
@@ -60,12 +70,12 @@ export function useFollowRecommendations() {
   );
 
   return {
-    showNudge,
+    showNudge: isZeroFollowing,
     followingCount,
     recommendations: recommendationsQuery.data ?? [],
     isLoading:
       followingQuery.isLoading ||
-      (showNudge && recommendationsQuery.isLoading),
+      (shouldFetchRecommendations && recommendationsQuery.isLoading),
     isError: recommendationsQuery.isError,
     onRetry: () => {
       void recommendationsQuery.refetch();

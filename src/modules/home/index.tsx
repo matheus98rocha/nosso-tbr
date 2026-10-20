@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDownUp,
@@ -88,7 +88,8 @@ export default function ClientHome() {
   const aiRecommendationModal = useModal();
   const [aiPrefilledTitle, setAiPrefilledTitle] = useState<string | null>(null);
   const [editingBook, setEditingBook] = useState<BookDomain | null>(null);
-  const [zeroFollowingDismissed, setZeroFollowingDismissed] = useState(false);
+  const [zeroFollowingHeldOpen, setZeroFollowingHeldOpen] = useState(false);
+  const zeroFollowingAutoOpenedRef = useRef(false);
   const isLoading = isLoadingAllBooks || isLoggingOut;
 
   const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
@@ -141,21 +142,18 @@ export default function ClientHome() {
     aiRecommendationModal.setIsOpen(true);
   }, [aiRecommendationModal]);
 
-  const followRecommendations = useFollowRecommendations();
-
-  useEffect(() => {
-    if (!followRecommendations.showNudge) {
-      setZeroFollowingDismissed(false);
-    }
-  }, [followRecommendations.showNudge]);
+  const followRecommendations = useFollowRecommendations({
+    recommendationsEnabled: zeroFollowingHeldOpen,
+  });
 
   const openZeroFollowingModal = useCallback(() => {
-    if (followRecommendations.showNudge) {
-      setZeroFollowingDismissed(false);
+    if (followRecommendations.showNudge || zeroFollowingHeldOpen) {
+      zeroFollowingAutoOpenedRef.current = true;
+      setZeroFollowingHeldOpen(true);
       return;
     }
     window.location.assign(COMMUNITY_PATH);
-  }, [followRecommendations.showNudge]);
+  }, [followRecommendations.showNudge, zeroFollowingHeldOpen]);
 
   const welcomeTutorial = useWelcomeTutorial({
     onFollowCta: openZeroFollowingModal,
@@ -163,10 +161,24 @@ export default function ClientHome() {
     onAiCta: handleOpenAiRecommendation,
   });
 
+  useEffect(() => {
+    if (
+      followRecommendations.showNudge &&
+      !welcomeTutorial.isOpen &&
+      !zeroFollowingHeldOpen &&
+      !zeroFollowingAutoOpenedRef.current
+    ) {
+      zeroFollowingAutoOpenedRef.current = true;
+      setZeroFollowingHeldOpen(true);
+    }
+  }, [
+    followRecommendations.showNudge,
+    welcomeTutorial.isOpen,
+    zeroFollowingHeldOpen,
+  ]);
+
   const zeroFollowingOpen =
-    followRecommendations.showNudge &&
-    !welcomeTutorial.isOpen &&
-    !zeroFollowingDismissed;
+    zeroFollowingHeldOpen && !welcomeTutorial.isOpen;
 
   return (
     <div
@@ -539,8 +551,9 @@ export default function ClientHome() {
         isOpen={zeroFollowingOpen}
         onOpenChange={(open) => {
           if (!open) {
-            setZeroFollowingDismissed(true);
+            zeroFollowingAutoOpenedRef.current = true;
           }
+          setZeroFollowingHeldOpen(open);
         }}
         recommendations={followRecommendations.recommendations}
         isLoading={followRecommendations.isLoading}

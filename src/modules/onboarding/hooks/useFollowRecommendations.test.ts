@@ -92,7 +92,7 @@ describe("useFollowRecommendations", () => {
     expect(getFollowRecommendations).toHaveBeenCalledWith("me");
   });
 
-  it("esconde nudge quando já segue alguém", async () => {
+  it("esconde auto-open quando já segue alguém", async () => {
     getFollowingIds.mockResolvedValue(["ana"]);
 
     const { result } = renderHook(() => useFollowRecommendations(), {
@@ -104,5 +104,21 @@ describe("useFollowRecommendations", () => {
     });
 
     expect(getFollowRecommendations).not.toHaveBeenCalled();
+  });
+
+  it("continua buscando recomendações com modal aberto após seguir", async () => {
+    getFollowingIds.mockResolvedValue(["ana"]);
+
+    const { result } = renderHook(
+      () => useFollowRecommendations({ recommendationsEnabled: true }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.showNudge).toBe(false);
+      expect(result.current.recommendations).toHaveLength(1);
+    });
+
+    expect(getFollowRecommendations).toHaveBeenCalledWith("me");
   });
 });
