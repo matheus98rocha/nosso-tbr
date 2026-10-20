@@ -10,6 +10,8 @@ const b = (id: string, title: string): BookDomain => ({
   id,
   title,
   author: "A",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "u",
   pages: 1,
   readerIds: [],

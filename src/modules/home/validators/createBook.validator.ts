@@ -7,7 +7,9 @@ const ALLOWED_IMAGE_HOST_RE =
 
 export const bookCreateSchema = z.object({
   title: z.string().min(1, { message: "O título do livro é obrigatório" }),
-  author_id: z.string().min(1, { message: "O autor do livro é obrigatório" }),
+  author_ids: z
+    .array(z.string().min(1))
+    .min(1, { message: "Selecione ao menos um autor" }),
   chosen_by: z.string().min(1, { message: "Quem escolheu o livro é obrigatório" }),
   pages: z
     .number({

@@ -7,7 +7,7 @@ type SupabaseBooksRouteMock = {
 
 const validPayload = {
   title: "Livro Seguro",
-  author_id: "author-1",
+  author_ids: ["author-1"],
   chosen_by: "user-owner",
   pages: 123,
   readers: ["user-owner"],
@@ -21,9 +21,17 @@ function buildInsertSelectSingle(result: { data: unknown; error: unknown }) {
   return { insert, select, single };
 }
 
+function bookAuthorsMocks() {
+  const deleteEq = vi.fn().mockResolvedValue({ error: null });
+  const deleteFn = vi.fn(() => ({ eq: deleteEq }));
+  const insertAuthors = vi.fn().mockResolvedValue({ error: null });
+  return { deleteEq, deleteFn, insertAuthors };
+}
+
 function clientWithParticipantAndInsert(
   chain: ReturnType<typeof buildInsertSelectSingle>,
 ): SupabaseBooksRouteMock {
+  const authors = bookAuthorsMocks();
   return {
     auth: {
       getUser: vi.fn().mockResolvedValue({
@@ -31,7 +39,12 @@ function clientWithParticipantAndInsert(
         error: null,
       }),
     },
-    from: vi.fn(() => ({ insert: chain.insert })),
+    from: vi.fn((table: string) => {
+      if (table === "book_authors") {
+        return { delete: authors.deleteFn, insert: authors.insertAuthors };
+      }
+      return { insert: chain.insert };
+    }),
   };
 }
 
@@ -274,27 +287,52 @@ describe("POST /api/books", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
-  it("returns 201 with id when insert succeeds", async () => {
+  it("returns 201 with id when insert succeeds and syncs book_authors", async () => {
     const chain = buildInsertSelectSingle({
       data: { id: "new-book-id" },
       error: null,
     });
-    const client = clientWithParticipantAndInsert(chain);
+    const authors = bookAuthorsMocks();
+    const client: SupabaseBooksRouteMock = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "user-owner" } },
+          error: null,
+        }),
+      },
+      from: vi.fn((table: string) => {
+        if (table === "book_authors") {
+          return { delete: authors.deleteFn, insert: authors.insertAuthors };
+        }
+        return { insert: chain.insert };
+      }),
+    };
 
     const route = await loadRouteWithClient(client);
     const response = await route.POST(
       new Request("http://localhost/api/books", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(validPayload),
+        body: JSON.stringify({
+          ...validPayload,
+          author_ids: ["author-1", "author-2"],
+        }),
       }),
     );
 
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toEqual({ id: "new-book-id" });
-    expect(chain.insert).toHaveBeenCalled();
+    expect(chain.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ author_id: "author-1" }),
+    );
     expect(chain.select).toHaveBeenCalledWith("id");
     expect(chain.single).toHaveBeenCalled();
+    expect(client.from).toHaveBeenCalledWith("book_authors");
+    expect(authors.deleteEq).toHaveBeenCalledWith("book_id", "new-book-id");
+    expect(authors.insertAuthors).toHaveBeenCalledWith([
+      { book_id: "new-book-id", author_id: "author-1" },
+      { book_id: "new-book-id", author_id: "author-2" },
+    ]);
   });
 
   it("returns 500 when insert returns error", async () => {

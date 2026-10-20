@@ -141,7 +141,15 @@ export function useBookUpsert({
 
   const handleAuthorCreated = useCallback(
     (authorId?: string) => {
-      form.setValue("author_id", authorId ?? "");
+      if (!authorId) return;
+      const current = form.getValues("author_ids") ?? [];
+      if (current.includes(authorId)) {
+        form.setValue("author_ids", current, { shouldValidate: true });
+        return;
+      }
+      form.setValue("author_ids", [...current, authorId], {
+        shouldValidate: true,
+      });
     },
     [form],
   );
@@ -225,7 +233,7 @@ export function useBookUpsert({
       authors.find(
         (a) => a.name.toLowerCase() === deferredAuthorSearch.toLowerCase(),
       ) ?? authors[0];
-    form.setValue("author_id", String(match.id));
+    form.setValue("author_ids", [String(match.id)], { shouldValidate: true });
     setPendingAuthorLookup(false);
   }, [pendingAuthorLookup, isLoadingAuthors, authors, deferredAuthorSearch, form]);
 

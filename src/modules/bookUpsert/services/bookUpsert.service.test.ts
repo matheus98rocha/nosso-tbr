@@ -30,7 +30,7 @@ function buildSupabaseMock() {
 const baseBook = {
   id: "book-1",
   title: "Book",
-  author_id: "author-1",
+  author_ids: ["author-1"],
   chosen_by: "11111111-1111-4111-8111-111111111111",
   pages: 200,
   readers: ["11111111-1111-4111-8111-111111111111"],

@@ -141,7 +141,12 @@ export function useBookCard({
         base_readers: [...book.readerIds],
         chosen_by: book.chosen_by,
         user_id: book.user_id,
-        author_id: book.authorId ?? "",
+        author_ids:
+          book.authorIds?.length > 0
+            ? [...book.authorIds]
+            : book.authorId
+              ? [book.authorId]
+              : [],
         start_date: book.start_date ?? null,
         end_date: book.end_date ?? null,
         planned_start_date: book.planned_start_date ?? null,
@@ -322,7 +327,7 @@ export function useBookCard({
     isLogged &&
     !isBookParticipant &&
     !isShelf &&
-    Boolean(book.authorId) &&
+    Boolean(book.authorIds?.length || book.authorId) &&
     book.pages > 0;
 
   const { addToLibrary, isAddToLibraryPending } = useAddBookToLibrary({

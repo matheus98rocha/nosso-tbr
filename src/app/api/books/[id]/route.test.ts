@@ -11,7 +11,7 @@ const DELETE_BOOK_SELECT_COLUMNS = "user_id,chosen_by,readers";
 
 const validPatchPayload = {
   title: "Livro Seguro",
-  author_id: "author-1",
+  author_ids: ["author-1"],
   chosen_by: "owner-user",
   pages: 123,
   readers: ["owner-user"],
@@ -46,12 +46,29 @@ function buildBookSelectMaybeSingle(
   return { select, eq, maybeSingle };
 }
 
-function buildTwoTableCalls(first: object, second: object) {
-  return vi
-    .fn()
-    .mockImplementationOnce(() => first)
-    .mockImplementationOnce(() => second);
+function buildBooksAndAuthorsFrom(first: object, second: object) {
+  const deleteEq = vi.fn().mockResolvedValue({ error: null });
+  const deleteFn = vi.fn(() => ({ eq: deleteEq }));
+  const insertAuthors = vi.fn().mockResolvedValue({ error: null });
+  let booksCalls = 0;
+  return {
+    from: vi.fn((table: string) => {
+      if (table === "book_authors") {
+        return { delete: deleteFn, insert: insertAuthors };
+      }
+      booksCalls += 1;
+      if (booksCalls === 1) return first;
+      return second;
+    }),
+    insertAuthors,
+    deleteEq,
+  };
 }
+
+function buildTwoTableCalls(first: object, second: object) {
+  return buildBooksAndAuthorsFrom(first, second).from;
+}
+
 
 async function loadRouteWithClient(client: SupabaseByIdMock) {
   vi.resetModules();
@@ -206,7 +223,7 @@ describe("PATCH /api/books/[id]", () => {
       expect(update).toHaveBeenCalledWith(
         expect.objectContaining({
           title: validPatchPayload.title,
-          author_id: validPatchPayload.author_id,
+          author_id: validPatchPayload.author_ids[0],
           readers: ["shelf-owner", coReaderId],
           status: "reading",
         }),
@@ -280,6 +297,14 @@ describe("PATCH /api/books/[id]", () => {
         auth: { getUser: authedGetUser("owner-user") },
         from: vi.fn((table: string) => {
           if (table === "user_followers") return { select: selectFollowers };
+          if (table === "book_authors") {
+            return {
+              delete: vi.fn(() => ({
+                eq: vi.fn().mockResolvedValue({ error: null }),
+              })),
+              insert: vi.fn().mockResolvedValue({ error: null }),
+            };
+          }
           return { select: readBuilder.select, update };
         }),
       };
@@ -332,6 +357,14 @@ describe("PATCH /api/books/[id]", () => {
         auth: { getUser: authedGetUser("owner-user") },
         from: vi.fn((table: string) => {
           if (table === "user_followers") return { select: selectFollowers };
+          if (table === "book_authors") {
+            return {
+              delete: vi.fn(() => ({
+                eq: vi.fn().mockResolvedValue({ error: null }),
+              })),
+              insert: vi.fn().mockResolvedValue({ error: null }),
+            };
+          }
           booksCalls += 1;
           if (booksCalls === 1) return { select: readBuilder.select };
           return { update };
@@ -640,9 +673,8 @@ describe("PATCH /api/books/[id]", () => {
       const body = await response.json();
       expect(body).toEqual({ ok: true });
       expect(Object.keys(body)).toEqual(["ok"]);
-      expect(client.from).toHaveBeenCalledTimes(2);
-      expect(client.from).toHaveBeenNthCalledWith(1, "books");
-      expect(client.from).toHaveBeenNthCalledWith(2, "books");
+      expect(client.from).toHaveBeenCalledWith("books");
+      expect(client.from).toHaveBeenCalledWith("book_authors");
       expect(readBuilder.select).toHaveBeenCalledWith(PATCH_BOOK_SELECT_COLUMNS);
       expect(update).toHaveBeenCalled();
       expect(eqUpdate).toHaveBeenCalledWith("id", "book-1");

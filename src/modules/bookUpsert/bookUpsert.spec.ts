@@ -12,7 +12,7 @@ function createValidBook(
   return {
     id: "book-1",
     title: "Livro de Teste",
-    author_id: "author-1",
+    author_ids: ["author-1"],
     chosen_by: READER_A,
     pages: 100,
     readers: [READER_A],
@@ -202,23 +202,23 @@ describe("BookUpsert - campo chosen_by", () => {
 });
 
 describe("BookUpsert - campo author", () => {
-  it("deve falhar quando author_id estiver vazio", () => {
-    const invalidBook = createValidBook({ author_id: "" });
+  it("deve falhar quando author_ids estiver vazio", () => {
+    const invalidBook = createValidBook({ author_ids: [] });
 
     const result = bookCreateSchema.safeParse(invalidBook);
 
     expect(result.success).toBe(false);
     if (!result.success) {
       const hasAuthorError = result.error.issues.some(
-        (issue) => issue.path[0] === "author_id",
+        (issue) => issue.path[0] === "author_ids",
       );
       expect(hasAuthorError).toBe(true);
     }
   });
 
-  it("deve aceitar um author_id não vazio, mesmo que o valor seja inválido no domínio", () => {
+  it("deve aceitar author_ids com id não vazio, mesmo que o valor seja inválido no domínio", () => {
     const invalidDomainAuthorId = "autor-inexistente";
-    const book = createValidBook({ author_id: invalidDomainAuthorId });
+    const book = createValidBook({ author_ids: [invalidDomainAuthorId] });
 
     const result = bookCreateSchema.safeParse(book);
 
@@ -230,10 +230,10 @@ describe("BookUpsert - campo author", () => {
     }
   });
 
-  it("deve manter o author_id correto no mapeamento para persistência", () => {
+  it("deve usar o primeiro author_id como legado em persistência", () => {
     const validAuthorId = "author-valid-123";
     const result = bookCreateSchema.safeParse(
-      createValidBook({ author_id: validAuthorId }),
+      createValidBook({ author_ids: [validAuthorId, "author-2"] }),
     );
 
     expect(result.success).toBe(true);

@@ -74,6 +74,9 @@ const baseBook: BookDomain = {
   id: "book-1",
   title: "Memórias Póstumas",
   author: "Machado de Assis",
+  authorId: "author-1",
+  authorIds: ["author-1"],
+  authorNames: ["Machado de Assis"],
   chosen_by: "11111111-1111-4111-8111-111111111111",
   pages: 160,
   readerIds: ["11111111-1111-4111-8111-111111111111"],
@@ -250,6 +253,19 @@ describe("BookCard", () => {
     expect(screen.getByText("Memórias Póstumas")).toBeInTheDocument();
     expect(screen.getByText("Machado de Assis")).toBeInTheDocument();
     expect(screen.getByText("Lendo agora")).toBeInTheDocument();
+  });
+
+  it("exibe múltiplos autores formatados com e", () => {
+    const multiAuthorBook: BookDomain = {
+      ...baseBook,
+      author: "Ana e Bruno",
+      authorIds: ["a1", "a2"],
+      authorNames: ["Ana", "Bruno"],
+    };
+    presetUseBookCard(multiAuthorBook);
+    render(<BookCard book={multiAuthorBook} />);
+
+    expect(screen.getByText("Ana e Bruno")).toBeInTheDocument();
   });
 
   it("apresenta status e leitores como badges legÃ­veis", () => {

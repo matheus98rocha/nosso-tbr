@@ -5,7 +5,7 @@ import { BookCatalogMatchResult } from "../types/bookDiscovery.types";
 
 const basePayload = {
   title: "O Senhor dos Aneis",
-  author_id: "author-1",
+  author_ids: ["author-1"],
   chosen_by: "user-1",
   readers: ["user-1"],
   pages: 500,

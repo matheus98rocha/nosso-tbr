@@ -9,6 +9,8 @@ function domain(overrides: Partial<BookDomain> = {}): BookDomain {
   return {
     title: "Duna",
     author: "Frank Herbert",
+    authorIds: [],
+    authorNames: [],
     chosen_by: "user-1",
     pages: 100,
     status: "finished",

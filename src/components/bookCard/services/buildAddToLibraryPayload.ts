@@ -12,13 +12,20 @@ export function buildAddToLibraryPayload(
     isAllowedBookCoverUrl(imageUrl) &&
     !imageUrl.startsWith("/");
 
+  const authorIds =
+    book.authorIds?.length > 0
+      ? book.authorIds
+      : book.authorId
+        ? [book.authorId]
+        : [];
+
   return {
     title: book.title,
     pages: book.pages,
     readers: [userId],
     chosen_by: userId,
     user_id: userId,
-    author_id: book.authorId ?? "",
+    author_ids: authorIds,
     start_date: null,
     end_date: null,
     planned_start_date: null,

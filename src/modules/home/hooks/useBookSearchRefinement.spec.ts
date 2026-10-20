@@ -6,6 +6,8 @@ import { useBookSearchRefinement } from "./useBookSearchRefinement";
 function buildBook(overrides: Partial<BookDomain> & Pick<BookDomain, "id" | "title">): BookDomain {
   return {
     author: "",
+    authorIds: [],
+    authorNames: [],
     chosen_by: "",
     pages: 0,
     readerIds: [],

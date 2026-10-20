@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { ensureAddedReadersAreFollowed } from "@/lib/books/ensureAddedReadersAreFollowed";
+import { syncBookAuthors } from "@/lib/books/syncBookAuthors";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { BookUpsertMapper } from "@/modules/bookUpsert/services/mappers/bookUpsert.mapper";
 import { normalizeDatesForTransition } from "@/modules/bookUpsert/services/bookStatusTransition";
@@ -90,6 +91,15 @@ export async function POST(request: Request) {
       { error: "Livro criado, mas ID não retornado." },
       { status: 500 },
     );
+  }
+
+  const authorsSync = await syncBookAuthors(
+    supabase,
+    data.id,
+    parsed.data.author_ids,
+  );
+  if (authorsSync.error) {
+    return NextResponse.json({ error: authorsSync.error }, { status: 500 });
   }
 
   return NextResponse.json({ id: data.id }, { status: 201 });

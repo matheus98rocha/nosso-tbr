@@ -8,6 +8,8 @@ const sampleBook: BookDomain & { id: string } = {
   title: "O Hobbit",
   author: "Tolkien",
   authorId: "author-1",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "user-1",
   pages: 310,
   status: "reading",

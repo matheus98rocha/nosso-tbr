@@ -263,7 +263,7 @@ describe("useBookUpsert — efeito de foundBook", () => {
     });
   });
 
-  it("não define author_id imediatamente quando foundBook tem autor", async () => {
+  it("não define author_ids imediatamente quando foundBook tem autor", async () => {
     setupMocks({
       authors: [],
       lookupV2: { book: makeBookLookupData({ autor: "Cervantes" }) },
@@ -274,7 +274,7 @@ describe("useBookUpsert — efeito de foundBook", () => {
       expect(mockSetValue).toHaveBeenCalledWith("title", "Dom Quixote");
     });
     expect(mockSetValue).not.toHaveBeenCalledWith(
-      "author_id",
+      "author_ids",
       expect.anything(),
     );
   });
@@ -312,7 +312,7 @@ describe("useBookUpsert — efeito de foundBook", () => {
 });
 
 describe("useBookUpsert — auto-seleção de autor", () => {
-  it("define author_id quando autores carregam após foundBook chegar", async () => {
+  it("define author_ids quando autores carregam após foundBook chegar", async () => {
     setupMocks({
       authors: [],
       isLoadingAuthors: true,
@@ -328,7 +328,7 @@ describe("useBookUpsert — auto-seleção de autor", () => {
     rerender();
 
     await waitFor(() => {
-      expect(mockSetValue).toHaveBeenCalledWith("author_id", "author-42");
+      expect(mockSetValue).toHaveBeenCalledWith("author_ids", ["author-42"], { shouldValidate: true });
     });
   });
 
@@ -351,11 +351,11 @@ describe("useBookUpsert — auto-seleção de autor", () => {
     rerender();
 
     await waitFor(() => {
-      expect(mockSetValue).toHaveBeenCalledWith("author_id", "author-1");
+      expect(mockSetValue).toHaveBeenCalledWith("author_ids", ["author-1"], { shouldValidate: true });
     });
   });
 
-  it("não define author_id enquanto autores ainda estão carregando", async () => {
+  it("não define author_ids enquanto autores ainda estão carregando", async () => {
     setupMocks({
       authors: [],
       isLoadingAuthors: true,
@@ -371,7 +371,7 @@ describe("useBookUpsert — auto-seleção de autor", () => {
     rerender();
 
     expect(mockSetValue).not.toHaveBeenCalledWith(
-      "author_id",
+      "author_ids",
       expect.anything(),
     );
   });
@@ -391,7 +391,7 @@ describe("useBookUpsert — auto-seleção de autor", () => {
     await waitFor(() => {
       expect(result.current.isAuthorModalOpen).toBe(true);
     });
-    expect(mockSetValue).not.toHaveBeenCalledWith("author_id", expect.anything());
+    expect(mockSetValue).not.toHaveBeenCalledWith("author_ids", expect.anything());
   });
 
   it("não auto-seleciona autor quando foundBook não tem autor", async () => {
@@ -410,7 +410,7 @@ describe("useBookUpsert — auto-seleção de autor", () => {
     rerender();
 
     expect(mockSetValue).not.toHaveBeenCalledWith(
-      "author_id",
+      "author_ids",
       expect.anything(),
     );
   });
@@ -556,6 +556,6 @@ describe("useBookUpsert — reset da busca automática após criar livro", () =>
 
     rerender();
 
-    expect(mockSetValue).not.toHaveBeenCalledWith("author_id", "author-99");
+    expect(mockSetValue).not.toHaveBeenCalledWith("author_ids", ["author-99"], expect.anything());
   });
 });

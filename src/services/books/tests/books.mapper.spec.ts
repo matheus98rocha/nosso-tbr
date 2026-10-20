@@ -134,6 +134,8 @@ describe("BookMapper", () => {
       id: "b1",
       title: "T",
       author: "A",
+      authorIds: [],
+      authorNames: [],
       chosen_by: "u1",
       pages: 1,
       readerIds: ["11111111-1111-4111-8111-111111111111"],
@@ -162,6 +164,8 @@ describe("BookMapper", () => {
       id: "b1",
       title: "T",
       author: "A",
+      authorIds: [],
+      authorNames: [],
       chosen_by: "u",
       pages: 1,
       readerIds: [],
@@ -185,6 +189,8 @@ describe("BookMapper", () => {
       id: "bid",
       title: "T",
       author: "A",
+      authorIds: [],
+      authorNames: [],
       chosen_by: "u",
       pages: 1,
       readerIds: [],
@@ -226,5 +232,31 @@ describe("BookMapper", () => {
     const domain = BookMapper.toDomain(persistence as BookPersistence);
 
     expect(domain.author).toBe("Autor desconhecido");
+  });
+
+  it("mapeia múltiplos autores de book_authors com formatList", () => {
+    const persistence: BookPersistence = {
+      id: "1",
+      title: "Boas-vindas",
+      author: { name: "Legacy" },
+      author_id: "legacy",
+      book_authors: [
+        { author_id: "a1", authors: { name: "Ana" } },
+        { author_id: "a2", authors: { name: "Bruno" } },
+      ],
+      chosen_by: "11111111-1111-4111-8111-111111111111",
+      pages: 100,
+      readers: ["11111111-1111-4111-8111-111111111111"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+    };
+
+    const domain = BookMapper.toDomain(persistence);
+
+    expect(domain.author).toBe("Ana e Bruno");
+    expect(domain.authorIds).toEqual(["a1", "a2"]);
+    expect(domain.authorNames).toEqual(["Ana", "Bruno"]);
+    expect(domain.authorId).toBe("a1");
   });
 });

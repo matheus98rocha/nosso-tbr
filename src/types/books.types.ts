@@ -9,6 +9,12 @@ export type Status =
   | "paused"
   | "abandoned";
 
+export type BookAuthorPersistence = {
+  author_id: string;
+  authors?: { name: string | null } | null;
+  author?: { name: string | null } | null;
+};
+
 export type BookPersistence = {
   id?: string;
   title: string;
@@ -16,6 +22,7 @@ export type BookPersistence = {
     name: string;
   } | null;
   author_id: string | null;
+  book_authors?: BookAuthorPersistence[] | null;
   chosen_by: string;
   pages: number;
   status?: Status;
@@ -55,6 +62,8 @@ export type BookDomain = {
   title: string;
   author: string;
   authorId?: string;
+  authorIds: string[];
+  authorNames: string[];
   chosen_by: string;
   pages: number;
   status?: Status;

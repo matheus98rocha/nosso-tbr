@@ -8,6 +8,7 @@ import {
 } from "@/modules/bookUpsert/services/bookUpsert.validation";
 import { ensureAddedReadersAreFollowed } from "@/lib/books/ensureAddedReadersAreFollowed";
 import { mergeBookReaders } from "@/lib/books/mergeBookReaders";
+import { syncBookAuthors } from "@/lib/books/syncBookAuthors";
 import { canUserParticipateInBook } from "@/lib/security/bookParticipation";
 import { requireUser } from "@/app/api/_utils/requireUser";
 import type { Status } from "@/types/books.types";
@@ -104,6 +105,15 @@ export async function PATCH(request: Request, ctx: RouteParams) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const authorsSync = await syncBookAuthors(
+    supabase,
+    id,
+    parsed.data.author_ids,
+  );
+  if (authorsSync.error) {
+    return NextResponse.json({ error: authorsSync.error }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true as const });
