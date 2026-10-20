@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import { BookMarked } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,21 +29,19 @@ function ZeroFollowingNudge({
   pendingUserId,
   isTogglePending,
 }: ZeroFollowingNudgeProps) {
-  const reduceMotion = useReducedMotion();
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        aria-describedby="zero-following-description"
         className={cn(
           "max-h-[90dvh] gap-0 overflow-hidden border-[color-mix(in_oklch,var(--reading-ink)_14%,transparent)] p-0 sm:max-w-md",
           "bg-[var(--reading-surface)] shadow-[0_28px_80px_-36px_color-mix(in_oklch,var(--reading-ink)_70%,transparent)]",
+          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
         )}
         data-testid="zero-following-nudge"
       >
-        <div
-          className="relative overflow-hidden px-6 pb-5 pt-7 sm:px-7 sm:pt-8"
+        <DialogHeader
+          className="relative gap-2 overflow-hidden px-6 pb-5 pt-7 text-left sm:px-7 sm:pt-8"
           style={{
             background:
               "radial-gradient(ellipse at 8% 0%, color-mix(in oklch, var(--reading-ink) 10%, transparent), transparent 55%), radial-gradient(ellipse at 92% 12%, oklch(0.72 0.06 175 / 0.12), transparent 48%)",
@@ -54,32 +51,17 @@ function ZeroFollowingNudge({
             className="auth-noise pointer-events-none absolute inset-0 opacity-[0.045] mix-blend-multiply dark:opacity-[0.08] dark:mix-blend-soft-light"
             aria-hidden
           />
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="relative"
-          >
-            <p className="mb-3 text-[0.65rem] font-semibold tracking-[0.22em] text-[color-mix(in_oklch,var(--reading-ink)_48%,transparent)] uppercase">
-              Sua rede de leitura
-            </p>
-            <DialogHeader className="gap-2 text-left">
-              <DialogTitle
-                id="zero-following-nudge-title"
-                className="brand-display text-balance pr-8 text-2xl font-semibold leading-tight tracking-tight text-[var(--reading-ink)] sm:text-[1.65rem]"
-              >
-                Você ainda não segue ninguém
-              </DialogTitle>
-              <DialogDescription
-                id="zero-following-description"
-                className="max-w-[34ch] text-sm leading-relaxed text-[color-mix(in_oklch,var(--reading-ink)_62%,transparent)] sm:text-[0.95rem]"
-              >
-                Escolha leitores com gostos parecidos aos seus. A lista abaixo é
-                um começo — a Comunidade tem o restante.
-              </DialogDescription>
-            </DialogHeader>
-          </motion.div>
-        </div>
+          <p className="relative mb-1 text-[0.65rem] font-semibold tracking-[0.22em] text-[color-mix(in_oklch,var(--reading-ink)_48%,transparent)] uppercase">
+            Sua rede de leitura
+          </p>
+          <DialogTitle className="brand-display relative text-balance pr-8 text-2xl font-semibold leading-tight tracking-tight text-[var(--reading-ink)] sm:text-[1.65rem]">
+            Você ainda não segue ninguém
+          </DialogTitle>
+          <DialogDescription className="relative max-w-[34ch] text-sm leading-relaxed text-[color-mix(in_oklch,var(--reading-ink)_62%,transparent)] sm:text-[0.95rem]">
+            Escolha leitores com gostos parecidos aos seus. A lista abaixo é um
+            começo — a Comunidade tem o restante.
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="border-t border-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] px-6 py-4 sm:px-7">
           {isLoading ? (

@@ -40,10 +40,7 @@ function WelcomeTutorialDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-w-md"
-        aria-describedby="welcome-tutorial-description"
-      >
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span
@@ -54,9 +51,7 @@ function WelcomeTutorialDialog({
             </span>
             {currentStep.title}
           </DialogTitle>
-          <DialogDescription id="welcome-tutorial-description">
-            {currentStep.description}
-          </DialogDescription>
+          <DialogDescription>{currentStep.description}</DialogDescription>
         </DialogHeader>
 
         <p className="text-sm text-zinc-500 dark:text-zinc-400" aria-live="polite">
