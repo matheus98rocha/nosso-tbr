@@ -5,13 +5,10 @@ import {
   Mail,
   Sparkles,
   UserRound,
-  Users,
 } from "lucide-react";
-import Link from "next/link";
 import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,14 +19,30 @@ import {
 import { ProfileWelcomeTutorial } from "@/modules/onboarding";
 import { AvatarSelectionPanel } from "@/modules/profile/avatarSelection";
 import { useClientProfile } from "@/modules/profile/clientProfile/hooks";
-import { ProfileAvatar } from "@/modules/profile/components";
+import {
+  ProfileAvatar,
+  ProfileFavoritesSection,
+  ProfileGenreHighlights,
+  ProfileHubLinks,
+  ProfileNetworkCountLinks,
+  ProfileReadingActivity,
+} from "@/modules/profile/components";
+import {
+  useProfileReadingShowcase,
+} from "@/modules/profile/hooks";
+import { useMemberProfileFavorites } from "@/modules/profile/memberProfile/hooks";
 
 function ClientProfileView() {
   const viewModel = useClientProfile();
+  const readerId = viewModel?.userId ?? "";
+  const showcaseQuery = useProfileReadingShowcase(readerId);
+  const favoritesQuery = useMemberProfileFavorites(readerId);
 
   if (!viewModel) {
     return null;
   }
+
+  const showcase = showcaseQuery.data;
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-7">
@@ -38,8 +51,8 @@ function ClientProfileView() {
           Meu perfil 📚
         </h1>
         <p className="max-w-xl text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Olá! 👋 Aqui fica sua conta e o avatar. Para descobrir leitores e
-          seguir, use a Comunidade.
+          Sua conta, sua leitura e atalhos. Para descobrir leitores e seguir, use
+          a Comunidade.
         </p>
       </header>
 
@@ -74,20 +87,12 @@ function ClientProfileView() {
                     {viewModel.userEmail}
                   </span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
-                  <Users className="size-4 shrink-0" aria-hidden />
-                  Seguindo{" "}
-                  <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-200">
-                    {viewModel.followingCount}
-                  </span>
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
-                  <Users className="size-4 shrink-0" aria-hidden />
-                  Seguidores{" "}
-                  <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-200">
-                    {viewModel.followerCount}
-                  </span>
-                </span>
+                <ProfileNetworkCountLinks
+                  followingCount={viewModel.followingCount}
+                  followerCount={viewModel.followerCount}
+                  followingHref={viewModel.followingHref}
+                  followersHref={viewModel.followersHref}
+                />
               </CardDescription>
             </div>
           </div>
@@ -119,34 +124,37 @@ function ClientProfileView() {
         </CardContent>
       </Card>
 
+      <ProfileReadingActivity
+        registeredCount={showcase?.registeredCount ?? 0}
+        finishedCount={showcase?.finishedCount ?? 0}
+        currentlyReadingTitle={showcase?.currentlyReadingTitle ?? null}
+        isLoading={showcaseQuery.isLoading}
+        isError={showcaseQuery.isError}
+      />
+
+      <ProfileGenreHighlights
+        mostReadGenderLabel={showcase?.mostReadGenderLabel ?? null}
+        mostRegisteredGenderLabel={
+          showcase?.mostRegisteredGenderLabel ?? null
+        }
+        isLoading={showcaseQuery.isLoading}
+        isError={showcaseQuery.isError}
+      />
+
       <AvatarSelectionPanel />
 
       <ProfileWelcomeTutorial />
 
-      <section
-        className="overflow-hidden rounded-2xl border border-violet-200/40 shadow-md dark:border-violet-900/30 dark:bg-zinc-900/50"
-        aria-labelledby="community-heading"
-      >
-        <div className="space-y-4 p-4 sm:p-6">
-          <div className="space-y-1">
-            <h2
-              id="community-heading"
-              className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
-            >
-              Comunidade 🤝
-            </h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Descubra leitores, veja quem te segue e siga quem fizer sentido.
-            </p>
-          </div>
-          <Button
-            asChild
-            className="h-11 cursor-pointer rounded-xl"
-          >
-            <Link href={viewModel.communityPath}>Ver comunidade</Link>
-          </Button>
-        </div>
-      </section>
+      <ProfileFavoritesSection
+        books={favoritesQuery.data ?? []}
+        isLoading={favoritesQuery.isLoading}
+        isFetched={favoritesQuery.isFetched}
+        isError={favoritesQuery.isError}
+        allBooksHref={viewModel.allBooksHref}
+        hideInteractions={false}
+      />
+
+      <ProfileHubLinks links={viewModel.hubLinks} />
     </div>
   );
 }

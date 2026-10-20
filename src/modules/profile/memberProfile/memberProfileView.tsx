@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, BookMarked, Mail } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { memo } from "react";
 
@@ -13,10 +13,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BookCard } from "@/components/bookCard/bookCard";
-import { ListGrid } from "@/components/listGrid";
+import { COMMUNITY_PATH } from "@/lib/routes/community";
 import { cn } from "@/lib/utils";
-import { ProfileAvatar } from "@/modules/profile/components";
+import {
+  ProfileAvatar,
+  ProfileFavoritesSection,
+  ProfileGenreHighlights,
+  ProfileReadingActivity,
+} from "@/modules/profile/components";
+import {
+  useProfileNetworkCounts,
+  useProfileReadingShowcase,
+} from "@/modules/profile/hooks";
 import {
   useMemberProfile,
   useMemberProfileFavorites,
@@ -45,25 +53,29 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
     isError: favoritesError,
   } = useMemberProfileFavorites(userId);
 
+  const showcaseQuery = useProfileReadingShowcase(userId);
+  const networkQuery = useProfileNetworkCounts(userId);
+
   const reduceMotion = useReducedMotion();
   const allBooksHref = `/?reader=${encodeURIComponent(userId)}`;
+  const showcase = showcaseQuery.data;
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-3xl mx-auto px-4 py-7 space-y-6">
-        <div className="h-10 w-48 rounded-lg bg-zinc-200/80 dark:bg-zinc-700/50 animate-pulse" />
-        <div className="h-52 rounded-2xl bg-zinc-200/80 dark:bg-zinc-700/50 animate-pulse" />
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-7">
+        <div className="h-10 w-48 animate-pulse rounded-lg bg-zinc-200/80 dark:bg-zinc-700/50" />
+        <div className="h-52 animate-pulse rounded-2xl bg-zinc-200/80 dark:bg-zinc-700/50" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="w-full max-w-3xl mx-auto px-4 py-7 space-y-4 text-center">
+      <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-7 text-center">
         <p className="text-zinc-700 dark:text-zinc-200">
           Algo deu errado ao carregar este perfil. Tente de novo em instantes.
         </p>
-        <Button asChild variant="outline" className="rounded-xl cursor-pointer">
+        <Button asChild variant="outline" className="cursor-pointer rounded-xl">
           <Link href="/profile">Voltar ao meu perfil</Link>
         </Button>
       </div>
@@ -72,7 +84,7 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
 
   if (isNotFound || !profile) {
     return (
-      <div className="w-full max-w-3xl mx-auto px-4 py-7 space-y-4 text-center">
+      <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-7 text-center">
         <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
           Leitor não encontrado
         </p>
@@ -80,7 +92,7 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
           Esse link pode estar desatualizado ou o usuário não existe mais por
           aqui.
         </p>
-        <Button asChild variant="outline" className="rounded-xl cursor-pointer">
+        <Button asChild variant="outline" className="cursor-pointer rounded-xl">
           <Link href="/profile">Voltar ao meu perfil</Link>
         </Button>
       </div>
@@ -88,12 +100,14 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
   }
 
   const initials = initialsFromDisplayName(profile.displayName);
+  const followingCount = networkQuery.data?.followingCount ?? 0;
+  const followerCount = networkQuery.data?.followerCount ?? 0;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-7 space-y-8">
+    <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-7">
       <Link
         href="/profile"
-        className="inline-flex items-center gap-2 text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 transition-colors cursor-pointer"
+        className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
       >
         <ArrowLeft className="size-4 shrink-0" aria-hidden />
         Meu perfil e comunidade
@@ -103,32 +117,40 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
         <h1 className="page-title text-zinc-900 dark:text-zinc-100">
           Perfil de leitor 📖
         </h1>
-        <p className="text-base text-zinc-600 dark:text-zinc-400 max-w-xl">
+        <p className="max-w-xl text-base text-zinc-600 dark:text-zinc-400">
           Conheça quem também marca leituras por aqui.
         </p>
       </header>
 
-      <Card className="dark:bg-zinc-900/50 rounded-2xl shadow-md gap-0 py-0 overflow-hidden border border-violet-200/60 dark:border-violet-900/40">
-        <div className="h-24 sm:h-28 bg-linear-to-br from-violet-500/25 via-fuchsia-500/15 to-amber-400/20 dark:from-violet-500/20 dark:via-fuchsia-600/10 dark:to-amber-500/10" />
-        <CardHeader className="px-6 pb-6 -mt-10 relative">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
+      <Card className="gap-0 overflow-hidden rounded-2xl border border-violet-200/60 py-0 shadow-md dark:border-violet-900/40 dark:bg-zinc-900/50">
+        <div className="h-24 bg-linear-to-br from-violet-500/25 via-fuchsia-500/15 to-amber-400/20 sm:h-28 dark:from-violet-500/20 dark:via-fuchsia-600/10 dark:to-amber-500/10" />
+        <CardHeader className="relative -mt-10 px-6 pb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-6">
             <ProfileAvatar
               initials={initials}
               avatarSeed={profile.avatarSeed}
               size="lg"
-              className="ring-4 ring-white dark:ring-zinc-900 shadow-lg"
+              className="shadow-lg ring-4 ring-white dark:ring-zinc-900"
               alt={`Avatar de ${profile.displayName}`}
             />
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between flex-1 min-w-0 pt-2 sm:pt-0">
-              <div className="space-y-1 min-w-0">
-                <CardTitle className="text-2xl text-zinc-900 dark:text-zinc-100 truncate">
+            <div className="flex min-w-0 flex-1 flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between sm:pt-0">
+              <div className="min-w-0 space-y-1">
+                <CardTitle className="truncate text-2xl text-zinc-900 dark:text-zinc-100">
                   {profile.displayName}
                 </CardTitle>
-                <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                  <span className="inline-flex items-center gap-1.5 min-w-0">
-                    <Mail className="size-4 shrink-0 text-zinc-400" aria-hidden />
-                    <span className="truncate text-zinc-600 dark:text-zinc-300">
-                      {profile.email || "—"}
+                <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Users className="size-4 shrink-0" aria-hidden />
+                    Seguindo{" "}
+                    <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-200">
+                      {followingCount}
+                    </span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Users className="size-4 shrink-0" aria-hidden />
+                    Seguidores{" "}
+                    <span className="font-medium tabular-nums text-zinc-700 dark:text-zinc-200">
+                      {followerCount}
                     </span>
                   </span>
                 </CardDescription>
@@ -137,7 +159,7 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
                 type="button"
                 variant={isFollowing ? "secondary" : "default"}
                 className={cn(
-                  "h-11 min-w-[128px] shrink-0 rounded-xl cursor-pointer transition-colors duration-200",
+                  "h-11 min-w-[128px] shrink-0 cursor-pointer rounded-xl transition-colors duration-200",
                   !toggleBusy && "active:scale-[0.98] active:duration-100",
                   toggleBusy && "disabled:opacity-100",
                 )}
@@ -172,51 +194,45 @@ function MemberProfileViewComponent({ userId }: MemberProfileViewProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-0 pb-6 px-6">
+        <CardContent className="px-6 pb-6 pt-0">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Quer ver mais leitores? Volte à{" "}
+            Quer ver mais leitores? Vá à{" "}
             <Link
-              href="/profile"
-              className="text-violet-600 dark:text-violet-400 font-medium hover:underline cursor-pointer"
+              href={COMMUNITY_PATH}
+              className="cursor-pointer font-medium text-violet-600 hover:underline dark:text-violet-400"
             >
-              busca na comunidade
+              Comunidade
             </Link>
             .
           </p>
         </CardContent>
       </Card>
 
-      <section className="space-y-4" aria-labelledby="member-profile-favorites-heading">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <h2
-            id="member-profile-favorites-heading"
-            className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2"
-          >
-            <BookMarked className="size-5 text-rose-500 shrink-0" aria-hidden />
-            Livros favoritos
-          </h2>
-        </div>
+      <ProfileReadingActivity
+        registeredCount={showcase?.registeredCount ?? 0}
+        finishedCount={showcase?.finishedCount ?? 0}
+        currentlyReadingTitle={showcase?.currentlyReadingTitle ?? null}
+        isLoading={showcaseQuery.isLoading}
+        isError={showcaseQuery.isError}
+      />
 
-        <ListGrid
-          items={favoriteBooks}
-          isLoading={favoritesLoading}
-          isFetched={favoritesFetched}
-          isError={favoritesError}
-          skeletonCount={6}
-          emptyMessage="Nenhum livro favorito ainda."
-          renderItem={(book) => (
-            <BookCard key={book.id} book={book} hideInteractions />
-          )}
-        />
+      <ProfileGenreHighlights
+        mostReadGenderLabel={showcase?.mostReadGenderLabel ?? null}
+        mostRegisteredGenderLabel={
+          showcase?.mostRegisteredGenderLabel ?? null
+        }
+        isLoading={showcaseQuery.isLoading}
+        isError={showcaseQuery.isError}
+      />
 
-        <Button
-          asChild
-          variant="outline"
-          className="w-full sm:w-auto min-h-11 rounded-xl border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-800/60 dark:text-violet-200 dark:hover:bg-violet-950/50 cursor-pointer"
-        >
-          <Link href={allBooksHref}>Ver todos os livros</Link>
-        </Button>
-      </section>
+      <ProfileFavoritesSection
+        books={favoriteBooks}
+        isLoading={favoritesLoading}
+        isFetched={favoritesFetched}
+        isError={favoritesError}
+        allBooksHref={allBooksHref}
+        hideInteractions
+      />
     </div>
   );
 }
