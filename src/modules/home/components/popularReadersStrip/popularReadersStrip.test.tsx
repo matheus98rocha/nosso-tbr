@@ -44,6 +44,11 @@ describe("PopularReadersStrip", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("3 seguidores")).toBeInTheDocument();
 
+    const profileLink = screen.getByRole("link", {
+      name: "Ver perfil de Ana",
+    });
+    expect(profileLink).toHaveAttribute("href", "/profile/r1");
+
     const section = container.querySelector("section");
     const list = container.querySelector("ul");
     const card = container.querySelector("li");
