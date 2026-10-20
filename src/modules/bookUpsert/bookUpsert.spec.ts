@@ -308,6 +308,24 @@ describe("BookUpsert - regras de negócio do schema", () => {
     }
   });
 
+  it("aceita a capa padrão local ao atualizar um livro sem URL remota", () => {
+    const result = bookCreateSchema.safeParse(
+      createValidBook({ image_url: BOOK_COVER_PLACEHOLDER_SRC, status: "finished" }),
+    );
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejeita uma URL remota que só imita o arquivo da capa padrão", () => {
+    const result = bookCreateSchema.safeParse(
+      createValidBook({
+        image_url: "https://example.com/book-cover-placeholder.svg",
+      }),
+    );
+
+    expect(result.success).toBe(false);
+  });
+
   it("deve aceitar image_url vazio ou ausente (RN04 — opcional)", () => {
     const empty = bookCreateSchema.safeParse(
       createValidBook({ image_url: "" }),
