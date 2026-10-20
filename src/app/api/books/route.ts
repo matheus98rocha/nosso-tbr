@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { ensureAddedReadersAreFollowed } from "@/lib/books/ensureAddedReadersAreFollowed";
 import { bookCreateSchema } from "@/modules/home/validators/createBook.validator";
 import { BookUpsertMapper } from "@/modules/bookUpsert/services/mappers/bookUpsert.mapper";
 import { normalizeDatesForTransition } from "@/modules/bookUpsert/services/bookStatusTransition";
@@ -50,6 +51,19 @@ export async function POST(request: Request) {
   };
   if (!canUserParticipateInBook(auth.user.id, row)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const followBlock = await ensureAddedReadersAreFollowed(
+    supabase,
+    auth.user.id,
+    [],
+    parsed.data.readers,
+  );
+  if (followBlock) {
+    return NextResponse.json(
+      { error: followBlock.error },
+      { status: followBlock.status },
+    );
   }
 
   const payload = BookUpsertMapper.toPersistence(parsed.data);

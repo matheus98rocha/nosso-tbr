@@ -6,6 +6,7 @@ import { normalizeDatesForTransition } from "@/modules/bookUpsert/services/bookS
 import {
   validateTransition,
 } from "@/modules/bookUpsert/services/bookUpsert.validation";
+import { ensureAddedReadersAreFollowed } from "@/lib/books/ensureAddedReadersAreFollowed";
 import { mergeBookReaders } from "@/lib/books/mergeBookReaders";
 import { canUserParticipateInBook } from "@/lib/security/bookParticipation";
 import { requireUser } from "@/app/api/_utils/requireUser";
@@ -85,6 +86,19 @@ export async function PATCH(request: Request, ctx: RouteParams) {
     parsed.data.readers,
     parsed.data.base_readers,
   );
+
+  const followBlock = await ensureAddedReadersAreFollowed(
+    supabase,
+    auth.user.id,
+    currentReaders,
+    payload.readers,
+  );
+  if (followBlock) {
+    return NextResponse.json(
+      { error: followBlock.error },
+      { status: followBlock.status },
+    );
+  }
 
   const { error } = await supabase.from("books").update(payload).eq("id", id);
 

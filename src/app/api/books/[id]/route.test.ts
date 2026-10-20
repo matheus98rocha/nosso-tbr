@@ -260,6 +260,106 @@ describe("PATCH /api/books/[id]", () => {
       );
     });
 
+    it("recusa PATCH que adiciona um leitor que o ator não segue", async () => {
+      const strangerId = "33333333-3333-4333-8333-333333333333";
+      const currentBook = {
+        id: "book-1",
+        status: "reading",
+        start_date: null,
+        end_date: null,
+        user_id: "owner-user",
+        chosen_by: "owner-user",
+        readers: ["owner-user"],
+      };
+      const readBuilder = buildBookSelectSingle(currentBook);
+      const update = vi.fn();
+      const inFollowers = vi.fn().mockResolvedValue({ data: [], error: null });
+      const eqFollowers = vi.fn(() => ({ in: inFollowers }));
+      const selectFollowers = vi.fn(() => ({ eq: eqFollowers }));
+      const client: SupabaseByIdMock = {
+        auth: { getUser: authedGetUser("owner-user") },
+        from: vi.fn((table: string) => {
+          if (table === "user_followers") return { select: selectFollowers };
+          return { select: readBuilder.select, update };
+        }),
+      };
+
+      const route = await loadRouteWithClient(client);
+      const response = await route.PATCH(
+        new Request("http://localhost/api/books/book-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...validPatchPayload,
+            readers: ["owner-user", strangerId],
+            base_readers: ["owner-user"],
+          }),
+        }),
+        { params: Promise.resolve({ id: "book-1" }) },
+      );
+
+      expect(response.status).toBe(403);
+      await expect(response.json()).resolves.toEqual({
+        error: "Você só pode adicionar pessoas que segue",
+      });
+      expect(eqFollowers).toHaveBeenCalledWith("follower_id", "owner-user");
+      expect(inFollowers).toHaveBeenCalledWith("following_id", [strangerId]);
+      expect(update).not.toHaveBeenCalled();
+    });
+
+    it("permite PATCH que adiciona um leitor seguido", async () => {
+      const followedId = "33333333-3333-4333-8333-333333333333";
+      const currentBook = {
+        id: "book-1",
+        status: "reading",
+        start_date: null,
+        end_date: null,
+        user_id: "owner-user",
+        chosen_by: "owner-user",
+        readers: ["owner-user"],
+      };
+      const readBuilder = buildBookSelectSingle(currentBook);
+      const eqUpdate = vi.fn().mockResolvedValue({ error: null });
+      const update = vi.fn(() => ({ eq: eqUpdate }));
+      const inFollowers = vi.fn().mockResolvedValue({
+        data: [{ following_id: followedId }],
+        error: null,
+      });
+      const eqFollowers = vi.fn(() => ({ in: inFollowers }));
+      const selectFollowers = vi.fn(() => ({ eq: eqFollowers }));
+      let booksCalls = 0;
+      const client: SupabaseByIdMock = {
+        auth: { getUser: authedGetUser("owner-user") },
+        from: vi.fn((table: string) => {
+          if (table === "user_followers") return { select: selectFollowers };
+          booksCalls += 1;
+          if (booksCalls === 1) return { select: readBuilder.select };
+          return { update };
+        }),
+      };
+
+      const route = await loadRouteWithClient(client);
+      const response = await route.PATCH(
+        new Request("http://localhost/api/books/book-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...validPatchPayload,
+            readers: ["owner-user", followedId],
+            base_readers: ["owner-user"],
+          }),
+        }),
+        { params: Promise.resolve({ id: "book-1" }) },
+      );
+
+      expect(response.status).toBe(200);
+      expect(update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          readers: ["owner-user", followedId],
+        }),
+      );
+    });
+
     it("permite PATCH quando o usuário é chosen_by ainda que não esteja em readers", async () => {
       const chooserId = "who-picked";
       const currentBook = {
