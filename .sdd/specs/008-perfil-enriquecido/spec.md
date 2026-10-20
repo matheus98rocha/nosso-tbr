@@ -1,8 +1,9 @@
 # Feature Specification: Perfil enriquecido
 
 **Feature ID:** 008  
-**Status:** Draft — Plan  
+**Status:** Implemented  
 **Plan:** [plan.md](./plan.md)  
+**Tasks:** [tasks.md](./tasks.md)  
 
 **Owner:** Mateus  
 **Criada em:** 2026-10-20  
@@ -262,6 +263,5 @@ Como dono, tocar em Seguindo / Seguidores no Meu perfil abre a Comunidade no rec
 
 ## 11. Notas de governança SDD
 
-- Fase atual: **Plan** (`plan.md` + `data-model.md` + `contracts/`).
-- Próximo: `tasks.md` → implement.
+- Fase atual: **Implemented** (`tasks.md` T001–T018).
 - Issue de rastreio: [#179](https://github.com/matheus98rocha/nosso-tbr/issues/179).

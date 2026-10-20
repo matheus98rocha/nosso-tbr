@@ -4,7 +4,8 @@
 **Spec:** [spec.md](./spec.md)  
 **Data model:** [data-model.md](./data-model.md)  
 **Contracts:** [contracts/api-spec.md](./contracts/api-spec.md)  
-**Status:** Draft — Plan  
+**Status:** Implemented  
+
 **Criada em:** 2026-10-20
 
 ---
