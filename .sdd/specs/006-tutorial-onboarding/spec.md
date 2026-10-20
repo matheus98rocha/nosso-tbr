@@ -1,7 +1,7 @@
 # Feature Specification: Tutorial de boas-vindas e recomendações de leitores
 
 **Feature ID:** 006  
-**Status:** Planned  
+**Status:** Implemented  
 **Owner:** Mateus  
 **Criada em:** 2026-10-20  
 **Atualizada em:** 2026-10-20  

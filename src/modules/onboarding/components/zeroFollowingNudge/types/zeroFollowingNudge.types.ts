@@ -1,0 +1,14 @@
+import type { RefObject } from "react";
+
+import type { FollowRecommendation } from "../../../types/onboarding.types";
+
+export type ZeroFollowingNudgeProps = {
+  recommendations: FollowRecommendation[];
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+  onToggleFollow: (readerId: string) => void;
+  pendingUserId: string | null;
+  isTogglePending: boolean;
+  nudgeRef?: RefObject<HTMLElement | null>;
+};

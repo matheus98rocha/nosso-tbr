@@ -105,4 +105,11 @@ export const QUERY_KEYS = {
     finished: (userId: string) =>
       [...QUERY_KEYS.readingRecap.all, "finished", userId] as const,
   },
+  onboarding: {
+    all: ["onboarding"] as const,
+    tutorial: (userId: string) =>
+      [...QUERY_KEYS.onboarding.all, "tutorial", userId] as const,
+    recommendations: (userId: string) =>
+      [...QUERY_KEYS.onboarding.all, "recommendations", userId] as const,
+  },
 } as const;

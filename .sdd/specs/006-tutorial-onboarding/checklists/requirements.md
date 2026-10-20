@@ -23,4 +23,4 @@
 
 - [x] Decisões assumidas listadas em §10 (Home-first, **só 1º login**, N=5, sem preferências explícitas)
 - [x] Plan + Tasks + data-model gerados
-- [ ] Aguardando go para `/speckit.implement` (ou implementação na branch)
+- [x] Implementação T001–T021 na branch

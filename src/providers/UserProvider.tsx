@@ -11,21 +11,31 @@ export function UserProvider({
   children,
   initialUser,
   initialTier = null,
+  initialWelcomeTutorialSeenAt = null,
 }: {
   children: ReactNode;
   initialUser: User | null;
   initialTier?: UserTier | null;
+  initialWelcomeTutorialSeenAt?: string | null;
 }) {
-  const key = `${initialUser?.id ?? "__null__"}:${initialTier ?? "__null__"}`;
+  const key = `${initialUser?.id ?? "__null__"}:${initialTier ?? "__null__"}:${initialWelcomeTutorialSeenAt ?? "__null__"}`;
   const [appliedKey, setAppliedKey] = useState<string | undefined>(undefined);
   const sessionInSync = appliedKey === key;
 
   useEffect(() => {
     if (appliedKey === key) return;
 
-    useUserStore.getState().setSession(initialUser, initialTier);
+    useUserStore
+      .getState()
+      .setSession(initialUser, initialTier, initialWelcomeTutorialSeenAt);
     setAppliedKey(key);
-  }, [appliedKey, initialTier, initialUser, key]);
+  }, [
+    appliedKey,
+    initialTier,
+    initialUser,
+    initialWelcomeTutorialSeenAt,
+    key,
+  ]);
 
   return (
     <SessionSyncContext.Provider value={sessionInSync}>
