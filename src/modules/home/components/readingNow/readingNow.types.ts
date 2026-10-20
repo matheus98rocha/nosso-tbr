@@ -12,8 +12,11 @@ export const READING_NOW_COVER_SIZE = {
   height: 84,
 } as const;
 
+export type ReadingNowScope = "solo" | "collective";
+
 export type ReadingNowProps = {
   className?: string;
+  scope?: ReadingNowScope;
 };
 
 export type ReadingNowBookSlideProps = {

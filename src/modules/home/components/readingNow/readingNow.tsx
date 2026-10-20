@@ -14,14 +14,34 @@ import ReadingNowBookSlide from "./components/readingNowBookSlide";
 import ReadingNowCarouselDots from "./components/readingNowCarouselDots";
 import ReadingNowStatusConfirmationDialog from "./components/readingNowStatusConfirmationDialog";
 import { useReadingNow } from "./hooks";
-import type { ReadingNowProps } from "./readingNow.types";
+import type { ReadingNowProps, ReadingNowScope } from "./readingNow.types";
+
+const READING_NOW_COPY: Record<
+  ReadingNowScope,
+  { title: string; detail: string | null; ariaLabel: string }
+> = {
+  solo: {
+    title: "Lendo agora",
+    detail: null,
+    ariaLabel: "Lendo agora",
+  },
+  collective: {
+    title: "Lendo agora",
+    detail: "Leituras coletivas",
+    ariaLabel: "Lendo agora, leituras coletivas",
+  },
+};
 
 const sectionTransition = {
   duration: 0.35,
   ease: [0.33, 1, 0.68, 1] as const,
 };
 
-export default function ReadingNow({ className }: ReadingNowProps) {
+export default function ReadingNow({
+  className,
+  scope = "solo",
+}: ReadingNowProps) {
+  const copy = READING_NOW_COPY[scope];
   const reduceMotion = useReducedMotion();
   const {
     scrollRef,
@@ -54,7 +74,7 @@ export default function ReadingNow({ className }: ReadingNowProps) {
     transitioningBookId,
     ratingPromptBookId,
     dismissRatingPrompt,
-  } = useReadingNow();
+  } = useReadingNow(scope);
 
   if (!shouldRender) {
     return null;
@@ -101,17 +121,24 @@ export default function ReadingNow({ className }: ReadingNowProps) {
           "w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-card shadow-[0_12px_40px_-28px_oklch(0.25_0.05_264/0.28)]",
           className,
         )}
-        aria-label="Lendo agora"
+        aria-label={copy.ariaLabel}
       >
         <div className="flex min-w-0 items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <p className="brand-display flex min-w-0 items-center gap-1.5 text-[13px] font-semibold tracking-tight text-[var(--reading-ink)]">
-              <BookOpen
-                className="size-3.5 shrink-0 text-muted-foreground"
-                aria-hidden
-              />
-              Lendo agora
-            </p>
+            <div className="min-w-0">
+              <p className="brand-display flex min-w-0 items-center gap-1.5 text-[13px] font-semibold tracking-tight text-[var(--reading-ink)]">
+                <BookOpen
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
+                {copy.title}
+              </p>
+              {copy.detail ? (
+                <p className="pl-5 text-[11px] font-medium text-muted-foreground">
+                  {copy.detail}
+                </p>
+              ) : null}
+            </div>
             {!isLoading && items.length > 0 && (
               <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
                 {items.length}

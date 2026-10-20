@@ -131,7 +131,9 @@ vi.mock("@/components/bookCard", () => ({
 }));
 
 vi.mock("@/modules/home/components/readingNow", () => ({
-  default: () => null,
+  default: ({ scope = "solo" }: { scope?: string }) => (
+    <div>reading-now-{scope}</div>
+  ),
 }));
 
 vi.mock("@/components/pagintation/pagination", () => ({
@@ -253,6 +255,25 @@ describe("ClientHome FAB Adicionar livro", () => {
     expect(
       screen.queryByRole("button", { name: "Adicionar livro" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("mostra o card de leitura solo e o de leituras coletivas quando logado", () => {
+    renderWithQueryClient(<ClientHome />);
+
+    expect(screen.getByText("reading-now-solo")).toBeInTheDocument();
+    expect(screen.getByText("reading-now-collective")).toBeInTheDocument();
+  });
+
+  it("não mostra os cards de lendo agora quando deslogado", () => {
+    vi.mocked(useHome).mockReturnValueOnce({
+      ...baseUseHome,
+      isLoggedIn: false,
+    } as unknown as ReturnType<typeof useHome>);
+
+    renderWithQueryClient(<ClientHome />);
+
+    expect(screen.queryByText("reading-now-solo")).not.toBeInTheDocument();
+    expect(screen.queryByText("reading-now-collective")).not.toBeInTheDocument();
   });
 
   it("reserva padding inferior no conteúdo quando logado para não cobrir cards", () => {

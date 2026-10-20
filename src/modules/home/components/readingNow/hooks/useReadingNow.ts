@@ -17,12 +17,15 @@ import { isUnauthorizedError } from "@/lib/api/isUnauthorizedError";
 
 import type {
   ReadingNowBookItem,
+  ReadingNowScope,
   ReadingNowStatusTransitionStatus,
   ReadingNowStatusTransitionTarget,
 } from "../readingNow.types";
 import { buildReadingNowStatusPayload } from "../utils/buildReadingNowStatusPayload";
+import { matchesReadingNowScope } from "../utils/matchesReadingNowScope";
 
-const READING_NOW_PAGE_SIZE = 12;
+const READING_NOW_VISIBLE_LIMIT = 12;
+const READING_NOW_FETCH_SIZE = 48;
 
 const READING_NOW_FILTERS: FiltersOptions = {
   readers: [],
@@ -75,7 +78,7 @@ function toReadingNowItem(
   };
 }
 
-export function useReadingNow() {
+export function useReadingNow(scope: ReadingNowScope = "solo") {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -98,10 +101,10 @@ export function useReadingNow() {
     queryKey: [...QUERY_KEYS.books.all, "reading-now", userId] as const,
     queryFn: () =>
       bookService.getAll({
-        userId,
+        relationshipUserValues: userId ? [userId] : undefined,
         filters: READING_NOW_FILTERS,
         page: 0,
-        pageSize: READING_NOW_PAGE_SIZE,
+        pageSize: READING_NOW_FETCH_SIZE,
       }),
     enabled: isLoggedIn && !!userId,
     staleTime: 1000 * 60 * 5,
@@ -111,10 +114,13 @@ export function useReadingNow() {
 
   const readingBooks = useMemo(
     () =>
-      (data?.data ?? []).filter(
-        (book): book is BookDomain & { id: string } => typeof book.id === "string",
-      ),
-    [data?.data],
+      (data?.data ?? [])
+        .filter(
+          (book): book is BookDomain & { id: string } =>
+            typeof book.id === "string" && matchesReadingNowScope(book, scope),
+        )
+        .slice(0, READING_NOW_VISIBLE_LIMIT),
+    [data?.data, scope],
   );
 
   const readingBookIds = useMemo(
@@ -140,7 +146,9 @@ export function useReadingNow() {
   const activeItem = items[activeIndex] ?? null;
   const activeBookTitle = activeItem?.book.title ?? null;
   const shouldRender =
-    isLoggedIn && (isLoading || items.length > 0 || isError);
+    scope === "collective"
+      ? isLoggedIn && items.length > 0
+      : isLoggedIn && (isLoading || items.length > 0 || isError);
 
   useEffect(() => {
     if (activeIndex >= items.length && items.length > 0) {
