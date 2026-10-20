@@ -8,6 +8,7 @@ export type BookAuthorJoinRow = {
 
 export type ResolveBookAuthorsInput = {
   book_authors?: BookAuthorJoinRow[] | null;
+  credited_authors?: BookAuthorJoinRow[] | null;
   author?: { name: string | null } | null;
   author_id?: string | null;
 };
@@ -22,7 +23,12 @@ export type ResolvedBookAuthors = {
 export function resolveBookAuthors(
   input: ResolveBookAuthorsInput,
 ): ResolvedBookAuthors {
-  const fromJunction = (input.book_authors ?? [])
+  const junctionRows =
+    input.credited_authors && input.credited_authors.length > 0
+      ? input.credited_authors
+      : (input.book_authors ?? []);
+
+  const fromJunction = junctionRows
     .map((row) => {
       const id = row.author_id?.trim() || "";
       const name =

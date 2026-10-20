@@ -23,6 +23,7 @@ export type BookPersistence = {
   } | null;
   author_id: string | null;
   book_authors?: BookAuthorPersistence[] | null;
+  credited_authors?: BookAuthorPersistence[] | null;
   chosen_by: string;
   pages: number;
   status?: Status;
