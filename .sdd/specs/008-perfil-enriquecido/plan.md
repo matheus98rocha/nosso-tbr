@@ -61,10 +61,10 @@ UserSocialService.getNetworkCounts(userId) →
   { followingCount, followerCount }
 ```
 
-Queries em `user_followers`:
+Agregados fora do RLS de `user_followers` (o SELECT só vê arestas do visitante):
 
-- seguindo: `follower_id = userId` → count / ids length  
-- seguidores: `following_id = userId` → count / ids length  
+- seguindo: `count_following_of(userId)`
+- seguidores: `count_followers_of(userId)`  
 
 Hoje `getFollowingIds` / `getFollowerIds` são **só do auth.uid()**; não estender a semântica — método novo explícito.
 

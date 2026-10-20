@@ -48,11 +48,16 @@ type TestSupabase = {
     getUser: () => Promise<{ data: { user: { id: string } | null }; error: unknown }>;
   };
   from: (table: string) => ThenableQuery<unknown>;
+  rpc: (
+    name: string,
+    args?: { p_user_id: string },
+  ) => Promise<{ data: unknown; error: unknown }>;
 };
 
 describe("UserSocialService", () => {
   const getUser = vi.fn();
   const from = vi.fn();
+  const rpc = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -85,6 +90,7 @@ describe("UserSocialService", () => {
     (service as unknown as { supabase: TestSupabase }).supabase = {
       auth: { getUser },
       from,
+      rpc,
     };
     return service;
   }
@@ -199,38 +205,46 @@ describe("UserSocialService", () => {
     expect(result).toEqual(["follower-9", "follower-8"]);
   });
 
-  it("retorna totais de rede para um userId arbitrário", async () => {
-    const followingQuery = makeThenableQuery({
-      data: null,
-      error: null,
-      count: 3,
-    });
-    const followerQuery = makeThenableQuery({
-      data: null,
-      error: null,
-      count: 7,
-    });
-    let followersCalls = 0;
-
-    from.mockImplementation((table: string) => {
-      if (table === "user_followers") {
-        followersCalls += 1;
-        return followersCalls === 1 ? followingQuery : followerQuery;
+  it("conta a rede fora do RLS de user_followers", async () => {
+    rpc.mockImplementation(async (name: string) => {
+      if (name === "count_following_of") {
+        return { data: "3", error: null };
       }
 
-      return makeThenableQuery({ data: [], error: null });
+      if (name === "count_followers_of") {
+        return { data: 7, error: null };
+      }
+
+      return { data: null, error: { message: "unexpected rpc" } };
     });
 
     const service = makeService();
     const result = await service.getNetworkCounts("peer-9");
 
     expect(result).toEqual({ followingCount: 3, followerCount: 7 });
-    expect(followingQuery.select).toHaveBeenCalledWith("following_id", {
-      count: "exact",
-      head: true,
+    expect(rpc).toHaveBeenCalledWith("count_following_of", {
+      p_user_id: "peer-9",
     });
-    expect(followingQuery.eq).toHaveBeenCalledWith("follower_id", "peer-9");
-    expect(followerQuery.eq).toHaveBeenCalledWith("following_id", "peer-9");
+    expect(rpc).toHaveBeenCalledWith("count_followers_of", {
+      p_user_id: "peer-9",
+    });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("propaga falha ao contar seguidores", async () => {
+    rpc.mockImplementation(async (name: string) => {
+      if (name === "count_following_of") {
+        return { data: 1, error: null };
+      }
+
+      return { data: null, error: { message: "rls" } };
+    });
+
+    const service = makeService();
+
+    await expect(service.getNetworkCounts("peer-9")).rejects.toThrow(
+      /Failed to load follower count|rls/i,
+    );
   });
 });
 
