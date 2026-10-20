@@ -21,5 +21,6 @@
 
 ## Clarity assumptions
 
-- [x] Decisões assumidas listadas em §10 (Home-first, N=5, sem preferências explícitas)
-- [ ] Aguardando feedback do produto antes de Plan
+- [x] Decisões assumidas listadas em §10 (Home-first, **só 1º login**, N=5, sem preferências explícitas)
+- [x] Plan + Tasks + data-model gerados
+- [ ] Aguardando go para `/speckit.implement` (ou implementação na branch)
