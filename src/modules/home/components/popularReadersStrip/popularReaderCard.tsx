@@ -15,7 +15,7 @@ function PopularReaderCardComponent({
   onFollow,
 }: PopularReaderCardProps) {
   return (
-    <li className="flex w-[9.5rem] shrink-0 flex-col items-center gap-2.5 rounded-2xl border border-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] bg-white/70 px-3 py-3.5 dark:bg-zinc-950/45">
+    <li className="flex min-w-[9.5rem] flex-1 flex-col items-center gap-2.5 rounded-2xl border border-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] bg-white/70 px-3 py-3.5 dark:bg-zinc-950/45">
       <ProfileAvatar
         initials={initialsFromDisplayName(reader.displayName)}
         avatarSeed={reader.avatarSeed}

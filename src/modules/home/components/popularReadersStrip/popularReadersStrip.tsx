@@ -20,7 +20,7 @@ export default function PopularReadersStrip({
 }: PopularReadersStripProps) {
   return (
     <section
-      className="mb-5 space-y-3"
+      className="mb-5 w-full space-y-3"
       aria-labelledby="popular-readers-title"
       aria-busy={isLoading}
     >
@@ -63,11 +63,11 @@ export default function PopularReadersStrip({
       </div>
 
       {isLoading ? (
-        <ul className="flex gap-3 overflow-x-auto pb-1">
+        <ul className="flex w-full gap-3 overflow-x-auto pb-1">
           {Array.from({ length: 4 }).map((_, index) => (
             <li
               key={`popular-reader-skeleton-${index}`}
-              className="flex w-[9.5rem] shrink-0 flex-col items-center gap-2.5 rounded-2xl border border-zinc-200/70 p-3 dark:border-zinc-800"
+              className="flex min-w-[9.5rem] flex-1 flex-col items-center gap-2.5 rounded-2xl border border-zinc-200/70 p-3 dark:border-zinc-800"
             >
               <Skeleton className="h-12 w-12 rounded-full" />
               <Skeleton className="h-4 w-20" />
@@ -77,7 +77,7 @@ export default function PopularReadersStrip({
           ))}
         </ul>
       ) : (
-        <ul className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
+        <ul className="flex w-full gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
           {readers.map((reader) => (
             <PopularReaderCard
               key={reader.id}

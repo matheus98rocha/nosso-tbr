@@ -28,7 +28,7 @@ describe("PopularReadersStrip", () => {
     const onFollow = vi.fn();
     const onHide = vi.fn();
 
-    render(
+    const { container } = render(
       <PopularReadersStrip
         readers={[reader]}
         isLoading={false}
@@ -43,6 +43,14 @@ describe("PopularReadersStrip", () => {
       screen.getByRole("heading", { name: "Leitores populares" }),
     ).toBeInTheDocument();
     expect(screen.getByText("3 seguidores")).toBeInTheDocument();
+
+    const section = container.querySelector("section");
+    const list = container.querySelector("ul");
+    const card = container.querySelector("li");
+    expect(section?.className).toContain("w-full");
+    expect(list?.className).toContain("w-full");
+    expect(card?.className).toContain("flex-1");
+    expect(card?.className).toContain("min-w-[9.5rem]");
 
     await user.click(screen.getByRole("button", { name: "Seguir Ana" }));
     expect(onFollow).toHaveBeenCalledWith("r1");
