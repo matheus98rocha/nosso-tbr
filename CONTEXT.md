@@ -12,6 +12,10 @@ _Avoid_: usuário social, conta
 Leitor que mantém uma relação ativa de acompanhamento com outro leitor.
 _Avoid_: amigo, assinante
 
+**Leitores populares**:
+Faixa de descoberta na Home com leitores elegíveis a seguir, ordenados por quantidade de seguidores e por leituras em comum (gênero e autores) com o leitor logado.
+_Avoid_: contas populares, suggested users, ranking global
+
 **Ator da atividade**:
 Leitor autenticado que executou uma ação na aplicação. Para a atividade de adicionar livro, é quem cadastrou o livro, independentemente do leitor responsável pelo livro.
 _Avoid_: dono do livro, leitor responsável
