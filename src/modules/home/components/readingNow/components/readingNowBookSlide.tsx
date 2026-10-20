@@ -101,7 +101,7 @@ export default function ReadingNowBookSlide({
         )}
       </div>
 
-      <div className="flex min-w-0 flex-col gap-2 border-t border-border pt-2.5 md:flex-row md:items-center md:justify-between md:gap-3">
+      <div className="flex min-w-0 flex-col gap-2 border-t border-border pt-2.5 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3">
         <ReadingNowStatusActions
           className="min-w-0 w-full md:flex-1"
           isPending={isStatusPending}

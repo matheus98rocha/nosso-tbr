@@ -293,4 +293,29 @@ describe("ReadingNow", () => {
       screen.queryByRole("button", { name: "Cronograma" }),
     ).not.toBeInTheDocument();
   });
+
+  it("reuses the solo card for collective readings and labels that scope", () => {
+    mockedUseReadingNow.mockReturnValue({
+      ...baseHookReturn,
+      items: [sampleItem],
+      activeItem: sampleItem,
+      shouldRender: true,
+      activeScheduleHref: "/schedule/book-1/O Hobbit",
+    });
+
+    render(<ReadingNow scope="collective" />);
+
+    expect(mockedUseReadingNow).toHaveBeenCalledWith("collective");
+    expect(
+      screen.getByLabelText("Lendo agora, leituras coletivas"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Lendo agora")).toBeInTheDocument();
+    expect(screen.getByText("Leituras coletivas")).toBeInTheDocument();
+    expect(screen.getByText("O Hobbit")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Finalizar" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pausar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Abandonar" })).toBeInTheDocument();
+  });
 });
