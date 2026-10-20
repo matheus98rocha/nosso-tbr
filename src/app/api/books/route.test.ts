@@ -236,6 +236,44 @@ describe("POST /api/books", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
+  it("returns 403 and does not insert when a reader is not followed", async () => {
+    const strangerId = "33333333-3333-4333-8333-333333333333";
+    const insert = vi.fn();
+    const inFollowers = vi.fn().mockResolvedValue({ data: [], error: null });
+    const eqFollowers = vi.fn(() => ({ in: inFollowers }));
+    const selectFollowers = vi.fn(() => ({ eq: eqFollowers }));
+    const client: SupabaseBooksRouteMock = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "user-owner" } },
+          error: null,
+        }),
+      },
+      from: vi.fn((table: string) => {
+        if (table === "user_followers") return { select: selectFollowers };
+        return { insert };
+      }),
+    };
+
+    const route = await loadRouteWithClient(client);
+    const response = await route.POST(
+      new Request("http://localhost/api/books", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...validPayload,
+          readers: ["user-owner", strangerId],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      error: "Você só pode adicionar pessoas que segue",
+    });
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it("returns 201 with id when insert succeeds", async () => {
     const chain = buildInsertSelectSingle({
       data: { id: "new-book-id" },
