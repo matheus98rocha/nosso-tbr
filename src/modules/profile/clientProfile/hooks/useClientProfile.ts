@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { COMMUNITY_PATH } from "@/lib/routes/community";
+import {
+  COMMUNITY_PATH,
+  getCommunityViewPath,
+} from "@/lib/routes/community";
+import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
+import { STATS_PATH } from "@/lib/routes/stats";
 import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/types/clientProfile.types";
 import { useClientMounted } from "@/modules/profile/hooks/useClientMounted";
 import {
@@ -48,7 +53,7 @@ export function useClientProfile(): ClientProfileViewModel | null {
   });
 
   return useMemo((): ClientProfileViewModel | null => {
-    if (!user?.email) {
+    if (!user?.email || !user.id) {
       return null;
     }
 
@@ -59,6 +64,7 @@ export function useClientProfile(): ClientProfileViewModel | null {
       : initialsFromEmail(user.email);
 
     return {
+      userId: user.id,
       displayName,
       userEmail: user.email,
       avatarInitials,
@@ -68,6 +74,14 @@ export function useClientProfile(): ClientProfileViewModel | null {
       followingCount: followingIds.length,
       followerCount: followerIds.length,
       communityPath: COMMUNITY_PATH,
+      followingHref: getCommunityViewPath("seguindo"),
+      followersHref: getCommunityViewPath("seguidores"),
+      allBooksHref: `/?reader=${encodeURIComponent(user.id)}`,
+      hubLinks: [
+        { href: STATS_PATH, label: "Estatísticas" },
+        { href: SHELVES_LIST_PATH, label: "Estantes" },
+        { href: COMMUNITY_PATH, label: "Comunidade" },
+      ],
     };
   }, [
     user,

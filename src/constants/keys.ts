@@ -117,4 +117,11 @@ export const QUERY_KEYS = {
     list: (userId: string) =>
       [...QUERY_KEYS.popularReaders.all, "list", userId] as const,
   },
+  profile: {
+    all: ["profile"] as const,
+    readingShowcase: (readerId: string) =>
+      [...QUERY_KEYS.profile.all, "readingShowcase", readerId] as const,
+    networkCounts: (userId: string) =>
+      [...QUERY_KEYS.profile.all, "networkCounts", userId] as const,
+  },
 } as const;

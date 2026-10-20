@@ -85,7 +85,7 @@ describe("useClientProfile", () => {
     expect(result.current).toBeNull();
   });
 
-  it("expõe contagens da rede e atalho da comunidade sem diretório", async () => {
+  it("expõe contagens da rede, hub e atalhos da comunidade sem diretório", async () => {
     const { result } = renderHook(() => useClientProfile(), {
       wrapper: createWrapper(),
     });
@@ -96,5 +96,12 @@ describe("useClientProfile", () => {
 
     expect(result.current?.followerCount).toBe(2);
     expect(result.current?.communityPath).toBe("/community");
+    expect(result.current?.followingHref).toBe("/community?view=seguindo");
+    expect(result.current?.followersHref).toBe("/community?view=seguidores");
+    expect(result.current?.hubLinks).toEqual([
+      { href: "/stats", label: "Estatísticas" },
+      { href: "/shelves", label: "Estantes" },
+      { href: "/community", label: "Comunidade" },
+    ]);
   });
 });

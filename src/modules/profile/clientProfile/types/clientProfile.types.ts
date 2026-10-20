@@ -1,4 +1,7 @@
+import type { ProfileHubLinkItem } from "@/modules/profile/components/ProfileHubLinks";
+
 export type ClientProfileViewModel = {
+  userId: string;
   displayName: string;
   userEmail: string;
   avatarInitials: string;
@@ -8,4 +11,8 @@ export type ClientProfileViewModel = {
   followingCount: number;
   followerCount: number;
   communityPath: string;
+  followingHref: string;
+  followersHref: string;
+  allBooksHref: string;
+  hubLinks: ProfileHubLinkItem[];
 };

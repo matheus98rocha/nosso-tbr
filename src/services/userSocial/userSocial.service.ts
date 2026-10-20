@@ -133,6 +133,56 @@ export class UserSocialService {
     return (data ?? []).map((row) => row.follower_id as string);
   }
 
+  async getNetworkCounts(userId: string): Promise<{
+    followingCount: number;
+    followerCount: number;
+  }> {
+    try {
+      const [followingResult, followerResult] = await Promise.all([
+        this.supabase
+          .from("user_followers")
+          .select("following_id", { count: "exact", head: true })
+          .eq("follower_id", userId),
+        this.supabase
+          .from("user_followers")
+          .select("follower_id", { count: "exact", head: true })
+          .eq("following_id", userId),
+      ]);
+
+      if (followingResult.error) {
+        throw new RepositoryError(
+          "Failed to load following count",
+          undefined,
+          undefined,
+          followingResult.error,
+          { userId },
+        );
+      }
+
+      if (followerResult.error) {
+        throw new RepositoryError(
+          "Failed to load follower count",
+          undefined,
+          undefined,
+          followerResult.error,
+          { userId },
+        );
+      }
+
+      return {
+        followingCount: followingResult.count ?? 0,
+        followerCount: followerResult.count ?? 0,
+      };
+    } catch (error) {
+      const normalized = ErrorHandler.normalize(error, {
+        service: "UserSocialService",
+        method: "getNetworkCounts",
+      });
+      ErrorHandler.log(normalized);
+      throw normalized;
+    }
+  }
+
   async follow(followingId: string): Promise<void> {
     const {
       data: { user },

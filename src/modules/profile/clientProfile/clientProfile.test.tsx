@@ -6,6 +6,7 @@ import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/typ
 import ClientProfile from "./clientProfile";
 
 const baseViewModel: ClientProfileViewModel = {
+  userId: "user-1",
   displayName: "reader",
   userEmail: "reader@tbr.com",
   avatarInitials: "R",
@@ -15,6 +16,14 @@ const baseViewModel: ClientProfileViewModel = {
   followingCount: 2,
   followerCount: 4,
   communityPath: "/community",
+  followingHref: "/community?view=seguindo",
+  followersHref: "/community?view=seguidores",
+  allBooksHref: "/?reader=user-1",
+  hubLinks: [
+    { href: "/stats", label: "Estatísticas" },
+    { href: "/shelves", label: "Estantes" },
+    { href: "/community", label: "Comunidade" },
+  ],
 };
 
 const { mockUseClientProfile } = vi.hoisted(() => ({
@@ -35,6 +44,39 @@ vi.mock("@/modules/onboarding", () => ({
   ),
 }));
 
+vi.mock("@/modules/profile/hooks", () => ({
+  useProfileReadingShowcase: () => ({
+    data: {
+      registeredCount: 10,
+      finishedCount: 4,
+      currentlyReadingTitle: "Duna",
+      mostReadGenderLabel: "Fantasia",
+      mostRegisteredGenderLabel: "Romance",
+    },
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
+vi.mock("@/modules/profile/memberProfile/hooks", () => ({
+  useMemberProfileFavorites: () => ({
+    data: [],
+    isLoading: false,
+    isFetched: true,
+    isError: false,
+  }),
+}));
+
+vi.mock("@/components/bookCard/bookCard", () => ({
+  BookCard: () => <div data-testid="book-card" />,
+}));
+
+vi.mock("@/components/listGrid", () => ({
+  ListGrid: ({ emptyMessage }: { emptyMessage: string }) => (
+    <p>{emptyMessage}</p>
+  ),
+}));
+
 describe("ClientProfile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -50,13 +92,40 @@ describe("ClientProfile", () => {
     expect(screen.getByText("4")).toBeInTheDocument();
   });
 
-  it("oferece atalho para a Comunidade sem listar membros", () => {
+  it("mostra atividade, gêneros, favoritos e hub", () => {
     render(<ClientProfile />);
 
-    expect(
-      screen.getByRole("link", { name: /ver comunidade/i }),
-    ).toHaveAttribute("href", "/community");
-    expect(screen.queryByLabelText(/buscar pessoas/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/atividade de leitura/i)).toBeInTheDocument();
+    expect(screen.getByText(/10 cadastrados/i)).toBeInTheDocument();
+    expect(screen.getByText(/lendo duna/i)).toBeInTheDocument();
+    expect(screen.getByText(/gêneros em destaque/i)).toBeInTheDocument();
+    expect(screen.getByText("Fantasia")).toBeInTheDocument();
+    expect(screen.getByText(/livros favoritos/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /estatísticas/i })).toHaveAttribute(
+      "href",
+      "/stats",
+    );
+    expect(screen.getByRole("link", { name: /estantes/i })).toHaveAttribute(
+      "href",
+      "/shelves",
+    );
+    expect(screen.getByRole("link", { name: /^comunidade$/i })).toHaveAttribute(
+      "href",
+      "/community",
+    );
+  });
+
+  it("torna contagens da rede clicáveis para a Comunidade", () => {
+    render(<ClientProfile />);
+
+    expect(screen.getByRole("link", { name: /seguindo 2/i })).toHaveAttribute(
+      "href",
+      "/community?view=seguindo",
+    );
+    expect(screen.getByRole("link", { name: /seguidores 4/i })).toHaveAttribute(
+      "href",
+      "/community?view=seguidores",
+    );
   });
 
   it("oferece reabrir o tutorial", () => {

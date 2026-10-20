@@ -224,6 +224,12 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
   - **Gráfico de pizza** (`PieChart`) – colaboração/leitura entre leitores.
 - Permite selecionar leitor via `<Select>`; rota é sincronizada com query string (`/stats?reader=Nome`).
 
+### 👤 Perfil (`/profile` e `/profile/[userId]`)
+
+- **Meu perfil:** conta (e-mail, datas, avatar DiceBear), atividade de leitura (cadastrados / lidos / lendo), gêneros em destaque, favoritos, hub (Estatísticas / Estantes / Comunidade) e contagens de rede clicáveis (`?view=seguindo|seguidores`).
+- **Perfil de membro:** mesma vitrine de leitura (com privacidade INVOKER), totais de rede, favoritos e seguir — **sem** e-mail.
+- Atividade e gêneros reusam as RPCs da Comunidade filtradas por `readerId` (`ProfileReadingService`).
+
 ### 🤝 Comunidade (`/community`)
 
 - Tela autenticada para **descobrir leitores** (exceto o usuário logado): avatar, nome, quantidade de livros cadastrados e lidos, livro em leitura quando houver, seguir / deixar de seguir.
