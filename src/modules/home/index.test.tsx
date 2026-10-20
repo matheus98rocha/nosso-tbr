@@ -113,9 +113,8 @@ vi.mock("@/modules/aiRecommendation", () => ({
 
 vi.mock("@/modules/onboarding", () => ({
   WelcomeTutorialDialog: () => null,
-  ZeroFollowingNudge: () => (
-    <div data-testid="zero-following-nudge-mock">nudge</div>
-  ),
+  ZeroFollowingNudge: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="zero-following-nudge-mock">nudge</div> : null,
   useWelcomeTutorial: () => ({
     isOpen: false,
     steps: [],

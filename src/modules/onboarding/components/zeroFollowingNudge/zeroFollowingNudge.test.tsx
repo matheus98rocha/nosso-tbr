@@ -1,12 +1,15 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import ZeroFollowingNudge from "./zeroFollowingNudge";
 
 describe("ZeroFollowingNudge", () => {
-  it("mostra aviso e recomendações", () => {
+  it("mostra modal com aviso e recomendações quando aberto", () => {
     render(
       <ZeroFollowingNudge
+        isOpen
+        onOpenChange={vi.fn()}
         recommendations={[
           {
             readerId: "ana",
@@ -38,6 +41,8 @@ describe("ZeroFollowingNudge", () => {
   it("mostra empty sem lista fantasma", () => {
     render(
       <ZeroFollowingNudge
+        isOpen
+        onOpenChange={vi.fn()}
         recommendations={[]}
         isLoading={false}
         isError={false}
@@ -51,5 +56,49 @@ describe("ZeroFollowingNudge", () => {
     expect(
       screen.getByText(/Em breve haverá outros leitores/),
     ).toBeInTheDocument();
+  });
+
+  it("permite continuar sem seguir", async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+
+    render(
+      <ZeroFollowingNudge
+        isOpen
+        onOpenChange={onOpenChange}
+        recommendations={[]}
+        isLoading={false}
+        isError={false}
+        onRetry={vi.fn()}
+        onToggleFollow={vi.fn()}
+        pendingUserId={null}
+        isTogglePending={false}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Continuar sem seguir" }),
+    );
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("não renderiza conteúdo quando fechado", () => {
+    render(
+      <ZeroFollowingNudge
+        isOpen={false}
+        onOpenChange={vi.fn()}
+        recommendations={[]}
+        isLoading={false}
+        isError={false}
+        onRetry={vi.fn()}
+        onToggleFollow={vi.fn()}
+        pendingUserId={null}
+        isTogglePending={false}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: "Você ainda não segue ninguém" }),
+    ).not.toBeInTheDocument();
   });
 });

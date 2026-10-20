@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDownUp,
@@ -88,7 +88,7 @@ export default function ClientHome() {
   const aiRecommendationModal = useModal();
   const [aiPrefilledTitle, setAiPrefilledTitle] = useState<string | null>(null);
   const [editingBook, setEditingBook] = useState<BookDomain | null>(null);
-  const zeroFollowingNudgeRef = useRef<HTMLElement | null>(null);
+  const [zeroFollowingDismissed, setZeroFollowingDismissed] = useState(false);
   const isLoading = isLoadingAllBooks || isLoggingOut;
 
   const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
@@ -143,22 +143,30 @@ export default function ClientHome() {
 
   const followRecommendations = useFollowRecommendations();
 
-  const scrollToFollowNudge = useCallback(() => {
-    if (followRecommendations.showNudge && zeroFollowingNudgeRef.current) {
-      zeroFollowingNudgeRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+  useEffect(() => {
+    if (!followRecommendations.showNudge) {
+      setZeroFollowingDismissed(false);
+    }
+  }, [followRecommendations.showNudge]);
+
+  const openZeroFollowingModal = useCallback(() => {
+    if (followRecommendations.showNudge) {
+      setZeroFollowingDismissed(false);
       return;
     }
     window.location.assign(COMMUNITY_PATH);
   }, [followRecommendations.showNudge]);
 
   const welcomeTutorial = useWelcomeTutorial({
-    onFollowCta: scrollToFollowNudge,
+    onFollowCta: openZeroFollowingModal,
     onBooksCta: handleOpenBookUpsert,
     onAiCta: handleOpenAiRecommendation,
   });
+
+  const zeroFollowingOpen =
+    followRecommendations.showNudge &&
+    !welcomeTutorial.isOpen &&
+    !zeroFollowingDismissed;
 
   return (
     <div
@@ -527,20 +535,21 @@ export default function ClientHome() {
         </div>
       )}
 
-      {isLoggedIn && followRecommendations.showNudge ? (
-        <div className="mb-6">
-          <ZeroFollowingNudge
-            nudgeRef={zeroFollowingNudgeRef}
-            recommendations={followRecommendations.recommendations}
-            isLoading={followRecommendations.isLoading}
-            isError={followRecommendations.isError}
-            onRetry={followRecommendations.onRetry}
-            onToggleFollow={followRecommendations.onToggleFollow}
-            pendingUserId={followRecommendations.pendingUserId}
-            isTogglePending={followRecommendations.isTogglePending}
-          />
-        </div>
-      ) : null}
+      <ZeroFollowingNudge
+        isOpen={zeroFollowingOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setZeroFollowingDismissed(true);
+          }
+        }}
+        recommendations={followRecommendations.recommendations}
+        isLoading={followRecommendations.isLoading}
+        isError={followRecommendations.isError}
+        onRetry={followRecommendations.onRetry}
+        onToggleFollow={followRecommendations.onToggleFollow}
+        pendingUserId={followRecommendations.pendingUserId}
+        isTogglePending={followRecommendations.isTogglePending}
+      />
 
       {shouldSuggestFollowing ? (
         <div
@@ -561,55 +570,46 @@ export default function ClientHome() {
             </p>
           </div>
 
-          <div
-            className={cn(
-              "grid gap-4 max-w-3xl mx-auto",
-              followRecommendations.showNudge
-                ? "sm:grid-cols-1"
-                : "sm:grid-cols-2",
-            )}
-          >
-            {!followRecommendations.showNudge ? (
-              <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/80 dark:text-violet-300 mb-4">
-                  <UserPlus className="size-5" aria-hidden />
-                </div>
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Descobrir leitores
-                </h3>
-                <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
-                  Na Comunidade você encontra pessoas para seguir e acompanha o
-                  que elas estão lendo.
-                </p>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="min-h-11 w-full justify-center gap-2 border-violet-200 text-violet-800 hover:bg-violet-50 hover:text-violet-900 dark:border-violet-800/60 dark:text-violet-200 dark:hover:bg-violet-950/50 cursor-pointer transition-colors"
-                >
-                  <Link
-                    href={COMMUNITY_PATH}
-                    aria-label="Abrir a Comunidade para encontrar e seguir leitores"
-                  >
-                    <UserPlus className="size-4 shrink-0" aria-hidden />
-                    Ver comunidade
-                  </Link>
-                </Button>
+          <div className="grid gap-4 sm:grid-cols-2 max-w-3xl mx-auto">
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-[color-mix(in_oklch,var(--reading-ink)_28%,transparent)]">
+              <div className="mb-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] text-[var(--reading-ink)]">
+                <UserPlus className="size-5" aria-hidden />
               </div>
-            ) : null}
+              <h3 className="mb-2 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                Descobrir leitores
+              </h3>
+              <p className="mb-5 flex-1 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
+                Na Comunidade você encontra pessoas para seguir e acompanha o
+                que elas estão lendo.
+              </p>
+              <Button
+                asChild
+                variant="outline"
+                className="min-h-11 w-full cursor-pointer justify-center gap-2"
+              >
+                <Link
+                  href={COMMUNITY_PATH}
+                  aria-label="Abrir a Comunidade para encontrar e seguir leitores"
+                >
+                  <UserPlus className="size-4 shrink-0" aria-hidden />
+                  Ver comunidade
+                </Link>
+              </Button>
+            </div>
 
-            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 mb-4">
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-[color-mix(in_oklch,var(--reading-ink)_28%,transparent)]">
+              <div className="mb-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] text-[var(--reading-ink)]">
                 <BookPlus className="size-5" aria-hidden />
               </div>
-              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              <h3 className="mb-2 text-base font-semibold text-zinc-900 dark:text-zinc-100">
                 Registrar suas leituras
               </h3>
-              <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
+              <p className="mb-5 flex-1 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
                 Cadastre títulos que você quer ler ou já leu — sua lista fica só
                 sua, do jeito que preferir.
               </p>
               <Button
-                className="min-h-11 w-full justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white cursor-pointer transition-colors"
+                className="min-h-11 w-full cursor-pointer justify-center gap-2 bg-[var(--reading-ink)] text-[var(--reading-surface)] hover:opacity-90"
                 onClick={() => dialogModal.setIsOpen(true)}
                 aria-label="Abrir formulário para adicionar livros à sua lista"
               >

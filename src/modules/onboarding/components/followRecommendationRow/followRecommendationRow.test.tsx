@@ -19,12 +19,14 @@ describe("FollowRecommendationRow", () => {
           registeredCount: 2,
           overlapStrength: 4,
         }}
+        index={0}
         isToggleBusy={false}
         onToggleFollow={onToggleFollow}
       />,
     );
 
     expect(screen.getByText("Também curte Fantasia")).toBeInTheDocument();
+    expect(screen.getByText("01")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Seguir Ana" }));
     expect(onToggleFollow).toHaveBeenCalled();
   });

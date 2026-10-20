@@ -1,16 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { UserPlus } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { BookMarked } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COMMUNITY_PATH } from "@/lib/routes/community";
+import { cn } from "@/lib/utils";
 
 import FollowRecommendationRow from "../followRecommendationRow";
 import type { ZeroFollowingNudgeProps } from "./types/zeroFollowingNudge.types";
 
 function ZeroFollowingNudge({
+  isOpen,
+  onOpenChange,
   recommendations,
   isLoading,
   isError,
@@ -18,89 +29,136 @@ function ZeroFollowingNudge({
   onToggleFollow,
   pendingUserId,
   isTogglePending,
-  nudgeRef,
 }: ZeroFollowingNudgeProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <section
-      ref={nudgeRef}
-      className="rounded-2xl border border-zinc-200 bg-linear-to-b from-zinc-50/90 to-white p-5 shadow-sm dark:border-zinc-800 dark:from-zinc-900/50 dark:to-zinc-950/40 sm:p-6"
-      aria-labelledby="zero-following-nudge-title"
-      data-testid="zero-following-nudge"
-    >
-      <div className="mb-4 flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-          <UserPlus className="size-5" aria-hidden />
-        </span>
-        <div className="min-w-0 space-y-1">
-          <h2
-            id="zero-following-nudge-title"
-            className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton
+        aria-describedby="zero-following-description"
+        className={cn(
+          "max-h-[90dvh] gap-0 overflow-hidden border-[color-mix(in_oklch,var(--reading-ink)_14%,transparent)] p-0 sm:max-w-md",
+          "bg-[var(--reading-surface)] shadow-[0_28px_80px_-36px_color-mix(in_oklch,var(--reading-ink)_70%,transparent)]",
+        )}
+        data-testid="zero-following-nudge"
+      >
+        <div
+          className="relative overflow-hidden px-6 pb-5 pt-7 sm:px-7 sm:pt-8"
+          style={{
+            background:
+              "radial-gradient(ellipse at 8% 0%, color-mix(in oklch, var(--reading-ink) 10%, transparent), transparent 55%), radial-gradient(ellipse at 92% 12%, oklch(0.72 0.06 175 / 0.12), transparent 48%)",
+          }}
+        >
+          <div
+            className="auth-noise pointer-events-none absolute inset-0 opacity-[0.045] mix-blend-multiply dark:opacity-[0.08] dark:mix-blend-soft-light"
+            aria-hidden
+          />
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="relative"
           >
-            Você ainda não segue ninguém
-          </h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Siga leitores com gostos parecidos aos seus para ver o que eles estão
-            lendo. A Comunidade tem a lista completa.
-          </p>
+            <p className="mb-3 text-[0.65rem] font-semibold tracking-[0.22em] text-[color-mix(in_oklch,var(--reading-ink)_48%,transparent)] uppercase">
+              Sua rede de leitura
+            </p>
+            <DialogHeader className="gap-2 text-left">
+              <DialogTitle
+                id="zero-following-nudge-title"
+                className="brand-display text-balance pr-8 text-2xl font-semibold leading-tight tracking-tight text-[var(--reading-ink)] sm:text-[1.65rem]"
+              >
+                Você ainda não segue ninguém
+              </DialogTitle>
+              <DialogDescription
+                id="zero-following-description"
+                className="max-w-[34ch] text-sm leading-relaxed text-[color-mix(in_oklch,var(--reading-ink)_62%,transparent)] sm:text-[0.95rem]"
+              >
+                Escolha leitores com gostos parecidos aos seus. A lista abaixo é
+                um começo — a Comunidade tem o restante.
+              </DialogDescription>
+            </DialogHeader>
+          </motion.div>
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="space-y-3" aria-busy="true">
-          <Skeleton className="h-16 w-full rounded-xl" />
-          <Skeleton className="h-16 w-full rounded-xl" />
+        <div className="border-t border-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] px-6 py-4 sm:px-7">
+          {isLoading ? (
+            <div className="space-y-3" aria-busy="true">
+              <Skeleton className="h-14 w-full rounded-lg" />
+              <Skeleton className="h-14 w-full rounded-lg" />
+              <Skeleton className="h-14 w-full rounded-lg" />
+            </div>
+          ) : null}
+
+          {isError ? (
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-[color-mix(in_oklch,var(--reading-ink)_72%,transparent)]">
+                Não foi possível carregar as recomendações.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 cursor-pointer rounded-full border-[color-mix(in_oklch,var(--reading-ink)_22%,transparent)]"
+                onClick={onRetry}
+              >
+                Tentar de novo
+              </Button>
+            </div>
+          ) : null}
+
+          {!isLoading && !isError && recommendations.length > 0 ? (
+            <ul className="max-h-[min(42vh,22rem)] overflow-y-auto pr-1">
+              {recommendations.map((recommendation, index) => (
+                <li key={recommendation.readerId}>
+                  <FollowRecommendationRow
+                    recommendation={recommendation}
+                    index={index}
+                    isToggleBusy={
+                      isTogglePending &&
+                      pendingUserId === recommendation.readerId
+                    }
+                    onToggleFollow={() =>
+                      onToggleFollow(recommendation.readerId)
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {!isLoading && !isError && recommendations.length === 0 ? (
+            <div className="flex items-start gap-3 py-3">
+              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklch,var(--reading-ink)_8%,transparent)] text-[var(--reading-ink)]">
+                <BookMarked className="size-4" aria-hidden />
+              </span>
+              <p className="text-sm leading-relaxed text-[color-mix(in_oklch,var(--reading-ink)_68%,transparent)]">
+                Em breve haverá outros leitores para seguir. Enquanto isso,
+                explore a Comunidade.
+              </p>
+            </div>
+          ) : null}
         </div>
-      ) : null}
 
-      {isError ? (
-        <div className="space-y-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="text-sm text-zinc-700 dark:text-zinc-300">
-            Não foi possível carregar as recomendações.
-          </p>
+        <div className="flex flex-col gap-2 border-t border-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] bg-[color-mix(in_oklch,var(--reading-ink)_3%,transparent)] px-6 py-4 sm:px-7">
+          <Button
+            asChild
+            className="h-11 w-full cursor-pointer rounded-full bg-[var(--reading-ink)] text-[var(--reading-surface)] hover:opacity-90"
+          >
+            <Link href={COMMUNITY_PATH} aria-label="Abrir a Comunidade">
+              Ver comunidade
+            </Link>
+          </Button>
           <Button
             type="button"
-            variant="outline"
-            className="h-11 cursor-pointer"
-            onClick={onRetry}
+            variant="ghost"
+            className="h-10 w-full cursor-pointer rounded-full text-[color-mix(in_oklch,var(--reading-ink)_62%,transparent)] hover:bg-transparent hover:text-[var(--reading-ink)]"
+            onClick={() => onOpenChange(false)}
           >
-            Tentar de novo
+            Continuar sem seguir
           </Button>
         </div>
-      ) : null}
-
-      {!isLoading && !isError && recommendations.length > 0 ? (
-        <ul className="space-y-3">
-          {recommendations.map((recommendation) => (
-            <li key={recommendation.readerId}>
-              <FollowRecommendationRow
-                recommendation={recommendation}
-                isToggleBusy={
-                  isTogglePending && pendingUserId === recommendation.readerId
-                }
-                onToggleFollow={() =>
-                  onToggleFollow(recommendation.readerId)
-                }
-              />
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      {!isLoading && !isError && recommendations.length === 0 ? (
-        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-          Em breve haverá outros leitores para seguir. Enquanto isso, explore a
-          Comunidade.
-        </p>
-      ) : null}
-
-      <div className="mt-4">
-        <Button asChild variant="outline" className="h-11 w-full cursor-pointer">
-          <Link href={COMMUNITY_PATH} aria-label="Abrir a Comunidade">
-            Ver comunidade
-          </Link>
-        </Button>
-      </div>
-    </section>
+      </DialogContent>
+    </Dialog>
   );
 }
 
