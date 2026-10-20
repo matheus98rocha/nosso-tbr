@@ -233,7 +233,9 @@ describe("useHome session hydration", () => {
   });
 
   it("logout deixa sessionReady false junto com usuário e tier nulos", async () => {
-    useUserStore.getState().setSession(buildSessionUser("reader-1"), "common_user");
+    useUserStore
+      .getState()
+      .setSession(buildSessionUser("reader-1"), "common_user", "2026-01-01T00:00:00.000Z");
 
     await useUserStore.getState().logout();
 
@@ -242,6 +244,7 @@ describe("useHome session hydration", () => {
       expect.objectContaining({
         user: null,
         tier: null,
+        welcomeTutorialSeenAt: null,
         isLoggingOut: false,
         sessionReady: false,
       }),

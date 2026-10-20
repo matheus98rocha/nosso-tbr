@@ -34,6 +34,7 @@ export default async function MainLayout({
     <UserProvider
       initialUser={session?.user ?? null}
       initialTier={session?.tier ?? null}
+      initialWelcomeTutorialSeenAt={session?.welcomeTutorialSeenAt ?? null}
     >
       <div className={newsreader.variable}>
         <Header />

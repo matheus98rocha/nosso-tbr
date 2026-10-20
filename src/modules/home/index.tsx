@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDownUp,
@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FAB_CONTENT_PADDING_CLASS } from "@/constants/floatingActionButton";
 import { useModal } from "@/hooks";
+import { COMMUNITY_PATH } from "@/lib/routes/community";
 import { cn } from "@/lib/utils";
 import { AiRecommendationDialog } from "@/modules/aiRecommendation";
 import type { BookSuggestion } from "@/modules/aiRecommendation";
@@ -33,6 +34,12 @@ import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFil
 import HomeQuickActions from "@/modules/home/components/homeQuickActions";
 import ReadingNow from "@/modules/home/components/readingNow";
 import { useHome } from "@/modules/home/hooks/useHome";
+import {
+  useFollowRecommendations,
+  useWelcomeTutorial,
+  WelcomeTutorialDialog,
+  ZeroFollowingNudge,
+} from "@/modules/onboarding";
 import ReadingRecap from "@/modules/readingRecap";
 import { ScheduleProgressBatchContext } from "@/modules/schedule/context/scheduleProgressBatchContext";
 import { useUserStore } from "@/stores/userStore";
@@ -81,6 +88,8 @@ export default function ClientHome() {
   const aiRecommendationModal = useModal();
   const [aiPrefilledTitle, setAiPrefilledTitle] = useState<string | null>(null);
   const [editingBook, setEditingBook] = useState<BookDomain | null>(null);
+  const [zeroFollowingHeldOpen, setZeroFollowingHeldOpen] = useState(false);
+  const zeroFollowingAutoOpenedRef = useRef(false);
   const isLoading = isLoadingAllBooks || isLoggingOut;
 
   const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
@@ -125,6 +134,52 @@ export default function ClientHome() {
     [editBookDialog],
   );
 
+  const handleOpenBookUpsert = useCallback(() => {
+    dialogModal.setIsOpen(true);
+  }, [dialogModal]);
+
+  const handleOpenAiRecommendation = useCallback(() => {
+    aiRecommendationModal.setIsOpen(true);
+  }, [aiRecommendationModal]);
+
+  const followRecommendations = useFollowRecommendations({
+    recommendationsEnabled: zeroFollowingHeldOpen,
+  });
+
+  const openZeroFollowingModal = useCallback(() => {
+    if (followRecommendations.showNudge || zeroFollowingHeldOpen) {
+      zeroFollowingAutoOpenedRef.current = true;
+      setZeroFollowingHeldOpen(true);
+      return;
+    }
+    window.location.assign(COMMUNITY_PATH);
+  }, [followRecommendations.showNudge, zeroFollowingHeldOpen]);
+
+  const welcomeTutorial = useWelcomeTutorial({
+    onFollowCta: openZeroFollowingModal,
+    onBooksCta: handleOpenBookUpsert,
+    onAiCta: handleOpenAiRecommendation,
+  });
+
+  useEffect(() => {
+    if (
+      followRecommendations.showNudge &&
+      !welcomeTutorial.isOpen &&
+      !zeroFollowingHeldOpen &&
+      !zeroFollowingAutoOpenedRef.current
+    ) {
+      zeroFollowingAutoOpenedRef.current = true;
+      setZeroFollowingHeldOpen(true);
+    }
+  }, [
+    followRecommendations.showNudge,
+    welcomeTutorial.isOpen,
+    zeroFollowingHeldOpen,
+  ]);
+
+  const zeroFollowingOpen =
+    zeroFollowingHeldOpen && !welcomeTutorial.isOpen;
+
   return (
     <div
       className={cn(
@@ -145,6 +200,20 @@ export default function ClientHome() {
       <CreateEditBookshelves
         isOpen={createShelfDialog.isOpen}
         handleClose={createShelfDialog.setIsOpen}
+      />
+      <WelcomeTutorialDialog
+        isOpen={welcomeTutorial.isOpen}
+        onOpenChange={welcomeTutorial.handleOpenChange}
+        steps={welcomeTutorial.steps}
+        stepIndex={welcomeTutorial.stepIndex}
+        currentStep={welcomeTutorial.currentStep}
+        isLastStep={welcomeTutorial.isLastStep}
+        onSkip={welcomeTutorial.closeTutorial}
+        onNext={welcomeTutorial.goNext}
+        onBack={welcomeTutorial.goBack}
+        onStepCta={() =>
+          welcomeTutorial.runStepCta(welcomeTutorial.currentStep.id)
+        }
       />
       <AiRecommendationDialog
         isOpen={aiRecommendationModal.isOpen}
@@ -478,6 +547,23 @@ export default function ClientHome() {
         </div>
       )}
 
+      <ZeroFollowingNudge
+        isOpen={zeroFollowingOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            zeroFollowingAutoOpenedRef.current = true;
+          }
+          setZeroFollowingHeldOpen(open);
+        }}
+        recommendations={followRecommendations.recommendations}
+        isLoading={followRecommendations.isLoading}
+        isError={followRecommendations.isError}
+        onRetry={followRecommendations.onRetry}
+        onToggleFollow={followRecommendations.onToggleFollow}
+        pendingUserId={followRecommendations.pendingUserId}
+        isTogglePending={followRecommendations.isTogglePending}
+      />
+
       {shouldSuggestFollowing ? (
         <div
           className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-linear-to-b from-zinc-50/80 to-zinc-50/40 dark:from-zinc-900/40 dark:to-zinc-900/20 p-6 sm:p-8 shadow-sm"
@@ -493,51 +579,50 @@ export default function ClientHome() {
             </h2>
             <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed">
               Pode ser combinação dos filtros ou ainda pouca atividade na sua
-              rede. Escolha um caminho abaixo — os dois ajudam a preencher sua
-              lista com boas leituras.
+              rede. Cadastre livros ou descubra leitores na Comunidade.
             </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 max-w-3xl mx-auto">
-            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950/80 dark:text-violet-300 mb-4">
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-[color-mix(in_oklch,var(--reading-ink)_28%,transparent)]">
+              <div className="mb-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] text-[var(--reading-ink)]">
                 <UserPlus className="size-5" aria-hidden />
               </div>
-              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                Conectar com amigos
+              <h3 className="mb-2 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                Descobrir leitores
               </h3>
-              <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
-                No perfil você encontra pessoas para seguir e acompanha o que
-                elas estão lendo.
+              <p className="mb-5 flex-1 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
+                Na Comunidade você encontra pessoas para seguir e acompanha o
+                que elas estão lendo.
               </p>
               <Button
                 asChild
                 variant="outline"
-                className="min-h-11 w-full justify-center gap-2 border-violet-200 text-violet-800 hover:bg-violet-50 hover:text-violet-900 dark:border-violet-800/60 dark:text-violet-200 dark:hover:bg-violet-950/50 cursor-pointer transition-colors"
+                className="min-h-11 w-full cursor-pointer justify-center gap-2"
               >
                 <Link
-                  href="/profile"
-                  aria-label="Abrir perfil para encontrar e seguir amigos"
+                  href={COMMUNITY_PATH}
+                  aria-label="Abrir a Comunidade para encontrar e seguir leitores"
                 >
                   <UserPlus className="size-4 shrink-0" aria-hidden />
-                  Ir ao perfil
+                  Ver comunidade
                 </Link>
               </Button>
             </div>
 
-            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-violet-200 dark:hover:border-violet-900/60">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 mb-4">
+            <div className="flex flex-col rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/50 p-5 sm:p-6 text-left shadow-xs transition-colors hover:border-[color-mix(in_oklch,var(--reading-ink)_28%,transparent)]">
+              <div className="mb-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklch,var(--reading-ink)_10%,transparent)] text-[var(--reading-ink)]">
                 <BookPlus className="size-5" aria-hidden />
               </div>
-              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              <h3 className="mb-2 text-base font-semibold text-zinc-900 dark:text-zinc-100">
                 Registrar suas leituras
               </h3>
-              <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed mb-5 flex-1">
+              <p className="mb-5 flex-1 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
                 Cadastre títulos que você quer ler ou já leu — sua lista fica só
                 sua, do jeito que preferir.
               </p>
               <Button
-                className="min-h-11 w-full justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white cursor-pointer transition-colors"
+                className="min-h-11 w-full cursor-pointer justify-center gap-2 bg-[var(--reading-ink)] text-[var(--reading-surface)] hover:opacity-90"
                 onClick={() => dialogModal.setIsOpen(true)}
                 aria-label="Abrir formulário para adicionar livros à sua lista"
               >
@@ -565,7 +650,7 @@ export default function ClientHome() {
               filters.bookId?.trim()
                 ? "Não encontramos um livro com este identificador na sua lista."
                 : followingFeedEmpty
-                  ? "Siga outros leitores pelo perfil para ver livros nesta visão."
+                  ? "Siga outros leitores na Comunidade para ver livros nesta visão."
                   : "Nenhum livro encontrado para os filtros selecionados."
             }
             isError={isError}
