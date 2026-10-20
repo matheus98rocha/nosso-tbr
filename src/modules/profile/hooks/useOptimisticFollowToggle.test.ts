@@ -61,7 +61,7 @@ describe("useOptimisticFollowToggle — RN67", () => {
     });
   });
 
-  it("em onSettled invalida following, [\"users\"], community e onboarding", async () => {
+  it("em onSettled invalida following, [\"users\"], community, onboarding e popularReaders", async () => {
     renderHook(() => useOptimisticFollowToggle("me"));
 
     await mutationConfig.onSettled();
@@ -77,6 +77,9 @@ describe("useOptimisticFollowToggle — RN67", () => {
     });
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["onboarding"],
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["popularReaders"],
     });
   });
 
