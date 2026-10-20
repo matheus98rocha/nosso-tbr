@@ -42,6 +42,9 @@ export default function AutocompleteInput({
   multiple = false,
 }: AutocompleteProps) {
   const [open, setOpen] = React.useState(false);
+  const [labelCache, setLabelCache] = React.useState<Record<string, string>>(
+    () => ({ ...(initialLabels ?? {}) }),
+  );
 
   const selectedIds = React.useMemo(() => {
     if (multiple) {
@@ -51,19 +54,60 @@ export default function AutocompleteInput({
     return [String(value)];
   }, [multiple, value]);
 
+  React.useEffect(() => {
+    setLabelCache((prev) => {
+      const next = { ...prev };
+      let changed = false;
+
+      if (initialLabels) {
+        for (const [id, name] of Object.entries(initialLabels)) {
+          if (next[id] !== name) {
+            next[id] = name;
+            changed = true;
+          }
+        }
+      }
+
+      for (const item of items) {
+        const id = String(item.id);
+        if (next[id] !== item.name) {
+          next[id] = item.name;
+          changed = true;
+        }
+      }
+
+      if (
+        !multiple &&
+        initialLabel &&
+        selectedIds[0] &&
+        next[selectedIds[0]] !== initialLabel
+      ) {
+        next[selectedIds[0]] = initialLabel;
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
+  }, [items, initialLabels, initialLabel, multiple, selectedIds]);
+
   const selectedItems = React.useMemo(() => {
     return selectedIds.map((id) => {
       const found = items.find((item) => String(item.id) === id);
       if (found) return found;
-      const labelFromInitial =
-        multiple && initialLabels?.[id]
-          ? initialLabels[id]
-          : !multiple && initialLabel
-            ? initialLabel
-            : id;
-      return { id, name: labelFromInitial };
+      const cachedName =
+        labelCache[id] ??
+        (multiple ? initialLabels?.[id] : undefined) ??
+        (!multiple ? initialLabel : undefined);
+      return { id, name: cachedName ?? id };
     });
-  }, [selectedIds, items, multiple, initialLabel, initialLabels]);
+  }, [
+    selectedIds,
+    items,
+    labelCache,
+    multiple,
+    initialLabel,
+    initialLabels,
+  ]);
 
   const displayLabel = React.useMemo(() => {
     if (multiple) {
@@ -82,6 +126,7 @@ export default function AutocompleteInput({
           ? selectedIds.filter((current) => current !== id)
           : [...selectedIds, id];
         onValuesChange?.(next);
+        setOpen(false);
         return;
       }
       onValueChange?.(id);
