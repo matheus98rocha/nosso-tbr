@@ -61,6 +61,9 @@ export function useOptimisticFollowToggle(
           queryKey: QUERY_KEYS.community.all,
         }),
         queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.onboarding.all,
+        }),
+        queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.popularReaders.all,
         }),
       ]);

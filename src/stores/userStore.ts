@@ -8,19 +8,26 @@ import { create } from "zustand";
 type UserStore = {
   user: User | null;
   tier: UserTier | null;
+  welcomeTutorialSeenAt: string | null;
   loading: boolean;
   error: string | null;
   isLoggingOut: boolean;
   sessionReady: boolean;
   setUser: (user: User | null) => void;
   setTier: (tier: UserTier | null) => void;
-  setSession: (user: User | null, tier: UserTier | null) => void;
+  setWelcomeTutorialSeenAt: (seenAt: string | null) => void;
+  setSession: (
+    user: User | null,
+    tier: UserTier | null,
+    welcomeTutorialSeenAt?: string | null,
+  ) => void;
   logout: () => Promise<void>;
 };
 
 export const useUserStore = create<UserStore>((set) => ({
   user: null,
   tier: null,
+  welcomeTutorialSeenAt: null,
   loading: false,
   error: null,
   isLoggingOut: false,
@@ -34,8 +41,17 @@ export const useUserStore = create<UserStore>((set) => ({
     set({ tier });
   },
 
-  setSession: (user, tier) => {
-    set({ user, tier, sessionReady: true });
+  setWelcomeTutorialSeenAt: (welcomeTutorialSeenAt) => {
+    set({ welcomeTutorialSeenAt });
+  },
+
+  setSession: (user, tier, welcomeTutorialSeenAt = null) => {
+    set({
+      user,
+      tier,
+      welcomeTutorialSeenAt,
+      sessionReady: true,
+    });
   },
 
   logout: async () => {
@@ -45,6 +61,7 @@ export const useUserStore = create<UserStore>((set) => ({
     set({
       user: null,
       tier: null,
+      welcomeTutorialSeenAt: null,
       isLoggingOut: false,
       sessionReady: false,
     });

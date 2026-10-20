@@ -5,6 +5,7 @@ import { User } from "@/types/user.types";
 export type CurrentUserSession = {
   user: User;
   tier: UserTier | null;
+  welcomeTutorialSeenAt: string | null;
 };
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -28,12 +29,14 @@ export async function getCurrentUserSession(): Promise<CurrentUserSession | null
 
   const { data: profile } = await supabase
     .from("users")
-    .select("tier")
+    .select("tier, welcome_tutorial_seen_at")
     .eq("id", user.id)
     .maybeSingle();
 
   return {
     user: user as unknown as User,
     tier: (profile?.tier as UserTier | null | undefined) ?? null,
+    welcomeTutorialSeenAt:
+      (profile?.welcome_tutorial_seen_at as string | null | undefined) ?? null,
   };
 }

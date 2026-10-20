@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ProfileWelcomeTutorial } from "@/modules/onboarding";
 import { AvatarSelectionPanel } from "@/modules/profile/avatarSelection";
 import { useClientProfile } from "@/modules/profile/clientProfile/hooks";
 import { ProfileAvatar } from "@/modules/profile/components";
@@ -119,6 +120,8 @@ function ClientProfileView() {
       </Card>
 
       <AvatarSelectionPanel />
+
+      <ProfileWelcomeTutorial />
 
       <section
         className="overflow-hidden rounded-2xl border border-violet-200/40 shadow-md dark:border-violet-900/30 dark:bg-zinc-900/50"

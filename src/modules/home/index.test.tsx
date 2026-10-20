@@ -131,6 +131,41 @@ vi.mock("@/modules/aiRecommendation", () => ({
   AiRecommendationDialog: () => null,
 }));
 
+vi.mock("@/modules/onboarding", () => ({
+  WelcomeTutorialDialog: () => null,
+  ZeroFollowingNudge: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="zero-following-nudge-mock">nudge</div> : null,
+  useWelcomeTutorial: () => ({
+    isOpen: false,
+    steps: [],
+    currentStep: {
+      id: "follow",
+      title: "",
+      description: "",
+      ctaLabel: "",
+    },
+    stepIndex: 0,
+    isLastStep: false,
+    handleOpenChange: vi.fn(),
+    closeTutorial: vi.fn(),
+    goNext: vi.fn(),
+    goBack: vi.fn(),
+    runStepCta: vi.fn(),
+    reopenManually: vi.fn(),
+  }),
+  useFollowRecommendations: () => ({
+    showNudge: false,
+    followingCount: 0,
+    recommendations: [],
+    isLoading: false,
+    isError: false,
+    onRetry: vi.fn(),
+    onToggleFollow: vi.fn(),
+    isTogglePending: false,
+    pendingUserId: null,
+  }),
+}));
+
 vi.mock("@/modules/readingRecap", () => ({
   default: () => <div>reading-recap</div>,
 }));
@@ -334,7 +369,7 @@ describe("ClientHome book suggestions (empty network)", () => {
     vi.mocked(useHome).mockImplementation(() => ({ ...baseUseHome }));
   });
 
-  it("shows guidance copy and both paths when logged-in Todos view has zero books", () => {
+  it("shows guidance copy and community path when logged-in Todos view has zero books", () => {
     renderWithQueryClient(<ClientHome />);
 
     expect(
@@ -347,16 +382,16 @@ describe("ClientHome book suggestions (empty network)", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("heading", { name: "Conectar com amigos" }),
+      screen.getByRole("heading", { name: "Descobrir leitores" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Registrar suas leituras" }),
     ).toBeInTheDocument();
 
-    const profileLink = screen.getByRole("link", {
-      name: "Abrir perfil para encontrar e seguir amigos",
+    const communityLink = screen.getByRole("link", {
+      name: "Abrir a Comunidade para encontrar e seguir leitores",
     });
-    expect(profileLink).toHaveAttribute("href", "/profile");
+    expect(communityLink).toHaveAttribute("href", "/community");
   });
 
   it("opens add-book flow when choosing Registrar suas leituras CTA", async () => {
