@@ -19,7 +19,8 @@ vi.mock("@/modules/bookRating", () => ({
 
 const harness = vi.hoisted(() => ({
   bookData: undefined as BookDomain | undefined,
-  form: null as UseFormReturn | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: null as UseFormReturn<any> | null,
   isEdit: false,
 }));
 
@@ -113,7 +114,7 @@ function Harness({
 }) {
   const form = useForm({
     defaultValues: {
-      author_ids: [],
+      author_ids: [] as string[],
       end_date: null,
       gender: undefined,
       image_url: "",

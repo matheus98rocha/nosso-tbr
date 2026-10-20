@@ -69,7 +69,7 @@ export function useBookCardDetailsModal({
   const [abandonConfirmationOpen, setAbandonConfirmationOpen] = useState(false);
   const [referenceCopied, setReferenceCopied] = useState(false);
   const addReader = useAddBookReader({
-    bookId: book.id,
+    bookId: book.id ?? "",
     enabled: showLibraryActions,
   });
 

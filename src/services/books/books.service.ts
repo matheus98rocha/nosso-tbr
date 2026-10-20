@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { BookMapper } from "@/services/books/books.mapper";
-import { BookDomain, Status } from "@/types/books.types";
+import { BookDomain, BookPersistence, Status } from "@/types/books.types";
 import { BookQueryBuilder } from "./bookQuery.builder";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 import { apiJson } from "@/lib/api/clientJsonFetch";
@@ -80,7 +80,9 @@ export class BookService {
       }
 
       return {
-        data: (data || []).map(BookMapper.toDomain),
+        data: ((data || []) as unknown as BookPersistence[]).map(
+          BookMapper.toDomain,
+        ),
         total: count || 0,
       };
     } catch (error) {

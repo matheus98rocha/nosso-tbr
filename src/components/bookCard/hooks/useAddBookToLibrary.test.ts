@@ -88,8 +88,6 @@ describe("useAddBookToLibrary", () => {
     expect(findCatalogBookMatchMock).toHaveBeenCalledWith({
       title: "Memórias Póstumas",
       authorId: "author-1",
-      authorIds: [],
-      authorNames: [],
       currentUserId: "user-123",
     });
     expect(createMock).toHaveBeenCalledWith(

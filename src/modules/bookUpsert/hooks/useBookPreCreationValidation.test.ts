@@ -22,8 +22,6 @@ function createMatch(
       id: "book-1",
       title: "O Senhor dos Anéis",
       authorId: "author-1",
-      authorIds: [],
-      authorNames: [],
       authorName: "J.R.R Tolkien",
       imageUrl: null,
       pages: null,

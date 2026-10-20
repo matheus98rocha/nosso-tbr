@@ -123,8 +123,6 @@ describe("buildBookReference", () => {
       buildBookReference({
         title: "A Fúria dos Reis",
         author: "George R. R. Martin",
-        authorIds: [],
-        authorNames: [],
         pages: 656,
       }),
     ).toBe("A Fúria dos Reis — George R. R. Martin · 656 pág.");
@@ -135,8 +133,6 @@ describe("buildBookReference", () => {
       buildBookReference({
         title: "Caderno",
         author: "Autora",
-        authorIds: [],
-        authorNames: [],
         pages: 0,
       }),
     ).toBe("Caderno — Autora");
