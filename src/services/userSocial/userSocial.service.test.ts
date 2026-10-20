@@ -8,7 +8,10 @@ vi.mock("@/lib/supabase/client", () => ({
 type QueryResult<T> = { data: T; error: unknown };
 
 type ThenableQuery<T> = {
-  select: () => ThenableQuery<T>;
+  select: (
+    columns?: string,
+    options?: { count?: string; head?: boolean },
+  ) => ThenableQuery<T>;
   order: () => ThenableQuery<T>;
   limit: () => ThenableQuery<T>;
   or: () => ThenableQuery<T>;
@@ -18,7 +21,9 @@ type ThenableQuery<T> = {
   then: (resolve: (value: QueryResult<T>) => unknown) => Promise<unknown>;
 };
 
-function makeThenableQuery<T>(result: QueryResult<T>): ThenableQuery<T> {
+function makeThenableQuery<T>(
+  result: QueryResult<T> & { count?: number | null },
+): ThenableQuery<T> {
   const query = {} as ThenableQuery<T>;
 
   query.select = vi.fn(() => query);
@@ -28,7 +33,12 @@ function makeThenableQuery<T>(result: QueryResult<T>): ThenableQuery<T> {
   query.eq = vi.fn(() => query);
   query.delete = vi.fn(() => query);
   query.insert = vi.fn(() => Promise.resolve({ error: null }));
-  query.then = (resolve) => Promise.resolve(result).then(resolve);
+  query.then = (resolve) =>
+    Promise.resolve({
+      data: result.data,
+      error: result.error,
+      count: result.count ?? null,
+    }).then(resolve);
 
   return query;
 }
@@ -187,6 +197,40 @@ describe("UserSocialService", () => {
     expect(followersQuery.select).toHaveBeenCalledWith("follower_id");
     expect(followersQuery.eq).toHaveBeenCalledWith("following_id", "user-1");
     expect(result).toEqual(["follower-9", "follower-8"]);
+  });
+
+  it("retorna totais de rede para um userId arbitrário", async () => {
+    const followingQuery = makeThenableQuery({
+      data: null,
+      error: null,
+      count: 3,
+    });
+    const followerQuery = makeThenableQuery({
+      data: null,
+      error: null,
+      count: 7,
+    });
+    let followersCalls = 0;
+
+    from.mockImplementation((table: string) => {
+      if (table === "user_followers") {
+        followersCalls += 1;
+        return followersCalls === 1 ? followingQuery : followerQuery;
+      }
+
+      return makeThenableQuery({ data: [], error: null });
+    });
+
+    const service = makeService();
+    const result = await service.getNetworkCounts("peer-9");
+
+    expect(result).toEqual({ followingCount: 3, followerCount: 7 });
+    expect(followingQuery.select).toHaveBeenCalledWith("following_id", {
+      count: "exact",
+      head: true,
+    });
+    expect(followingQuery.eq).toHaveBeenCalledWith("follower_id", "peer-9");
+    expect(followerQuery.eq).toHaveBeenCalledWith("following_id", "peer-9");
   });
 });
 
