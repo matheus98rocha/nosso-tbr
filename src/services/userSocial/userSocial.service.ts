@@ -4,6 +4,14 @@ import { UserSocialMapper } from "./mappers/userSocial.mapper";
 import { DirectoryUser } from "./types/userSocial.types";
 import { ErrorHandler, RepositoryError } from "@/services/errors/error";
 
+function toNetworkCount(value: unknown): number {
+  const count = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(count) || count < 0) {
+    return 0;
+  }
+  return count;
+}
+
 export class UserSocialService {
   private supabase = createClient();
 
@@ -139,14 +147,8 @@ export class UserSocialService {
   }> {
     try {
       const [followingResult, followerResult] = await Promise.all([
-        this.supabase
-          .from("user_followers")
-          .select("following_id", { count: "exact", head: true })
-          .eq("follower_id", userId),
-        this.supabase
-          .from("user_followers")
-          .select("follower_id", { count: "exact", head: true })
-          .eq("following_id", userId),
+        this.supabase.rpc("count_following_of", { p_user_id: userId }),
+        this.supabase.rpc("count_followers_of", { p_user_id: userId }),
       ]);
 
       if (followingResult.error) {
@@ -170,8 +172,8 @@ export class UserSocialService {
       }
 
       return {
-        followingCount: followingResult.count ?? 0,
-        followerCount: followerResult.count ?? 0,
+        followingCount: toNetworkCount(followingResult.data),
+        followerCount: toNetworkCount(followerResult.data),
       };
     } catch (error) {
       const normalized = ErrorHandler.normalize(error, {

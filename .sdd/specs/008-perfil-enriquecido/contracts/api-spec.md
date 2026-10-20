@@ -26,8 +26,10 @@ Semântica completa: [005 contracts/api-spec.md](../../005-tela-comunidade/contr
 
 | Contagem | Query |
 | -------- | ----- |
-| `followingCount` | `user_followers` where `follower_id = userId` |
-| `followerCount` | `user_followers` where `following_id = userId` |
+| `followingCount` | `rpc("count_following_of", { p_user_id: userId })` |
+| `followerCount` | `rpc("count_followers_of", { p_user_id: userId })` |
+
+SELECT em `user_followers` só devolve arestas em que o visitante participa. Contagem INVOKER de outro leitor fica 0 ou 1. Os RPCs são `SECURITY DEFINER` e devolvem só o agregado.
 
 Erros de PostgREST → `RepositoryError` (padrão do serviço). Sem sessão → `0/0` ou throw alinhado aos outros métodos (preferir throw se chamada só com `enabled` autenticado).
 
