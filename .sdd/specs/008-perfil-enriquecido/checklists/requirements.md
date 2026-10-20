@@ -36,9 +36,9 @@
 - [ ] SC-006 Atalhos / `view` corretos (P2)
 - [ ] SC-007 a11y básico das novas seções
 
-## Clarificações abertas
+## Clarificações (travadas no Plan)
 
-- [ ] E-mail no perfil de membro (ocultar vs manter)
-- [ ] Interações nos favoritos do Meu perfil
-- [ ] Atalho Recap no hub (default: não)
-- [ ] Preview de estantes (default: só atalho)
+- [x] E-mail no perfil de membro → ocultar
+- [x] Favoritos no Meu perfil → com interações do dono
+- [x] Atalho Recap no hub → não
+- [x] Preview de estantes → só atalho `/shelves`

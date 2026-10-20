@@ -1,7 +1,9 @@
 # Feature Specification: Perfil enriquecido
 
 **Feature ID:** 008  
-**Status:** Draft — Specify  
+**Status:** Draft — Plan  
+**Plan:** [plan.md](./plan.md)  
+
 **Owner:** Mateus  
 **Criada em:** 2026-10-20  
 **Domínios relacionados (vault):** [[business-rules]] · [[telas-mobile/perfil-meu/tela-perfil-meu]] · [[telas-mobile/perfil-membro/tela-perfil-membro]] · [[features/feature-selecao-avatar-dicebear]] · [[features/feature-visibilidade-leitores-rede]] · [[database/database-schema]]
@@ -249,17 +251,17 @@ Como dono, tocar em Seguindo / Seguidores no Meu perfil abre a Comunidade no rec
 
 ---
 
-## 10. Itens marcados como [NEEDS CLARIFICATION]
+## 10. Clarificações (travadas no Plan — Opção A)
 
-1. **E-mail no perfil de membro:** hoje a UI ainda mostra e-mail; a Comunidade (005) ocultou e-mail na descoberta. **Proposta default:** ocultar e-mail também no perfil de membro (só nome + avatar + rede + leitura), alinhando privacidade. Confirmar ou manter e-mail.
-2. **Interações nos cards de favoritos no Meu perfil:** membro usa `hideInteractions`. **Proposta default:** no Meu perfil, favoritos **com** interações leves do dono (favoritar/desfavoritar) OU o mesmo `hideInteractions` + atalho para Home — preferência do produto.
-3. **Atalho “Compartilhar leituras” (Recap):** incluir no hub P2 ou deixar só na Home? **Proposta default:** fora do P2 desta feature (só Stats / Estantes / Comunidade).
-4. **Preview de estantes:** só atalho (escopo atual) ou carrossel das N primeiras estantes? **Proposta default:** só atalho (fora de escopo carrossel).
+1. **E-mail no perfil de membro:** ocultar (paridade com Comunidade 005).
+2. **Favoritos no Meu perfil:** cards **com** interações do dono (sem `hideInteractions`).
+3. **Recap no hub:** fora desta feature.
+4. **Preview de estantes:** só atalho para `/shelves`.
 
 ---
 
 ## 11. Notas de governança SDD
 
-- Fase atual: **Specify** (aguardando feedback A/B/C/D).
-- Próximo: `/speckit.plan` após aprovação do WHAT → `tasks.md` → implement.
-- Issue de rastreio: a criar/atualizar no GitHub Issues de `matheus98rocha/nosso-tbr`.
+- Fase atual: **Plan** (`plan.md` + `data-model.md` + `contracts/`).
+- Próximo: `tasks.md` → implement.
+- Issue de rastreio: [#179](https://github.com/matheus98rocha/nosso-tbr/issues/179).
