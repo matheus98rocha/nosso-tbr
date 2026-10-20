@@ -460,6 +460,51 @@ describe("PATCH /api/books/[id]", () => {
       expect(update).not.toHaveBeenCalled();
     });
 
+    it("aceita a capa padrão ao finalizar um livro sem URL remota", async () => {
+      const currentBook = {
+        id: "book-1",
+        status: "reading",
+        start_date: "2026-08-01",
+        end_date: null,
+        user_id: "owner-user",
+        chosen_by: "owner-user",
+        readers: ["owner-user"],
+      };
+      const readBuilder = buildBookSelectSingle(currentBook);
+      const eqUpdate = vi.fn().mockResolvedValue({ error: null });
+      const update = vi.fn(() => ({ eq: eqUpdate }));
+      const client: SupabaseByIdMock = {
+        auth: { getUser: authedGetUser("owner-user") },
+        from: buildTwoTableCalls(
+          { select: readBuilder.select },
+          { update },
+        ),
+      };
+
+      const route = await loadRouteWithClient(client);
+      const response = await route.PATCH(
+        new Request("http://localhost/api/books/book-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...validPatchPayload,
+            image_url: "/book-cover-placeholder.svg",
+            status: "finished",
+          }),
+        }),
+        { params: Promise.resolve({ id: "book-1" }) },
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ ok: true });
+      expect(update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          image_url: "/book-cover-placeholder.svg",
+          status: "finished",
+        }),
+      );
+    });
+
     it("retorna 200 e corpo { ok: true } quando update conclui sem erro", async () => {
       const currentBook = {
         id: "book-1",

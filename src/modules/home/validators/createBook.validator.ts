@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
+
 const ALLOWED_IMAGE_HOST_RE =
   /^https:\/\/(?:.*\.)?(amazon\.com|amazon\.com\.br|media\-amazon\.com|m\.media\-amazon\.com|ssl\-images\-amazon\.com|books\.google\.com|covers\.openlibrary\.org)/;
 
@@ -26,7 +28,13 @@ export const bookCreateSchema = z.object({
     .string()
     .optional()
     .superRefine((val, ctx) => {
-      if (val === undefined || val.trim() === "") return;
+      if (
+        val === undefined ||
+        val.trim() === "" ||
+        val.trim() === BOOK_COVER_PLACEHOLDER_SRC
+      ) {
+        return;
+      }
       const trimmed = val.trim();
       const urlCheck = z.string().url().safeParse(trimmed);
       if (!urlCheck.success) {
