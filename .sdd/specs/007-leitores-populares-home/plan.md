@@ -2,7 +2,7 @@
 
 **Feature ID:** 007  
 **Spec:** [spec.md](./spec.md)  
-**Status:** Draft  
+**Status:** Implemented (P1+P2)  
 **Criada em:** 2026-10-20
 
 ---

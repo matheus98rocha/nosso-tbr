@@ -1,7 +1,7 @@
 # Feature Specification: Leitores populares na Home
 
 **Feature ID:** 007  
-**Status:** Draft (Specify)  
+**Status:** Implemented (P1+P2)  
 **Owner:** Mateus  
 **Criada em:** 2026-10-20  
 **Issue relacionada:** [#177](https://github.com/matheus98rocha/nosso-tbr/issues/177)  

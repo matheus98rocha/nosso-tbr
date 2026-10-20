@@ -60,6 +60,9 @@ export function useOptimisticFollowToggle(
         queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.community.all,
         }),
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.popularReaders.all,
+        }),
       ]);
     },
   });

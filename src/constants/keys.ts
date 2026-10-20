@@ -105,4 +105,9 @@ export const QUERY_KEYS = {
     finished: (userId: string) =>
       [...QUERY_KEYS.readingRecap.all, "finished", userId] as const,
   },
+  popularReaders: {
+    all: ["popularReaders"] as const,
+    list: (userId: string) =>
+      [...QUERY_KEYS.popularReaders.all, "list", userId] as const,
+  },
 } as const;
