@@ -5,8 +5,8 @@ export const WELCOME_TUTORIAL_STEPS: WelcomeTutorialStep[] = [
     id: "follow",
     title: "Siga outros leitores",
     description:
-      "Na Comunidade você encontra pessoas com gostos parecidos e acompanha o que elas estão lendo.",
-    ctaLabel: "Ver recomendações",
+      "Siga leitores com gostos parecidos para acompanhar o que eles estão lendo. Comece pela lista abaixo.",
+    ctaLabel: "Ver comunidade",
   },
   {
     id: "books",

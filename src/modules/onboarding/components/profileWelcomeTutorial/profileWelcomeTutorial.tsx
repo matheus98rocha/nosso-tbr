@@ -1,12 +1,13 @@
 "use client";
 
+import { BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { BookOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { COMMUNITY_PATH } from "@/lib/routes/community";
 
+import { useFollowRecommendations } from "../../hooks/useFollowRecommendations";
 import { useWelcomeTutorial } from "../../hooks/useWelcomeTutorial";
 import WelcomeTutorialDialog from "../welcomeTutorialDialog";
 
@@ -26,6 +27,9 @@ function ProfileWelcomeTutorial() {
     onFollowCta: goCommunity,
     onBooksCta: goHome,
     onAiCta: goHome,
+  });
+  const followRecommendations = useFollowRecommendations({
+    recommendationsEnabled: tutorial.isOpen,
   });
 
   return (
@@ -67,6 +71,15 @@ function ProfileWelcomeTutorial() {
         onNext={tutorial.goNext}
         onBack={tutorial.goBack}
         onStepCta={() => tutorial.runStepCta(tutorial.currentStep.id)}
+        followList={{
+          recommendations: followRecommendations.recommendations,
+          isLoading: followRecommendations.isLoading,
+          isError: followRecommendations.isError,
+          onRetry: followRecommendations.onRetry,
+          onToggleFollow: followRecommendations.onToggleFollow,
+          pendingUserId: followRecommendations.pendingUserId,
+          isTogglePending: followRecommendations.isTogglePending,
+        }}
       />
     </section>
   );

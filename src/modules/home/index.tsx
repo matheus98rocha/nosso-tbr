@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDownUp,
@@ -34,9 +34,8 @@ import CollapsibleBookFilters from "@/modules/home/components/collapsibleBookFil
 import HomeQuickActions from "@/modules/home/components/homeQuickActions";
 import ReadingNow from "@/modules/home/components/readingNow";
 import { useHome } from "@/modules/home/hooks/useHome";
+import { useHomeOnboarding } from "@/modules/home/hooks/useHomeOnboarding";
 import {
-  useFollowRecommendations,
-  useWelcomeTutorial,
   WelcomeTutorialDialog,
   ZeroFollowingNudge,
 } from "@/modules/onboarding";
@@ -88,8 +87,6 @@ export default function ClientHome() {
   const aiRecommendationModal = useModal();
   const [aiPrefilledTitle, setAiPrefilledTitle] = useState<string | null>(null);
   const [editingBook, setEditingBook] = useState<BookDomain | null>(null);
-  const [zeroFollowingHeldOpen, setZeroFollowingHeldOpen] = useState(false);
-  const zeroFollowingAutoOpenedRef = useRef(false);
   const isLoading = isLoadingAllBooks || isLoggingOut;
 
   const isJointViewActive = filters.view === "joint" && !isMyBooksActive;
@@ -142,43 +139,10 @@ export default function ClientHome() {
     aiRecommendationModal.setIsOpen(true);
   }, [aiRecommendationModal]);
 
-  const followRecommendations = useFollowRecommendations({
-    recommendationsEnabled: zeroFollowingHeldOpen,
-  });
-
-  const openZeroFollowingModal = useCallback(() => {
-    if (followRecommendations.showNudge || zeroFollowingHeldOpen) {
-      zeroFollowingAutoOpenedRef.current = true;
-      setZeroFollowingHeldOpen(true);
-      return;
-    }
-    window.location.assign(COMMUNITY_PATH);
-  }, [followRecommendations.showNudge, zeroFollowingHeldOpen]);
-
-  const welcomeTutorial = useWelcomeTutorial({
-    onFollowCta: openZeroFollowingModal,
+  const onboarding = useHomeOnboarding({
     onBooksCta: handleOpenBookUpsert,
     onAiCta: handleOpenAiRecommendation,
   });
-
-  useEffect(() => {
-    if (
-      followRecommendations.showNudge &&
-      !welcomeTutorial.isOpen &&
-      !zeroFollowingHeldOpen &&
-      !zeroFollowingAutoOpenedRef.current
-    ) {
-      zeroFollowingAutoOpenedRef.current = true;
-      setZeroFollowingHeldOpen(true);
-    }
-  }, [
-    followRecommendations.showNudge,
-    welcomeTutorial.isOpen,
-    zeroFollowingHeldOpen,
-  ]);
-
-  const zeroFollowingOpen =
-    zeroFollowingHeldOpen && !welcomeTutorial.isOpen;
 
   return (
     <div
@@ -202,18 +166,19 @@ export default function ClientHome() {
         handleClose={createShelfDialog.setIsOpen}
       />
       <WelcomeTutorialDialog
-        isOpen={welcomeTutorial.isOpen}
-        onOpenChange={welcomeTutorial.handleOpenChange}
-        steps={welcomeTutorial.steps}
-        stepIndex={welcomeTutorial.stepIndex}
-        currentStep={welcomeTutorial.currentStep}
-        isLastStep={welcomeTutorial.isLastStep}
-        onSkip={welcomeTutorial.closeTutorial}
-        onNext={welcomeTutorial.goNext}
-        onBack={welcomeTutorial.goBack}
+        isOpen={onboarding.tutorial.isOpen}
+        onOpenChange={onboarding.tutorial.handleOpenChange}
+        steps={onboarding.tutorial.steps}
+        stepIndex={onboarding.tutorial.stepIndex}
+        currentStep={onboarding.tutorial.currentStep}
+        isLastStep={onboarding.tutorial.isLastStep}
+        onSkip={onboarding.tutorial.closeTutorial}
+        onNext={onboarding.tutorial.goNext}
+        onBack={onboarding.tutorial.goBack}
         onStepCta={() =>
-          welcomeTutorial.runStepCta(welcomeTutorial.currentStep.id)
+          onboarding.tutorial.runStepCta(onboarding.tutorial.currentStep.id)
         }
+        followList={onboarding.followList}
       />
       <AiRecommendationDialog
         isOpen={aiRecommendationModal.isOpen}
@@ -548,20 +513,15 @@ export default function ClientHome() {
       )}
 
       <ZeroFollowingNudge
-        isOpen={zeroFollowingOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            zeroFollowingAutoOpenedRef.current = true;
-          }
-          setZeroFollowingHeldOpen(open);
-        }}
-        recommendations={followRecommendations.recommendations}
-        isLoading={followRecommendations.isLoading}
-        isError={followRecommendations.isError}
-        onRetry={followRecommendations.onRetry}
-        onToggleFollow={followRecommendations.onToggleFollow}
-        pendingUserId={followRecommendations.pendingUserId}
-        isTogglePending={followRecommendations.isTogglePending}
+        isOpen={onboarding.zeroFollowingOpen}
+        onOpenChange={onboarding.handleZeroFollowingOpenChange}
+        recommendations={onboarding.followRecommendations.recommendations}
+        isLoading={onboarding.followRecommendations.isLoading}
+        isError={onboarding.followRecommendations.isError}
+        onRetry={onboarding.followRecommendations.onRetry}
+        onToggleFollow={onboarding.followRecommendations.onToggleFollow}
+        pendingUserId={onboarding.followRecommendations.pendingUserId}
+        isTogglePending={onboarding.followRecommendations.isTogglePending}
       />
 
       {shouldSuggestFollowing ? (

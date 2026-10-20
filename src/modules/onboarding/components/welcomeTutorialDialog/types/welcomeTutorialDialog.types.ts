@@ -1,4 +1,5 @@
 import type { WelcomeTutorialStep } from "../../../types/onboarding.types";
+import type { FollowRecommendationListProps } from "../../followRecommendationList";
 
 export type WelcomeTutorialDialogProps = {
   isOpen: boolean;
@@ -11,4 +12,5 @@ export type WelcomeTutorialDialogProps = {
   onNext: () => void;
   onBack: () => void;
   onStepCta: () => void;
+  followList?: FollowRecommendationListProps;
 };

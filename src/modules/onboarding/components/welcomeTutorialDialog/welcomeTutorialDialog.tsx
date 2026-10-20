@@ -11,7 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
+import FollowRecommendationList from "../followRecommendationList";
 import type { WelcomeTutorialDialogProps } from "./types/welcomeTutorialDialog.types";
 
 function stepIcon(stepId: WelcomeTutorialDialogProps["currentStep"]["id"]) {
@@ -35,12 +37,19 @@ function WelcomeTutorialDialog({
   onNext,
   onBack,
   onStepCta,
+  followList,
 }: WelcomeTutorialDialogProps) {
   const Icon = stepIcon(currentStep.id);
+  const showFollowList = currentStep.id === "follow" && followList;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent
+        className={cn(
+          "max-h-[90dvh] max-w-md overflow-y-auto",
+          showFollowList && "sm:max-w-lg",
+        )}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span
@@ -53,6 +62,8 @@ function WelcomeTutorialDialog({
           </DialogTitle>
           <DialogDescription>{currentStep.description}</DialogDescription>
         </DialogHeader>
+
+        {showFollowList ? <FollowRecommendationList {...followList} /> : null}
 
         <p className="text-sm text-zinc-500 dark:text-zinc-400" aria-live="polite">
           Passo {stepIndex + 1} de {steps.length}
