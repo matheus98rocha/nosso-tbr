@@ -33,6 +33,8 @@ const book: BookDomain = {
   id: "book-1",
   title: "A Fúria dos Reis",
   author: "George R. R. Martin",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "user-1",
   pages: 656,
   readerIds: ["user-1"],

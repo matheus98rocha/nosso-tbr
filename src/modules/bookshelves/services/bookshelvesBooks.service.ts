@@ -13,7 +13,11 @@ export class BookshelfServiceBooks {
         `
         book:books(
           *,
-          author:authors!books_author_id_fkey(name)
+          author:authors!books_author_id_fkey(name),
+          book_authors(
+            author_id,
+            authors(name)
+          )
         )
       `,
       )

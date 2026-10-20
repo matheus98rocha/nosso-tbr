@@ -5,6 +5,11 @@ import {
 import { resolveBookCoverUrl } from "@/constants/bookCover";
 
 export class BookUpsertMapper {
+  static primaryAuthorId(authorIds: string[]): string {
+    const unique = [...new Set(authorIds.map((id) => id.trim()).filter(Boolean))];
+    return unique[0] ?? "";
+  }
+
   static toPersistence(
     domain: BookCreateValidator,
     extra?: Partial<CreateBookPersistence>,
@@ -12,7 +17,7 @@ export class BookUpsertMapper {
     return {
       id: domain.id,
       title: domain.title,
-      author_id: domain.author_id,
+      author_id: BookUpsertMapper.primaryAuthorId(domain.author_ids),
       chosen_by: domain.chosen_by,
       pages: domain.pages,
       status: domain.status ?? "not_started",

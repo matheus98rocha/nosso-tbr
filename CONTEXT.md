@@ -43,7 +43,7 @@ Classificação temática do livro escolhida no cadastro.
 _Avoid_: gender, categoria, tag
 
 **Autor**:
-Pessoa creditada no livro. Não é o Leitor. A tela Autores é a gestão desses registros, só para Administrador.
+Pessoa creditada no livro; um livro pode ter um ou mais autores. Não é o Leitor. A tela Autores é a gestão desses registros, só para Administrador.
 _Avoid_: papel de leitor, author account
 
 **Estante**:

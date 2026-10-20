@@ -317,6 +317,8 @@ describe("useBookDialog — query de estantes", () => {
       id: "book-1",
       title: "Livro Teste",
       author: "Autor Teste",
+      authorIds: [],
+      authorNames: [],
       pages: 200,
       status: "paused",
       readerIds: ["user-1"],

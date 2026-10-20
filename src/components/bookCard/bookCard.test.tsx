@@ -74,6 +74,8 @@ const baseBook: BookDomain = {
   id: "book-1",
   title: "Memórias Póstumas",
   author: "Machado de Assis",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "11111111-1111-4111-8111-111111111111",
   pages: 160,
   readerIds: ["11111111-1111-4111-8111-111111111111"],

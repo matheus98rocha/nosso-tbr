@@ -5,7 +5,7 @@ import { BookCatalogMatchResult } from "../types/bookDiscovery.types";
 
 const basePayload = {
   title: "O Senhor dos Aneis",
-  author_id: "author-1",
+  author_ids: ["author-1"],
   chosen_by: "user-1",
   readers: ["user-1"],
   pages: 500,
@@ -22,6 +22,8 @@ function createMatch(
       id: "book-1",
       title: "O Senhor dos Anéis",
       authorId: "author-1",
+      authorIds: [],
+      authorNames: [],
       authorName: "J.R.R Tolkien",
       imageUrl: null,
       pages: null,

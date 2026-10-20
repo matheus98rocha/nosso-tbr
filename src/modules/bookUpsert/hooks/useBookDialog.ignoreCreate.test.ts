@@ -70,7 +70,7 @@ const mockShelves = [
 
 const pendingPayload = {
   title: "Ignorar fluxo",
-  author_id: "author-1",
+  author_ids: ["author-1"],
   chosen_by: "user-1",
   readers: ["user-1"],
   pages: 200,

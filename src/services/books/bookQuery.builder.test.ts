@@ -412,6 +412,47 @@ describe("BookQueryBuilder", () => {
     });
   });
 
+  describe("withAuthor", () => {
+    let mockQuery: ReturnType<typeof buildMockQuery>;
+    let supabase: SupabaseClient<Database>;
+    let mockFrom: ReturnType<typeof vi.fn>;
+    let mockSelect: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      mockQuery = buildMockQuery();
+      mockSelect = vi.fn().mockReturnValue(mockQuery);
+      mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
+      supabase = { from: mockFrom } as unknown as SupabaseClient<Database>;
+    });
+
+    it("filtra via book_authors!inner no build", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withAuthor("author-42")
+        .build();
+
+      expect(mockFrom).toHaveBeenCalledWith("books");
+      expect(mockSelect).toHaveBeenCalledWith(
+        expect.stringContaining("book_authors!inner"),
+        { count: "exact" },
+      );
+      expect(mockQuery.eq).toHaveBeenCalledWith(
+        "book_authors.author_id",
+        "author-42",
+      );
+    });
+
+    it("não altera a query quando authorId está vazio", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withAuthor("  ")
+        .build();
+
+      expect(mockQuery.eq).not.toHaveBeenCalledWith(
+        "book_authors.author_id",
+        expect.anything(),
+      );
+    });
+  });
+
   describe("withReread", () => {
     let mockQuery: ReturnType<typeof buildMockQuery>;
     let supabase: SupabaseClient<Database>;

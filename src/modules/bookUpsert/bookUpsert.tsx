@@ -322,21 +322,37 @@ export function BookUpsert(props: CreateBookProps) {
 
                     <FormField
                       control={control}
-                      name="author_id"
+                      name="author_ids"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Autor</FormLabel>
+                          <FormLabel>Autores</FormLabel>
                           <FormControl>
                             <div className="w-full">
                               <AutocompleteInput
+                                multiple
                                 items={authors}
-                                value={field.value}
-                                initialLabel={props.bookData?.author}
+                                value={field.value ?? []}
+                                initialLabels={
+                                  props.bookData?.authorIds?.length
+                                    ? Object.fromEntries(
+                                        props.bookData.authorIds.map(
+                                          (id, index) => [
+                                            id,
+                                            props.bookData?.authorNames?.[
+                                              index
+                                            ] ??
+                                              props.bookData?.author ??
+                                              id,
+                                          ],
+                                        ),
+                                      )
+                                    : undefined
+                                }
                                 isLoading={isLoadingAuthors}
-                                onValueChange={field.onChange}
+                                onValuesChange={field.onChange}
                                 onSearch={handleAuthorSearchChange}
                                 onAddNew={handleOpenAddAuthorModal}
-                                placeholder="Pesquisar autor..."
+                                placeholder="Pesquisar autores..."
                                 emptyMessage={
                                   emptyAuthorSearch
                                     ? "Não encontramos esse autor..."

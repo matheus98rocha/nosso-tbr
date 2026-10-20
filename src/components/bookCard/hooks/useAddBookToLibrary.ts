@@ -22,13 +22,14 @@ export function useAddBookToLibrary({
       if (!userId) {
         throw new Error("É preciso estar autenticado para adicionar o livro.");
       }
-      if (!book.authorId) {
+      const primaryAuthorId = book.authorIds?.[0] ?? book.authorId;
+      if (!primaryAuthorId) {
         throw new Error("Este livro não tem autor para ser copiado.");
       }
 
       const match = await bookUpsertService.findCatalogBookMatch({
         title: book.title,
-        authorId: book.authorId,
+        authorId: primaryAuthorId,
         currentUserId: userId,
       });
 

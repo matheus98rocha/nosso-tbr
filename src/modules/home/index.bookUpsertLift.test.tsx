@@ -13,6 +13,8 @@ const { baseUseHome } = vi.hoisted(() => {
     id: "book-edit-1",
     title: "Livro para editar",
     author: "Autor",
+    authorIds: [],
+    authorNames: [],
     pages: 100,
     status: "reading",
     readerIds: ["user-1"],

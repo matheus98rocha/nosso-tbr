@@ -15,6 +15,8 @@ const itemWithSchedule: ReadingNowBookItem = {
     title: "O Hobbit",
     author: "J.R.R. Tolkien",
     authorId: "author-1",
+    authorIds: [],
+    authorNames: [],
     chosen_by: "user-1",
     pages: 310,
     status: "reading",

@@ -89,7 +89,7 @@ export function useBookDialog({
       image_url: "",
       chosen_by: authUser?.id ?? "",
       user_id: authUser?.id ?? "",
-      author_id: "",
+      author_ids: [],
       is_reread: false,
     }),
     [authUser?.id],
@@ -112,7 +112,12 @@ export function useBookDialog({
         base_readers: [...bookData.readerIds],
         chosen_by: bookData.chosen_by,
         user_id: bookData.chosen_by,
-        author_id: bookData.authorId ?? "",
+        author_ids:
+          bookData.authorIds?.length > 0
+            ? [...bookData.authorIds]
+            : bookData.authorId
+              ? [bookData.authorId]
+              : [],
         start_date: bookData.start_date ?? null,
         end_date: bookData.end_date ?? null,
         planned_start_date: bookData.planned_start_date ?? null,

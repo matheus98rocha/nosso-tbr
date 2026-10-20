@@ -6,6 +6,8 @@ const base = (over: Partial<BookDomain> & { id: string }): BookDomain => ({
   id: over.id,
   title: over.title ?? "T",
   author: "A",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "u1",
   pages: over.pages ?? 100,
   readerIds: [],

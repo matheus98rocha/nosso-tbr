@@ -86,6 +86,8 @@ vi.mock("./hooks/useBookUpsert", () => ({
 
 const editBook: BookDomain = {
   author: "Autora",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "user-1",
   gender: null,
   image_url: "",
@@ -111,7 +113,7 @@ function Harness({
 }) {
   const form = useForm({
     defaultValues: {
-      author_id: "",
+      author_ids: [],
       end_date: null,
       gender: undefined,
       image_url: "",

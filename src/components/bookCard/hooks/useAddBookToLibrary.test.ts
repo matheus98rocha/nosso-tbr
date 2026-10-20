@@ -33,6 +33,8 @@ const book: BookDomain = {
   title: "Memórias Póstumas",
   author: "Machado de Assis",
   authorId: "author-1",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "other-user",
   pages: 160,
   readerIds: ["other-user"],
@@ -86,12 +88,14 @@ describe("useAddBookToLibrary", () => {
     expect(findCatalogBookMatchMock).toHaveBeenCalledWith({
       title: "Memórias Póstumas",
       authorId: "author-1",
+      authorIds: [],
+      authorNames: [],
       currentUserId: "user-123",
     });
     expect(createMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Memórias Póstumas",
-        author_id: "author-1",
+        author_ids: ["author-1"],
         user_id: "user-123",
         chosen_by: "user-123",
         readers: ["user-123"],

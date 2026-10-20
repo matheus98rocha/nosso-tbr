@@ -70,6 +70,8 @@ const baseBook: BookDomain = {
   id: "1",
   title: "Test Book",
   author: "Test Author",
+  authorIds: [],
+  authorNames: [],
   chosen_by: "11111111-1111-4111-8111-111111111111",
   pages: 300,
   readerIds: ["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"],
@@ -78,6 +80,8 @@ const baseBook: BookDomain = {
   end_date: null,
   gender: "Fiction",
   authorId: "author-1",
+  authorIds: [],
+  authorNames: [],
   image_url: "https://example.com/test.jpg",
   user_id: "user-123",
   is_reread: false,
@@ -554,6 +558,8 @@ describe("useBookCard", () => {
         const { result } = renderBookCardHook({
           ...othersBook,
           authorId: undefined,
+          authorIds: [],
+          authorNames: [],
         });
 
         expect(result.current.showAddToLibrary).toBe(false);

@@ -37,7 +37,7 @@ export function useBookPreCreationValidation({
 
       const catalogMatch = await bookUpsertService.findCatalogBookMatch({
         title: payload.title,
-        authorId: payload.author_id,
+        authorId: payload.author_ids[0],
         currentUserId,
       });
 

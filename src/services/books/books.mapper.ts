@@ -1,3 +1,4 @@
+import { resolveBookAuthors } from "@/lib/books/resolveBookAuthors";
 import { BookDomain, BookPersistence } from "@/types/books.types";
 import { DateUtils } from "@/utils";
 import { resolveBookCoverUrl } from "@/constants/bookCover";
@@ -10,8 +11,6 @@ export class BookMapper {
     const {
       id,
       title,
-      author,
-      author_id,
       chosen_by,
       pages,
       status,
@@ -28,11 +27,15 @@ export class BookMapper {
       ? persistence.readers.map(String)
       : [];
 
+    const authors = resolveBookAuthors(persistence);
+
     return {
       id: id ? id : "",
       title,
-      author: author?.name || "Autor desconhecido",
-      authorId: author_id || undefined,
+      author: authors.authorDisplay,
+      authorId: authors.primaryAuthorId,
+      authorIds: authors.authorIds,
+      authorNames: authors.authorNames,
       chosen_by,
       pages,
       status: status ?? "not_started",

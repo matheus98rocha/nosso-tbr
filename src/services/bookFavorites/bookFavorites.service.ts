@@ -7,6 +7,12 @@ const BOOK_WITH_AUTHOR = `
   *,
   author:authors!books_author_id_fkey (
     name
+  ),
+  book_authors (
+    author_id,
+    authors (
+      name
+    )
   )
 `;
 

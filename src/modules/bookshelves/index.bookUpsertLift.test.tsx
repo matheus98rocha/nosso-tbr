@@ -13,6 +13,8 @@ const { mockBook } = vi.hoisted(() => {
     id: "book-edit-shelf-1",
     title: "Livro na estante",
     author: "Autor",
+    authorIds: [],
+    authorNames: [],
     pages: 100,
     status: "reading",
     readerIds: ["user-1"],
