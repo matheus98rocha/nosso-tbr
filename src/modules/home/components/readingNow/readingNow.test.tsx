@@ -129,12 +129,18 @@ describe("ReadingNow", () => {
 
     render(<ReadingNow />);
 
-    expect(screen.getByLabelText("Lendo agora")).toBeInTheDocument();
-    expect(screen.getByLabelText("Lendo agora")).toHaveClass(
-      "w-full",
-      "min-w-0",
-      "max-w-full",
-    );
+    expect(
+      screen.getByLabelText("Sua leitura. O livro que só você está lendo."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Sua leitura" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("O livro que só você está lendo."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Sua leitura. O livro que só você está lendo."),
+    ).toHaveClass("w-full", "min-w-0", "max-w-full");
     expect(screen.getByText("O Hobbit")).toBeInTheDocument();
     expect(screen.getByText("J.R.R. Tolkien")).toBeInTheDocument();
     expect(screen.getByText("Cronograma: 4/10 dias")).toBeInTheDocument();
@@ -271,7 +277,7 @@ describe("ReadingNow", () => {
     render(<ReadingNow />);
 
     expect(
-      screen.getByText("Não foi possível carregar seus livros em leitura."),
+      screen.getByText("Não foi possível carregar a sua leitura."),
     ).toBeInTheDocument();
   });
 
@@ -307,10 +313,16 @@ describe("ReadingNow", () => {
 
     expect(mockedUseReadingNow).toHaveBeenCalledWith("collective");
     expect(
-      screen.getByLabelText("Lendo agora, leituras coletivas"),
+      screen.getByLabelText(
+        "Leitura coletiva. O livro que vocês estão lendo juntos.",
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText("Lendo agora")).toBeInTheDocument();
-    expect(screen.getByText("Leituras coletivas")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Leitura coletiva" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("O livro que vocês estão lendo juntos."),
+    ).toBeInTheDocument();
     expect(screen.getByText("O Hobbit")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Finalizar" }),

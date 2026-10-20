@@ -62,7 +62,7 @@ export default function ReadingNowBookSlide({
         />
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 py-0.5">
-          <h3 className="brand-display truncate text-[15px] font-semibold leading-snug text-foreground">
+          <h3 className="brand-display line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">
             {book.title}
           </h3>
           <p className="truncate text-xs text-muted-foreground">{book.author}</p>
