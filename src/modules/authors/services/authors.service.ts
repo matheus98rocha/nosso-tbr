@@ -5,6 +5,34 @@ import { AuthorDomain, AuthorPersistence } from "../types";
 import { AuthorMapper } from "./mappers/authors.mapper";
 import { ComboboxOption } from "@/modules/bookUpsert/types/authorOptions";
 
+export const AUTHOR_LIST_SORTS = ["name", "totalBooks", "createdAt"] as const;
+
+export type AuthorListSort = (typeof AUTHOR_LIST_SORTS)[number];
+
+const AUTHOR_SORT_COLUMNS = {
+  name: "name",
+  totalBooks: "total_books",
+  createdAt: "created_at",
+} as const;
+
+export function resolveAuthorListOrder(
+  sortBy: string | undefined,
+  sortAscending: boolean | undefined,
+  withCountBooks: boolean,
+): { column: "name" | "total_books" | "created_at"; ascending: boolean } {
+  const ascending = sortAscending ?? true;
+
+  if (sortBy === "name") {
+    return { column: AUTHOR_SORT_COLUMNS.name, ascending };
+  }
+
+  if (sortBy === "totalBooks" && withCountBooks) {
+    return { column: AUTHOR_SORT_COLUMNS.totalBooks, ascending };
+  }
+
+  return { column: AUTHOR_SORT_COLUMNS.createdAt, ascending };
+}
+
 export class AuthorsService {
   private supabase = createClient();
 
@@ -79,19 +107,29 @@ export class AuthorsService {
     page = 0,
     pageSize = 10,
     searchName,
+    sortBy,
+    sortAscending,
   }: {
     withCountBooks?: boolean;
     page?: number;
     pageSize?: number;
     searchName?: string;
+    sortBy?: AuthorListSort;
+    sortAscending?: boolean;
   }): Promise<{ data: AuthorDomain[]; total: number }> {
     try {
       const payload = withCountBooks ? "authors_with_counts" : "authors";
+      const order = resolveAuthorListOrder(
+        sortBy,
+        sortAscending,
+        withCountBooks,
+      );
 
       let query = this.supabase
         .from(payload)
         .select("*", { count: "exact" })
-        .order("created_at", { ascending: true });
+        .order(order.column, { ascending: order.ascending })
+        .order("id", { ascending: true });
 
       if (searchName?.trim()) {
         query = query.ilike("name", `%${searchName}%`);
@@ -100,9 +138,7 @@ export class AuthorsService {
       const from = page * pageSize;
       const to = from + pageSize - 1;
 
-      const { data, error, count } = await query
-        .range(from, to)
-        .order("created_at", { ascending: true });
+      const { data, error, count } = await query.range(from, to);
 
       if (error) {
         throw new RepositoryError(

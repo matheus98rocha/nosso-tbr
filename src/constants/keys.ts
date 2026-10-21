@@ -60,8 +60,20 @@ export const QUERY_KEYS = {
   },
   authors: {
     all: ["authors"] as const,
-    list: (page: number, search: string) =>
-      [...QUERY_KEYS.authors.all, "list", page, search] as const,
+    list: (
+      page: number,
+      search: string,
+      sortBy = "createdAt",
+      sortAscending = true,
+    ) =>
+      [
+        ...QUERY_KEYS.authors.all,
+        "list",
+        page,
+        search,
+        sortBy,
+        sortAscending,
+      ] as const,
   },
   stats: {
     all: ["statistics"] as const,
