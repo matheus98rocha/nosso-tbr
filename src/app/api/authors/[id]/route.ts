@@ -1,11 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { requireAdmin } from "@/app/api/_utils/requireAdmin";
-
-const patchBody = z.object({
-  name: z.string().min(1),
-});
+import { authorNameBody, DUPLICATE_AUTHOR_MESSAGE } from "../authorName";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -22,7 +18,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = patchBody.safeParse(json);
+  const parsed = authorNameBody.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", details: parsed.error.flatten() },
@@ -36,6 +32,12 @@ export async function PATCH(request: Request, ctx: Ctx) {
     .eq("id", id);
 
   if (error) {
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: DUPLICATE_AUTHOR_MESSAGE },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

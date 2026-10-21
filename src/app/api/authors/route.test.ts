@@ -67,5 +67,65 @@ describe("POST /api/authors", () => {
       expect(insert).toHaveBeenCalledWith({ name: "Clarice" });
       expect(select).toHaveBeenCalledWith("id, name");
     });
+
+    it("grava o nome sem espaços nas pontas", async () => {
+      const row = { id: "a1", name: "Clarice" };
+      const single = vi.fn().mockResolvedValue({ data: row, error: null });
+      const select = vi.fn(() => ({ single }));
+      const insert = vi.fn(() => ({ select }));
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn(() => ({ insert })),
+      };
+      const route = await loadRoute(client);
+      const res = await route.POST(
+        new Request("http://localhost", {
+          method: "POST",
+          body: JSON.stringify({ name: "  Clarice  " }),
+        }),
+      );
+      expect(res.status).toBe(201);
+      expect(insert).toHaveBeenCalledWith({ name: "Clarice" });
+    });
+
+    it("retorna 400 quando o nome só tem espaços", async () => {
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn(),
+      };
+      const route = await loadRoute(client);
+      const res = await route.POST(
+        new Request("http://localhost", {
+          method: "POST",
+          body: JSON.stringify({ name: "   " }),
+        }),
+      );
+      expect(res.status).toBe(400);
+      expect(client.from).not.toHaveBeenCalled();
+    });
+
+    it("retorna 409 quando o nome já existe", async () => {
+      const single = vi.fn().mockResolvedValue({
+        data: null,
+        error: { code: "23505", message: "duplicate key value" },
+      });
+      const select = vi.fn(() => ({ single }));
+      const insert = vi.fn(() => ({ select }));
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn(() => ({ insert })),
+      };
+      const route = await loadRoute(client);
+      const res = await route.POST(
+        new Request("http://localhost", {
+          method: "POST",
+          body: JSON.stringify({ name: "Colleen Hoover" }),
+        }),
+      );
+      expect(res.status).toBe(409);
+      await expect(res.json()).resolves.toEqual({
+        error: "Já existe um autor com esse nome.",
+      });
+    });
   });
 });
