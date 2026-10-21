@@ -1,11 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { requireUser } from "@/app/api/_utils/requireUser";
-
-const createBody = z.object({
-  name: z.string().min(1),
-});
+import { authorNameBody, DUPLICATE_AUTHOR_MESSAGE } from "./authorName";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -19,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = createBody.safeParse(json);
+  const parsed = authorNameBody.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", details: parsed.error.flatten() },
@@ -34,6 +30,12 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: DUPLICATE_AUTHOR_MESSAGE },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

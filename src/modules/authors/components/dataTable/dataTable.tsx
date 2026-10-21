@@ -1,12 +1,11 @@
 import {
   ColumnDef,
+  OnChangeFn,
   SortingState,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
 
 import {
   Table,
@@ -29,6 +28,8 @@ interface DataTableProps {
   onClickNewAuthor: () => void;
   onClearSearch: () => void;
   isLoading?: boolean;
+  sorting: SortingState;
+  onSortingChange: OnChangeFn<SortingState>;
 }
 
 export function DataTable({
@@ -39,18 +40,18 @@ export function DataTable({
   searchValue,
   onClearSearch,
   isLoading,
+  sorting,
+  onSortingChange,
 }: DataTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-
   const table = useReactTable({
     data,
     columns,
     state: {
       sorting,
     },
-    onSortingChange: setSorting,
+    onSortingChange,
+    manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
@@ -86,21 +87,48 @@ export function DataTable({
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                      className="cursor-pointer select-none"
-                      style={{ width: header.column.getSize() }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
+                  {headerGroup.headers.map((header) => {
+                    const canSort = header.column.getCanSort();
+                    const sorted = header.column.getIsSorted();
+
+                    return (
+                      <TableHead
+                        key={header.id}
+                        onClick={
+                          canSort
+                            ? header.column.getToggleSortingHandler()
+                            : undefined
+                        }
+                        className={
+                          canSort ? "cursor-pointer select-none" : undefined
+                        }
+                        aria-sort={
+                          sorted === "asc"
+                            ? "ascending"
+                            : sorted === "desc"
+                              ? "descending"
+                              : canSort
+                                ? "none"
+                                : undefined
+                        }
+                        style={{ width: header.column.getSize() }}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <span className="inline-flex items-center gap-1">
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                            {sorted === "asc" ? (
+                              <span aria-hidden="true">↑</span>
+                            ) : sorted === "desc" ? (
+                              <span aria-hidden="true">↓</span>
+                            ) : null}
+                          </span>
+                        )}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
               ))}
             </TableHeader>

@@ -185,6 +185,16 @@ describe("QUERY_KEYS.authors", () => {
       "list",
       2,
       "borges",
+      "createdAt",
+      true,
+    ]);
+    expect(QUERY_KEYS.authors.list(0, "", "name", false)).toEqual([
+      ...QUERY_KEYS.authors.all,
+      "list",
+      0,
+      "",
+      "name",
+      false,
     ]);
     expect(QUERY_KEYS.authors.list(0, "")).not.toEqual(
       QUERY_KEYS.authors.list(1, ""),

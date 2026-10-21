@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { SortingState } from "@tanstack/react-table";
 import { AuthorDomain } from "./types";
-import { AuthorsService } from "./services/authors.service";
+import {
+  AuthorListSort,
+  AuthorsService,
+} from "./services/authors.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AuthorUpsert, createColumns, DataTable } from "./components";
 import { ConfirmDialog, DefaultPagination } from "@/components";
@@ -25,6 +29,18 @@ export default function AuthorsScreen() {
 
   const [searchName, setSearchName] = useState("");
   const [filterName, setFilterName] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "createdAt", desc: false },
+  ]);
+
+  const activeSort = sorting[0];
+  const sortBy: AuthorListSort =
+    activeSort?.id === "name" ||
+    activeSort?.id === "totalBooks" ||
+    activeSort?.id === "createdAt"
+      ? activeSort.id
+      : "createdAt";
+  const sortAscending = activeSort ? !activeSort.desc : true;
 
   const authorsService = useMemo(() => new AuthorsService(), []);
 
@@ -38,13 +54,20 @@ export default function AuthorsScreen() {
   }, [searchName]);
 
   const { data, isLoading: isLoadingAuthors } = useQuery({
-    queryKey: QUERY_KEYS.authors.list(currentPage, filterName),
+    queryKey: QUERY_KEYS.authors.list(
+      currentPage,
+      filterName,
+      sortBy,
+      sortAscending,
+    ),
     queryFn: () =>
       authorsService.getAuthors({
         withCountBooks: true,
         page: currentPage,
         pageSize: PAGE_SIZE,
         searchName: filterName,
+        sortBy,
+        sortAscending,
       }),
   });
 
@@ -104,6 +127,13 @@ export default function AuthorsScreen() {
     [],
   );
 
+  const handleSortingChange = useCallback<
+    (updater: SortingState | ((old: SortingState) => SortingState)) => void
+  >((updater) => {
+    setSorting(updater);
+    setCurrentPage(0);
+  }, []);
+
   const handleClearSearch = useCallback(() => {
     setSearchName("");
     setFilterName("");
@@ -150,6 +180,8 @@ export default function AuthorsScreen() {
         onClearSearch={handleClearSearch}
         searchValue={searchName}
         isLoading={isLoadingAuthors}
+        sorting={sorting}
+        onSortingChange={handleSortingChange}
       />
 
       <DefaultPagination

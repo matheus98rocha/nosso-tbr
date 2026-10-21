@@ -61,10 +61,10 @@ export default function AuthorUpsert({
         if (!authorId) {
           throw new Error("ID do autor é obrigatório para edição.");
         }
-        return authorsService.editAuthor(data.name, authorId);
+        return authorsService.editAuthor(data.name.trim(), authorId);
       }
 
-      return authorsService.createAuthor(data.name);
+      return authorsService.createAuthor(data.name.trim());
     },
     onSuccess: (author) => {
       queryClient.invalidateQueries({ queryKey: ["authors"] });
@@ -78,10 +78,18 @@ export default function AuthorUpsert({
         },
       );
     },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Não foi possível salvar o autor.";
+      form.setError("name", { message });
+      toast.error(message);
+    },
   });
 
   const onSubmit = (data: { name: string }) => {
-    mutate(data);
+    mutate({ name: data.name.trim() });
   };
 
   const isEdit = mode === "edit";
@@ -102,7 +110,11 @@ export default function AuthorUpsert({
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: "O nome do autor é obrigatório" }}
+              rules={{
+                required: "O nome do autor é obrigatório",
+                validate: (value) =>
+                  value.trim().length > 0 || "O nome do autor é obrigatório",
+              }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nome do Autor</FormLabel>

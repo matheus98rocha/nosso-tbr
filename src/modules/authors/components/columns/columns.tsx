@@ -58,7 +58,7 @@ export const createColumns = ({
     ),
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Criado em",
     cell: ({ row }) => {
       const value = row.original.createdAt;
@@ -68,6 +68,7 @@ export const createColumns = ({
   },
   {
     id: "actions",
+    enableSorting: false,
     cell: ({ row }) => {
       const author = row.original;
 

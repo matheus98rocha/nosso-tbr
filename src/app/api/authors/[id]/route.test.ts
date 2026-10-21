@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 type Client = {
   auth: { getUser: ReturnType<typeof vi.fn> };
@@ -100,6 +100,56 @@ describe("/api/authors/[id]", () => {
       await expect(res.json()).resolves.toEqual({ ok: true });
       expect(update).toHaveBeenCalledWith({ name: "Novo" });
       expect(eq).toHaveBeenCalledWith("id", "auth-1");
+    });
+
+    it("grava o nome sem espaços nas pontas", async () => {
+      const eq = vi.fn().mockResolvedValue({ error: null });
+      const update = vi.fn(() => ({ eq }));
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          if (table === "authors") return { update };
+          throw new Error(`unexpected ${table}`);
+        }),
+      };
+      const route = await loadRoute(client);
+      const res = await route.PATCH(
+        new Request("http://localhost", {
+          method: "PATCH",
+          body: JSON.stringify({ name: "  Novo  " }),
+        }),
+        { params: Promise.resolve({ id: "auth-1" }) },
+      );
+      expect(res.status).toBe(200);
+      expect(update).toHaveBeenCalledWith({ name: "Novo" });
+    });
+
+    it("retorna 409 quando o nome já pertence a outro autor", async () => {
+      const eq = vi.fn().mockResolvedValue({
+        error: { code: "23505", message: "duplicate key value" },
+      });
+      const update = vi.fn(() => ({ eq }));
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          if (table === "authors") return { update };
+          throw new Error(`unexpected ${table}`);
+        }),
+      };
+      const route = await loadRoute(client);
+      const res = await route.PATCH(
+        new Request("http://localhost", {
+          method: "PATCH",
+          body: JSON.stringify({ name: "Colleen Hoover" }),
+        }),
+        { params: Promise.resolve({ id: "auth-1" }) },
+      );
+      expect(res.status).toBe(409);
+      await expect(res.json()).resolves.toEqual({
+        error: "Já existe um autor com esse nome.",
+      });
     });
   });
 
