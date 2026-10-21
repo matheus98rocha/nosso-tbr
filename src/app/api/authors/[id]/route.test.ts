@@ -125,6 +125,26 @@ describe("/api/authors/[id]", () => {
       expect(update).toHaveBeenCalledWith({ name: "Novo" });
     });
 
+    it("retorna 400 quando o nome só tem espaços", async () => {
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          throw new Error(`unexpected ${table}`);
+        }),
+      };
+      const route = await loadRoute(client);
+      const res = await route.PATCH(
+        new Request("http://localhost", {
+          method: "PATCH",
+          body: JSON.stringify({ name: "   " }),
+        }),
+        { params: Promise.resolve({ id: "auth-1" }) },
+      );
+      expect(res.status).toBe(400);
+      expect(client.from).not.toHaveBeenCalledWith("authors");
+    });
+
     it("retorna 409 quando o nome já pertence a outro autor", async () => {
       const eq = vi.fn().mockResolvedValue({
         error: { code: "23505", message: "duplicate key value" },
@@ -149,6 +169,33 @@ describe("/api/authors/[id]", () => {
       expect(res.status).toBe(409);
       await expect(res.json()).resolves.toEqual({
         error: "Já existe um autor com esse nome.",
+      });
+    });
+
+    it("retorna 500 quando a falha não é nome duplicado", async () => {
+      const eq = vi.fn().mockResolvedValue({
+        error: { code: "42501", message: "permission denied" },
+      });
+      const update = vi.fn(() => ({ eq }));
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          if (table === "authors") return { update };
+          throw new Error(`unexpected ${table}`);
+        }),
+      };
+      const route = await loadRoute(client);
+      const res = await route.PATCH(
+        new Request("http://localhost", {
+          method: "PATCH",
+          body: JSON.stringify({ name: "Novo" }),
+        }),
+        { params: Promise.resolve({ id: "auth-1" }) },
+      );
+      expect(res.status).toBe(500);
+      await expect(res.json()).resolves.toEqual({
+        error: "permission denied",
       });
     });
   });
@@ -212,6 +259,53 @@ describe("/api/authors/[id]", () => {
         error: expect.stringContaining("referenciado"),
       });
       expect(client.from).toHaveBeenCalledWith("books");
+    });
+
+    it("retorna 403 quando o autor só aparece em book_authors", async () => {
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          if (table === "books") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  limit: vi.fn(() => ({
+                    maybeSingle: vi
+                      .fn()
+                      .mockResolvedValue({ data: null, error: null }),
+                  })),
+                })),
+              })),
+            };
+          }
+          if (table === "book_authors") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  limit: vi.fn(() => ({
+                    maybeSingle: vi.fn().mockResolvedValue({
+                      data: { author_id: "auth-1" },
+                      error: null,
+                    }),
+                  })),
+                })),
+              })),
+            };
+          }
+          throw new Error(`unexpected ${table}`);
+        }),
+      };
+      const route = await loadRoute(client);
+      const res = await route.DELETE(new Request("http://localhost"), {
+        params: Promise.resolve({ id: "auth-1" }),
+      });
+      expect(res.status).toBe(403);
+      await expect(res.json()).resolves.toEqual({
+        error: "Autor ainda referenciado por livros.",
+      });
+      expect(client.from).toHaveBeenCalledWith("book_authors");
+      expect(client.from).not.toHaveBeenCalledWith("authors");
     });
 
     it("remove autor quando não há books nem book_authors", async () => {

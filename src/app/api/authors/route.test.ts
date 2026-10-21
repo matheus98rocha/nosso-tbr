@@ -104,6 +104,26 @@ describe("POST /api/authors", () => {
       expect(client.from).not.toHaveBeenCalled();
     });
 
+    it("preserva acentos ao remover espaços nas pontas", async () => {
+      const row = { id: "a1", name: "José Saramago" };
+      const single = vi.fn().mockResolvedValue({ data: row, error: null });
+      const select = vi.fn(() => ({ single }));
+      const insert = vi.fn(() => ({ select }));
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn(() => ({ insert })),
+      };
+      const route = await loadRoute(client);
+      const res = await route.POST(
+        new Request("http://localhost", {
+          method: "POST",
+          body: JSON.stringify({ name: "  José Saramago  " }),
+        }),
+      );
+      expect(res.status).toBe(201);
+      expect(insert).toHaveBeenCalledWith({ name: "José Saramago" });
+    });
+
     it("retorna 409 quando o nome já existe", async () => {
       const single = vi.fn().mockResolvedValue({
         data: null,
@@ -125,6 +145,30 @@ describe("POST /api/authors", () => {
       expect(res.status).toBe(409);
       await expect(res.json()).resolves.toEqual({
         error: "Já existe um autor com esse nome.",
+      });
+    });
+
+    it("retorna 500 quando a falha não é nome duplicado", async () => {
+      const single = vi.fn().mockResolvedValue({
+        data: null,
+        error: { code: "42501", message: "permission denied" },
+      });
+      const select = vi.fn(() => ({ single }));
+      const insert = vi.fn(() => ({ select }));
+      const client: Client = {
+        auth: authLogged("u1"),
+        from: vi.fn(() => ({ insert })),
+      };
+      const route = await loadRoute(client);
+      const res = await route.POST(
+        new Request("http://localhost", {
+          method: "POST",
+          body: JSON.stringify({ name: "Clarice" }),
+        }),
+      );
+      expect(res.status).toBe(500);
+      await expect(res.json()).resolves.toEqual({
+        error: "permission denied",
       });
     });
   });
