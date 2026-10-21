@@ -335,6 +335,47 @@ describe("POST /api/books", () => {
     ]);
   });
 
+  it("returns 500 when the book is created but author links fail", async () => {
+    const chain = buildInsertSelectSingle({
+      data: { id: "new-book-id" },
+      error: null,
+    });
+    const authors = bookAuthorsMocks();
+    authors.insertAuthors.mockResolvedValue({
+      error: { message: "fk violation" },
+    });
+    const client: SupabaseBooksRouteMock = {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "user-owner" } },
+          error: null,
+        }),
+      },
+      from: vi.fn((table: string) => {
+        if (table === "book_authors") {
+          return { delete: authors.deleteFn, insert: authors.insertAuthors };
+        }
+        return { insert: chain.insert };
+      }),
+    };
+
+    const route = await loadRouteWithClient(client);
+    const response = await route.POST(
+      new Request("http://localhost/api/books", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...validPayload,
+          author_ids: ["author-1", "author-2"],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "fk violation" });
+    expect(chain.insert).toHaveBeenCalled();
+  });
+
   it("returns 500 when insert returns error", async () => {
     const chain = buildInsertSelectSingle({
       data: null,

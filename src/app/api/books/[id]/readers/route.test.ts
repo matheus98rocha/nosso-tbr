@@ -105,6 +105,41 @@ describe("POST /api/books/[id]/readers", () => {
     expect(client.rpc).not.toHaveBeenCalled();
   });
 
+  it("não adiciona o leitor quando a consulta de seguidores falha", async () => {
+    const books = chain({
+      data: {
+        id: "book-1",
+        user_id: ME,
+        chosen_by: null,
+        readers: [ME],
+      },
+      error: null,
+    });
+    const follows = chain({
+      data: null,
+      error: { message: "timeout" },
+    });
+    const client: Client = {
+      auth: authLogged(ME),
+      from: vi.fn((table: string) => {
+        if (table === "books") return books;
+        if (table === "user_followers") return follows;
+        throw new Error(table);
+      }),
+      rpc: vi.fn(),
+    };
+    const route = await loadRoute(client);
+    const response = await route.POST(post(BIA), {
+      params: Promise.resolve({ id: "book-1" }),
+    });
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: "Não foi possível confirmar quem você segue",
+    });
+    expect(client.rpc).not.toHaveBeenCalled();
+  });
+
   it("inclui a pessoa seguida sem substituir o array lido antes", async () => {
     const booksSelect = chain({
       data: {

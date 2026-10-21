@@ -454,8 +454,48 @@ describe("BookQueryBuilder", () => {
         .withAuthor("  ")
         .build();
 
+      expect(mockFrom).not.toHaveBeenCalled();
       expect(mockQuery.eq).not.toHaveBeenCalledWith(
         "book_authors.author_id",
+        expect.anything(),
+      );
+    });
+
+    it("reaplica os demais filtros na query reconstruída pelo autor", () => {
+      const discarded = buildMockQuery();
+      const rebuilt = buildMockQuery();
+      mockSelect.mockReturnValue(rebuilt);
+
+      new BookQueryBuilder(supabase, discarded as never)
+        .withStatus(["reading"])
+        .withGender(["Fantasia"])
+        .withSearchTerm("Tolkien")
+        .withDefaultOrdering(false)
+        .withPagination(1, 10)
+        .withAuthor(" author-42 ")
+        .build();
+
+      expect(rebuilt.eq).toHaveBeenCalledWith(
+        "author_filter.author_id",
+        "author-42",
+      );
+      expect(rebuilt.or).toHaveBeenCalledWith("status.eq.reading");
+      expect(rebuilt.eq).toHaveBeenCalledWith("gender", "Fantasia");
+      expect(rebuilt.textSearch).toHaveBeenCalledWith(
+        "search_vector",
+        "tolkien",
+        { type: "plain", config: "simple" },
+      );
+      expect(rebuilt.order).toHaveBeenCalledWith("end_date", {
+        ascending: false,
+        nullsFirst: true,
+      });
+      expect(rebuilt.order).toHaveBeenCalledWith("inserted_at", {
+        ascending: false,
+      });
+      expect(rebuilt.range).toHaveBeenCalledWith(10, 19);
+      expect(discarded.eq).not.toHaveBeenCalledWith(
+        "author_filter.author_id",
         expect.anything(),
       );
     });
