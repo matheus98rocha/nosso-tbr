@@ -21,11 +21,14 @@ const BOOKS_SELECT_BY_AUTHOR = `
   author:authors!books_author_id_fkey (
     name
   ),
-  book_authors!inner (
+  credited_authors:book_authors (
     author_id,
     authors (
       name
     )
+  ),
+  author_filter:book_authors!inner (
+    author_id
   )
 `;
 
@@ -253,7 +256,7 @@ export class BookQueryBuilder {
 
     const authorId = this.authorIdFilter;
     let query = buildBaseQuery(this.supabase, BOOKS_SELECT_BY_AUTHOR).eq(
-      "book_authors.author_id",
+      "author_filter.author_id",
       authorId,
     );
 

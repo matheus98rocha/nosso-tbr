@@ -20,6 +20,23 @@ describe("resolveBookAuthors", () => {
     expect(result.primaryAuthorId).toBe("a1");
   });
 
+  it("prefere credited_authors quando o filtro embutido reduz book_authors", () => {
+    const result = resolveBookAuthors({
+      author_id: "a1",
+      author: { name: "Ana" },
+      book_authors: [{ author_id: "a1", authors: { name: "Ana" } }],
+      credited_authors: [
+        { author_id: "a1", authors: { name: "Ana" } },
+        { author_id: "a2", authors: { name: "Bruno" } },
+      ],
+    });
+
+    expect(result.authorIds).toEqual(["a1", "a2"]);
+    expect(result.authorNames).toEqual(["Ana", "Bruno"]);
+    expect(result.authorDisplay).toBe("Ana e Bruno");
+    expect(result.primaryAuthorId).toBe("a1");
+  });
+
   it("formata dois autores com e", () => {
     const result = resolveBookAuthors({
       book_authors: [

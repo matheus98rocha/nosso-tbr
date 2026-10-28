@@ -425,19 +425,27 @@ describe("BookQueryBuilder", () => {
       supabase = { from: mockFrom } as unknown as SupabaseClient<Database>;
     });
 
-    it("filtra via book_authors!inner no build", () => {
+    it("filtra o livro pelo autor e mantém os demais autores no embed", () => {
       new BookQueryBuilder(supabase, mockQuery as never)
         .withAuthor("author-42")
         .build();
 
       expect(mockFrom).toHaveBeenCalledWith("books");
       expect(mockSelect).toHaveBeenCalledWith(
-        expect.stringContaining("book_authors!inner"),
+        expect.stringContaining("credited_authors:book_authors"),
+        { count: "exact" },
+      );
+      expect(mockSelect).toHaveBeenCalledWith(
+        expect.stringContaining("author_filter:book_authors!inner"),
         { count: "exact" },
       );
       expect(mockQuery.eq).toHaveBeenCalledWith(
-        "book_authors.author_id",
+        "author_filter.author_id",
         "author-42",
+      );
+      expect(mockQuery.eq).not.toHaveBeenCalledWith(
+        "book_authors.author_id",
+        expect.anything(),
       );
     });
 
