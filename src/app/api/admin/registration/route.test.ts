@@ -107,20 +107,6 @@ describe("PATCH /api/admin/registration", () => {
     expect(response.status).toBe(401);
   });
 
-  it("retorna 403 para common_user", async () => {
-    const session: SessionClient = {
-      auth: authLogged("u-common"),
-      from: vi.fn((table: string) => {
-        if (table === "users") return usersTier("common_user");
-        throw new Error(table);
-      }),
-    };
-    const route = await loadRoute(session);
-    const response = await route.PATCH(patchRequest({ mode: "open" }));
-
-    expect(response.status).toBe(403);
-  });
-
   it("retorna 503 para admin quando o service role não está configurado", async () => {
     const session: SessionClient = {
       auth: authLogged("admin-1"),
@@ -136,6 +122,20 @@ describe("PATCH /api/admin/registration", () => {
     await expect(response.json()).resolves.toMatchObject({
       error: expect.stringContaining("SUPABASE_SERVICE_ROLE_KEY"),
     });
+  });
+
+  it("retorna 403 para common_user", async () => {
+    const session: SessionClient = {
+      auth: authLogged("u-common"),
+      from: vi.fn((table: string) => {
+        if (table === "users") return usersTier("common_user");
+        throw new Error(table);
+      }),
+    };
+    const route = await loadRoute(session);
+    const response = await route.PATCH(patchRequest({ mode: "open" }));
+
+    expect(response.status).toBe(403);
   });
 
   it("retorna 400 para modo inválido", async () => {

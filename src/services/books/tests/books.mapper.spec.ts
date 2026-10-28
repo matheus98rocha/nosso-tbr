@@ -259,4 +259,31 @@ describe("BookMapper", () => {
     expect(domain.authorNames).toEqual(["Ana", "Bruno"]);
     expect(domain.authorId).toBe("a1");
   });
+
+  it("mantém os coautores quando o filtro de autor reduz book_authors", () => {
+    const persistence: BookPersistence = {
+      id: "1",
+      title: "Boas-vindas",
+      author: { name: "Ana" },
+      author_id: "a1",
+      book_authors: [{ author_id: "a1", authors: { name: "Ana" } }],
+      credited_authors: [
+        { author_id: "a1", authors: { name: "Ana" } },
+        { author_id: "a2", authors: { name: "Bruno" } },
+      ],
+      chosen_by: "11111111-1111-4111-8111-111111111111",
+      pages: 100,
+      readers: ["11111111-1111-4111-8111-111111111111"],
+      gender: null,
+      image_url: null,
+      user_id: "u1",
+    };
+
+    const domain = BookMapper.toDomain(persistence);
+
+    expect(domain.authorIds).toEqual(["a1", "a2"]);
+    expect(domain.authorNames).toEqual(["Ana", "Bruno"]);
+    expect(domain.author).toBe("Ana e Bruno");
+    expect(domain.authorId).toBe("a1");
+  });
 });

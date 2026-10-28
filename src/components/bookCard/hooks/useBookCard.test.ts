@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createElement, type ReactNode } from "react";
 import { Mock, vi } from "vitest";
@@ -36,10 +36,13 @@ vi.mock("@/services/bookFavorites/hooks/useToggleBookFavorite", () => ({
   }),
 }));
 vi.mock("@/hooks/useSafeTap", () => ({ useSafeTap: (fn: () => void) => fn }));
+const editBookMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+
+vi.mock("sonner", () => ({ toast: vi.fn() }));
 vi.mock("@/modules/bookUpsert/services/bookUpsert.service", () => ({
   BookUpsertService: vi.fn(function BookUpsertServiceMock() {
     return {
-      edit: vi.fn().mockResolvedValue(undefined),
+      edit: editBookMock,
     };
   }),
 }));
@@ -619,6 +622,31 @@ describe("useBookCard", () => {
 
         expect(onEditBook).toHaveBeenCalledTimes(1);
         expect(result.current.dialogEditModal.isOpen).toBe(false);
+      });
+
+      it("envia todos os autores ao finalizar a leitura", async () => {
+        editBookMock.mockResolvedValue(undefined);
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "reading",
+          authorId: "author-1",
+          authorIds: ["author-1", "author-2"],
+          authorNames: ["Ana", "Bruno"],
+        });
+
+        act(() => {
+          result.current.onFinishReading();
+        });
+
+        await waitFor(() => {
+          expect(editBookMock).toHaveBeenCalledWith(
+            "1",
+            expect.objectContaining({
+              status: "finished",
+              author_ids: ["author-1", "author-2"],
+            }),
+          );
+        });
       });
 
       it("fecha a ficha e abre a confirmação de exclusão", () => {

@@ -63,7 +63,7 @@ describe("readRegistrationMode", () => {
     const { client } = settingsClient({
       data: null,
       error: {
-        message: "Could not find the table 'public.registration_settings' in the schema cache",
+        message: "Could not find the table in the schema cache",
         code: "PGRST205",
       },
     });
@@ -127,6 +127,23 @@ describe("writeRegistrationMode", () => {
     ).resolves.toEqual({
       ok: false,
       error: { message: "Modo de inscrição não foi gravado." },
+    });
+  });
+
+  it("não confirma a gravação quando o banco devolve erro junto com o modo", async () => {
+    const { client } = settingsClient({
+      data: { mode: "open" },
+      error: { message: "timeout", code: "57014" },
+    });
+
+    await expect(
+      writeRegistrationMode(client, {
+        mode: "open",
+        updatedBy: "admin-1",
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      error: { message: "timeout", code: "57014" },
     });
   });
 });

@@ -431,14 +431,11 @@ describe("BookQueryBuilder", () => {
         .build();
 
       expect(mockFrom).toHaveBeenCalledWith("books");
-      expect(mockSelect).toHaveBeenCalledWith(
-        expect.stringContaining("credited_authors:book_authors"),
-        { count: "exact" },
-      );
-      expect(mockSelect).toHaveBeenCalledWith(
-        expect.stringContaining("author_filter:book_authors!inner"),
-        { count: "exact" },
-      );
+      const selectArg = String(mockSelect.mock.calls[0]?.[0]);
+      expect(selectArg).toContain("credited_authors:book_authors (");
+      expect(selectArg).not.toContain("credited_authors:book_authors!inner");
+      expect(selectArg).toContain("author_filter:book_authors!inner");
+      expect(mockSelect).toHaveBeenCalledWith(selectArg, { count: "exact" });
       expect(mockQuery.eq).toHaveBeenCalledWith(
         "author_filter.author_id",
         "author-42",
@@ -454,10 +451,51 @@ describe("BookQueryBuilder", () => {
         .withAuthor("  ")
         .build();
 
+      expect(mockFrom).not.toHaveBeenCalled();
       expect(mockQuery.eq).not.toHaveBeenCalledWith(
-        "book_authors.author_id",
+        "author_filter.author_id",
         expect.anything(),
       );
+    });
+
+    it("remove espaços do authorId antes de filtrar", () => {
+      new BookQueryBuilder(supabase, mockQuery as never)
+        .withAuthor("  author-42  ")
+        .build();
+
+      expect(mockQuery.eq).toHaveBeenCalledWith(
+        "author_filter.author_id",
+        "author-42",
+      );
+    });
+
+    it("reaplica status, ordenação e paginação na query reconstruída pelo autor", () => {
+      const initialQuery = buildMockQuery();
+      const rebuiltQuery = buildMockQuery();
+      mockSelect.mockReturnValue(rebuiltQuery);
+
+      new BookQueryBuilder(supabase, initialQuery as never)
+        .withStatus(["reading"])
+        .withDefaultOrdering(false)
+        .withPagination(1, 10)
+        .withAuthor("author-42")
+        .build();
+
+      expect(rebuiltQuery.eq).toHaveBeenCalledWith(
+        "author_filter.author_id",
+        "author-42",
+      );
+      expect(rebuiltQuery.or).toHaveBeenCalledWith("status.eq.reading");
+      expect(rebuiltQuery.order).toHaveBeenCalledWith("end_date", {
+        ascending: false,
+        nullsFirst: true,
+      });
+      expect(rebuiltQuery.order).toHaveBeenCalledWith("inserted_at", {
+        ascending: false,
+      });
+      expect(rebuiltQuery.range).toHaveBeenCalledWith(10, 19);
+      expect(initialQuery.or).toHaveBeenCalledWith("status.eq.reading");
+      expect(initialQuery.eq).not.toHaveBeenCalled();
     });
   });
 

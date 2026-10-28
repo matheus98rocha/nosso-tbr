@@ -6,7 +6,7 @@ const { createServiceRoleClientMock } = vi.hoisted(() => ({
 
 function settingsClient(result: {
   data: { mode: string } | null;
-  error?: { message: string } | null;
+  error?: { message: string; code?: string } | null;
 }) {
   const maybeSingle = vi.fn().mockResolvedValue({
     data: result.data,
@@ -53,6 +53,22 @@ describe("GET /api/auth/registration", () => {
     await expect(response.json()).resolves.toMatchObject({
       error: expect.stringContaining("SUPABASE_SERVICE_ROLE_KEY"),
     });
+  });
+
+  it("mantém convites quando a tabela ainda não está no cache", async () => {
+    const route = await loadRoute(
+      settingsClient({
+        data: null,
+        error: {
+          message: "Could not find the table in the schema cache",
+          code: "PGRST205",
+        },
+      }),
+    );
+    const response = await route.GET();
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ mode: "invite" });
   });
 
   it("devolve invite quando a linha ainda não existe", async () => {
