@@ -71,4 +71,55 @@ describe("resolveBookAuthors", () => {
     expect(result.authorDisplay).toBe("Autor desconhecido");
     expect(result.primaryAuthorId).toBeUndefined();
   });
+
+  it("ignora credited_authors vazio e usa a lista completa de book_authors", () => {
+    const result = resolveBookAuthors({
+      book_authors: [
+        { author_id: "a1", authors: { name: "Ana" } },
+        { author_id: "a2", authors: { name: "Bruno" } },
+      ],
+      credited_authors: [],
+    });
+
+    expect(result.authorIds).toEqual(["a1", "a2"]);
+    expect(result.authorDisplay).toBe("Ana e Bruno");
+  });
+
+  it("mantém o id quando o vínculo não traz nome", () => {
+    const result = resolveBookAuthors({
+      book_authors: [
+        { author_id: " a1 ", authors: { name: "  " } },
+        { author_id: "a2", author: { name: "Bruno" } },
+      ],
+    });
+
+    expect(result.authorIds).toEqual(["a1", "a2"]);
+    expect(result.authorNames).toEqual(["Bruno"]);
+    expect(result.authorDisplay).toBe("Bruno");
+    expect(result.primaryAuthorId).toBe("a1");
+  });
+
+  it("mostra Autor desconhecido quando todo vínculo tem id e nome vazio", () => {
+    const result = resolveBookAuthors({
+      book_authors: [{ author_id: "a1", authors: { name: null } }],
+    });
+
+    expect(result.authorIds).toEqual(["a1"]);
+    expect(result.authorNames).toEqual([]);
+    expect(result.authorDisplay).toBe("Autor desconhecido");
+    expect(result.primaryAuthorId).toBe("a1");
+  });
+
+  it("descarta vínculos sem id e volta ao autor legado", () => {
+    const result = resolveBookAuthors({
+      author_id: " legacy ",
+      author: { name: " Machado " },
+      book_authors: [{ author_id: "  ", authors: { name: "Fantasma" } }],
+    });
+
+    expect(result.authorIds).toEqual(["legacy"]);
+    expect(result.authorNames).toEqual(["Machado"]);
+    expect(result.authorDisplay).toBe("Machado");
+    expect(result.primaryAuthorId).toBe("legacy");
+  });
 });

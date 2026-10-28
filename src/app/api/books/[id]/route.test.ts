@@ -680,6 +680,51 @@ describe("PATCH /api/books/[id]", () => {
       expect(eqUpdate).toHaveBeenCalledWith("id", "book-1");
     });
 
+    it("retorna 500 quando o livro atualiza mas o vínculo de autores falha", async () => {
+      const currentBook = {
+        id: "book-1",
+        status: "reading",
+        start_date: null,
+        end_date: null,
+        user_id: "owner-user",
+        chosen_by: "owner-user",
+        readers: ["owner-user"],
+      };
+      const readBuilder = buildBookSelectSingle(currentBook);
+      const eqUpdate = vi.fn().mockResolvedValue({ error: null });
+      const update = vi.fn(() => ({ eq: eqUpdate }));
+      const tables = buildBooksAndAuthorsFrom(
+        { select: readBuilder.select },
+        { update },
+      );
+      tables.insertAuthors.mockResolvedValue({
+        error: { message: "author link failed" },
+      });
+      const client: SupabaseByIdMock = {
+        auth: { getUser: authedGetUser("owner-user") },
+        from: tables.from,
+      };
+
+      const route = await loadRouteWithClient(client);
+      const response = await route.PATCH(
+        new Request("http://localhost/api/books/book-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...validPatchPayload,
+            author_ids: ["author-1", "author-2"],
+          }),
+        }),
+        { params: Promise.resolve({ id: "book-1" }) },
+      );
+
+      expect(response.status).toBe(500);
+      await expect(response.json()).resolves.toEqual({
+        error: "author link failed",
+      });
+      expect(eqUpdate).toHaveBeenCalledWith("id", "book-1");
+    });
+
     it("retorna 500 apenas com error string quando PostgREST devolve erro no update", async () => {
       const currentBook = {
         id: "book-1",
