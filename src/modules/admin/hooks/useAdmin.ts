@@ -9,6 +9,8 @@ import { toast } from "sonner";
 
 import { QUERY_KEYS } from "@/constants/keys";
 import { ApiError } from "@/lib/api/clientJsonFetch";
+import type { RegistrationMode } from "@/lib/auth/registrationMode";
+import { getRegistrationMode } from "@/services/registration";
 import { useIsAdmin, useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
 
@@ -18,6 +20,7 @@ import {
   getAdminInvites,
   getAdminUsers,
   promoteAdminUser,
+  updateRegistrationMode,
 } from "../services/admin.service";
 import type { AdminInviteItem, AdminUserListItem } from "../types/admin.types";
 
@@ -28,6 +31,7 @@ export default function useAdmin() {
   const isAdmin = useIsAdmin();
   const currentUserId = useUserStore((state) => state.user?.id ?? null);
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
+  const [copiedRegistrationLink, setCopiedRegistrationLink] = useState(false);
   const [userPendingDelete, setUserPendingDelete] =
     useState<AdminUserListItem | null>(null);
 
@@ -56,11 +60,41 @@ export default function useAdmin() {
     refetchInterval: 1000 * 60,
   });
 
+  const registrationQuery = useQuery({
+    queryKey: QUERY_KEYS.registration.mode,
+    queryFn: getRegistrationMode,
+    enabled: isLoggedIn && isAdmin,
+    staleTime: 1000 * 15,
+  });
+
   const users = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
   const invites = useMemo(
     () => invitesQuery.data?.invites ?? [],
     [invitesQuery.data?.invites],
   );
+  const registrationMode = registrationQuery.data?.mode ?? null;
+
+  const registrationModeDescription = useMemo(() => {
+    if (registrationMode === "open") {
+      return "Qualquer pessoa pode criar uma conta. O link abaixo abre a inscrição sem convite.";
+    }
+    if (registrationMode === "invite") {
+      return "Só entra quem recebe um convite válido por 24 horas.";
+    }
+    return "";
+  }, [registrationMode]);
+
+  const inviteSectionDescription = useMemo(() => {
+    if (registrationMode === "open") {
+      return "As inscrições estão abertas, então o link de convite não é obrigatório. Esses links voltam a ser exigidos se você mudar para Convites, enquanto não expirarem.";
+    }
+    return "Cada link permite múltiplos cadastros até expirar. Gere um novo quando precisar convidar alguém.";
+  }, [registrationMode]);
+
+  const openRegistrationUrl = useMemo(() => {
+    if (typeof window === "undefined") return "/register";
+    return `${window.location.origin}/register`;
+  }, []);
 
   const invalidateUsers = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
@@ -69,6 +103,25 @@ export default function useAdmin() {
   const invalidateInvites = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.invites });
   }, [queryClient]);
+
+  const updateRegistrationMutation = useMutation({
+    mutationFn: updateRegistrationMode,
+    onSuccess: (payload) => {
+      queryClient.setQueryData(QUERY_KEYS.registration.mode, payload);
+      toast.success(
+        payload.mode === "open"
+          ? "Inscrições abertas. Qualquer pessoa pode se cadastrar."
+          : "Inscrição apenas por convite.",
+      );
+    },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível alterar o modo de inscrição.";
+      toast.error(message);
+    },
+  });
 
   const createInviteMutation = useMutation({
     mutationFn: createAdminInvite,
@@ -119,6 +172,25 @@ export default function useAdmin() {
   const createInvite = useCallback(() => {
     createInviteMutation.mutate();
   }, [createInviteMutation]);
+
+  const setRegistrationMode = useCallback(
+    (mode: RegistrationMode) => {
+      if (mode === registrationMode || updateRegistrationMutation.isPending) {
+        return;
+      }
+      updateRegistrationMutation.mutate(mode);
+    },
+    [registrationMode, updateRegistrationMutation],
+  );
+
+  const copyOpenRegistrationLink = useCallback(() => {
+    void navigator.clipboard.writeText(openRegistrationUrl).then(() => {
+      setCopiedRegistrationLink(true);
+      window.setTimeout(() => {
+        setCopiedRegistrationLink(false);
+      }, 2000);
+    });
+  }, [openRegistrationUrl]);
 
   const copyInviteLink = useCallback(async (invite: AdminInviteItem) => {
     await navigator.clipboard.writeText(invite.inviteUrl);
@@ -197,6 +269,16 @@ export default function useAdmin() {
     invites,
     isLoadingInvites: invitesQuery.isLoading,
     invitesError: invitesQuery.error,
+    inviteSectionDescription,
+    registrationMode,
+    registrationModeDescription,
+    isLoadingRegistration: registrationQuery.isLoading,
+    registrationError: registrationQuery.isError,
+    setRegistrationMode,
+    isUpdatingRegistration: updateRegistrationMutation.isPending,
+    openRegistrationUrl,
+    copiedRegistrationLink,
+    copyOpenRegistrationLink,
     createInvite,
     isCreatingInvite: createInviteMutation.isPending,
     copiedInviteId,

@@ -28,16 +28,17 @@ const registerFieldsSchema = z.object({
     .min(1, { message: "Nome é obrigatório" })
     .min(2, { message: "Nome deve ter pelo menos 2 caracteres" })
     .max(200, { message: "Nome deve ter no máximo 200 caracteres" }),
-  invite: z
-    .string()
-    .trim()
-    .min(1, { message: "Link de cadastro inválido. Use o convite que recebeu." }),
 });
 
-export const registerUserBodySchema = registerFieldsSchema;
+const inviteField = z.string().trim();
 
-export const registerUserFormSchema = registerUserBodySchema
+export const registerUserBodySchema = registerFieldsSchema.extend({
+  invite: inviteField.optional().default(""),
+});
+
+export const registerUserFormSchema = registerFieldsSchema
   .extend({
+    invite: inviteField,
     password_confirm: z
       .string()
       .min(1, {
