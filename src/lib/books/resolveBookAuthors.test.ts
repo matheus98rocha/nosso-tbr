@@ -37,6 +37,35 @@ describe("resolveBookAuthors", () => {
     expect(result.primaryAuthorId).toBe("a1");
   });
 
+  it("ignora credited_authors vazio e mantém a lista completa de book_authors", () => {
+    const result = resolveBookAuthors({
+      author_id: "legacy",
+      author: { name: "Legacy" },
+      book_authors: [
+        { author_id: "a1", authors: { name: "Ana" } },
+        { author_id: "a2", authors: { name: "Bruno" } },
+      ],
+      credited_authors: [],
+    });
+
+    expect(result.authorIds).toEqual(["a1", "a2"]);
+    expect(result.authorDisplay).toBe("Ana e Bruno");
+  });
+
+  it("descarta author_id em branco no crédito completo", () => {
+    const result = resolveBookAuthors({
+      book_authors: [{ author_id: "a1", authors: { name: "Ana" } }],
+      credited_authors: [
+        { author_id: "  ", authors: { name: "Vazio" } },
+        { author_id: " a2 ", authors: { name: "Bruno" } },
+      ],
+    });
+
+    expect(result.authorIds).toEqual(["a2"]);
+    expect(result.authorNames).toEqual(["Bruno"]);
+    expect(result.primaryAuthorId).toBe("a2");
+  });
+
   it("formata dois autores com e", () => {
     const result = resolveBookAuthors({
       book_authors: [

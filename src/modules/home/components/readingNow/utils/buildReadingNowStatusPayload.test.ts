@@ -50,6 +50,20 @@ describe("buildReadingNowStatusPayload", () => {
     expect(payload.start_date).toBe("2026-08-01");
   });
 
+  it("keeps every co-author when the status changes", () => {
+    const payload = buildReadingNowStatusPayload(
+      {
+        ...sampleBook,
+        authorId: "author-1",
+        authorIds: ["author-1", "author-2"],
+        authorNames: ["Ana", "Bruno"],
+      },
+      "finished",
+    );
+
+    expect(payload.author_ids).toEqual(["author-1", "author-2"]);
+  });
+
   it("sends the loaded readers as the snapshot so a newer invite is kept", () => {
     const payload = buildReadingNowStatusPayload(
       { ...sampleBook, readerIds: ["user-1", "user-2"] },
