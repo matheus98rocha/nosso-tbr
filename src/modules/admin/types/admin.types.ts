@@ -1,3 +1,4 @@
+import type { RegistrationMode } from "@/lib/auth/registrationMode";
 import type { UserTier } from "@/lib/auth/userTier";
 
 export type AdminUserListItem = {
@@ -24,4 +25,8 @@ export type AdminInvitesPayload = {
 export type CreateAdminInvitePayload = {
   invite: Omit<AdminInviteItem, "inviteUrl">;
   inviteUrl: string;
+};
+
+export type RegistrationModePayload = {
+  mode: RegistrationMode;
 };

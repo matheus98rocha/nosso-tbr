@@ -50,12 +50,27 @@ describe("registerUserBodySchema (RN37)", () => {
     ).toBe(false);
   });
 
-  it("rejeita invite vazio após trim", () => {
+  it("aceita inscrição sem convite", () => {
     const r = registerUserBodySchema.safeParse({
       ...base,
       invite: "   ",
     });
-    expect(r.success).toBe(false);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.invite).toBe("");
+    }
+  });
+
+  it("preenche invite vazio quando o campo não vem no payload", () => {
+    const r = registerUserBodySchema.safeParse({
+      email: base.email,
+      password: base.password,
+      display_name: base.display_name,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.invite).toBe("");
+    }
   });
 });
 
@@ -69,6 +84,17 @@ describe("registerUserFormSchema (RN37)", () => {
       invite: "token",
     });
     expect(r.success).toBe(false);
+  });
+
+  it("aceita inscrição sem convite no formulário", () => {
+    const r = registerUserFormSchema.safeParse({
+      email: "a@b.co",
+      password: "senha123",
+      password_confirm: "senha123",
+      display_name: "Maria",
+      invite: "",
+    });
+    expect(r.success).toBe(true);
   });
 
   it("aceita quando confirmação coincide", () => {

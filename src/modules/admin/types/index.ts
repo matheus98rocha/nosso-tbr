@@ -3,4 +3,5 @@ export type {
   AdminInvitesPayload,
   AdminUserListItem,
   CreateAdminInvitePayload,
+  RegistrationModePayload,
 } from "./admin.types";

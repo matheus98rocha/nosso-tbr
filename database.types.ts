@@ -385,6 +385,35 @@ export type Database = {
           },
         ]
       }
+      registration_settings: {
+        Row: {
+          id: string
+          mode: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule: {
         Row: {
           book_id: string
