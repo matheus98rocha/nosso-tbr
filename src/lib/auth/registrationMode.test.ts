@@ -59,6 +59,20 @@ describe("readRegistrationMode", () => {
     });
   });
 
+  it("mantém convites quando o PostgREST ainda não enxerga a tabela", async () => {
+    const { client } = settingsClient({
+      data: null,
+      error: {
+        message: "Could not find the table 'public.registration_settings' in the schema cache",
+        code: "PGRST205",
+      },
+    });
+    await expect(readRegistrationMode(client)).resolves.toEqual({
+      ok: true,
+      mode: "invite",
+    });
+  });
+
   it("propaga erro de leitura", async () => {
     const { client } = settingsClient({
       data: null,

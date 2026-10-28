@@ -34,17 +34,19 @@ function mockRegisterInviteLookup(
       token: string;
       expires_at: string;
     } | null;
-    error?: null;
+    error?: { code?: string; message: string } | null;
   },
   mode: "invite" | "open" = "invite",
+  settingsError?: { code?: string; message: string } | null,
 ) {
   const maybeSingle = vi.fn().mockResolvedValue({ ...result, error: result.error ?? null });
   const eq = vi.fn(() => ({ maybeSingle }));
   const select = vi.fn(() => ({ eq }));
-  const settingsMaybeSingle = vi.fn().mockResolvedValue({
-    data: { mode },
-    error: null,
-  });
+  const settingsMaybeSingle = vi.fn().mockResolvedValue(
+    settingsError
+      ? { data: null, error: settingsError }
+      : { data: { mode }, error: null },
+  );
   const settingsEq = vi.fn(() => ({ maybeSingle: settingsMaybeSingle }));
   const settingsSelect = vi.fn(() => ({ eq: settingsEq }));
 
@@ -504,6 +506,133 @@ describe("POST /api/auth/register", () => {
     expect(response.status).toBe(201);
     expect(createUser).toHaveBeenCalled();
     expect(adminClient.from).not.toHaveBeenCalledWith("register_invites");
+    expect(signInWithPassword).toHaveBeenCalled();
+  });
+
+  it("returns 500 and does not create a user when the registration mode cannot be read", async () => {
+    const createUser = vi.fn();
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert: vi.fn() };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(
+      adminClient,
+      { data: null },
+      "invite",
+      { code: "08006", message: "connection failed" },
+    );
+
+    const route = await loadRoute(
+      { auth: { signInWithPassword: vi.fn() } },
+      adminClient,
+    );
+
+    const response = await route.POST(
+      new Request("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(validPayload),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "Não foi possível verificar o modo de inscrição. Tente novamente.",
+    });
+    expect(createUser).not.toHaveBeenCalled();
+    expect(adminClient.from).not.toHaveBeenCalledWith("register_invites");
+  });
+
+  it("returns 500 and does not create a user when the invite lookup fails", async () => {
+    const createUser = vi.fn();
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert: vi.fn() };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(adminClient, {
+      data: null,
+      error: { code: "57014", message: "canceling statement due to statement timeout" },
+    });
+
+    const route = await loadRoute(
+      { auth: { signInWithPassword: vi.fn() } },
+      adminClient,
+    );
+
+    const response = await route.POST(
+      new Request("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(validPayload),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "Não foi possível validar o convite. Tente novamente.",
+    });
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("ignores a stale invite and a client tier when inscriptions are open", async () => {
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    const createUser = vi.fn().mockResolvedValue({
+      data: { user: { id: "open-user" } },
+      error: null,
+    });
+    const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(
+      adminClient,
+      {
+        data: {
+          id: "invite-expired",
+          token: validPayload.invite,
+          expires_at: "2026-09-07T11:59:59.999Z",
+        },
+      },
+      "open",
+    );
+
+    const route = await loadRoute(
+      { auth: { signInWithPassword } },
+      adminClient,
+    );
+
+    const response = await route.POST(
+      new Request("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ ...validPayload, tier: "admin" }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(201);
+    expect(adminClient.from).not.toHaveBeenCalledWith("register_invites");
+    expect(upsert).toHaveBeenCalledWith(
+      {
+        id: "open-user",
+        display_name: validPayload.display_name,
+        email: validPayload.email,
+        tier: "common_user",
+      },
+      { onConflict: "id" },
+    );
     expect(signInWithPassword).toHaveBeenCalled();
   });
 });
