@@ -638,6 +638,56 @@ describe("PATCH /api/books/[id]", () => {
       );
     });
 
+    it("substitui book_authors por todos os author_ids do PATCH", async () => {
+      const currentBook = {
+        id: "book-1",
+        status: "reading",
+        start_date: null,
+        end_date: null,
+        user_id: "owner-user",
+        chosen_by: "owner-user",
+        readers: ["owner-user"],
+      };
+      const readBuilder = buildBookSelectSingle(currentBook);
+      const eqUpdate = vi.fn().mockResolvedValue({ error: null });
+      const update = vi.fn(() => ({ eq: eqUpdate }));
+      const tables = buildBooksAndAuthorsFrom(
+        { select: readBuilder.select },
+        { update },
+      );
+      const client: SupabaseByIdMock = {
+        auth: { getUser: authedGetUser("owner-user") },
+        from: tables.from,
+      };
+
+      const route = await loadRouteWithClient(client);
+      const response = await route.PATCH(
+        new Request("http://localhost/api/books/book-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...validPatchPayload,
+            author_ids: ["author-1", "author-2"],
+            status: "finished",
+          }),
+        }),
+        { params: Promise.resolve({ id: "book-1" }) },
+      );
+
+      expect(response.status).toBe(200);
+      expect(update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          author_id: "author-1",
+          status: "finished",
+        }),
+      );
+      expect(tables.deleteEq).toHaveBeenCalledWith("book_id", "book-1");
+      expect(tables.insertAuthors).toHaveBeenCalledWith([
+        { book_id: "book-1", author_id: "author-1" },
+        { book_id: "book-1", author_id: "author-2" },
+      ]);
+    });
+
     it("retorna 200 e corpo { ok: true } quando update conclui sem erro", async () => {
       const currentBook = {
         id: "book-1",
