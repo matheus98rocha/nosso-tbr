@@ -36,18 +36,26 @@ function mockRegisterInviteLookup(
     } | null;
     error?: null;
   },
+  mode: "invite" | "open" = "invite",
 ) {
   const maybeSingle = vi.fn().mockResolvedValue({ ...result, error: result.error ?? null });
   const eq = vi.fn(() => ({ maybeSingle }));
   const select = vi.fn(() => ({ eq }));
+  const settingsMaybeSingle = vi.fn().mockResolvedValue({
+    data: { mode },
+    error: null,
+  });
+  const settingsEq = vi.fn(() => ({ maybeSingle: settingsMaybeSingle }));
+  const settingsSelect = vi.fn(() => ({ eq: settingsEq }));
 
   const originalFrom = adminClient.from as (table: string) => unknown;
   adminClient.from = vi.fn((table: string) => {
+    if (table === "registration_settings") return { select: settingsSelect };
     if (table === "register_invites") return { select };
     return originalFrom(table);
   }) as AdminClient["from"];
 
-  return { select, eq, maybeSingle };
+  return { select, eq, maybeSingle, settingsEq };
 }
 
 async function loadRoute(sessionClient: SessionClient, adminClient?: AdminClient) {
@@ -424,5 +432,78 @@ describe("POST /api/auth/register", () => {
     await expect(response.json()).resolves.toMatchObject({
       error: expect.stringContaining("Faça login"),
     });
+  });
+
+  it("returns 403 when inscriptions are invite-only and the invite is missing", async () => {
+    const createUser = vi.fn();
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert: vi.fn() };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(adminClient, { data: null });
+
+    const route = await loadRoute(
+      { auth: { signInWithPassword: vi.fn() } },
+      adminClient,
+    );
+
+    const response = await route.POST(
+      new Request("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ ...validPayload, invite: "   " }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      error: "As inscrições estão fechadas. Peça um convite para se cadastrar.",
+    });
+    expect(createUser).not.toHaveBeenCalled();
+    expect(adminClient.from).not.toHaveBeenCalledWith("register_invites");
+  });
+
+  it("creates the account without an invite when inscriptions are open", async () => {
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    const createUser = vi.fn().mockResolvedValue({
+      data: { user: { id: "open-user" } },
+      error: null,
+    });
+    const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
+    const adminClient: AdminClient = {
+      auth: { admin: { createUser } },
+      from: vi.fn((table: string) => {
+        if (table === "users") return { upsert };
+        throw new Error(table);
+      }),
+    };
+
+    mockRegisterInviteLookup(
+      adminClient,
+      { data: null },
+      "open",
+    );
+
+    const route = await loadRoute(
+      { auth: { signInWithPassword } },
+      adminClient,
+    );
+
+    const response = await route.POST(
+      new Request("http://localhost/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ ...validPayload, invite: "" }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(201);
+    expect(createUser).toHaveBeenCalled();
+    expect(adminClient.from).not.toHaveBeenCalledWith("register_invites");
+    expect(signInWithPassword).toHaveBeenCalled();
   });
 });

@@ -1,8 +1,7 @@
 "use client";
 
+import { Check, Ticket, UserPlus, X } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Check, Ticket, X } from "lucide-react";
 import { useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -25,10 +24,10 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { AuthBrandPanel, AuthShell } from "@/modules/auth/components";
 import { RegisterPasswordHints } from "@/modules/register/components";
-import { useRegister } from "@/modules/register/hooks/useRegister";
+import { useRegister, useRegisterGate } from "@/modules/register/hooks";
 import type { RegisterFormProps } from "@/modules/register/types";
 
-function RegisterForm({ inviteToken }: RegisterFormProps) {
+function RegisterForm({ inviteToken, mode }: RegisterFormProps) {
   const { form, onSubmit, isPending, isError, error } =
     useRegister(inviteToken);
 
@@ -46,12 +45,23 @@ function RegisterForm({ inviteToken }: RegisterFormProps) {
       brand={
         <AuthBrandPanel
           title="Crie sua conta na estante"
-          description="Junte-se a quem ama contar capítulos, páginas e histórias — com convite, no seu ritmo."
+          description={
+            mode === "open"
+              ? "Junte-se a quem ama contar capítulos, páginas e histórias — no seu ritmo."
+              : "Junte-se a quem ama contar capítulos, páginas e histórias — com convite, no seu ritmo."
+          }
           badge={
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium tracking-wide text-white/90 backdrop-blur-sm">
-              <Ticket className="size-3.5 shrink-0" aria-hidden />
-              Convite ativo · válido por 24h
-            </span>
+            mode === "open" ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium tracking-wide text-white/90 backdrop-blur-sm">
+                <UserPlus className="size-3.5 shrink-0" aria-hidden />
+                Inscrições abertas
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium tracking-wide text-white/90 backdrop-blur-sm">
+                <Ticket className="size-3.5 shrink-0" aria-hidden />
+                Convite ativo · válido por 24h
+              </span>
+            )
           }
         />
       }
@@ -259,13 +269,75 @@ function RegisterMissingInvite() {
   );
 }
 
-export default function ClientRegister() {
-  const searchParams = useSearchParams();
-  const invite = searchParams.get("invite")?.trim() ?? "";
+function RegisterGateLoading() {
+  return (
+    <AuthShell
+      brand={
+        <AuthBrandPanel
+          title="Crie sua conta na estante"
+          description="Estamos conferindo se as inscrições estão abertas."
+        />
+      }
+    >
+      <Card className="border-border/70 bg-card/95 text-card-foreground shadow-[0_18px_50px_-28px_oklch(0.25_0.05_264/0.45)] backdrop-blur-sm">
+        <CardHeader className="space-y-2">
+          <CardTitle className="font-[family-name:var(--font-auth-display)] text-2xl font-semibold tracking-tight">
+            Carregando cadastro
+          </CardTitle>
+          <CardDescription role="status">
+            Um instante enquanto verificamos o modo de inscrição.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </AuthShell>
+  );
+}
 
-  if (!invite) {
+function RegisterGateError() {
+  return (
+    <AuthShell
+      brand={
+        <AuthBrandPanel
+          title="Cadastro indisponível"
+          description="Não foi possível saber se as inscrições estão abertas agora."
+        />
+      }
+    >
+      <Card className="border-border/70 bg-card/95 text-card-foreground shadow-[0_18px_50px_-28px_oklch(0.25_0.05_264/0.45)] backdrop-blur-sm">
+        <CardHeader className="space-y-2">
+          <CardTitle className="font-[family-name:var(--font-auth-display)] text-2xl font-semibold tracking-tight">
+            Tente de novo
+          </CardTitle>
+          <CardDescription role="alert">
+            Não foi possível verificar o modo de inscrição. Atualize a página.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button className="h-11 w-full min-h-11" asChild variant="secondary">
+            <Link href="/auth">Ir para entrar</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </AuthShell>
+  );
+}
+
+export default function ClientRegister() {
+  const { inviteToken, mode, view } = useRegisterGate();
+
+  if (view === "loading") {
+    return <RegisterGateLoading />;
+  }
+
+  if (view === "error" || !mode) {
+    return <RegisterGateError />;
+  }
+
+  if (view === "closed") {
     return <RegisterMissingInvite />;
   }
 
-  return <RegisterForm key={invite} inviteToken={invite} />;
+  return (
+    <RegisterForm key={`${mode}:${inviteToken}`} inviteToken={inviteToken} mode={mode} />
+  );
 }

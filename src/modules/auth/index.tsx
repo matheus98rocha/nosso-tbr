@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ export default function LoginPage() {
     } as LoginState,
   );
 
-  const { handleRecoverPassword } = useLogin();
+  const { canCreateAccount, handleRecoverPassword } = useLogin();
 
   return (
     <AuthShell
@@ -125,6 +126,15 @@ export default function LoginPage() {
             >
               Esqueci a senha
             </Button>
+            {canCreateAccount ? (
+              <Button
+                variant="link"
+                className="h-11 min-h-11 cursor-pointer px-2"
+                asChild
+              >
+                <Link href="/register">Criar conta</Link>
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>

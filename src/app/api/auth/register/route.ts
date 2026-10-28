@@ -1,3 +1,7 @@
+import {
+  readRegistrationMode,
+  type RegistrationSettingsClient,
+} from "@/lib/auth/registrationMode";
 import { isExpired } from "@/lib/auth/registerInvite";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -45,32 +49,57 @@ export async function POST(request: Request) {
     );
   }
 
-  const inviteToken = parsed.data.invite.trim();
-  const { data: inviteRow, error: inviteError } = await adminClient
-    .from("register_invites")
-    .select("id, token, expires_at")
-    .eq("token", inviteToken)
-    .maybeSingle();
+  const settings = await readRegistrationMode(
+    adminClient as unknown as RegistrationSettingsClient,
+  );
 
-  if (inviteError) {
-    console.error("register_invites lookup failed", {
-      code: inviteError.code,
-      message: inviteError.message,
-    });
+  if (!settings.ok) {
+    console.error("Failed to read registration mode during register", settings.error);
     return NextResponse.json(
-      { error: "Não foi possível validar o convite. Tente novamente." },
+      { error: "Não foi possível verificar o modo de inscrição. Tente novamente." },
       { status: 500 },
     );
   }
 
-  if (!inviteRow || isExpired(inviteRow.expires_at)) {
-    return NextResponse.json(
-      {
-        error:
-          "Convite inválido ou expirado. Peça um novo link de cadastro.",
-      },
-      { status: 403 },
-    );
+  const inviteToken = parsed.data.invite.trim();
+
+  if (settings.mode === "invite") {
+    if (!inviteToken) {
+      return NextResponse.json(
+        {
+          error:
+            "As inscrições estão fechadas. Peça um convite para se cadastrar.",
+        },
+        { status: 403 },
+      );
+    }
+
+    const { data: inviteRow, error: inviteError } = await adminClient
+      .from("register_invites")
+      .select("id, token, expires_at")
+      .eq("token", inviteToken)
+      .maybeSingle();
+
+    if (inviteError) {
+      console.error("register_invites lookup failed", {
+        code: inviteError.code,
+        message: inviteError.message,
+      });
+      return NextResponse.json(
+        { error: "Não foi possível validar o convite. Tente novamente." },
+        { status: 500 },
+      );
+    }
+
+    if (!inviteRow || isExpired(inviteRow.expires_at)) {
+      return NextResponse.json(
+        {
+          error:
+            "Convite inválido ou expirado. Peça um novo link de cadastro.",
+        },
+        { status: 403 },
+      );
+    }
   }
 
   const { email, password, display_name } = parsed.data;
