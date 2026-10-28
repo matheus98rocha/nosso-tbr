@@ -28,6 +28,18 @@ _Avoid_: autor da atividade
 Leitor com acesso às telas de Administração e Autores.
 _Avoid_: admin user, superuser, operador
 
+**Modo de inscrição**:
+Escolha do Administrador entre inscrições abertas e convites. Só um modo fica ativo por vez.
+_Avoid_: feature flag, configuração de site
+
+**Inscrições abertas**:
+Modo de inscrição em que qualquer pessoa cria a conta em `/register`, sem convite.
+_Avoid_: signup, registro público
+
+**Convite**:
+Link de cadastro com validade de 24 horas, gerado pelo Administrador. Autoriza a inscrição somente quando o modo de inscrição é convites.
+_Avoid_: token de acesso, senha compartilhada
+
 ## Livros e organização
 
 **Livro**:

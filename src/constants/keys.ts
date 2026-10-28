@@ -91,6 +91,10 @@ export const QUERY_KEYS = {
     users: ["admin", "users"] as const,
     invites: ["admin", "invites"] as const,
   },
+  registration: {
+    all: ["registration"] as const,
+    mode: ["registration", "mode"] as const,
+  },
   community: {
     all: ["community"] as const,
     snapshot: (userId: string) =>

@@ -1,9 +1,11 @@
 import { apiJson } from "@/lib/api/clientJsonFetch";
+import type { RegistrationMode } from "@/lib/auth/registrationMode";
 
 import type {
   AdminInvitesPayload,
   AdminUserListItem,
   CreateAdminInvitePayload,
+  RegistrationModePayload,
 } from "../types/admin.types";
 
 export async function getAdminUsers(): Promise<AdminUserListItem[]> {
@@ -17,6 +19,15 @@ export async function getAdminInvites(): Promise<AdminInvitesPayload> {
 export async function createAdminInvite(): Promise<CreateAdminInvitePayload> {
   return apiJson<CreateAdminInvitePayload>("/api/admin/invites", {
     method: "POST",
+  });
+}
+
+export async function updateRegistrationMode(
+  mode: RegistrationMode,
+): Promise<RegistrationModePayload> {
+  return apiJson<RegistrationModePayload>("/api/admin/registration", {
+    method: "PATCH",
+    body: JSON.stringify({ mode }),
   });
 }
 

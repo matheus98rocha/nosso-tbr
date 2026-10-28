@@ -1,5 +1,7 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { LoginState } from "@/modules/auth/actions/login";
@@ -24,6 +26,28 @@ vi.mock("@/modules/auth/actions/login", () => ({
     loginActionSpy(prevState, formData),
 }));
 
+const { getRegistrationMode } = vi.hoisted(() => ({
+  getRegistrationMode: vi.fn(),
+}));
+
+vi.mock("@/services/registration", () => ({
+  getRegistrationMode,
+}));
+
+function renderAuth() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+  }
+
+  return render(<AuthPage />, { wrapper: Wrapper });
+}
+
 describe("AuthPage", () => {
   beforeEach(() => {
     loginActionSpy.mockClear();
@@ -31,10 +55,12 @@ describe("AuthPage", () => {
       error: null,
       message: null,
     });
+    getRegistrationMode.mockReset();
+    getRegistrationMode.mockResolvedValue({ mode: "invite" });
   });
 
   it("renderiza cartão de login com e-mail, senha e ação de entrar", async () => {
-    render(<AuthPage />);
+    renderAuth();
 
     expect(screen.getByRole("form", { name: /sign in/i })).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
@@ -47,7 +73,7 @@ describe("AuthPage", () => {
 
   it("navega para recuperação de senha ao acionar Esqueci a senha", async () => {
     const user = userEvent.setup();
-    render(<AuthPage />);
+    renderAuth();
 
     await user.click(screen.getByRole("button", { name: /Forgot password/i }));
 
@@ -58,7 +84,7 @@ describe("AuthPage", () => {
 
   it("envia loginAction com e-mail e senha do formulário", async () => {
     const user = userEvent.setup();
-    render(<AuthPage />);
+    renderAuth();
 
     await user.type(screen.getByLabelText("Email"), "leitor@example.com");
     await user.type(screen.getByLabelText("Password"), "senhaSegura8");
@@ -83,7 +109,7 @@ describe("AuthPage", () => {
     });
 
     const user = userEvent.setup();
-    render(<AuthPage />);
+    renderAuth();
 
     await user.type(screen.getByLabelText("Email"), "x@y.com");
     await user.type(screen.getByLabelText("Password"), "qualquerCoisa1");
@@ -101,7 +127,7 @@ describe("AuthPage", () => {
     });
 
     const user = userEvent.setup();
-    render(<AuthPage />);
+    renderAuth();
 
     await user.type(screen.getByLabelText("Email"), "novo@example.com");
     await user.type(screen.getByLabelText("Password"), "outraSenha9");

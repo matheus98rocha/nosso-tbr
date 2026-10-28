@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { RegistrationModeSection } from "./components";
 import useAdmin from "./hooks/useAdmin";
 
 export default function AdminScreen() {
@@ -23,6 +24,16 @@ export default function AdminScreen() {
     invites,
     isLoadingInvites,
     invitesError,
+    inviteSectionDescription,
+    registrationMode,
+    registrationModeDescription,
+    isLoadingRegistration,
+    registrationError,
+    setRegistrationMode,
+    isUpdatingRegistration,
+    openRegistrationUrl,
+    copiedRegistrationLink,
+    copyOpenRegistrationLink,
     createInvite,
     isCreatingInvite,
     copiedInviteId,
@@ -50,9 +61,22 @@ export default function AdminScreen() {
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Administração</h1>
         <p className="text-sm text-muted-foreground">
-          Usuários do sistema e convites de cadastro com validade de 24 horas.
+          Usuários do sistema, modo de inscrição e convites com validade de 24
+          horas.
         </p>
       </header>
+
+      <RegistrationModeSection
+        mode={registrationMode}
+        isLoading={isLoadingRegistration}
+        isError={registrationError}
+        pending={isUpdatingRegistration}
+        description={registrationModeDescription}
+        openRegistrationUrl={openRegistrationUrl}
+        copied={copiedRegistrationLink}
+        onModeChange={setRegistrationMode}
+        onCopyLink={copyOpenRegistrationLink}
+      />
 
       <section className="flex flex-col gap-4" aria-labelledby="invite-heading">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -61,8 +85,7 @@ export default function AdminScreen() {
               Convites de cadastro
             </h2>
             <p className="text-sm text-muted-foreground">
-              Cada link permite múltiplos cadastros até expirar. Gere um novo
-              quando precisar convidar alguém.
+              {inviteSectionDescription}
             </p>
           </div>
           <Button
