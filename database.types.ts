@@ -600,6 +600,14 @@ export type Database = {
       }
     }
     Functions: {
+      count_followers_of: {
+        Args: { p_user_id: string }
+        Returns: number
+      },
+      count_following_of: {
+        Args: { p_user_id: string }
+        Returns: number
+      },
       append_book_reader: {
         Args: { p_book_id: string; p_reader_id: string }
         Returns: boolean
