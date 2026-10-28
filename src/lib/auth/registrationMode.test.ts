@@ -59,6 +59,20 @@ describe("readRegistrationMode", () => {
     });
   });
 
+  it("mantém convites quando o PostgREST ainda não enxerga a tabela", async () => {
+    const { client } = settingsClient({
+      data: null,
+      error: {
+        message: "Could not find the table 'public.registration_settings'",
+        code: "PGRST205",
+      },
+    });
+    await expect(readRegistrationMode(client)).resolves.toEqual({
+      ok: true,
+      mode: "invite",
+    });
+  });
+
   it("propaga erro de leitura", async () => {
     const { client } = settingsClient({
       data: null,
@@ -113,6 +127,23 @@ describe("writeRegistrationMode", () => {
     ).resolves.toEqual({
       ok: false,
       error: { message: "Modo de inscrição não foi gravado." },
+    });
+  });
+
+  it("não confirma a gravação quando o banco devolve erro junto com o modo", async () => {
+    const { client } = settingsClient({
+      data: { mode: "open" },
+      error: { message: "permission denied", code: "42501" },
+    });
+
+    await expect(
+      writeRegistrationMode(client, {
+        mode: "open",
+        updatedBy: "admin-1",
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      error: { message: "permission denied", code: "42501" },
     });
   });
 });

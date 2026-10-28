@@ -53,4 +53,13 @@ describe("LoginPage", () => {
     expect(await screen.findByRole("button", { name: "Forgot password" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Criar conta" })).not.toBeInTheDocument();
   });
+
+  it("esconde criar conta quando o modo de inscrição não carrega", async () => {
+    getRegistrationMode.mockRejectedValue(new Error("offline"));
+
+    renderLogin();
+
+    expect(await screen.findByRole("button", { name: "Forgot password" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Criar conta" })).not.toBeInTheDocument();
+  });
 });

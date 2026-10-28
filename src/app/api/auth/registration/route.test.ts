@@ -6,7 +6,7 @@ const { createServiceRoleClientMock } = vi.hoisted(() => ({
 
 function settingsClient(result: {
   data: { mode: string } | null;
-  error?: { message: string } | null;
+  error?: { message: string; code?: string } | null;
 }) {
   const maybeSingle = vi.fn().mockResolvedValue({
     data: result.data,
@@ -57,6 +57,23 @@ describe("GET /api/auth/registration", () => {
 
   it("devolve invite quando a linha ainda não existe", async () => {
     const route = await loadRoute(settingsClient({ data: null }));
+    const response = await route.GET();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({ mode: "invite" });
+  });
+
+  it("mantém convites quando a tabela ainda não está no cache", async () => {
+    const route = await loadRoute(
+      settingsClient({
+        data: null,
+        error: {
+          message: "Could not find the table 'public.registration_settings'",
+          code: "PGRST205",
+        },
+      }),
+    );
     const response = await route.GET();
 
     expect(response.status).toBe(200);
