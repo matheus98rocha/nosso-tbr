@@ -199,38 +199,32 @@ describe("UserSocialService", () => {
     expect(result).toEqual(["follower-9", "follower-8"]);
   });
 
-  it("retorna totais de rede para um userId arbitrário", async () => {
-    const followingQuery = makeThenableQuery({
-      data: null,
-      error: null,
-      count: 3,
-    });
-    const followerQuery = makeThenableQuery({
-      data: null,
-      error: null,
-      count: 7,
-    });
-    let followersCalls = 0;
-
-    from.mockImplementation((table: string) => {
-      if (table === "user_followers") {
-        followersCalls += 1;
-        return followersCalls === 1 ? followingQuery : followerQuery;
+  it("conta a rede de outro leitor fora das linhas visíveis pelo RLS", async () => {
+    const rpc = vi.fn(async (fn: string) => {
+      if (fn === "count_following_of") {
+        return { data: 3, error: null };
       }
-
-      return makeThenableQuery({ data: [], error: null });
+      if (fn === "count_followers_of") {
+        return { data: "7", error: null };
+      }
+      throw new Error(fn);
     });
 
     const service = makeService();
+    (
+      service as unknown as { supabase: { rpc: typeof rpc } }
+    ).supabase.rpc = rpc;
+
     const result = await service.getNetworkCounts("peer-9");
 
     expect(result).toEqual({ followingCount: 3, followerCount: 7 });
-    expect(followingQuery.select).toHaveBeenCalledWith("following_id", {
-      count: "exact",
-      head: true,
+    expect(rpc).toHaveBeenCalledWith("count_following_of", {
+      p_user_id: "peer-9",
     });
-    expect(followingQuery.eq).toHaveBeenCalledWith("follower_id", "peer-9");
-    expect(followerQuery.eq).toHaveBeenCalledWith("following_id", "peer-9");
+    expect(rpc).toHaveBeenCalledWith("count_followers_of", {
+      p_user_id: "peer-9",
+    });
+    expect(from).not.toHaveBeenCalled();
   });
 });
 
