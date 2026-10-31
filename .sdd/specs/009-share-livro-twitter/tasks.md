@@ -118,7 +118,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
 
 ## Phase 6: Diálogo e host
 
-- [ ] T014 [US3] [US4] `FinishedBookShareDialog` + teste.
+- [x] T014 [US3] [US4] `FinishedBookShareDialog` + teste.
   - Arquivos: `src/modules/finishedBookShare/components/finishedBookShareDialog/finishedBookShareDialog.tsx`, `src/modules/finishedBookShare/components/finishedBookShareDialog/finishedBookShareDialog.test.tsx`, `src/modules/finishedBookShare/components/finishedBookShareDialog/index.ts`
   - Depende de: T003, T012
   - Pronto quando: `Dialog` de `@/components/ui/dialog`. Props tipadas no arquivo de T001. O preview é só o `<img>` do blob do hook — sem segundo layout em React. Gerando: título `Compartilhar no X`, texto `Gerando o cartão…`, `aria-busy`, ações desabilitadas. Pronto: `alt` do model e a descrição do anexo manual de T003; botões `Baixar imagem`, `Copiar texto`, `Abrir no X`, `Fechar`. Falha: frase exata de T003, botão `Tentar de novo`, e `Abrir no X` não dispara `window.open`. Baixar usa o filename. Copiar e o intent recebem a mesma string. Sem comentários no código novo.
