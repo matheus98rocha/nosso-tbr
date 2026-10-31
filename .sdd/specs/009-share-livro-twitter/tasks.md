@@ -107,7 +107,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
   - Depende de: T003, T008, T010, T011
   - Pronto quando: o hook chama `renderFinishedBookCardPng` e guarda um único `blob:` para o `<img>`. Revoga o object URL ao trocar o assunto e no unmount. Enquanto gera, baixar, copiar e abrir ficam desabilitados. Falha (incluindo `SecurityError`) expõe a frase exata de T003 e o handler de abrir não chama `window.open`. `Tentar de novo` gera outra vez. Baixar usa o filename do model e o helper local, não o do Recap. Copiar e o intent recebem a mesma string. Clipboard rejeitado → toast `Não foi possível copiar o texto.`; diálogo segue aberto. `window.open` nulo → toast `Não foi possível abrir o X. Permita pop-ups e tente de novo.` Abrir usa `buildTweetIntentUrl` já calculado, `window.open(url, "_blank", "noopener,noreferrer")`, sem esperar o canvas no gesto. Handlers com `useCallback` / `useMemo`.
 
-- [ ] T013 [P] [US2] Botão persistente, sem teste próprio.
+- [x] T013 [P] [US2] Botão persistente, sem teste próprio.
   - Arquivos: `src/modules/finishedBookShare/components/shareFinishedBookOnXButton/shareFinishedBookOnXButton.tsx`, `src/modules/finishedBookShare/components/shareFinishedBookOnXButton/index.ts`
   - Depende de: T003, T008, T010
   - Pronto quando: `type="button"`, `w-full`, `onClick` chama `event.stopPropagation()` e `openNow(buildFinishedBookShareSubject(...))`. Rótulo `Compartilhar no X` vindo da copy. Não sabe de estrelas, WhatsApp nem cronograma. Sem arquivo de teste (o plano não lista); a visibilidade fica em T025.
