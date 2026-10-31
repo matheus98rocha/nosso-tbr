@@ -167,7 +167,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
   - Depende de: T017
   - Pronto quando: `useBookUpsert` guarda `Map<string, string>` num ref, sem request novo no sucesso. Edição: `bookData.authorIds` alinhado por índice a `bookData.authorNames`. Cada resposta de `searchAuthors` (`ComboboxOption` `{ id, name }`) entra no mapa. `handleAuthorCreated`: se o id voltar e `authorSearch` tiver nome, grava esse par. `UseCreateBookDialog` ganha `resolveAuthorNames(ids: string[]): string[]`. `useBookDialog` aceita e repassa o resolvedor; id sem nome é omitido, não vira `Autor desconhecido` nem uuid. `useBookUpsert` passa o resolvedor. Chamadas de teste em `useBookDialog.test.ts` e `useBookDialog.ignoreCreate.test.ts` compilam. `bookUpsert.tsx` não muda. Esta task não chama `armAfterRating`.
 
-- [ ] T021 [P] [US1] [US2] `openNow` no card e `showShareOnX`.
+- [x] T021 [P] [US1] [US2] `openNow` no card e `showShareOnX`.
   - Arquivos: `src/components/bookCard/hooks/useBookCard.ts`, `src/components/bookCard/hooks/useBookCard.test.ts`
   - Depende de: T009, T016, T017
   - Pronto quando: `showShareOnX` usa `canShareFinishedBook` (`isLogged`, participante por `canUserParticipateInBook`, `!isShelf`, `status === "finished"`). No `onSuccess` de `statusTransitionMutation`, se `nextStatus === "finished"`, o status anterior não era `finished` e `!isShelf`: depois do toast `Leitura finalizada` e de fechar o modal de detalhes, `openNow` com snapshot do `book` do closure (não reler após o invalidate). Estante não chama. Pausar não chama. Não mexe em `ratingPrompt` nem abre estrelas. `shareOnWhatsApp` segue `https://wa.me/?text=`. O retorno `onFinishReading: () => changeBookStatus("finished")` não é reescrito.

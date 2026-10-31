@@ -7,6 +7,10 @@ import type { BookCardProps } from "../types/bookCard.types";
 import { BookDomain } from "@/types/books.types";
 import { useRouter } from "next/navigation";
 import { BookService } from "@/services/books/books.service";
+import {
+  close,
+  useFinishedBookShareStore,
+} from "@/modules/finishedBookShare/stores";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 
 vi.mock("next/navigation", () => ({ useRouter: vi.fn() }));
@@ -597,6 +601,98 @@ describe("useBookCard", () => {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareUrl)}`;
 
         expect(window.open).toHaveBeenCalledWith(whatsappUrl, "_blank");
+      });
+    });
+
+    describe("compartilhar no X", () => {
+      beforeEach(() => {
+        close();
+        editBookMock.mockClear();
+        isLoggedInMock.value = true;
+      });
+
+      it("mostra a ação para finished participante fora da estante", () => {
+        const { result } = renderBookCardHook({ ...baseBook, status: "finished" });
+        expect(result.current.showShareOnX).toBe(true);
+      });
+
+      it("esconde a ação em reading, estante, sem sessão e sem participação", () => {
+        expect(
+          renderBookCardHook({ ...baseBook, status: "reading" }).result.current
+            .showShareOnX,
+        ).toBe(false);
+
+        expect(
+          renderBookCardHook(
+            { ...baseBook, status: "finished" },
+            { isShelf: true, shelfId: "shelf-1" },
+          ).result.current.showShareOnX,
+        ).toBe(false);
+
+        isLoggedInMock.value = false;
+        expect(
+          renderBookCardHook({ ...baseBook, status: "finished" }).result.current
+            .showShareOnX,
+        ).toBe(false);
+        isLoggedInMock.value = true;
+
+        expect(
+          renderBookCardHook({ ...othersBook, status: "finished" }).result.current
+            .showShareOnX,
+        ).toBe(false);
+      });
+
+      it("abre o cartão ao finalizar fora da estante e não abre ao pausar nem na estante", async () => {
+        const { result } = renderBookCardHook({
+          ...baseBook,
+          status: "reading",
+          author: "Test Author",
+        });
+
+        act(() => {
+          result.current.onFinishReading();
+        });
+
+        await waitFor(() => {
+          expect(useFinishedBookShareStore.getState().activeSubject).toMatchObject({
+            bookId: "1",
+            title: "Test Book",
+            author: "Test Author",
+            imageUrl: "https://example.com/test.jpg",
+          });
+        });
+
+        close();
+        editBookMock.mockClear();
+
+        const paused = renderBookCardHook({ ...baseBook, status: "reading" });
+        act(() => {
+          paused.result.current.onPauseReading();
+        });
+        await waitFor(() => expect(editBookMock).toHaveBeenCalled());
+        expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+
+        editBookMock.mockClear();
+        const shelf = renderBookCardHook(
+          { ...baseBook, status: "reading" },
+          { isShelf: true, shelfId: "shelf-1" },
+        );
+        act(() => {
+          shelf.result.current.onFinishReading();
+        });
+        await waitFor(() => expect(editBookMock).toHaveBeenCalled());
+        expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+      });
+
+      it("não reabre a oferta quando o livro já estava finalizado", async () => {
+        const { result } = renderBookCardHook({ ...baseBook, status: "finished" });
+
+        act(() => {
+          result.current.onFinishReading();
+        });
+
+        await waitFor(() => expect(editBookMock).toHaveBeenCalled());
+        expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
       });
     });
 
