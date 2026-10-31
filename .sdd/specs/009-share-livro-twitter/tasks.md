@@ -60,7 +60,7 @@ Não há `data-model` nem `contracts`. Cada task é um commit. Spec e plan perma
 
 Funções puras e o store, com teste ao lado. Sem componente e sem call site.
 
-- [ ] T006 [P] [US3] `extractCoverColor` + teste.
+- [x] T006 [P] [US3] `extractCoverColor` + teste.
   - Arquivos: `src/modules/finishedBookShare/utils/extractCoverColor/extractCoverColor.ts`, `src/modules/finishedBookShare/utils/extractCoverColor/extractCoverColor.test.ts`, `src/modules/finishedBookShare/utils/extractCoverColor/index.ts`
   - Depende de: T002, T005
   - Pronto quando: os limiares vêm das constantes de T002. Recebe `ImageData` já same-origin (quem chama é que reduz para 64 px e que recusa placeholder). Ignora alpha `< 128`. Pixel cromático: `(max-min)/255 >= 0.12` e `0.08 <= Y <= 0.92`. Sem pixel cromático devolve `null` — não tira média do preto descartado. Quantiza cada canal em passos de 16, histograma. Balde vencedor: maior contagem; empate pela maior crominância média; novo empate pelo menor índice. Cor base = média dos pixels originais daquele balde. Fixture 20×20 `#000000` com bloco `#E0A020`: `Y > 0.08` e matiz HSL entre 30° e 50°. Buffer `#1E4DB7` não cai em `#6B4F3A` nem no ouro. Só preto, só branco ou só cinza médio devolve `null`. Brancos e pretos não vencem um bloco cromático menor.
