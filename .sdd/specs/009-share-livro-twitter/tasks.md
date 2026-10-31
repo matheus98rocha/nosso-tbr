@@ -183,7 +183,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
 
 ## Phase 9: Call sites que encadeiam
 
-- [ ] T023 [US1] Revelar o cartão no dismiss do upsert.
+- [x] T023 [US1] Revelar o cartão no dismiss do upsert.
   - Arquivos: `src/modules/bookUpsert/hooks/useBookDialog.ts`, `src/modules/bookUpsert/hooks/useBookDialog.test.ts`
   - Depende de: T008, T016, T020
   - Pronto quando: no `onSuccess`, o snapshot sai de `variables` e de `resolveAuthorNames` antes de depender do form resetado. `title` ← `variables.title`; `imageUrl` ← `variables.image_url` (o builder zera vazio e placeholder); `bookId` ← id editado ou `result.book.id` no create; nomes → `formatList` em `src/utils/formatters/formatters.ts`; lista vazia → `author: null`. `armAfterRating` só quando `shouldOpenRatingPrompt` já é verdadeiro (transição para `finished` de um livro que ainda não estava finalizado). Regravar `finished` não arma. `onError` não arma. `handleDismissRatingPrompt` chama `revealArmed(bookId)` e só então zera o prompt. Unmount do hook: `clearArmed` daquele id, sem revelar. Create usa o mapa, sem fetch novo de autores. `bookUpsert.tsx` não muda. O diálogo de estrelas do `CardReadingRatingButton` não revela o cartão.

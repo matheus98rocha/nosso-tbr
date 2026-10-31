@@ -6,7 +6,7 @@ import {
   BookshelfService,
   fetchBookShelves,
 } from "../../shelves/services/booksshelves.service";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { UseCreateBookDialog } from "../bookUpsert.types";
 import {
   ControllerRenderProps,
@@ -26,6 +26,13 @@ import { QUERY_KEYS } from "@/constants/keys";
 import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
 import { ApiError } from "@/lib/api/clientJsonFetch";
 import { buildHomeUrlWithStatusFilter } from "@/utils/buildHomeUrlWithStatusFilter";
+import {
+  armAfterRating,
+  buildFinishedBookShareSubject,
+  clearArmed,
+  revealArmed,
+} from "@/modules/finishedBookShare";
+import { formatList } from "@/utils/formatters";
 
 const checkboxes: { id: Status; label: string }[] = [
   { id: "not_started", label: "Vou iniciar a leitura" },
@@ -41,6 +48,15 @@ export function useBookDialog({
   isBookFormOpen,
   resolveAuthorNames,
 }: UseCreateBookDialog) {
+  const resolveAuthorNamesRef = useRef(resolveAuthorNames);
+  resolveAuthorNamesRef.current = resolveAuthorNames;
+  const armedBookIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (armedBookIdRef.current) clearArmed(armedBookIdRef.current);
+    };
+  }, []);
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -56,8 +72,9 @@ export function useBookDialog({
   );
 
   const handleDismissRatingPrompt = useCallback(() => {
+    if (ratingPromptBookId) revealArmed(ratingPromptBookId);
     setRatingPromptBookId(null);
-  }, []);
+  }, [ratingPromptBookId]);
 
   const isEdit: boolean = Boolean(bookData && bookData.id);
 
@@ -197,6 +214,17 @@ export function useBookDialog({
     onSuccess: async (result, variables) => {
       const createdBookId =
         result.mode === "edit" ? bookData?.id : result.book.id;
+      const authorNames = resolveAuthorNamesRef.current(variables.author_ids ?? []);
+      const author = authorNames.length > 0 ? formatList(authorNames) : null;
+      const shareSubject = createdBookId
+        ? buildFinishedBookShareSubject({
+            bookId: createdBookId,
+            title: variables.title ?? "",
+            author,
+            imageUrl: variables.image_url ?? null,
+          })
+        : null;
+
       const transitioningToFinished = variables.status === "finished";
       const wasAlreadyFinished = Boolean(
         isEdit && bookData?.status === "finished",
@@ -242,7 +270,9 @@ export function useBookDialog({
         router.replace(`/?bookId=${createdBookId}`);
       }
 
-      if (shouldOpenRatingPrompt && promptTargetId) {
+      if (shouldOpenRatingPrompt && promptTargetId && shareSubject) {
+        armedBookIdRef.current = promptTargetId;
+        armAfterRating(promptTargetId, shareSubject);
         setRatingPromptBookId(promptTargetId);
       }
     },
