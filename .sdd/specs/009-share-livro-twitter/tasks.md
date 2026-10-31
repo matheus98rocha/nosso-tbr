@@ -80,7 +80,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
   - Depende de: T001
   - Pronto quando: verdadeiro só com `isLogged && isParticipant && !isShelf && status === "finished"`. Falso para `reading` mesmo com progresso 100, estante, sem sessão, não participante, `paused`, `abandoned`, `planned` e `not_started`. A função não recebe `hideInteractions`. Participante continua sendo `canUserParticipateInBook` nos call sites; este helper só aplica o booleano.
 
-- [ ] T010 [P] [US1] [US2] Store Zustand em memória + teste.
+- [x] T010 [P] [US1] [US2] Store Zustand em memória + teste.
   - Arquivos: `src/modules/finishedBookShare/stores/finishedBookShareStore.ts`, `src/modules/finishedBookShare/stores/finishedBookShareStore.test.ts`, `src/modules/finishedBookShare/stores/index.ts`
   - Depende de: T001
   - Pronto quando: sem `persist` e sem escrita em `userStore` nem `localStorage`. Ações exatamente: `armAfterRating(bookId, subject)` guarda e não abre; `revealArmed(bookId)` abre só se o id armado for esse e outro id não abre; `clearArmed(bookId)` descarta só esse id e não abre; `openNow(subject)` abre já, sem estrelas; `close()` fecha o diálogo ativo. Um único slot armado. `beforeEach` chama `close()` e `clearArmed` do id da fixture. Não há `reset()` extra.
