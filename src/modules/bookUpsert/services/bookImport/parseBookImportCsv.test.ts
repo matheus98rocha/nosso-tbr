@@ -171,6 +171,76 @@ describe("parseBookImportCsv", () => {
     });
   });
 
+  it("recusa data impossível, páginas inválidas e título em branco", () => {
+    const parsed = parseBookImportCsv(
+      [
+        "titulo,autor,paginas,status,data_fim",
+        "Fevereiro,Autor,10,finished,2020-02-31",
+        "Mês,Autor,10,finished,2020-13-01",
+        "Válido,Autor,10,FINISHED,2020/05/01",
+        "Zero,Autor,0,not_started,",
+        "Fração,Autor,10.5,not_started,",
+        "Sem autor,   ,10,not_started,",
+        " ,Autor,10,not_started,",
+      ].join("\n"),
+    );
+
+    expect(parsed).toEqual({
+      kind: "rows",
+      candidates: [
+        {
+          title: "Válido",
+          authorName: "Autor",
+          pages: 10,
+          status: "finished",
+          endDate: "2020-05-01",
+          imageUrl: null,
+        },
+      ],
+      rejectedRows: [
+        { title: "Fevereiro", reason: "invalid" },
+        { title: "Mês", reason: "invalid" },
+        { title: "Zero", reason: "invalid" },
+        { title: "Fração", reason: "invalid" },
+        { title: "Sem autor", reason: "invalid" },
+        { title: null, reason: "invalid" },
+      ],
+    });
+  });
+
+  it("preserva aspas escapadas e lê currently-reading mesmo com BOM", () => {
+    const quoted = parseBookImportCsv(
+      [
+        "titulo,autor,paginas,status,data_fim",
+        '"""Duna""",Frank Herbert,10,not_started,',
+      ].join("\n"),
+    );
+    const goodreads = parseBookImportCsv(
+      "\uFEFFTitle,Author,Exclusive Shelf,Number of Pages\nAgora,Autora,currently-reading,120\n",
+    );
+
+    expect(quoted).toMatchObject({
+      kind: "rows",
+      candidates: [
+        expect.objectContaining({ title: '"Duna"', status: "not_started" }),
+      ],
+    });
+    expect(goodreads).toEqual({
+      kind: "rows",
+      candidates: [
+        {
+          title: "Agora",
+          authorName: "Autora",
+          pages: 120,
+          status: "reading",
+          endDate: null,
+          imageUrl: null,
+        },
+      ],
+      rejectedRows: [],
+    });
+  });
+
   it("recusa o arquivo inteiro acima de 5000 livros", () => {
     const rows = ["titulo,autor,paginas,status,data_fim"];
     for (let index = 0; index < BOOK_IMPORT_LIMIT + 1; index += 1) {
