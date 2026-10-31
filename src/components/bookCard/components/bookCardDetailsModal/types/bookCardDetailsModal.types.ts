@@ -9,6 +9,7 @@ export type BookDetailsActionIcon =
   | "collective"
   | "copy"
   | "share"
+  | "shareOnX"
   | "shelf"
   | "edit"
   | "favorite"
@@ -107,6 +108,7 @@ export type BookCardDetailsModalProps = {
   onPauseReading?: () => void;
   onAbandonReading?: () => void;
   onShare?: () => void;
+  onShareOnX?: () => void;
   onToggleFavorite?: () => void;
   onAddToShelf?: () => void;
   onEdit?: () => void;
