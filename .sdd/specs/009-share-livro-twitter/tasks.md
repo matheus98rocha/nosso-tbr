@@ -47,7 +47,7 @@ Não há `data-model` nem `contracts`. Cada task é um commit. Spec e plan perma
 
 ## Phase 2: Foundational — luminância
 
-- [ ] T005 [US3] `relativeLuminance` + teste.
+- [x] T005 [US3] `relativeLuminance` + teste.
   - Arquivos: `src/modules/finishedBookShare/utils/relativeLuminance/relativeLuminance.ts`, `src/modules/finishedBookShare/utils/relativeLuminance/relativeLuminance.test.ts`, `src/modules/finishedBookShare/utils/relativeLuminance/index.ts`
   - Depende de: T002
   - Pronto quando: uma função só aplica a fórmula WCAG do plano §6 (`lin` com `0.04045` / `12.92` / `1.055` / `2.4`; `Y = 0.2126 R + 0.7152 G + 0.0722 B`; canal `0–1`). O teste prova preto `Y < 0.08`, branco `Y > 0.92` e `#E0A020` no meio. Não edita `utils/index.ts` (T011).
