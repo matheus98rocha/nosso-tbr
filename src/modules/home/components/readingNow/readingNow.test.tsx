@@ -14,7 +14,13 @@ vi.mock("./components/readingNowBookDetailsModal", () => ({
 }));
 
 vi.mock("@/modules/bookRating/components/finishedReadingRatingDialog", () => ({
-  default: () => null,
+  default: ({
+    open,
+    bookId,
+  }: {
+    open: boolean;
+    bookId: string | null;
+  }) => (open ? <div>Avaliação da leitura {bookId}</div> : null),
 }));
 
 const mockGoToIndex = vi.fn();
@@ -111,11 +117,32 @@ describe("ReadingNow", () => {
     mockedUseReadingNow.mockReturnValue({
       ...baseHookReturn,
       shouldRender: false,
+      ratingPromptBookId: null,
     });
 
     const { container } = render(<ReadingNow />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("mantém as estrelas montadas quando o carrossel some", () => {
+    mockedUseReadingNow.mockReturnValue({
+      ...baseHookReturn,
+      shouldRender: false,
+      ratingPromptBookId: "book-1",
+      pendingStatusTransition: {
+        book: sampleItem.book,
+        nextStatus: "finished",
+      },
+    });
+
+    render(<ReadingNow />);
+
+    expect(screen.getByText("Avaliação da leitura book-1")).toBeInTheDocument();
+    expect(screen.getByText("Finalizar leitura?")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Sua leitura" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders a single reading book with progress, details trigger and status actions", async () => {

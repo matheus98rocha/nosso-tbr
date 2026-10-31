@@ -86,13 +86,13 @@ export default function ReadingNow({
     dismissRatingPrompt,
   } = useReadingNow(scope);
 
-  if (!shouldRender) {
+  if (!shouldRender && ratingPromptBookId === null) {
     return null;
   }
 
   return (
     <>
-      {detailsBook ? (
+      {shouldRender && detailsBook ? (
         <ReadingNowBookDetailsModal
           book={detailsBook}
           open={detailsModalOpen}
@@ -120,6 +120,7 @@ export default function ReadingNow({
         onConfirm={confirmStatusTransition}
       />
 
+      {shouldRender ? (
       <motion.section
         initial={reduceMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -277,6 +278,7 @@ export default function ReadingNow({
           </>
         )}
       </motion.section>
+      ) : null}
     </>
   );
 }

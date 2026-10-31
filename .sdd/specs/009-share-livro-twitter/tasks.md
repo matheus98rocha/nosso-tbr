@@ -157,7 +157,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
   - Depende de: T016, T017
   - Pronto quando: no `onSuccess` de `statusTransitionMutation`, `nextStatus === "finished"` chama `armAfterRating` com snapshot de `variables.book` (`title`, `author` já vindo de `resolveBookAuthors` — não passar de novo por `formatList` —, `imageUrl` pelo builder) e mantém `setRatingPromptBookId`. `dismissRatingPrompt` chama `revealArmed` com esse id e só então zera `ratingPromptBookId`. Pausar, abandonar, cancelar `ReadingNowStatusConfirmationDialog` e `onError` não armam. O cleanup do unmount do hook chama `clearArmed` só do id que esta instância armou e não chama `revealArmed`. `shouldRender` falso não é unmount do hook: não limpar o slot nesse caso. `FinishedReadingRatingDialog` não é editado.
 
-- [ ] T019 [P] [US1] Manter estrelas montadas quando o carrossel some.
+- [x] T019 [P] [US1] Manter estrelas montadas quando o carrossel some.
   - Arquivos: `src/modules/home/components/readingNow/readingNow.tsx`, `src/modules/home/components/readingNow/readingNow.test.tsx`
   - Depende de: T017
   - Pronto quando: com `shouldRender` falso e `ratingPromptBookId !== null`, `FinishedReadingRatingDialog` e `ReadingNowStatusConfirmationDialog` continuam no documento e o carrossel não renderiza. Sem prompt, a seção segue oculta (`return null`). O `onDismiss` existente continua sendo `dismissRatingPrompt` (a revelação é T018). O teste cobre os dois casos.
