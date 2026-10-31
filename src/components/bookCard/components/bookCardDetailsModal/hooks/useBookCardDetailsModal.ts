@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { BookDomain } from "@/types/books.types";
+import { FINISHED_BOOK_SHARE_COPY } from "@/modules/finishedBookShare/constants";
 
 import type {
   BookCardDetailsModalProps,
@@ -52,6 +53,7 @@ export function useBookCardDetailsModal({
   onPauseReading,
   onAbandonReading,
   onShare,
+  onShareOnX,
   onToggleFavorite,
   onAddToShelf,
   onEdit,
@@ -277,6 +279,17 @@ export function useBookCardDetailsModal({
       });
     }
 
+    if (onShareOnX) {
+      items.push({
+        id: "share-on-x",
+        label: FINISHED_BOOK_SHARE_COPY.dialogTitle,
+        hint: FINISHED_BOOK_SHARE_COPY.hint,
+        icon: "shareOnX",
+        disabled: false,
+        onSelect: onShareOnX,
+      });
+    }
+
     if (showLibraryActions && book.id) {
       items.push({
         id: "add-reader",
@@ -353,6 +366,7 @@ export function useBookCardDetailsModal({
     onOpenQuotes,
     onOpenSchedule,
     onShare,
+    onShareOnX,
     onToggleFavorite,
     quotesDisabled,
     referenceCopied,

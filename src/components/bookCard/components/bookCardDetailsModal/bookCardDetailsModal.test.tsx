@@ -116,7 +116,7 @@ describe("BookCardDetailsModal", () => {
       screen.getByRole("button", { name: /Copiar referência/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Compartilhar/ }),
+      screen.getByRole("button", { name: /Enviar no WhatsApp/ }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Editar livro/ }),
@@ -272,6 +272,35 @@ describe("BookCardDetailsModal", () => {
         }),
       );
     });
+  });
+
+  it("mostra Compartilhar no X depois do WhatsApp quando o callback existe", async () => {
+    const user = userEvent.setup();
+    const onShare = vi.fn();
+    const onShareOnX = vi.fn();
+    renderModal({ onShare, onShareOnX });
+
+    const whatsapp = screen.getByRole("button", { name: /Enviar no WhatsApp/ });
+    const shareOnX = screen.getByRole("button", { name: /Cartão da leitura/ });
+    expect(shareOnX).toHaveAccessibleName(/Compartilhar no X/);
+    expect(
+      whatsapp.compareDocumentPosition(shareOnX) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    await user.click(shareOnX);
+    expect(onShareOnX).toHaveBeenCalledTimes(1);
+    expect(onShare).not.toHaveBeenCalled();
+  });
+
+  it("não mostra Compartilhar no X sem o callback", () => {
+    renderModal();
+
+    expect(
+      screen.queryByRole("button", { name: /Cartão da leitura/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Enviar no WhatsApp/ }),
+    ).toBeInTheDocument();
   });
 
   it("esconde adicionar leitor quando a pessoa não participa da leitura", () => {

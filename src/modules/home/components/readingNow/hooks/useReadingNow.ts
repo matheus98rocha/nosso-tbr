@@ -6,6 +6,12 @@ import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/keys";
 import { useModal } from "@/hooks";
 import { BookUpsertService } from "@/modules/bookUpsert/services/bookUpsert.service";
+import {
+  armAfterRating,
+  buildFinishedBookShareSubject,
+  clearArmed,
+  revealArmed,
+} from "@/modules/finishedBookShare";
 import { useReadingProgressMany } from "@/modules/schedule/hooks/useReadingProgressMany";
 import { BookService } from "@/services/books/books.service";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
@@ -95,7 +101,14 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
     useState<ReadingNowStatusTransitionTarget | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const armedBookIdRef = useRef<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    return () => {
+      if (armedBookIdRef.current) clearArmed(armedBookIdRef.current);
+    };
+  }, []);
 
   const { data, isLoading, isError, isFetched } = useQuery({
     queryKey: [...QUERY_KEYS.books.all, "reading-now", userId] as const,
@@ -250,8 +263,9 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
   );
 
   const dismissRatingPrompt = useCallback(() => {
+    if (ratingPromptBookId) revealArmed(ratingPromptBookId);
     setRatingPromptBookId(null);
-  }, []);
+  }, [ratingPromptBookId]);
 
   const statusTransitionMutation = useMutation({
     mutationFn: async ({
@@ -266,7 +280,7 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
       await bookUpsertService.edit(book.id, payload);
       return { bookId: book.id, nextStatus };
     },
-    onSuccess: async ({ bookId, nextStatus }) => {
+    onSuccess: async ({ bookId, nextStatus }, variables) => {
       toast(STATUS_SUCCESS_LABEL[nextStatus as keyof typeof STATUS_SUCCESS_LABEL]);
 
       await queryClient.invalidateQueries({
@@ -284,6 +298,16 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
       }
 
       if (nextStatus === "finished") {
+        armedBookIdRef.current = bookId;
+        armAfterRating(
+          bookId,
+          buildFinishedBookShareSubject({
+            bookId,
+            title: variables.book.title,
+            author: variables.book.author,
+            imageUrl: variables.book.image_url,
+          }),
+        );
         setRatingPromptBookId(bookId);
       }
     },

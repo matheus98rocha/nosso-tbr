@@ -150,6 +150,8 @@ function presetUseBookCard(
     cardReadingActionLabel?: string;
     onStartReading?: () => void;
     isStatusPending?: boolean;
+    showShareOnX?: boolean;
+    shareOnX?: () => void;
   }> = {},
 ) {
   const {
@@ -207,6 +209,8 @@ function presetUseBookCard(
     handleDeleteFromDetails: patch.handleDeleteFromDetails ?? vi.fn(),
     dropdownTap: tapStub(),
     shareOnWhatsApp: vi.fn(),
+    showShareOnX: patch.showShareOnX ?? false,
+    shareOnX: patch.shareOnX ?? vi.fn(),
     handleNavigateToSchedule: vi.fn(),
     handleNavigateToAuthor,
     handleNavigateToQuotes: vi.fn(),
@@ -348,6 +352,37 @@ describe("BookCard", () => {
 
     expect(ratingFooter).toBeInTheDocument();
     expect(ratingFooter?.parentElement).toHaveClass("gap-2.5");
+  });
+
+  it("mostra Compartilhar no X no mesmo rodapé da avaliação", () => {
+    const finishedBook = { ...baseBook, status: "finished" as const };
+    presetUseBookCard(finishedBook, { showShareOnX: true });
+    render(<BookCard book={finishedBook} />);
+
+    const ratingFooter = screen
+      .getByTestId("card-reading-rating")
+      .closest('[data-slot="card-footer"]');
+    const shareButton = screen.getByRole("button", { name: "Compartilhar no X" });
+
+    expect(ratingFooter).toContainElement(shareButton);
+    expect(shareButton).toHaveClass("w-full");
+    expect(ratingFooter).toHaveClass("flex-col");
+  });
+
+  it("não mostra Compartilhar no X em leitura nem na estante", () => {
+    presetUseBookCard(baseBook, { showShareOnX: false });
+    const { unmount } = render(<BookCard book={baseBook} />);
+    expect(
+      screen.queryByRole("button", { name: "Compartilhar no X" }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    const finishedBook = { ...baseBook, status: "finished" as const };
+    presetUseBookCard(finishedBook, { showShareOnX: true });
+    render(<BookCard book={finishedBook} isShelf shelfId="shelf-1" />);
+    expect(
+      screen.queryByRole("button", { name: "Compartilhar no X" }),
+    ).not.toBeInTheDocument();
   });
 
   it("RN20: sem sessão, não exibe o menu de mais opções", () => {

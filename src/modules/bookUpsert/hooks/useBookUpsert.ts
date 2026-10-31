@@ -27,6 +27,26 @@ export function useBookUpsert({
   setIsBookFormOpen,
   initialLookupQuery,
 }: CreateBookProps) {
+  const authorNamesByIdRef = useRef<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    const ids = bookData?.authorIds ?? [];
+    const names = bookData?.authorNames ?? [];
+    ids.forEach((id, index) => {
+      const name = names[index]?.trim();
+      if (id && name) authorNamesByIdRef.current.set(id, name);
+    });
+  }, [bookData]);
+
+  const resolveAuthorNames = useCallback((ids: string[]) => {
+    const resolved: string[] = [];
+    for (const id of ids) {
+      const name = authorNamesByIdRef.current.get(id)?.trim();
+      if (name) resolved.push(name);
+    }
+    return resolved;
+  }, []);
+
   const isLoggedIn = useIsLoggedIn();
   const { chosenByOptions: networkChosenByOptions, isLoadingUsers } = useUser();
 
@@ -108,6 +128,7 @@ export function useBookUpsert({
     bookData,
     setIsBookFormOpen: handleSetIsBookFormOpen,
     chosenByOptions,
+    resolveAuthorNames,
   });
 
   const deferredAuthorSearch = useDeferredValue(authorSearch);
@@ -131,6 +152,15 @@ export function useBookUpsert({
     [deferredAuthorSearch, authors.length],
   );
 
+  useEffect(() => {
+    for (const author of authors) {
+      const name = author.name?.trim();
+      if (author.id && name) {
+        authorNamesByIdRef.current.set(String(author.id), name);
+      }
+    }
+  }, [authors]);
+
   const handleOpenAddAuthorModal = useCallback(() => {
     setIsAuthorModalOpen(true);
   }, []);
@@ -142,6 +172,8 @@ export function useBookUpsert({
   const handleAuthorCreated = useCallback(
     (authorId?: string) => {
       if (!authorId) return;
+      const createdName = authorSearch.trim();
+      if (createdName) authorNamesByIdRef.current.set(authorId, createdName);
       const current = form.getValues("author_ids") ?? [];
       if (current.includes(authorId)) {
         form.setValue("author_ids", current, { shouldValidate: true });
@@ -151,7 +183,7 @@ export function useBookUpsert({
         shouldValidate: true,
       });
     },
-    [form],
+    [authorSearch, form],
   );
 
   const handleDialogOpenChange = useCallback(

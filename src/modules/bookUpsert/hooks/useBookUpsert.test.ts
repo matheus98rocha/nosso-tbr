@@ -122,6 +122,14 @@ function setupMocks(
   });
 }
 
+function latestResolveAuthorNames() {
+  const lastCall = (useBookDialog as Mock).mock.calls.at(-1);
+  if (!lastCall?.[0]) {
+    throw new Error("useBookDialog não recebeu props");
+  }
+  return lastCall[0].resolveAuthorNames as (ids: string[]) => string[];
+}
+
 function getDialogSetIsBookFormOpen() {
   const lastCall = (useBookDialog as Mock).mock.calls.at(-1);
   if (!lastCall?.[0]) {
@@ -557,5 +565,54 @@ describe("useBookUpsert — reset da busca automática após criar livro", () =>
     rerender();
 
     expect(mockSetValue).not.toHaveBeenCalledWith("author_ids", ["author-99"], expect.anything());
+  });
+});
+
+describe("useBookUpsert — mapa de autores do cartão", () => {
+  it("alinha authorIds com authorNames e omite id sem nome", async () => {
+    setupMocks();
+    renderHook(() =>
+      useBookUpsert({
+        ...defaultProps,
+        bookData: {
+          authorIds: ["id-1", "id-2", "id-3"],
+          authorNames: ["Ana", "Bia"],
+        } as never,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(latestResolveAuthorNames()(["id-1", "id-3", "id-2"])).toEqual([
+        "Ana",
+        "Bia",
+      ]);
+    });
+  });
+
+  it("guarda a resposta de searchAuthors sem buscar de novo ao resolver", async () => {
+    setupMocks({ authors: [{ id: "author-7", name: "Carlos" }] });
+    renderHook(() => useBookUpsert(defaultProps));
+
+    await waitFor(() => {
+      expect(latestResolveAuthorNames()(["author-7", "ausente"])).toEqual(["Carlos"]);
+    });
+    expect(latestResolveAuthorNames()(["ausente"])).toEqual([]);
+    expect(latestResolveAuthorNames()(["ausente"])).not.toContain("Autor desconhecido");
+    expect(latestResolveAuthorNames()(["ausente"])).not.toContain("ausente");
+  });
+
+  it("grava o par id e nome ao criar autor com authorSearch preenchido", () => {
+    setupMocks();
+    const { result } = renderHook(() => useBookUpsert(defaultProps));
+
+    act(() => {
+      result.current.handleAuthorSearchChange("Novo Autor");
+    });
+    mockForm.getValues.mockReturnValueOnce([]);
+    act(() => {
+      result.current.handleAuthorCreated("author-new");
+    });
+
+    expect(latestResolveAuthorNames()(["author-new"])).toEqual(["Novo Autor"]);
   });
 });

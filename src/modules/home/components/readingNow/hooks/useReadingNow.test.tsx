@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,10 +7,23 @@ import { useUserStore } from "@/stores/userStore";
 import type { BookDomain } from "@/types/books.types";
 import type { User } from "@/types/user.types";
 
+import {
+  clearArmed,
+  close,
+  useFinishedBookShareStore,
+} from "@/modules/finishedBookShare/stores";
+
 import { useReadingNow } from "./useReadingNow";
 
-const { getAll } = vi.hoisted(() => ({
+const { getAll, editBook } = vi.hoisted(() => ({
   getAll: vi.fn(),
+  editBook: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@/modules/bookUpsert/services/bookUpsert.service", () => ({
+  BookUpsertService: class {
+    edit = editBook;
+  },
 }));
 
 vi.mock("@/services/books/books.service", () => ({
@@ -91,6 +104,11 @@ describe("useReadingNow", () => {
 
   beforeEach(() => {
     getAll.mockReset();
+    editBook.mockReset();
+    editBook.mockResolvedValue(undefined);
+    close();
+    clearArmed(solo.id ?? "book-solo");
+    clearArmed(collective.id ?? "book-shared");
     getAll.mockResolvedValue({ data: [collective, solo], total: 2 });
     useUserStore.setState({
       user: { id: CURRENT_USER_ID } as User,
@@ -138,5 +156,97 @@ describe("useReadingNow", () => {
 
     expect(result.current.items).toHaveLength(0);
     expect(result.current.shouldRender).toBe(false);
+  });
+
+  it("arma o cartão ao finalizar e revela só no dismiss", async () => {
+    const { result } = renderHook(() => useReadingNow("solo"), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.items).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.finishReading(solo as BookDomain & { id: string });
+    });
+
+    await waitFor(() => {
+      expect(result.current.ratingPromptBookId).toBe(solo.id);
+    });
+
+    expect(useFinishedBookShareStore.getState().armedBookId).toBe(solo.id);
+    expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
+      bookId: solo.id,
+      title: solo.title,
+      author: solo.author,
+      imageUrl: null,
+    });
+    expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+
+    act(() => {
+      result.current.dismissRatingPrompt();
+    });
+
+    expect(result.current.ratingPromptBookId).toBeNull();
+    expect(useFinishedBookShareStore.getState().activeSubject?.bookId).toBe(solo.id);
+  });
+
+  it("não arma ao pausar, abandonar, cancelar ou falhar", async () => {
+    const { result } = renderHook(() => useReadingNow("solo"), { wrapper });
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    act(() => {
+      result.current.pauseReading(solo as BookDomain & { id: string });
+    });
+    await waitFor(() => expect(editBook).toHaveBeenCalled());
+    expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+
+    act(() => {
+      result.current.abandonReading(solo as BookDomain & { id: string });
+    });
+    await waitFor(() => expect(editBook).toHaveBeenCalledTimes(2));
+    expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+
+    act(() => {
+      result.current.requestStatusTransition(
+        solo as BookDomain & { id: string },
+        "finished",
+      );
+    });
+    act(() => {
+      result.current.cancelStatusTransition();
+    });
+    expect(editBook).toHaveBeenCalledTimes(2);
+    expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+
+    editBook.mockRejectedValueOnce(new Error("falha"));
+    act(() => {
+      result.current.finishReading(solo as BookDomain & { id: string });
+    });
+    await waitFor(() => expect(editBook).toHaveBeenCalledTimes(3));
+    expect(result.current.ratingPromptBookId).toBeNull();
+    expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+  });
+
+  it("não revela no unmount e não limpa o slot só porque o carrossel sumiu", async () => {
+    getAll.mockReset();
+    getAll
+      .mockResolvedValueOnce({ data: [solo], total: 1 })
+      .mockResolvedValue({ data: [], total: 0 });
+
+    const { result, unmount } = renderHook(() => useReadingNow("solo"), { wrapper });
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    act(() => {
+      result.current.finishReading(solo as BookDomain & { id: string });
+    });
+    await waitFor(() => expect(result.current.ratingPromptBookId).toBe(solo.id));
+
+    await waitFor(() => expect(result.current.shouldRender).toBe(false));
+    expect(useFinishedBookShareStore.getState().armedBookId).toBe(solo.id);
+    expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+
+    unmount();
+    expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+    expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
   });
 });

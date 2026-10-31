@@ -24,6 +24,8 @@ export default function ReadingNowBookDetailsModal({
     handleScheduleFromDetails,
     handleQuotesFromDetails,
     shareOnWhatsApp,
+    showShareOnX,
+    shareOnX,
     showFavoriteToggle,
     handleFavoriteClick,
     isFavoritePending,
@@ -48,6 +50,7 @@ export default function ReadingNowBookDetailsModal({
       onPauseReading={onPauseReading}
       onAbandonReading={onAbandonReading}
       onShare={shareOnWhatsApp}
+      onShareOnX={showShareOnX ? shareOnX : undefined}
       onToggleFavorite={
         showFavoriteToggle ? () => handleFavoriteClick() : undefined
       }

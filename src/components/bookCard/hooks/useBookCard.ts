@@ -14,6 +14,11 @@ import { useUserStore } from "@/stores/userStore";
 import { useToggleBookFavorite } from "@/services/bookFavorites/hooks/useToggleBookFavorite";
 import type { BookCreateValidator, Status } from "@/types/books.types";
 import { BookUpsertService } from "@/modules/bookUpsert/services/bookUpsert.service";
+import {
+  buildFinishedBookShareSubject,
+  canShareFinishedBook,
+  openNow,
+} from "@/modules/finishedBookShare";
 
 import { useAddBookToLibrary } from "./useAddBookToLibrary";
 
@@ -181,6 +186,21 @@ export function useBookCard({
       toast(labels[nextStatus] ?? "Status atualizado");
       await queryClient.invalidateQueries({ queryKey: ["books"], exact: false });
       bookDetailsModal.setIsOpen(false);
+      if (
+        nextStatus === "finished" &&
+        book.status !== "finished" &&
+        !isShelf &&
+        book.id
+      ) {
+        openNow(
+          buildFinishedBookShareSubject({
+            bookId: book.id,
+            title: book.title,
+            author: book.author,
+            imageUrl: book.image_url,
+          }),
+        );
+      }
     },
     onError: (error) => {
       toast("Não foi possível atualizar o status", {
@@ -357,6 +377,25 @@ export function useBookCard({
     showResumeReadingAction ||
     showAddToLibrary;
 
+  const showShareOnX = canShareFinishedBook({
+    isLogged,
+    isParticipant: isBookParticipant,
+    isShelf,
+    status: book.status,
+  });
+
+  const shareOnX = useCallback(() => {
+    if (!showShareOnX || !book.id) return;
+    openNow(
+      buildFinishedBookShareSubject({
+        bookId: book.id,
+        title: book.title,
+        author: book.author,
+        imageUrl: book.image_url,
+      }),
+    );
+  }, [book.author, book.id, book.image_url, book.title, showShareOnX]);
+
   const handleFavoriteClick = useCallback(
     (event?: MouseEvent<HTMLButtonElement>) => {
       event?.preventDefault();
@@ -393,6 +432,8 @@ export function useBookCard({
     isStatusPending: statusTransitionMutation.isPending,
     isLogged,
     shareOnWhatsApp,
+    showShareOnX,
+    shareOnX,
     handleNavigateToSchedule,
     handleNavigateToAuthor,
     book,

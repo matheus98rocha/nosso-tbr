@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { Mock, vi } from "vitest";
 import { useBookDialog } from "./useBookDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -7,6 +7,11 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/clientJsonFetch";
 import type { BookDomain } from "@/types/books.types";
+import {
+  clearArmed,
+  close,
+  useFinishedBookShareStore,
+} from "@/modules/finishedBookShare/stores";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn(),
@@ -77,6 +82,8 @@ const defaultProps = {
   isBookFormOpen: true,
   setIsBookFormOpen: vi.fn(),
   chosenByOptions: [],
+  resolveAuthorNames: (ids: string[]) =>
+    ids.flatMap((id) => (id === "author-1" ? ["Suzanne Collins"] : [])),
 };
 
 function setupMocks({
@@ -343,10 +350,12 @@ describe("useBookDialog — query de estantes", () => {
       );
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "edit" as const },
-        { status: "reading" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          { status: "reading" },
+        );
+      });
 
       expect(mockReplace).toHaveBeenCalledWith("/?status=reading&myBooks=true");
     });
@@ -361,10 +370,12 @@ describe("useBookDialog — query de estantes", () => {
       );
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "edit" as const },
-        { status: "paused" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          { status: "paused" },
+        );
+      });
 
       expect(mockReplace).not.toHaveBeenCalled();
     });
@@ -380,10 +391,12 @@ describe("useBookDialog — query de estantes", () => {
       );
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "edit" as const },
-        { status: "reading" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          { status: "reading" },
+        );
+      });
 
       expect(mockReplace).not.toHaveBeenCalled();
     });
@@ -394,12 +407,163 @@ describe("useBookDialog — query de estantes", () => {
       renderHook(() => useBookDialog(defaultProps));
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "create" as const, book: { id: "book-new" }, shelfDuplicate: false },
-        { status: "reading" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "create" as const, book: { id: "book-new" }, shelfDuplicate: false },
+          { status: "reading" },
+        );
+      });
 
       expect(mockReplace).toHaveBeenCalledWith("/?bookId=book-new");
+    });
+  });
+
+  describe("oferta do cartão ao finalizar", () => {
+    const readingBook: BookDomain = {
+      id: "book-1",
+      title: "Livro Teste",
+      author: "Autor Teste",
+      authorIds: [],
+      authorNames: [],
+      pages: 200,
+      status: "reading",
+      readerIds: ["user-1"],
+      readersDisplay: "User",
+      chosen_by: "user-1",
+      start_date: null,
+      end_date: null,
+      gender: null,
+      image_url: "",
+      user_id: "user-1",
+      is_reread: false,
+      is_favorite: false,
+    };
+
+    beforeEach(() => {
+      close();
+      clearArmed("book-1");
+      clearArmed("book-new");
+    });
+
+    it("arma na transição para finished e revela no dismiss", async () => {
+      setupMocks({ isLoggedIn: true });
+      const resolveAuthorNames = vi.fn((ids: string[]) =>
+        ids.flatMap((id) => (id === "author-1" ? ["Suzanne Collins"] : [])),
+      );
+      const { result } = renderHook(() =>
+        useBookDialog({
+          ...defaultProps,
+          bookData: readingBook,
+          resolveAuthorNames,
+        }),
+      );
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          {
+            status: "finished",
+            title: "Jogos Vorazes (Jogos Vorazes, #1)",
+            image_url: "/book-cover-placeholder.svg",
+            author_ids: ["author-1", "sem-nome"],
+          },
+        );
+      });
+
+      expect(resolveAuthorNames).toHaveBeenCalledWith(["author-1", "sem-nome"]);
+      expect(result.current.ratingPromptBookId).toBe("book-1");
+      expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+      expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
+        bookId: "book-1",
+        title: "Jogos Vorazes (Jogos Vorazes, #1)",
+        author: "Suzanne Collins",
+        imageUrl: null,
+      });
+
+      act(() => {
+        result.current.handleDismissRatingPrompt();
+      });
+
+      expect(result.current.ratingPromptBookId).toBeNull();
+      expect(useFinishedBookShareStore.getState().activeSubject?.bookId).toBe("book-1");
+    });
+
+    it("não arma ao regravar finished nem no erro", async () => {
+      setupMocks({ isLoggedIn: true });
+      const { result, unmount } = renderHook(() =>
+        useBookDialog({
+          ...defaultProps,
+          bookData: { ...readingBook, status: "finished" },
+        }),
+      );
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          { status: "finished", title: "Livro Teste", author_ids: [] },
+        );
+      });
+      expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+
+      await act(async () => {
+        mutationOptions.onError?.(new Error("falha"));
+      });
+      expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+      expect(result.current.ratingPromptBookId).toBeNull();
+
+      unmount();
+      expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+    });
+
+    it("no create usa o mapa de nomes e não busca autor de novo", async () => {
+      setupMocks({ isLoggedIn: true });
+      const resolveAuthorNames = vi.fn((ids: string[]) =>
+        ids.flatMap((id) =>
+          id === "author-1" ? ["Suzanne Collins"] : id === "author-2" ? ["Outro"] : [],
+        ),
+      );
+      const { result, unmount } = renderHook(() =>
+        useBookDialog({
+          ...defaultProps,
+          resolveAuthorNames,
+        }),
+      );
+
+      const mutationOptions = (useMutation as Mock).mock.calls[0][0];
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "create" as const, book: { id: "book-new" }, shelfDuplicate: false },
+          {
+            status: "finished",
+            title: "Novo livro",
+            image_url: "https://m.media-amazon.com/images/I/81abc.jpg",
+            author_ids: ["author-1", "author-2"],
+          },
+        );
+      });
+
+      expect(resolveAuthorNames).toHaveBeenCalledTimes(1);
+      expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
+        bookId: "book-new",
+        title: "Novo livro",
+        author: "Suzanne Collins e Outro",
+        imageUrl: "https://m.media-amazon.com/images/I/81abc.jpg",
+      });
+
+      unmount();
+      expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+      expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+    });
+
+    it("repassa o resolvedor recebido", () => {
+      setupMocks({ isLoggedIn: true });
+      const resolveAuthorNames = vi.fn(() => [] as string[]);
+      const { result } = renderHook(() =>
+        useBookDialog({ ...defaultProps, resolveAuthorNames }),
+      );
+      expect(result.current.resolveAuthorNames).toBe(resolveAuthorNames);
     });
   });
 });
