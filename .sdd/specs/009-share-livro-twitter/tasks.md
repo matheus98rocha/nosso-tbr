@@ -36,7 +36,7 @@ Não há `data-model` nem `contracts`. Cada task é um commit. Spec e plan perma
   - Depende de: —
   - Pronto quando: o teste compara as constantes, uma a uma, com estas frases e com nenhuma outra: título `Compartilhar no X`; `Gerando o cartão…`; `A imagem fica no seu dispositivo. Este link não envia o arquivo — anexe o PNG na publicação.`; botões `Baixar imagem`, `Copiar texto`, `Abrir no X`, `Fechar`, `Tentar de novo`; erro `Não foi possível gerar a imagem. Tente de novo.`; toasts `Não foi possível copiar o texto.` e `Não foi possível abrir o X. Permita pop-ups e tente de novo.`; hint `Cartão da leitura`. O mapa não tem rótulo em inglês. Não cria o barrel (T004).
 
-- [ ] T004 Barrel de constantes.
+- [x] T004 Barrel de constantes.
   - Arquivos: `src/modules/finishedBookShare/constants/index.ts`
   - Depende de: T002, T003
   - Pronto quando: reexporta layout e copy. Nenhum número ou frase é redefinido aqui.
