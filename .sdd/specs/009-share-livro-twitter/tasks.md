@@ -123,7 +123,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
   - Depende de: T003, T012
   - Pronto quando: `Dialog` de `@/components/ui/dialog`. Props tipadas no arquivo de T001. O preview é só o `<img>` do blob do hook — sem segundo layout em React. Gerando: título `Compartilhar no X`, texto `Gerando o cartão…`, `aria-busy`, ações desabilitadas. Pronto: `alt` do model e a descrição do anexo manual de T003; botões `Baixar imagem`, `Copiar texto`, `Abrir no X`, `Fechar`. Falha: frase exata de T003, botão `Tentar de novo`, e `Abrir no X` não dispara `window.open`. Baixar usa o filename. Copiar e o intent recebem a mesma string. Sem comentários no código novo.
 
-- [ ] T015 [US1] Host que só lê o store. Sem arquivo de teste.
+- [x] T015 [US1] Host que só lê o store. Sem arquivo de teste.
   - Arquivos: `src/modules/finishedBookShare/components/finishedBookShareHost/finishedBookShareHost.tsx`, `src/modules/finishedBookShare/components/finishedBookShareHost/index.ts`
   - Depende de: T010, T014
   - Pronto quando: com diálogo ativo, monta `FinishedBookShareDialog`; fechado, não monta. `Fechar` chama `close()`. Não busca livro, não persiste e não abre sozinho. O plano não lista teste deste arquivo.
