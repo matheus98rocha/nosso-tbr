@@ -116,7 +116,7 @@ describe("BookCardDetailsModal", () => {
       screen.getByRole("button", { name: /Copiar referência/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Compartilhar/ }),
+      screen.getByRole("button", { name: /Enviar no WhatsApp/ }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Editar livro/ }),

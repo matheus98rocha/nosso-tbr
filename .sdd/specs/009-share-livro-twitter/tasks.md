@@ -172,7 +172,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
   - Depende de: T009, T016, T017
   - Pronto quando: `showShareOnX` usa `canShareFinishedBook` (`isLogged`, participante por `canUserParticipateInBook`, `!isShelf`, `status === "finished"`). No `onSuccess` de `statusTransitionMutation`, se `nextStatus === "finished"`, o status anterior não era `finished` e `!isShelf`: depois do toast `Leitura finalizada` e de fechar o modal de detalhes, `openNow` com snapshot do `book` do closure (não reler após o invalidate). Estante não chama. Pausar não chama. Não mexe em `ratingPrompt` nem abre estrelas. `shareOnWhatsApp` segue `https://wa.me/?text=`. O retorno `onFinishReading: () => changeBookStatus("finished")` não é reescrito.
 
-- [ ] T022 [P] Query do WhatsApp no teste do modal deixa de ser ambígua.
+- [x] T022 [P] Query do WhatsApp no teste do modal deixa de ser ambígua.
   - Arquivos: `src/components/bookCard/components/bookCardDetailsModal/bookCardDetailsModal.test.tsx`
   - Depende de: T017
   - Pronto quando: o `getByRole("button", { name: /Compartilhar/ })` desse arquivo passa a mirar `Enviar no WhatsApp` (o hint já está no nome acessível do comando WhatsApp). O teste continua verde sem o botão novo. Nenhum outro `getByRole` de “Compartilhar leituras” é alterado. `shareOnWhatsApp` não muda.
