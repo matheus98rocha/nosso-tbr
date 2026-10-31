@@ -209,7 +209,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
 
 ## Phase 10: Verificação
 
-- [ ] T027 Rodar só os unitários novos e os dos call sites tocados.
+- [x] T027 Rodar só os unitários novos e os dos call sites tocados.
   - Arquivos: nenhum fonte novo. Comando abaixo.
   - Depende de: T005–T026
   - Pronto quando: este comando termina verde e nenhum servidor do app foi iniciado (`yarn dev` / `next dev` / `next start` ficam de fora; o checklist manual do plano §9.2 não é task de agente):
