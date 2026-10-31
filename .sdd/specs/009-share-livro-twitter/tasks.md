@@ -21,7 +21,7 @@ Não há `data-model` nem `contracts`. Cada task é um commit. Spec e plan perma
 
 ## Phase 1: Setup
 
-- [ ] T001 Tipos do módulo em `src/modules/finishedBookShare/types/finishedBookShare.types.ts` e barrel `types/index.ts`.
+- [x] T001 Tipos do módulo em `src/modules/finishedBookShare/types/finishedBookShare.types.ts` e barrel `types/index.ts`.
   - Arquivos: `src/modules/finishedBookShare/types/finishedBookShare.types.ts`, `src/modules/finishedBookShare/types/index.ts`
   - Depende de: —
   - Pronto quando: existe `FinishedBookShareSubject` com `{ bookId, title, author, imageUrl }`, `author` `string | null` (nome de exibição ou `null`), `imageUrl` `string | null`. Props do diálogo ficam neste arquivo, não inline no componente. Sem tipo de série, saga ou posição.
