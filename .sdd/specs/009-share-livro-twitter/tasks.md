@@ -102,7 +102,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
 
 ## Phase 5: Hook e botão
 
-- [ ] T012 [P] [US4] `useFinishedBookShareDialog` + teste.
+- [x] T012 [P] [US4] `useFinishedBookShareDialog` + teste.
   - Arquivos: `src/modules/finishedBookShare/hooks/useFinishedBookShareDialog.ts`, `src/modules/finishedBookShare/hooks/useFinishedBookShareDialog.test.ts`, `src/modules/finishedBookShare/hooks/index.ts`
   - Depende de: T003, T008, T010, T011
   - Pronto quando: o hook chama `renderFinishedBookCardPng` e guarda um único `blob:` para o `<img>`. Revoga o object URL ao trocar o assunto e no unmount. Enquanto gera, baixar, copiar e abrir ficam desabilitados. Falha (incluindo `SecurityError`) expõe a frase exata de T003 e o handler de abrir não chama `window.open`. `Tentar de novo` gera outra vez. Baixar usa o filename do model e o helper local, não o do Recap. Copiar e o intent recebem a mesma string. Clipboard rejeitado → toast `Não foi possível copiar o texto.`; diálogo segue aberto. `window.open` nulo → toast `Não foi possível abrir o X. Permita pop-ups e tente de novo.` Abrir usa `buildTweetIntentUrl` já calculado, `window.open(url, "_blank", "noopener,noreferrer")`, sem esperar o canvas no gesto. Handlers com `useCallback` / `useMemo`.
