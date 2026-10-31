@@ -10,6 +10,7 @@ import { CardStartReadingButton } from "./components/cardStartReadingButton";
 import { AddBookToShelf } from "./components/addBookToShelf";
 import { CardReadingProgressIndicator } from "@/modules/schedule/components/readingProgressIndicator";
 import { CardReadingRatingButton } from "@/modules/bookRating";
+import { ShareFinishedBookOnXButton } from "@/modules/finishedBookShare";
 import { ConfirmDialog } from "@/components/confirmDialog";
 import {
   Tooltip,
@@ -45,6 +46,8 @@ export function BookCard(props: BookCardProps) {
     onAbandonReading: handleAbandonReading,
     isStatusPending,
     shareOnWhatsApp,
+    showShareOnX,
+    shareOnX,
     handleNavigateToSchedule,
     isLogged,
     handleConfirmDelete,
@@ -225,6 +228,7 @@ export function BookCard(props: BookCardProps) {
         onPauseReading={handlePauseReading}
         onAbandonReading={handleAbandonReading}
         onShare={shareOnWhatsApp}
+        onShareOnX={!isShelf && showShareOnX ? shareOnX : undefined}
         onToggleFavorite={
           showFavoriteToggle ? () => handleFavoriteClick() : undefined
         }
@@ -366,6 +370,14 @@ export function BookCard(props: BookCardProps) {
             {!isShelf && book.status === "finished" && (
               <CardFooter className="flex min-w-0 w-full flex-col items-center gap-2 border-t border-border/70 px-0 pt-2.5">
                 <CardReadingRatingButton book={book} />
+                {showShareOnX ? (
+                  <ShareFinishedBookOnXButton
+                    bookId={book.id ?? ""}
+                    title={book.title}
+                    author={book.author}
+                    imageUrl={book.image_url}
+                  />
+                ) : null}
               </CardFooter>
             )}
           </div>

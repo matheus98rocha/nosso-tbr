@@ -193,7 +193,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
   - Depende de: T021, T022
   - Pronto quando: `BookDetailsActionIcon` ganha `"shareOnX"`. `onShareOnX` é opcional nas props. O comando só existe se o callback foi passado; fica **depois** do WhatsApp; label `Compartilhar no X`; hint `Cartão da leitura`; ícone `X` de `lucide-react` no mapa, não `Share2`. Sem callback, o comando não aparece. O teste do WhatsApp continua em `Enviar no WhatsApp` (T022) e ganha o caso do comando novo. `bookCardDetailsModal.tsx` não muda: já entrega `props` ao hook. Avaliação no modal fica onde está.
 
-- [ ] T025 [P] [US2] Botão no rodapé do card e callback no modal.
+- [x] T025 [P] [US2] Botão no rodapé do card e callback no modal.
   - Arquivos: `src/components/bookCard/bookCard.tsx`, `src/components/bookCard/bookCard.test.tsx`
   - Depende de: T013, T021, T024
   - Pronto quando: no `CardFooter` que já envolve `CardReadingRatingButton` (`!isShelf` e `finished`), o botão novo fica **embaixo**, os dois `w-full`. Não é um controle só e não divide a linha com `Alterar avaliação`. `reading` (mesmo com cronograma em 100%) continua só com `CardReadingProgressIndicator`. Estante não renderiza esse rodapé. O mesmo `bookCard.tsx` repassa `onShareOnX` para `BookCardDetailsModal` quando `showShareOnX`; não repassa na estante. `onShare={shareOnWhatsApp}` permanece. Teste: `finished` fora da estante mostra `Compartilhar no X` no mesmo `card-footer` da avaliação; `reading` não mostra; estante não mostra.
