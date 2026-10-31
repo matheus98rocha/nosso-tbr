@@ -139,7 +139,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
   - Depende de: T008, T009, T010, T013, T015
   - Pronto quando: exporta o host, o botão, `canShareFinishedBook`, `buildFinishedBookShareSubject` e as ações do store (`armAfterRating`, `revealArmed`, `clearArmed`, `openNow`, `close`). Não exporta o canvas nem o helper de download do Recap.
 
-- [ ] T017 [US1] Montar o host em `AppProviders`.
+- [x] T017 [US1] Montar o host em `AppProviders`.
   - Arquivos: `src/providers/AppProviders.tsx`
   - Depende de: T016
   - Pronto quando: `FinishedBookShareHost` renderiza ao lado do `Toaster`, dentro do provider que já existe. Nenhum outro provider ganha o diálogo.
