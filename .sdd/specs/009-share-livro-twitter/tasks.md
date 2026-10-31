@@ -152,7 +152,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
 
 Todos dependem de T017. Não compartilham arquivo entre si.
 
-- [ ] T018 [P] [US1] Armar e revelar no Lendo agora.
+- [x] T018 [P] [US1] Armar e revelar no Lendo agora.
   - Arquivos: `src/modules/home/components/readingNow/hooks/useReadingNow.ts`, `src/modules/home/components/readingNow/hooks/useReadingNow.test.tsx`
   - Depende de: T016, T017
   - Pronto quando: no `onSuccess` de `statusTransitionMutation`, `nextStatus === "finished"` chama `armAfterRating` com snapshot de `variables.book` (`title`, `author` já vindo de `resolveBookAuthors` — não passar de novo por `formatList` —, `imageUrl` pelo builder) e mantém `setRatingPromptBookId`. `dismissRatingPrompt` chama `revealArmed` com esse id e só então zera `ratingPromptBookId`. Pausar, abandonar, cancelar `ReadingNowStatusConfirmationDialog` e `onError` não armam. O cleanup do unmount do hook chama `clearArmed` só do id que esta instância armou e não chama `revealArmed`. `shouldRender` falso não é unmount do hook: não limpar o slot nesse caso. `FinishedReadingRatingDialog` não é editado.
