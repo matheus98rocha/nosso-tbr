@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -62,6 +62,27 @@ describe("LoginPage", () => {
     getRegistrationMode.mockResolvedValue({ mode: "invite" });
 
     renderLogin();
+
+    expect(await screen.findByRole("button", { name: "Forgot password" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Criar conta" })).not.toBeInTheDocument();
+  });
+
+  it("esconde criar conta quando não consegue ler o modo de inscrição", async () => {
+    let rejectMode: (reason: Error) => void = () => {};
+    getRegistrationMode.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectMode = reject;
+        }),
+    );
+
+    renderLogin();
+
+    expect(screen.queryByRole("link", { name: "Criar conta" })).not.toBeInTheDocument();
+
+    await act(async () => {
+      rejectMode(new Error("offline"));
+    });
 
     expect(await screen.findByRole("button", { name: "Forgot password" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Criar conta" })).not.toBeInTheDocument();

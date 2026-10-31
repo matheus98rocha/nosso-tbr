@@ -226,5 +226,68 @@ describe("UserSocialService", () => {
     });
     expect(from).not.toHaveBeenCalled();
   });
+
+  it("não transforma falha da contagem em zero seguidores", async () => {
+    const rpc = vi.fn(async (fn: string) => {
+      if (fn === "count_following_of") {
+        return { data: null, error: { message: "permission denied" } };
+      }
+      if (fn === "count_followers_of") {
+        return { data: 4, error: null };
+      }
+      throw new Error(fn);
+    });
+    const service = makeService();
+    (
+      service as unknown as { supabase: { rpc: typeof rpc } }
+    ).supabase.rpc = rpc;
+
+    await expect(service.getNetworkCounts("peer-9")).rejects.toThrow(
+      "Failed to load following count",
+    );
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("não ignora falha ao contar seguidores quando a contagem de seguindo ok", async () => {
+    const rpc = vi.fn(async (fn: string) => {
+      if (fn === "count_following_of") {
+        return { data: 2, error: null };
+      }
+      if (fn === "count_followers_of") {
+        return { data: null, error: { message: "timeout" } };
+      }
+      throw new Error(fn);
+    });
+    const service = makeService();
+    (
+      service as unknown as { supabase: { rpc: typeof rpc } }
+    ).supabase.rpc = rpc;
+
+    await expect(service.getNetworkCounts("peer-9")).rejects.toThrow(
+      "Failed to load follower count",
+    );
+  });
+
+  it("zera totais que não são número finito sem voltar à tabela", async () => {
+    const rpc = vi.fn(async (fn: string) => {
+      if (fn === "count_following_of") {
+        return { data: null, error: null };
+      }
+      if (fn === "count_followers_of") {
+        return { data: { count: 9 }, error: null };
+      }
+      throw new Error(fn);
+    });
+    const service = makeService();
+    (
+      service as unknown as { supabase: { rpc: typeof rpc } }
+    ).supabase.rpc = rpc;
+
+    await expect(service.getNetworkCounts("peer-9")).resolves.toEqual({
+      followingCount: 0,
+      followerCount: 0,
+    });
+    expect(from).not.toHaveBeenCalled();
+  });
 });
 
