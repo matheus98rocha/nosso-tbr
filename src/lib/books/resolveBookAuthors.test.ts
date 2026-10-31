@@ -66,6 +66,23 @@ describe("resolveBookAuthors", () => {
     expect(result.primaryAuthorId).toBe("a2");
   });
 
+  it("coloca books.author_id na frente quando o embed volta em outra ordem", () => {
+    const result = resolveBookAuthors({
+      author_id: "a2",
+      author: { name: "Bruno" },
+      book_authors: [
+        { author_id: "a1", authors: { name: "Ana" } },
+        { author_id: "a2", authors: { name: "Bruno" } },
+        { author_id: "a3", authors: { name: "Carla" } },
+      ],
+    });
+
+    expect(result.authorIds).toEqual(["a2", "a1", "a3"]);
+    expect(result.authorNames).toEqual(["Bruno", "Ana", "Carla"]);
+    expect(result.authorDisplay).toBe("Bruno, Ana e Carla");
+    expect(result.primaryAuthorId).toBe("a2");
+  });
+
   it("formata dois autores com e", () => {
     const result = resolveBookAuthors({
       book_authors: [

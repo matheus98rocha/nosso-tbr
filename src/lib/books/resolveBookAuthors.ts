@@ -20,6 +20,16 @@ export type ResolvedBookAuthors = {
   primaryAuthorId: string | undefined;
 };
 
+function pinStoredPrimaryAuthor<T extends { id: string }>(
+  rows: T[],
+  primaryAuthorId: string | undefined,
+): T[] {
+  if (!primaryAuthorId) return rows;
+  const index = rows.findIndex((row) => row.id === primaryAuthorId);
+  if (index <= 0) return rows;
+  return [rows[index], ...rows.slice(0, index), ...rows.slice(index + 1)];
+}
+
 export function resolveBookAuthors(
   input: ResolveBookAuthorsInput,
 ): ResolvedBookAuthors {
@@ -39,9 +49,12 @@ export function resolveBookAuthors(
     })
     .filter((row) => row.id.length > 0);
 
-  if (fromJunction.length > 0) {
-    const authorIds = fromJunction.map((row) => row.id);
-    const authorNames = fromJunction
+  const storedPrimaryId = input.author_id?.trim() || undefined;
+  const orderedJunction = pinStoredPrimaryAuthor(fromJunction, storedPrimaryId);
+
+  if (orderedJunction.length > 0) {
+    const authorIds = orderedJunction.map((row) => row.id);
+    const authorNames = orderedJunction
       .map((row) => row.name)
       .filter((name) => name.length > 0);
     return {
@@ -55,7 +68,7 @@ export function resolveBookAuthors(
     };
   }
 
-  const legacyId = input.author_id?.trim() || undefined;
+  const legacyId = storedPrimaryId;
   const legacyName = input.author?.name?.trim() || "";
 
   return {
