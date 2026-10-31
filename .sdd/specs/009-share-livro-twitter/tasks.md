@@ -134,7 +134,7 @@ Funções puras e o store, com teste ao lado. Sem componente e sem call site.
 
 ## Phase 7: API pública e montagem
 
-- [ ] T016 Barrel do módulo.
+- [x] T016 Barrel do módulo.
   - Arquivos: `src/modules/finishedBookShare/index.ts`
   - Depende de: T008, T009, T010, T013, T015
   - Pronto quando: exporta o host, o botão, `canShareFinishedBook`, `buildFinishedBookShareSubject` e as ações do store (`armAfterRating`, `revealArmed`, `clearArmed`, `openNow`, `close`). Não exporta o canvas nem o helper de download do Recap.
