@@ -117,6 +117,7 @@ describe("useBookDialog — ignorar sugestão e criar novo livro", () => {
         bookData: undefined,
         setIsBookFormOpen: vi.fn(),
         chosenByOptions: [],
+        resolveAuthorNames: () => [],
       }),
     );
 
@@ -144,6 +145,7 @@ describe("useBookDialog — ignorar sugestão e criar novo livro", () => {
         bookData: undefined,
         setIsBookFormOpen: vi.fn(),
         chosenByOptions: [],
+        resolveAuthorNames: () => [],
       }),
     );
 

@@ -162,7 +162,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
   - Depende de: T017
   - Pronto quando: com `shouldRender` falso e `ratingPromptBookId !== null`, `FinishedReadingRatingDialog` e `ReadingNowStatusConfirmationDialog` continuam no documento e o carrossel não renderiza. Sem prompt, a seção segue oculta (`return null`). O `onDismiss` existente continua sendo `dismissRatingPrompt` (a revelação é T018). O teste cobre os dois casos.
 
-- [ ] T020 [P] [US1] Mapa id → nome no upsert, sem armar ainda.
+- [x] T020 [P] [US1] Mapa id → nome no upsert, sem armar ainda.
   - Arquivos: `src/modules/bookUpsert/bookUpsert.types.ts`, `src/modules/bookUpsert/hooks/useBookUpsert.ts`, `src/modules/bookUpsert/hooks/useBookUpsert.test.ts`, `src/modules/bookUpsert/hooks/useBookDialog.ts`, `src/modules/bookUpsert/hooks/useBookDialog.test.ts`, `src/modules/bookUpsert/hooks/useBookDialog.ignoreCreate.test.ts`
   - Depende de: T017
   - Pronto quando: `useBookUpsert` guarda `Map<string, string>` num ref, sem request novo no sucesso. Edição: `bookData.authorIds` alinhado por índice a `bookData.authorNames`. Cada resposta de `searchAuthors` (`ComboboxOption` `{ id, name }`) entra no mapa. `handleAuthorCreated`: se o id voltar e `authorSearch` tiver nome, grava esse par. `UseCreateBookDialog` ganha `resolveAuthorNames(ids: string[]): string[]`. `useBookDialog` aceita e repassa o resolvedor; id sem nome é omitido, não vira `Autor desconhecido` nem uuid. `useBookUpsert` passa o resolvedor. Chamadas de teste em `useBookDialog.test.ts` e `useBookDialog.ignoreCreate.test.ts` compilam. `bookUpsert.tsx` não muda. Esta task não chama `armAfterRating`.

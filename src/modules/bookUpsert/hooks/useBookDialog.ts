@@ -39,6 +39,7 @@ export function useBookDialog({
   bookData,
   setIsBookFormOpen,
   isBookFormOpen,
+  resolveAuthorNames,
 }: UseCreateBookDialog) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -196,7 +197,6 @@ export function useBookDialog({
     onSuccess: async (result, variables) => {
       const createdBookId =
         result.mode === "edit" ? bookData?.id : result.book.id;
-
       const transitioningToFinished = variables.status === "finished";
       const wasAlreadyFinished = Boolean(
         isEdit && bookData?.status === "finished",
@@ -419,5 +419,6 @@ export function useBookDialog({
 
     ratingPromptBookId,
     handleDismissRatingPrompt,
+    resolveAuthorNames,
   };
 }

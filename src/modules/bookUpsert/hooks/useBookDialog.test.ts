@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { Mock, vi } from "vitest";
 import { useBookDialog } from "./useBookDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -77,6 +77,8 @@ const defaultProps = {
   isBookFormOpen: true,
   setIsBookFormOpen: vi.fn(),
   chosenByOptions: [],
+  resolveAuthorNames: (ids: string[]) =>
+    ids.flatMap((id) => (id === "author-1" ? ["Suzanne Collins"] : [])),
 };
 
 function setupMocks({
@@ -343,10 +345,12 @@ describe("useBookDialog — query de estantes", () => {
       );
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "edit" as const },
-        { status: "reading" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          { status: "reading" },
+        );
+      });
 
       expect(mockReplace).toHaveBeenCalledWith("/?status=reading&myBooks=true");
     });
@@ -361,10 +365,12 @@ describe("useBookDialog — query de estantes", () => {
       );
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "edit" as const },
-        { status: "paused" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          { status: "paused" },
+        );
+      });
 
       expect(mockReplace).not.toHaveBeenCalled();
     });
@@ -380,10 +386,12 @@ describe("useBookDialog — query de estantes", () => {
       );
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "edit" as const },
-        { status: "reading" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "edit" as const },
+          { status: "reading" },
+        );
+      });
 
       expect(mockReplace).not.toHaveBeenCalled();
     });
@@ -394,12 +402,25 @@ describe("useBookDialog — query de estantes", () => {
       renderHook(() => useBookDialog(defaultProps));
 
       const mutationOptions = (useMutation as Mock).mock.calls[0][0];
-      await mutationOptions.onSuccess?.(
-        { mode: "create" as const, book: { id: "book-new" }, shelfDuplicate: false },
-        { status: "reading" },
-      );
+      await act(async () => {
+        await mutationOptions.onSuccess?.(
+          { mode: "create" as const, book: { id: "book-new" }, shelfDuplicate: false },
+          { status: "reading" },
+        );
+      });
 
       expect(mockReplace).toHaveBeenCalledWith("/?bookId=book-new");
+    });
+  });
+
+  describe("resolvedor de autores", () => {
+    it("repassa o resolvedor recebido", () => {
+      setupMocks({ isLoggedIn: true });
+      const resolveAuthorNames = vi.fn(() => [] as string[]);
+      const { result } = renderHook(() =>
+        useBookDialog({ ...defaultProps, resolveAuthorNames }),
+      );
+      expect(result.current.resolveAuthorNames).toBe(resolveAuthorNames);
     });
   });
 });

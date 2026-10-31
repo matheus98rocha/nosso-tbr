@@ -27,4 +27,5 @@ export type UseCreateBookDialog = {
     label: string;
     value: string;
   }[];
+  resolveAuthorNames: (ids: string[]) => string[];
 };
