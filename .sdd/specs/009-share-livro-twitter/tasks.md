@@ -198,7 +198,7 @@ Todos dependem de T017. Não compartilham arquivo entre si.
   - Depende de: T013, T021, T024
   - Pronto quando: no `CardFooter` que já envolve `CardReadingRatingButton` (`!isShelf` e `finished`), o botão novo fica **embaixo**, os dois `w-full`. Não é um controle só e não divide a linha com `Alterar avaliação`. `reading` (mesmo com cronograma em 100%) continua só com `CardReadingProgressIndicator`. Estante não renderiza esse rodapé. O mesmo `bookCard.tsx` repassa `onShareOnX` para `BookCardDetailsModal` quando `showShareOnX`; não repassa na estante. `onShare={shareOnWhatsApp}` permanece. Teste: `finished` fora da estante mostra `Compartilhar no X` no mesmo `card-footer` da avaliação; `reading` não mostra; estante não mostra.
 
-- [ ] T026 [P] [US2] Repasse no modal do Lendo agora.
+- [x] T026 [P] [US2] Repasse no modal do Lendo agora.
   - Arquivos: `src/modules/home/components/readingNow/components/readingNowBookDetailsModal.tsx`
   - Depende de: T021, T024
   - Pronto quando: repassa `onShareOnX` vindo de `useBookCard`. Em `reading` o callback não existe, então o comando novo não aparece. `onShare={shareOnWhatsApp}` permanece. Finalizar por este modal continua no `onFinishReading` do pai (T018: estrelas e só depois `revealArmed`). Não ligar o `openNow` de T021 a esse `onFinishReading`.
