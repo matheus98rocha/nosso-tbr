@@ -26,7 +26,7 @@ Não há `data-model` nem `contracts`. Cada task é um commit. Spec e plan perma
   - Depende de: —
   - Pronto quando: existe `FinishedBookShareSubject` com `{ bookId, title, author, imageUrl }`, `author` `string | null` (nome de exibição ou `null`), `imageUrl` `string | null`. Props do diálogo ficam neste arquivo, não inline no componente. Sem tipo de série, saga ou posição.
 
-- [ ] T002 [P] Constantes de layout, cor e intent em `src/modules/finishedBookShare/constants/finishedBookShareLayout.ts`.
+- [x] T002 [P] Constantes de layout, cor e intent em `src/modules/finishedBookShare/constants/finishedBookShareLayout.ts`.
   - Arquivos: `src/modules/finishedBookShare/constants/finishedBookShareLayout.ts`
   - Depende de: —
   - Pronto quando: o arquivo é a única fonte destes números — luminância `0.08` e `0.92`; corte claro `Y >= 0.42`; crominância `(max-min)/255 >= 0.12`; alpha mínimo `128`; quantização `16`; amostra máx. `64` px; fallback `#6B4F3A`; tinta clara `#FFFFFF`; tinta escura `#1C1917`; `100%` sobre pílula clara `#141210`; alpha do autor `0.78`; contraste mínimo `4.5`; separação da pílula `0.18`; traço `4` px; teto do texto `250` code points; intent `https://twitter.com/intent/tweet`; canvas `1200×600`; degradê `L + 0.18` (teto `0.86`), `S × 0.92`, borda `L × 0.5` (piso `0.05`); geometria do plano §6.5 (capa `64, 300×450`, raio `12`; bloco `x 420`, largura `708`, padding direito `72`; título `700 54` / entrelinha `64` / até 3 linhas; autor `500 32` / uma linha / `16` px abaixo; pílula altura `72`, raio `36`, padding `36`, `700 36`, `28` px abaixo do autor). Não cria o barrel (T004).
