@@ -1,21 +1,18 @@
+import {
+  deleteReaderCascadeFallback,
+  isMissingCascadeFunction,
+} from "./deleteReaderCascadeFallback";
+
+export {
+  partitionReaderBooks,
+  type DetachedReaderBook,
+  type ReaderBookRow,
+} from "./partitionReaderBooks";
+
 const LAST_ADMIN_ERROR = "Não é possível excluir o último admin.";
 const PROFILE_NOT_FOUND = "Usuário não encontrado.";
 const AUTH_RETRY_ERROR =
   "Dados removidos, mas não foi possível remover o login. Contate o suporte.";
-
-export type ReaderBookRow = {
-  id: string;
-  chosen_by: string | null;
-  user_id: string | null;
-  readers: string[] | null;
-};
-
-export type DetachedReaderBook = {
-  id: string;
-  chosen_by: string;
-  user_id: string | null;
-  readers: string[];
-};
 
 export type DeleteReaderAccountResult = {
   error: string | null;
@@ -28,11 +25,46 @@ type ReaderDeletionFailure = {
   code?: string;
 };
 
+export type ReaderDeletionQuery = {
+  select: (
+    columns: string,
+    options?: { count?: "exact"; head?: boolean },
+  ) => ReaderDeletionFilter;
+  delete: () => ReaderDeletionFilter;
+  update: (values: Record<string, unknown>) => ReaderDeletionFilter;
+};
+
+export type ReaderDeletionFilter = {
+  eq: (column: string, value: string) => ReaderDeletionFilter & Promise<{
+    data: Record<string, unknown> | Array<Record<string, unknown>> | null;
+    error: { message: string } | null;
+    count?: number | null;
+  }>;
+  in: (
+    column: string,
+    values: string[],
+  ) => Promise<{ error: { message: string } | null }>;
+  contains: (column: string, values: string[]) => ReaderDeletionFilter;
+  order: (column: string) => ReaderDeletionFilter;
+  range: (
+    from: number,
+    to: number,
+  ) => Promise<{
+    data: Array<Record<string, unknown>> | null;
+    error: { message: string } | null;
+  }>;
+  maybeSingle: () => Promise<{
+    data: Record<string, unknown> | null;
+    error: { message: string } | null;
+  }>;
+};
+
 export type ReaderDeletionClient = {
   rpc: (
     fn: "delete_reader_cascade",
     args: { p_user_id: string },
   ) => Promise<{ error: ReaderDeletionFailure | null }>;
+  from: (table: string) => ReaderDeletionQuery;
   auth: {
     admin: {
       deleteUser: (
@@ -41,92 +73,6 @@ export type ReaderDeletionClient = {
     };
   };
 };
-
-function isOtherLivingUser(
-  id: string | null | undefined,
-  userId: string,
-  livingUserIds: ReadonlySet<string>,
-): id is string {
-  return (
-    typeof id === "string" &&
-    id.length > 0 &&
-    id !== userId &&
-    livingUserIds.has(id)
-  );
-}
-
-function survivorIds(
-  book: ReaderBookRow,
-  userId: string,
-  livingUserIds: ReadonlySet<string>,
-): string[] {
-  const ids = new Set<string>();
-  for (const readerId of book.readers ?? []) {
-    if (isOtherLivingUser(readerId, userId, livingUserIds)) ids.add(readerId);
-  }
-  if (isOtherLivingUser(book.chosen_by, userId, livingUserIds)) {
-    ids.add(book.chosen_by);
-  }
-  if (isOtherLivingUser(book.user_id, userId, livingUserIds)) {
-    ids.add(book.user_id);
-  }
-  return [...ids];
-}
-
-function livingReaders(
-  book: ReaderBookRow,
-  userId: string,
-  livingUserIds: ReadonlySet<string>,
-): string[] {
-  const seen = new Set<string>();
-  const readers: string[] = [];
-  for (const readerId of book.readers ?? []) {
-    if (
-      !isOtherLivingUser(readerId, userId, livingUserIds) ||
-      seen.has(readerId)
-    ) {
-      continue;
-    }
-    seen.add(readerId);
-    readers.push(readerId);
-  }
-  return readers;
-}
-
-export function partitionReaderBooks(
-  books: ReaderBookRow[],
-  userId: string,
-  livingUserIds: ReadonlySet<string>,
-): { deleteIds: string[]; detach: DetachedReaderBook[] } {
-  const unique = new Map<string, ReaderBookRow>();
-  for (const book of books) {
-    if (book.id) unique.set(book.id, book);
-  }
-
-  const deleteIds: string[] = [];
-  const detach: DetachedReaderBook[] = [];
-
-  for (const book of unique.values()) {
-    const survivors = survivorIds(book, userId, livingUserIds);
-    if (survivors.length === 0) {
-      deleteIds.push(book.id);
-      continue;
-    }
-
-    detach.push({
-      id: book.id,
-      chosen_by: isOtherLivingUser(book.chosen_by, userId, livingUserIds)
-        ? book.chosen_by
-        : survivors[0],
-      user_id: isOtherLivingUser(book.user_id, userId, livingUserIds)
-        ? book.user_id
-        : null,
-      readers: livingReaders(book, userId, livingUserIds),
-    });
-  }
-
-  return { deleteIds, detach };
-}
 
 function isMissingAuthUser(error: ReaderDeletionFailure): boolean {
   if (error.code === "user_not_found") return true;
@@ -175,8 +121,22 @@ export async function deleteReaderAccount(
   });
 
   if (cascadeError) {
-    const mapped = cascadeStatus(cascadeError.message);
-    if (mapped.status !== 404) return mapped;
+    if (isMissingCascadeFunction(cascadeError.message)) {
+      const fallback = await deleteReaderCascadeFallback(client, userId);
+      if (fallback?.status !== 404) {
+        if (fallback) return fallback;
+      } else {
+        const login = await removeLogin(client, userId);
+        if (login === "removed") return { error: null, status: 200 };
+        if (login === "missing") {
+          return { error: PROFILE_NOT_FOUND, status: 404 };
+        }
+        return login;
+      }
+    } else {
+      const mapped = cascadeStatus(cascadeError.message);
+      if (mapped.status !== 404) return mapped;
+    }
 
     const login = await removeLogin(client, userId);
     if (login === "removed") return { error: null, status: 200 };
