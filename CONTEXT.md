@@ -29,7 +29,7 @@ Leitor com acesso às telas de Administração e Autores.
 _Avoid_: admin user, superuser, operador
 
 **Exclusão de conta**:
-Remoção permanente de um Leitor, feita por ele mesmo ou por um Administrador sobre outro Leitor. Some a conta, os livros em que ele é o único participante, os cronogramas, as notas e os demais dados ligados a ele. Em um livro compartilhado, ele sai da leitura e, se era o responsável, outro participante passa a ser. Quem cadastrou o livro também conta como participante. Um Leitor que não é Administrador não remove outro Leitor. O último Administrador permanece.
+Remoção permanente de um Leitor, feita por ele mesmo ou por um Administrador sobre outro Leitor. Some a conta, os livros em que ele é o único participante, os cronogramas, as notas e os demais dados ligados a ele. Em um livro compartilhado, ele sai da leitura e, se era o responsável, outro participante passa a ser. O Ator da atividade também conta como participante. Um Leitor que não é Administrador não remove outro Leitor. O último Administrador permanece.
 _Avoid_: desativar conta, banir, anonimizar
 
 **Modo de inscrição**:

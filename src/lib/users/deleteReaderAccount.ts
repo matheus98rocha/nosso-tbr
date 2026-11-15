@@ -25,6 +25,7 @@ export type DeleteReaderAccountResult = {
 type ReaderDeletionFailure = {
   message: string;
   status?: number;
+  code?: string;
 };
 
 export type ReaderDeletionClient = {
@@ -128,11 +129,15 @@ export function partitionReaderBooks(
 }
 
 function isMissingAuthUser(error: ReaderDeletionFailure): boolean {
+  if (error.code === "user_not_found") return true;
+
   const message = error.message.toLowerCase();
   return (
-    error.status === 404 ||
-    message.includes("not found") ||
-    message.includes("não encontrado")
+    message.includes("user not found") ||
+    message.includes("user was not found") ||
+    message.includes("usuário não encontrado") ||
+    message.includes("usuário não foi encontrado") ||
+    message.includes("usuario nao encontrado")
   );
 }
 

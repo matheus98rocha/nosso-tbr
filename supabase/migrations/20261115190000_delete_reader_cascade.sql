@@ -45,8 +45,11 @@ AS $$
             FROM public.users AS u
             WHERE u.id = p_chosen_by
           )
-          AND NOT (
-            p_chosen_by = ANY (COALESCE(p_readers, ARRAY[]::uuid[]))
+          AND NOT EXISTS (
+            SELECT 1
+            FROM unnest(COALESCE(p_readers, ARRAY[]::uuid[])) AS listed(reader_id)
+            WHERE listed.reader_id IS NOT NULL
+              AND listed.reader_id = p_chosen_by
           )
         UNION ALL
         SELECT p_registrar_id, 1000000001
@@ -58,8 +61,11 @@ AS $$
             FROM public.users AS u
             WHERE u.id = p_registrar_id
           )
-          AND NOT (
-            p_registrar_id = ANY (COALESCE(p_readers, ARRAY[]::uuid[]))
+          AND NOT EXISTS (
+            SELECT 1
+            FROM unnest(COALESCE(p_readers, ARRAY[]::uuid[])) AS listed(reader_id)
+            WHERE listed.reader_id IS NOT NULL
+              AND listed.reader_id = p_registrar_id
           )
       ) ranked
       ORDER BY ord
@@ -84,6 +90,13 @@ DECLARE
   v_admin_count integer;
   v_delete_ids uuid[];
 BEGIN
+  -- One cascade at a time, before any user or book row lock. Two deletions
+  -- on the same book deadlock when one reassigns chosen_by to the reader
+  -- the other transaction has already locked.
+  PERFORM pg_advisory_xact_lock(
+    hashtext('public.delete_reader_cascade')::bigint
+  );
+
   PERFORM 1
   FROM public.users
   WHERE id = p_user_id
@@ -117,7 +130,7 @@ BEGIN
   FROM public.books
   WHERE chosen_by = p_user_id
      OR user_id = p_user_id
-     OR p_user_id = ANY (COALESCE(readers, ARRAY[]::uuid[]))
+     OR readers @> ARRAY[p_user_id]::uuid[]
   ORDER BY id
   FOR UPDATE;
 
@@ -127,7 +140,7 @@ BEGIN
   WHERE (
       b.chosen_by = p_user_id
       OR b.user_id = p_user_id
-      OR p_user_id = ANY (COALESCE(b.readers, ARRAY[]::uuid[]))
+      OR b.readers @> ARRAY[p_user_id]::uuid[]
     )
     AND cardinality(
       public.reader_book_survivor_ids(
@@ -213,7 +226,7 @@ BEGIN
   WHERE (
       b.chosen_by = p_user_id
       OR b.user_id = p_user_id
-      OR p_user_id = ANY (COALESCE(b.readers, ARRAY[]::uuid[]))
+      OR b.readers @> ARRAY[p_user_id]::uuid[]
     )
     AND cardinality(
       public.reader_book_survivor_ids(
@@ -267,6 +280,18 @@ BEGIN
   UPDATE public.registration_settings
   SET updated_by = NULL
   WHERE updated_by = p_user_id;
+
+  -- A book written after the first scan can still list this reader.
+  -- Lock those rows, then drop the id. readers @> uses the GIN index.
+  PERFORM 1
+  FROM public.books
+  WHERE readers @> ARRAY[p_user_id]::uuid[]
+  ORDER BY id
+  FOR UPDATE;
+
+  UPDATE public.books
+  SET readers = array_remove(readers, p_user_id)
+  WHERE readers @> ARRAY[p_user_id]::uuid[];
 
   DELETE FROM public.users
   WHERE id = p_user_id;

@@ -15,7 +15,7 @@ const living = new Set([target, other, later]);
 
 function client(options: {
   cascadeError?: { message: string; status?: number } | null;
-  authError?: { message: string; status?: number } | null;
+  authError?: { message: string; status?: number; code?: string } | null;
 }): ReaderDeletionClient & { authDeletes: string[] } {
   const authDeletes: string[] = [];
   return {
@@ -213,11 +213,14 @@ describe("deleteReaderAccount", () => {
 
     const result = await deleteReaderAccount(service, target);
 
+    expect(service.rpc).toHaveBeenCalledWith("delete_reader_cascade", {
+      p_user_id: target,
+    });
+    expect(service.authDeletes).toEqual([]);
     expect(result).toEqual({
       error: "Não é possível excluir o último admin.",
       status: 409,
     });
-    expect(service.authDeletes).toEqual([]);
   });
 
   it("conclui o login quando o perfil já foi removido", async () => {
@@ -239,10 +242,55 @@ describe("deleteReaderAccount", () => {
 
     const result = await deleteReaderAccount(service, target);
 
+    expect(service.authDeletes).toEqual([target]);
     expect(result).toEqual({
       error: "Usuário não encontrado.",
       status: 404,
     });
+  });
+
+  it("trata o código user_not_found como login ausente", async () => {
+    const service = client({
+      cascadeError: { message: "Usuário não encontrado." },
+      authError: {
+        message: "Not Found",
+        status: 404,
+        code: "user_not_found",
+      },
+    });
+
+    const result = await deleteReaderAccount(service, target);
+
+    expect(service.authDeletes).toEqual([target]);
+    expect(result).toEqual({
+      error: "Usuário não encontrado.",
+      status: 404,
+    });
+  });
+
+  it("pede nova tentativa quando o 404 do login não é um usuário ausente", async () => {
+    const service = client({
+      authError: { message: "Not Found", status: 404 },
+    });
+
+    const result = await deleteReaderAccount(service, target);
+
+    expect(service.authDeletes).toEqual([target]);
+    expect(result.status).toBe(500);
+    expect(result.error).toContain("login");
+  });
+
+  it("pede nova tentativa quando o perfil já saiu e o 404 do login é genérico", async () => {
+    const service = client({
+      cascadeError: { message: "Usuário não encontrado." },
+      authError: { message: "Not Found", status: 404 },
+    });
+
+    const result = await deleteReaderAccount(service, target);
+
+    expect(service.authDeletes).toEqual([target]);
+    expect(result.status).toBe(500);
+    expect(result.error).toContain("login");
   });
 
   it("mantém a tentativa quando a remoção do login falha", async () => {

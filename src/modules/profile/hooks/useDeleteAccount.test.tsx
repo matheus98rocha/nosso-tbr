@@ -2,7 +2,6 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api/clientJsonFetch";
-import { ownAccountDeletionDescription } from "@/lib/users/accountDeletionCopy";
 import { nextNavigationTestState } from "@/test/nextNavigationTestState";
 import type { User } from "@/types/user.types";
 import { useUserStore } from "@/stores/userStore";
@@ -43,7 +42,12 @@ describe("useDeleteAccount", () => {
   it("avisa que a decisão não é reversível", () => {
     const { result } = renderHook(() => useDeleteAccount());
 
-    expect(result.current.description).toBe(ownAccountDeletionDescription());
+    expect(result.current.description).toContain(
+      "Essa decisão não é reversível.",
+    );
+    expect(result.current.description).toContain("livros");
+    expect(result.current.description).toContain("cronogramas");
+    expect(result.current.description).toContain("notas");
     expect(result.current.userId).toBe("user-1");
   });
 

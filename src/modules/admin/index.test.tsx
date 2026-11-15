@@ -65,8 +65,10 @@ describe("AdminScreen", () => {
       </QueryClientProvider>,
     );
 
-    expect(screen.getByRole("dialog")).toHaveTextContent(
-      adminAccountDeletionDescription("Bia"),
-    );
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent("Essa decisão não é reversível.");
+    expect(dialog).toHaveTextContent("livros");
+    expect(dialog).toHaveTextContent("cronogramas");
+    expect(dialog).toHaveTextContent("notas");
   });
 });
