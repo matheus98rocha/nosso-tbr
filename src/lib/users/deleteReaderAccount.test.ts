@@ -13,10 +13,11 @@ type Row = Record<string, unknown>;
 
 function createMemory(
   initial: Record<string, Row[]>,
-  fail?: { table: string; action: "delete" | "update" },
+  fail?: { table: string; action: "delete" | "update" | "contains" },
 ) {
   const tables: Record<string, Row[]> = structuredClone(initial);
   const authDeleted: string[] = [];
+  const inCalls: Array<{ table: string; column: string; size: number }> = [];
 
   function rows(table: string): Row[] {
     if (!tables[table]) tables[table] = [];
@@ -65,6 +66,12 @@ function createMemory(
                 order() {
                   return {
                     range(from: number, to: number) {
+                      if (fail?.table === table && fail.action === "contains") {
+                        return Promise.resolve({
+                          data: null,
+                          error: { message: "select failed" },
+                        });
+                      }
                       const matched = rows(table).filter((row) =>
                         matches(row, column, values, "contains"),
                       );
@@ -88,6 +95,7 @@ function createMemory(
               return Promise.resolve({ error: null });
             },
             in(column: string, values: string[]) {
+              inCalls.push({ table, column, size: values.length });
               if (fail?.table === table && fail.action === "delete") {
                 return Promise.resolve({ error: { message: "fk violation" } });
               }
@@ -125,7 +133,7 @@ function createMemory(
     },
   };
 
-  return { client, tables, authDeleted };
+  return { client, tables, authDeleted, inCalls };
 }
 
 const target = "user-target";
@@ -254,6 +262,103 @@ describe("partitionReaderBooks", () => {
       ],
     });
   });
+
+  it("entrega a responsabilidade ao primeiro leitor restante e preserva quem cadastrou", () => {
+    const [book] = partitionReaderBooks(
+      [
+        {
+          id: "handoff",
+          chosen_by: target,
+          user_id: witness,
+          readers: ["", target, witness, other],
+        },
+      ],
+      target,
+    ).detach;
+
+    expect(book).toEqual({
+      id: "handoff",
+      chosen_by: witness,
+      user_id: witness,
+      readers: [witness, other],
+    });
+  });
+
+  it("mantém o livro quando o responsável não está na lista de leitores", () => {
+    expect(
+      partitionReaderBooks(
+        [
+          {
+            id: "kept",
+            chosen_by: other,
+            user_id: other,
+            readers: [target],
+          },
+          {
+            id: "null-readers",
+            chosen_by: other,
+            user_id: null,
+            readers: null,
+          },
+        ],
+        target,
+      ),
+    ).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "kept",
+          chosen_by: other,
+          user_id: other,
+          readers: [],
+        },
+        {
+          id: "null-readers",
+          chosen_by: other,
+          user_id: null,
+          readers: [],
+        },
+      ],
+    });
+  });
+
+  it("deduplica o mesmo livro e ignora id vazio", () => {
+    expect(
+      partitionReaderBooks(
+        [
+          {
+            id: "",
+            chosen_by: target,
+            user_id: target,
+            readers: [target],
+          },
+          {
+            id: "same",
+            chosen_by: target,
+            user_id: target,
+            readers: [target],
+          },
+          {
+            id: "same",
+            chosen_by: target,
+            user_id: target,
+            readers: [target, other],
+          },
+        ],
+        target,
+      ),
+    ).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "same",
+          chosen_by: other,
+          user_id: null,
+          readers: [other],
+        },
+      ],
+    });
+  });
 });
 
 describe("deleteReaderAccount", () => {
@@ -346,5 +451,91 @@ describe("deleteReaderAccount", () => {
     expect(result.error).toContain("login");
     expect(memory.tables.users.map((row) => row.id)).not.toContain(target);
     expect(memory.tables.users.map((row) => row.id)).toContain(other);
+  });
+
+  it("não apaga nada quando a busca por participação falha", async () => {
+    const memory = createMemory(
+      {
+        users: [{ id: target, tier: "common_user" }],
+        books: [
+          {
+            id: "only-reader",
+            chosen_by: other,
+            user_id: other,
+            readers: [other, target],
+          },
+        ],
+      },
+      { table: "books", action: "contains" },
+    );
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("select failed");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.inCalls).toEqual([]);
+    expect(memory.tables.books).toEqual([
+      {
+        id: "only-reader",
+        chosen_by: other,
+        user_id: other,
+        readers: [other, target],
+      },
+    ]);
+    expect(memory.tables.users.map((row) => row.id)).toEqual([target]);
+  });
+
+  it("não remove o login quando a passagem do responsável falha", async () => {
+    const memory = createMemory(library().tables, {
+      table: "books",
+      action: "update",
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("update failed");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.tables.users.map((row) => row.id)).toContain(target);
+    expect(memory.tables.books.map((row) => row.id)).not.toContain("book-exclusive");
+    expect(memory.tables.books).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "book-collective",
+          chosen_by: target,
+          readers: [target, other],
+        }),
+        expect.objectContaining({
+          id: "book-joined",
+          chosen_by: other,
+          readers: [other, target],
+        }),
+      ]),
+    );
+  });
+
+  it("apaga livros exclusivos além de uma página e de um lote", async () => {
+    const total = 1001;
+    const memory = createMemory({
+      users: [{ id: target, tier: "common_user" }],
+      books: Array.from({ length: total }, (_, index) => ({
+        id: `book-${String(index).padStart(4, "0")}`,
+        chosen_by: target,
+        user_id: target,
+        readers: [target],
+      })),
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+    const bookDeletes = memory.inCalls.filter(
+      (call) => call.table === "books" && call.column === "id",
+    );
+
+    expect(result).toEqual({ error: null });
+    expect(memory.tables.books).toEqual([]);
+    expect(memory.authDeleted).toEqual([target]);
+    expect(memory.tables.users).toEqual([]);
+    expect(bookDeletes.map((call) => call.size)).toEqual([
+      100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1,
+    ]);
   });
 });
