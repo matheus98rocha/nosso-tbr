@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/types/clientProfile.types";
+import { ownAccountDeletionDescription } from "@/lib/users/accountDeletionCopy";
 import type { User } from "@/types/user.types";
 import { useUserStore } from "@/stores/userStore";
 
@@ -160,10 +161,7 @@ describe("ClientProfile", () => {
     );
 
     expect(await screen.findByRole("dialog")).toHaveTextContent(
-      "Essa decisão não é reversível.",
-    );
-    expect(screen.getByRole("dialog")).toHaveTextContent(
-      "livros, cronogramas, notas",
+      ownAccountDeletionDescription(),
     );
     expect(
       screen.getByRole("button", { name: "Excluir conta" }),
