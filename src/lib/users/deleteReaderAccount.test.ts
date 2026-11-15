@@ -335,6 +335,22 @@ describe("deleteReaderAccount", () => {
     };
     const authDeletes: string[] = [];
 
+    function whenAwaited(apply: () => void) {
+      return {
+        then(
+          onFulfilled?: (value: { error: null }) => unknown,
+          onRejected?: (reason: unknown) => unknown,
+        ) {
+          return Promise.resolve()
+            .then(() => {
+              apply();
+              return { error: null as null };
+            })
+            .then(onFulfilled, onRejected);
+        },
+      };
+    }
+
     function rows(table: string) {
       if (!tables[table]) tables[table] = [];
       return tables[table];
@@ -404,24 +420,26 @@ describe("deleteReaderAccount", () => {
             };
           },
           delete: () => ({
-            eq: (column: string, value: string) => {
-              tables[table] = rows(table).filter((row) => row[column] !== value);
-              return Promise.resolve({ error: null });
-            },
-            in: (column: string, values: string[]) => {
-              tables[table] = rows(table).filter(
-                (row) => !values.includes(String(row[column])),
-              );
-              return Promise.resolve({ error: null });
-            },
+            eq: (column: string, value: string) =>
+              whenAwaited(() => {
+                tables[table] = rows(table).filter(
+                  (row) => row[column] !== value,
+                );
+              }),
+            in: (column: string, values: string[]) =>
+              whenAwaited(() => {
+                tables[table] = rows(table).filter(
+                  (row) => !values.includes(String(row[column])),
+                );
+              }),
           }),
           update: (values: Record<string, unknown>) => ({
-            eq: (column: string, value: string) => {
-              tables[table] = rows(table).map((row) =>
-                row[column] === value ? { ...row, ...values } : row,
-              );
-              return Promise.resolve({ error: null });
-            },
+            eq: (column: string, value: string) =>
+              whenAwaited(() => {
+                tables[table] = rows(table).map((row) =>
+                  row[column] === value ? { ...row, ...values } : row,
+                );
+              }),
           }),
         };
       },
@@ -455,5 +473,76 @@ describe("deleteReaderAccount", () => {
     ]);
     expect(tables.quotes).toEqual([{ id: "q-shared", book_id: "shared" }]);
     expect(authDeletes).toEqual([target]);
+  });
+
+  it("trata a exclusão como concluída quando o perfil sai e o login já não existe", async () => {
+    const tables: Record<string, Array<Record<string, unknown>>> = {
+      users: [{ id: target, tier: "common_user" }],
+    };
+    const service = client({
+      cascadeError: {
+        message:
+          "Could not find the function public.delete_reader_cascade(p_user_id) in the schema cache",
+      },
+      authError: {
+        message: "User not found",
+        code: "user_not_found",
+      },
+    });
+    service.from = (() => ({
+      select: (columns: string, options?: { head?: boolean }) => ({
+        eq: () => {
+          if (options?.head) {
+            return Promise.resolve({ data: null, error: null, count: 0 });
+          }
+          if (columns === "id, tier") {
+            return {
+              maybeSingle: () =>
+                Promise.resolve({
+                  data: tables.users[0] ?? null,
+                  error: null,
+                }),
+            };
+          }
+          return {
+            order: () => ({
+              range: () => Promise.resolve({ data: tables.users, error: null }),
+            }),
+          };
+        },
+        contains: () => ({
+          order: () => ({
+            range: () => Promise.resolve({ data: [], error: null }),
+          }),
+        }),
+        order: () => ({
+          range: () => Promise.resolve({ data: tables.users, error: null }),
+        }),
+      }),
+      delete: () => ({
+        eq: () => ({
+          then: (
+            onFulfilled?: (value: { error: null }) => unknown,
+            onRejected?: (reason: unknown) => unknown,
+          ) =>
+            Promise.resolve()
+              .then(() => {
+                tables.users = [];
+                return { error: null as null };
+              })
+              .then(onFulfilled, onRejected),
+        }),
+        in: () => Promise.resolve({ error: null }),
+      }),
+      update: () => ({
+        eq: () => Promise.resolve({ error: null }),
+      }),
+    })) as ReaderDeletionClient["from"];
+
+    const result = await deleteReaderAccount(service, target);
+
+    expect(result).toEqual({ error: null, status: 200 });
+    expect(service.authDeletes).toEqual([target]);
+    expect(tables.users).toEqual([]);
   });
 });

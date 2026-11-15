@@ -59,14 +59,18 @@ async function readPages(
 ): Promise<{ rows: Row[]; error: string | null }> {
   const rows: Row[] = [];
   let from = 0;
+  let previousLastId: unknown;
 
   while (true) {
     const { data, error } = await load(from, from + PAGE_SIZE - 1);
     if (error) return { rows: [], error: error.message };
     const page = data ?? [];
+    if (page.length === 0) break;
+    const lastId = page[page.length - 1]?.id;
+    if (previousLastId !== undefined && lastId === previousLastId) break;
     rows.push(...page);
-    if (page.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
+    previousLastId = lastId;
+    from += page.length;
   }
 
   return { rows, error: null };
@@ -82,6 +86,71 @@ async function deleteWhereIn(
     const { error } = await client.from(table).delete().in(column, part);
     if (error) return error.message;
   }
+  return null;
+}
+
+async function cleanupRelatedBooks(
+  client: ReaderDeletionClient,
+  userId: string,
+  livingUserIds: ReadonlySet<string>,
+): Promise<string | null> {
+  const columns = "id, chosen_by, user_id, readers";
+  const byChosen = await readPages((from, to) =>
+    client
+      .from("books")
+      .select(columns)
+      .eq("chosen_by", userId)
+      .order("id")
+      .range(from, to),
+  );
+  if (byChosen.error) return byChosen.error;
+
+  const byRegistrar = await readPages((from, to) =>
+    client
+      .from("books")
+      .select(columns)
+      .eq("user_id", userId)
+      .order("id")
+      .range(from, to),
+  );
+  if (byRegistrar.error) return byRegistrar.error;
+
+  const byReader = await readPages((from, to) =>
+    client
+      .from("books")
+      .select(columns)
+      .contains("readers", [userId])
+      .order("id")
+      .range(from, to),
+  );
+  if (byReader.error) return byReader.error;
+
+  const { deleteIds, detach } = partitionReaderBooks(
+    [...byChosen.rows, ...byRegistrar.rows, ...byReader.rows].map(asBook),
+    userId,
+    livingUserIds,
+  );
+
+  for (const table of BOOK_CHILD_TABLES) {
+    const message = await deleteWhereIn(client, table, "book_id", deleteIds);
+    if (message) return message;
+  }
+
+  const booksError = await deleteWhereIn(client, "books", "id", deleteIds);
+  if (booksError) return booksError;
+
+  for (const book of detach) {
+    const { error } = await client
+      .from("books")
+      .update({
+        readers: book.readers,
+        chosen_by: book.chosen_by,
+        user_id: book.user_id,
+      })
+      .eq("id", book.id);
+    if (error) return error.message;
+  }
+
   return null;
 }
 
@@ -133,62 +202,8 @@ export async function deleteReaderCascadeFallback(
       .filter((id): id is string => typeof id === "string" && id.length > 0),
   );
 
-  const columns = "id, chosen_by, user_id, readers";
-  const byChosen = await readPages((from, to) =>
-    client
-      .from("books")
-      .select(columns)
-      .eq("chosen_by", userId)
-      .order("id")
-      .range(from, to),
-  );
-  if (byChosen.error) return { error: byChosen.error, status: 500 };
-
-  const byRegistrar = await readPages((from, to) =>
-    client
-      .from("books")
-      .select(columns)
-      .eq("user_id", userId)
-      .order("id")
-      .range(from, to),
-  );
-  if (byRegistrar.error) return { error: byRegistrar.error, status: 500 };
-
-  const byReader = await readPages((from, to) =>
-    client
-      .from("books")
-      .select(columns)
-      .contains("readers", [userId])
-      .order("id")
-      .range(from, to),
-  );
-  if (byReader.error) return { error: byReader.error, status: 500 };
-
-  const { deleteIds, detach } = partitionReaderBooks(
-    [...byChosen.rows, ...byRegistrar.rows, ...byReader.rows].map(asBook),
-    userId,
-    livingUserIds,
-  );
-
-  for (const table of BOOK_CHILD_TABLES) {
-    const message = await deleteWhereIn(client, table, "book_id", deleteIds);
-    if (message) return { error: message, status: 500 };
-  }
-
-  const booksError = await deleteWhereIn(client, "books", "id", deleteIds);
-  if (booksError) return { error: booksError, status: 500 };
-
-  for (const book of detach) {
-    const { error } = await client
-      .from("books")
-      .update({
-        readers: book.readers,
-        chosen_by: book.chosen_by,
-        user_id: book.user_id,
-      })
-      .eq("id", book.id);
-    if (error) return { error: error.message, status: 500 };
-  }
+  const firstCleanup = await cleanupRelatedBooks(client, userId, livingUserIds);
+  if (firstCleanup) return { error: firstCleanup, status: 500 };
 
   const shelves = await readPages((from, to) =>
     client
@@ -241,6 +256,23 @@ export async function deleteReaderCascadeFallback(
     .update({ updated_by: null })
     .eq("updated_by", userId);
   if (settings.error) return { error: settings.error.message, status: 500 };
+
+  const finalCleanup = await cleanupRelatedBooks(client, userId, livingUserIds);
+  if (finalCleanup) return { error: finalCleanup, status: 500 };
+
+  if (tier === "admin") {
+    const admins = await client
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("tier", "admin");
+    if (admins.error) return { error: admins.error.message, status: 500 };
+    if ((admins.count ?? 0) <= 1) {
+      return {
+        error: "Não é possível excluir o último admin.",
+        status: 409,
+      };
+    }
+  }
 
   const profile = await deleteWhereEq(client, "users", "id", userId);
   if (profile) return { error: profile, status: 500 };

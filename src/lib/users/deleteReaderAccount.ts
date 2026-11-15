@@ -123,16 +123,14 @@ export async function deleteReaderAccount(
   if (cascadeError) {
     if (isMissingCascadeFunction(cascadeError.message)) {
       const fallback = await deleteReaderCascadeFallback(client, userId);
-      if (fallback?.status !== 404) {
-        if (fallback) return fallback;
-      } else {
-        const login = await removeLogin(client, userId);
-        if (login === "removed") return { error: null, status: 200 };
-        if (login === "missing") {
-          return { error: PROFILE_NOT_FOUND, status: 404 };
-        }
-        return login;
+      if (fallback && fallback.status !== 404) return fallback;
+      const profileRemoved = fallback === null;
+      const login = await removeLogin(client, userId);
+      if (login === "removed" || (profileRemoved && login === "missing")) {
+        return { error: null, status: 200 };
       }
+      if (login === "missing") return { error: PROFILE_NOT_FOUND, status: 404 };
+      return login;
     } else {
       const mapped = cascadeStatus(cascadeError.message);
       if (mapped.status !== 404) return mapped;
