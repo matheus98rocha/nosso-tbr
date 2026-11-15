@@ -79,6 +79,7 @@ function survivorIds(book: ReaderBookRow, userId: string): string[] {
     if (readerId && readerId !== userId) ids.add(readerId);
   }
   if (book.chosen_by && book.chosen_by !== userId) ids.add(book.chosen_by);
+  if (book.user_id && book.user_id !== userId) ids.add(book.user_id);
   return [...ids];
 }
 

@@ -322,6 +322,32 @@ describe("partitionReaderBooks", () => {
     });
   });
 
+  it("mantém o livro quando só quem cadastrou permanece", () => {
+    expect(
+      partitionReaderBooks(
+        [
+          {
+            id: "registered",
+            chosen_by: target,
+            user_id: other,
+            readers: [target],
+          },
+        ],
+        target,
+      ),
+    ).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "registered",
+          chosen_by: other,
+          user_id: other,
+          readers: [],
+        },
+      ],
+    });
+  });
+
   it("deduplica o mesmo livro e ignora id vazio", () => {
     expect(
       partitionReaderBooks(
@@ -511,6 +537,40 @@ describe("deleteReaderAccount", () => {
         }),
       ]),
     );
+  });
+
+  it("não apaga o livro nem as notas de quem só está como cadastro", async () => {
+    const memory = createMemory({
+      users: [
+        { id: target, tier: "common_user" },
+        { id: other, tier: "common_user" },
+      ],
+      books: [
+        {
+          id: "registered-by-other",
+          chosen_by: target,
+          user_id: other,
+          readers: [target],
+        },
+      ],
+      quotes: [{ id: "q-kept", book_id: "registered-by-other" }],
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result).toEqual({ error: null });
+    expect(memory.authDeleted).toEqual([target]);
+    expect(memory.tables.books).toEqual([
+      {
+        id: "registered-by-other",
+        chosen_by: other,
+        user_id: other,
+        readers: [],
+      },
+    ]);
+    expect(memory.tables.quotes).toEqual([
+      { id: "q-kept", book_id: "registered-by-other" },
+    ]);
   });
 
   it("apaga livros exclusivos além de uma página e de um lote", async () => {
