@@ -9,6 +9,9 @@ import {
 
 const target = "user-target";
 const other = "user-other";
+const later = "user-later";
+const dead = "user-deleted";
+const living = new Set([target, other, later]);
 
 function client(options: {
   cascadeError?: { message: string; status?: number } | null;
@@ -46,7 +49,7 @@ describe("partitionReaderBooks", () => {
       },
     ];
 
-    expect(partitionReaderBooks(books, target)).toEqual({
+    expect(partitionReaderBooks(books, target, living)).toEqual({
       deleteIds: ["solo"],
       detach: [
         {
@@ -69,7 +72,7 @@ describe("partitionReaderBooks", () => {
       },
     ];
 
-    expect(partitionReaderBooks(books, target)).toEqual({
+    expect(partitionReaderBooks(books, target, living)).toEqual({
       deleteIds: [],
       detach: [
         {
@@ -77,6 +80,114 @@ describe("partitionReaderBooks", () => {
           chosen_by: other,
           user_id: other,
           readers: [],
+        },
+      ],
+    });
+  });
+
+  it("passa a responsabilidade ao leitor vivo que vem depois de um id morto", () => {
+    const books: ReaderBookRow[] = [
+      {
+        id: "stale-then-living",
+        chosen_by: target,
+        user_id: target,
+        readers: [dead, later, other],
+      },
+    ];
+
+    expect(partitionReaderBooks(books, target, living)).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "stale-then-living",
+          chosen_by: later,
+          user_id: null,
+          readers: [later, other],
+        },
+      ],
+    });
+  });
+
+  it("apaga o livro exclusivo quando os outros ids de readers já não existem", () => {
+    const books: ReaderBookRow[] = [
+      {
+        id: "only-ghosts",
+        chosen_by: target,
+        user_id: dead,
+        readers: [target, dead, dead],
+      },
+    ];
+
+    expect(partitionReaderBooks(books, target, living)).toEqual({
+      deleteIds: ["only-ghosts"],
+      detach: [],
+    });
+  });
+
+  it("mantém o livro pelo user_id vivo e descarta readers mortos", () => {
+    const books: ReaderBookRow[] = [
+      {
+        id: "registered-with-ghosts",
+        chosen_by: target,
+        user_id: other,
+        readers: [target, dead, dead],
+      },
+    ];
+
+    expect(partitionReaderBooks(books, target, living)).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "registered-with-ghosts",
+          chosen_by: other,
+          user_id: other,
+          readers: [],
+        },
+      ],
+    });
+  });
+
+  it("não promove um chosen_by que já não existe", () => {
+    const books: ReaderBookRow[] = [
+      {
+        id: "dead-owner",
+        chosen_by: dead,
+        user_id: null,
+        readers: [target, dead, later],
+      },
+    ];
+
+    expect(partitionReaderBooks(books, target, living)).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "dead-owner",
+          chosen_by: later,
+          user_id: null,
+          readers: [later],
+        },
+      ],
+    });
+  });
+
+  it("tira ids mortos da lista e não usa user_id ausente como participante", () => {
+    const books: ReaderBookRow[] = [
+      {
+        id: "shared-with-ghosts",
+        chosen_by: other,
+        user_id: dead,
+        readers: [dead, target, other, dead],
+      },
+    ];
+
+    expect(partitionReaderBooks(books, target, living)).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "shared-with-ghosts",
+          chosen_by: other,
+          user_id: null,
+          readers: [other],
         },
       ],
     });

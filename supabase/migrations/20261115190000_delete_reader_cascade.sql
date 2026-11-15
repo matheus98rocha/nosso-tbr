@@ -7,6 +7,9 @@ CREATE INDEX IF NOT EXISTS books_chosen_by_idx
 CREATE INDEX IF NOT EXISTS books_user_id_idx
   ON public.books (user_id);
 
+-- books.readers has no FK, so deleted accounts can leave stale uuids behind.
+-- Only ids that still exist in public.users count as survivors. STABLE because
+-- the result depends on that table, not only on the arguments.
 CREATE OR REPLACE FUNCTION public.reader_book_survivor_ids(
   p_readers uuid[],
   p_chosen_by uuid,
@@ -15,7 +18,7 @@ CREATE OR REPLACE FUNCTION public.reader_book_survivor_ids(
 )
 RETURNS uuid[]
 LANGUAGE sql
-IMMUTABLE
+STABLE
 SET search_path = public
 AS $$
   SELECT COALESCE(
@@ -27,11 +30,21 @@ AS $$
           WITH ORDINALITY AS t(reader_id, ord)
         WHERE reader_id IS NOT NULL
           AND reader_id <> p_departing_id
+          AND EXISTS (
+            SELECT 1
+            FROM public.users AS u
+            WHERE u.id = reader_id
+          )
         GROUP BY reader_id
         UNION ALL
         SELECT p_chosen_by, 1000000000
         WHERE p_chosen_by IS NOT NULL
           AND p_chosen_by <> p_departing_id
+          AND EXISTS (
+            SELECT 1
+            FROM public.users AS u
+            WHERE u.id = p_chosen_by
+          )
           AND NOT (
             p_chosen_by = ANY (COALESCE(p_readers, ARRAY[]::uuid[]))
           )
@@ -40,6 +53,11 @@ AS $$
         WHERE p_registrar_id IS NOT NULL
           AND p_registrar_id <> p_departing_id
           AND p_registrar_id IS DISTINCT FROM p_chosen_by
+          AND EXISTS (
+            SELECT 1
+            FROM public.users AS u
+            WHERE u.id = p_registrar_id
+          )
           AND NOT (
             p_registrar_id = ANY (COALESCE(p_readers, ARRAY[]::uuid[]))
           )
@@ -157,12 +175,23 @@ BEGIN
           WITH ORDINALITY AS t(reader_id, ord)
         WHERE reader_id IS NOT NULL
           AND reader_id <> p_user_id
+          AND EXISTS (
+            SELECT 1
+            FROM public.users AS u
+            WHERE u.id = reader_id
+          )
         GROUP BY reader_id
       ) remaining
       ORDER BY ord
     ),
     chosen_by = CASE
-      WHEN b.chosen_by IS DISTINCT FROM p_user_id THEN b.chosen_by
+      WHEN b.chosen_by IS DISTINCT FROM p_user_id
+        AND EXISTS (
+          SELECT 1
+          FROM public.users AS u
+          WHERE u.id = b.chosen_by
+        )
+        THEN b.chosen_by
       ELSE (
         public.reader_book_survivor_ids(
           b.readers,
@@ -174,7 +203,12 @@ BEGIN
     END,
     user_id = CASE
       WHEN b.user_id = p_user_id THEN NULL
-      ELSE b.user_id
+      WHEN EXISTS (
+        SELECT 1
+        FROM public.users AS u
+        WHERE u.id = b.user_id
+      ) THEN b.user_id
+      ELSE NULL
     END
   WHERE (
       b.chosen_by = p_user_id
