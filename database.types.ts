@@ -608,6 +608,19 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       },
+      delete_reader_cascade: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      },
+      reader_book_survivor_ids: {
+        Args: {
+          p_chosen_by: string
+          p_departing_id: string
+          p_readers: string[]
+          p_registrar_id: string
+        }
+        Returns: string[]
+      },
       append_book_reader: {
         Args: { p_book_id: string; p_reader_id: string }
         Returns: boolean

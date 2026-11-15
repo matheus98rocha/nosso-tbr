@@ -4,6 +4,7 @@ import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api/clientJsonFetch";
+import { adminAccountDeletionDescription } from "@/lib/users/accountDeletionCopy";
 
 import type { AdminUserListItem } from "../types/admin.types";
 import useAdmin from "./useAdmin";
@@ -319,13 +320,9 @@ describe("useAdmin", () => {
       result.current.openDeleteConfirm(user({ display_name: "Bia" }));
     });
 
-    expect(result.current.deleteConfirmDescription).toContain(
-      "Essa decisão não é reversível.",
+    expect(result.current.deleteConfirmDescription).toBe(
+      adminAccountDeletionDescription("Bia"),
     );
-    expect(result.current.deleteConfirmDescription).toContain("Bia");
-    expect(result.current.deleteConfirmDescription).toContain("livros");
-    expect(result.current.deleteConfirmDescription).toContain("cronogramas");
-    expect(result.current.deleteConfirmDescription).toContain("notas");
   });
 
   it("impede excluir a si mesmo e promover quem já é administrador", async () => {

@@ -42,9 +42,8 @@ describe("DeleteAccountSection", () => {
       screen.getByRole("heading", { name: "Excluir conta" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Essa decisão não é reversível/),
+      screen.getByText(ownAccountDeletionDescription()),
     ).toBeInTheDocument();
-    expect(screen.getByText(/livros, cronogramas, notas/)).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", { name: "Excluir minha conta" }),
@@ -58,7 +57,7 @@ describe("DeleteAccountSection", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(
-      screen.getAllByText(/Essa decisão não é reversível/).length,
+      screen.getAllByText(ownAccountDeletionDescription()).length,
     ).toBeGreaterThan(1);
     await user.click(screen.getByRole("button", { name: "Excluir conta" }));
     expect(onConfirm).toHaveBeenCalledWith("user-1");
