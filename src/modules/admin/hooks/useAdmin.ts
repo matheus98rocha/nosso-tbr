@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/keys";
 import { ApiError } from "@/lib/api/clientJsonFetch";
 import type { RegistrationMode } from "@/lib/auth/registrationMode";
+import { adminAccountDeletionDescription } from "@/lib/users/accountDeletionCopy";
 import { getRegistrationMode } from "@/services/registration";
 import { useIsAdmin, useIsLoggedIn } from "@/stores/hooks/useAuth";
 import { useUserStore } from "@/stores/userStore";
@@ -255,6 +256,14 @@ export default function useAdmin() {
     [currentUserId],
   );
 
+  const deleteConfirmDescription = useMemo(
+    () =>
+      adminAccountDeletionDescription(
+        userPendingDelete?.display_name ?? "este usuário",
+      ),
+    [userPendingDelete?.display_name],
+  );
+
   const canPromoteUser = useCallback(
     (user: AdminUserListItem) => user.tier !== "admin",
     [],
@@ -293,6 +302,7 @@ export default function useAdmin() {
     promoteUser,
     canDeleteUser,
     canPromoteUser,
+    deleteConfirmDescription,
     isPromoting: promoteMutation.isPending,
     isDeleting: deleteMutation.isPending,
     promotingUserId: promoteMutation.isPending

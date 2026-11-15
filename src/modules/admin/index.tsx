@@ -48,6 +48,7 @@ export default function AdminScreen() {
     promoteUser,
     canDeleteUser,
     canPromoteUser,
+    deleteConfirmDescription,
     isPromoting,
     promotingUserId,
   } = useAdmin();
@@ -226,7 +227,7 @@ export default function AdminScreen() {
         queryKeyToInvalidate="admin"
         title="Excluir usuário"
         buttonLabel="Excluir"
-        description={`Tem certeza que deseja excluir ${userPendingDelete?.display_name ?? "este usuário"}? Essa ação remove o perfil e o login e não pode ser desfeita.`}
+        description={deleteConfirmDescription}
       />
     </div>
   );

@@ -1,4 +1,9 @@
 import { requireAdmin } from "@/app/api/_utils/requireAdmin";
+import {
+  deleteReaderAccount,
+  type ReaderDeletionClient,
+} from "@/lib/users/deleteReaderAccount";
+import { lastAdminDeletionBlock } from "@/lib/users/lastAdminDeletionBlock";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { NextResponse } from "next/server";
@@ -114,72 +119,21 @@ export async function DELETE(_request: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
   }
 
-  if (target.tier === "admin") {
-    const { count, error: countError } = await adminClient
-      .from("users")
-      .select("id", { count: "exact", head: true })
-      .eq("tier", "admin");
-
-    if (countError) {
-      return NextResponse.json({ error: countError.message }, { status: 500 });
-    }
-
-    if ((count ?? 0) <= 1) {
-      return NextResponse.json(
-        { error: "Não é possível excluir o último admin." },
-        { status: 409 },
-      );
-    }
-  }
-
-  const { data: bookRef, error: bookError } = await adminClient
-    .from("books")
-    .select("id")
-    .eq("chosen_by", targetId)
-    .limit(1)
-    .maybeSingle();
-
-  if (bookError) {
-    return NextResponse.json({ error: bookError.message }, { status: 500 });
-  }
-
-  if (bookRef) {
+  const lastAdmin = await lastAdminDeletionBlock(adminClient, target.tier);
+  if (lastAdmin) {
     return NextResponse.json(
-      {
-        error:
-          "Não é possível excluir: o usuário ainda é quem escolheu um ou mais livros (chosen_by).",
-      },
-      { status: 409 },
+      { error: lastAdmin.error },
+      { status: lastAdmin.status },
     );
   }
 
-  const { error: profileDeleteError } = await adminClient
-    .from("users")
-    .delete()
-    .eq("id", targetId);
+  const result = await deleteReaderAccount(
+    adminClient as unknown as ReaderDeletionClient,
+    targetId,
+  );
 
-  if (profileDeleteError) {
-    return NextResponse.json(
-      { error: profileDeleteError.message },
-      { status: 500 },
-    );
-  }
-
-  const { error: authDeleteError } =
-    await adminClient.auth.admin.deleteUser(targetId);
-
-  if (authDeleteError) {
-    console.error("Auth deleteUser failed after profile delete", {
-      userId: targetId,
-      message: authDeleteError.message,
-    });
-    return NextResponse.json(
-      {
-        error:
-          "Perfil removido, mas não foi possível remover o login. Contate o suporte.",
-      },
-      { status: 500 },
-    );
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true as const });
