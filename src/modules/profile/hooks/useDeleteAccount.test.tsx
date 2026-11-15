@@ -98,4 +98,34 @@ describe("useDeleteAccount", () => {
     expect(logout).not.toHaveBeenCalled();
     expect(nextNavigationTestState.router.replace).not.toHaveBeenCalled();
   });
+
+  it("não mostra erro interno e mantém a sessão", async () => {
+    deleteOwnAccount.mockRejectedValue(new Error("socket hang up"));
+    const { result } = renderHook(() => useDeleteAccount());
+
+    await expect(
+      act(async () => {
+        await result.current.confirmDelete("user-1");
+      }),
+    ).rejects.toThrow("socket hang up");
+
+    expect(toastError).toHaveBeenCalledWith("Não foi possível excluir a conta.");
+    expect(logout).not.toHaveBeenCalled();
+    expect(nextNavigationTestState.router.replace).not.toHaveBeenCalled();
+  });
+
+  it("não chama a API sem usuário na sessão", async () => {
+    useUserStore.setState({ user: null, logout });
+    const { result } = renderHook(() => useDeleteAccount());
+
+    await expect(
+      act(async () => {
+        await result.current.confirmDelete("user-1");
+      }),
+    ).rejects.toThrow("Não foi possível excluir a conta.");
+
+    expect(deleteOwnAccount).not.toHaveBeenCalled();
+    expect(logout).not.toHaveBeenCalled();
+    expect(nextNavigationTestState.router.replace).not.toHaveBeenCalled();
+  });
 });
