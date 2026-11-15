@@ -1,7 +1,11 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ClientProfileViewModel } from "@/modules/profile/clientProfile/types/clientProfile.types";
+import type { User } from "@/types/user.types";
+import { useUserStore } from "@/stores/userStore";
 
 import ClientProfile from "./clientProfile";
 
@@ -81,6 +85,7 @@ describe("ClientProfile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseClientProfile.mockReturnValue(baseViewModel);
+    useUserStore.setState({ user: null });
   });
 
   it("renderiza título e dados da conta", () => {
@@ -133,5 +138,37 @@ describe("ClientProfile", () => {
     expect(
       screen.getByRole("button", { name: /ver tutorial de novo/i }),
     ).toBeInTheDocument();
+  });
+
+  it("abre o aviso irreversível antes de excluir a própria conta", async () => {
+    useUserStore.setState({
+      user: { id: "user-1", email: "reader@tbr.com" } as User,
+    });
+    const user = userEvent.setup();
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+
+    const view = render(
+      <QueryClientProvider client={client}>
+        <ClientProfile />
+      </QueryClientProvider>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Excluir minha conta" }),
+    );
+
+    expect(await screen.findByRole("dialog")).toHaveTextContent(
+      "Essa decisão não é reversível.",
+    );
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "livros, cronogramas, notas",
+    );
+    expect(
+      screen.getByRole("button", { name: "Excluir conta" }),
+    ).toBeInTheDocument();
+
+    view.unmount();
   });
 });

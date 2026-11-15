@@ -1,3 +1,4 @@
+export { default as DeleteAccountSection } from "./DeleteAccountSection";
 export { ProfileAvatar } from "./ProfileAvatar";
 export type { ProfileAvatarProps } from "./ProfileAvatar";
 export { default as ProfileFavoritesSection } from "./ProfileFavoritesSection";

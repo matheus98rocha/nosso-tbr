@@ -310,6 +310,24 @@ describe("useAdmin", () => {
     expect(result.current.registrationModeDescription).toBe("");
   });
 
+  it("avisa que excluir um usuário não é reversível", () => {
+    const { result } = renderHook(() => useAdmin(), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.openDeleteConfirm(user({ display_name: "Bia" }));
+    });
+
+    expect(result.current.deleteConfirmDescription).toContain(
+      "Essa decisão não é reversível.",
+    );
+    expect(result.current.deleteConfirmDescription).toContain("Bia");
+    expect(result.current.deleteConfirmDescription).toContain("livros");
+    expect(result.current.deleteConfirmDescription).toContain("cronogramas");
+    expect(result.current.deleteConfirmDescription).toContain("notas");
+  });
+
   it("impede excluir a si mesmo e promover quem já é administrador", async () => {
     const { result } = renderHook(() => useAdmin(), {
       wrapper: createWrapper(),

@@ -20,6 +20,7 @@ import { ProfileWelcomeTutorial } from "@/modules/onboarding";
 import { AvatarSelectionPanel } from "@/modules/profile/avatarSelection";
 import { useClientProfile } from "@/modules/profile/clientProfile/hooks";
 import {
+  DeleteAccountSection,
   ProfileAvatar,
   ProfileFavoritesSection,
   ProfileGenreHighlights,
@@ -27,13 +28,13 @@ import {
   ProfileNetworkCountLinks,
   ProfileReadingActivity,
 } from "@/modules/profile/components";
-import {
-  useProfileReadingShowcase,
-} from "@/modules/profile/hooks";
+import { useProfileReadingShowcase } from "@/modules/profile/hooks";
+import { useDeleteAccount } from "@/modules/profile/hooks/useDeleteAccount";
 import { useMemberProfileFavorites } from "@/modules/profile/memberProfile/hooks";
 
 function ClientProfileView() {
   const viewModel = useClientProfile();
+  const deletion = useDeleteAccount();
   const readerId = viewModel?.userId ?? "";
   const showcaseQuery = useProfileReadingShowcase(readerId);
   const favoritesQuery = useMemberProfileFavorites(readerId);
@@ -155,6 +156,18 @@ function ClientProfileView() {
       />
 
       <ProfileHubLinks links={viewModel.hubLinks} />
+
+      {deletion.userId ? (
+        <DeleteAccountSection
+          description={deletion.description}
+          isConfirmOpen={deletion.isConfirmOpen}
+          userId={deletion.userId}
+          onOpenConfirm={deletion.openConfirm}
+          onCloseConfirm={deletion.closeConfirm}
+          onConfirmOpenChange={deletion.onConfirmOpenChange}
+          onConfirm={deletion.confirmDelete}
+        />
+      ) : null}
     </div>
   );
 }
