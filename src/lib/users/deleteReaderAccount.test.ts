@@ -11,13 +11,34 @@ import {
 
 type Row = Record<string, unknown>;
 
-function createMemory(
-  initial: Record<string, Row[]>,
-  fail?: { table: string; action: "delete" | "update" | "contains" },
-) {
+type MemoryFail = {
+  table: string;
+  action: "delete" | "update" | "contains" | "select";
+  column?: string;
+  call?: number;
+};
+
+function createMemory(initial: Record<string, Row[]>, fail?: MemoryFail) {
   const tables: Record<string, Row[]> = structuredClone(initial);
   const authDeleted: string[] = [];
   const inCalls: Array<{ table: string; column: string; size: number }> = [];
+  const attempts = new Map<string, number>();
+
+  function rejection(
+    table: string,
+    action: MemoryFail["action"],
+    column: string,
+  ): string | null {
+    if (!fail || fail.table !== table || fail.action !== action) return null;
+    if (fail.column && fail.column !== column) return null;
+    const key = `${table}:${action}:${fail.column ?? ""}`;
+    const next = (attempts.get(key) ?? 0) + 1;
+    attempts.set(key, next);
+    if (fail.call !== undefined && fail.call !== next) return null;
+    if (action === "update") return "update failed";
+    if (action === "delete") return "fk violation";
+    return "select failed";
+  }
 
   function rows(table: string): Row[] {
     if (!tables[table]) tables[table] = [];
@@ -52,6 +73,13 @@ function createMemory(
                 order() {
                   return {
                     range(from: number, to: number) {
+                      const message = rejection(table, "select", column);
+                      if (message) {
+                        return Promise.resolve({
+                          data: null,
+                          error: { message },
+                        });
+                      }
                       const matched = rows(table).filter((row) =>
                         matches(row, column, value, "eq"),
                       );
@@ -66,10 +94,11 @@ function createMemory(
                 order() {
                   return {
                     range(from: number, to: number) {
-                      if (fail?.table === table && fail.action === "contains") {
+                      const message = rejection(table, "contains", column);
+                      if (message) {
                         return Promise.resolve({
                           data: null,
-                          error: { message: "select failed" },
+                          error: { message },
                         });
                       }
                       const matched = rows(table).filter((row) =>
@@ -86,9 +115,8 @@ function createMemory(
         delete() {
           return {
             eq(column: string, value: string) {
-              if (fail?.table === table && fail.action === "delete") {
-                return Promise.resolve({ error: { message: "fk violation" } });
-              }
+              const message = rejection(table, "delete", column);
+              if (message) return Promise.resolve({ error: { message } });
               tables[table] = rows(table).filter(
                 (row) => !matches(row, column, value, "eq"),
               );
@@ -96,9 +124,8 @@ function createMemory(
             },
             in(column: string, values: string[]) {
               inCalls.push({ table, column, size: values.length });
-              if (fail?.table === table && fail.action === "delete") {
-                return Promise.resolve({ error: { message: "fk violation" } });
-              }
+              const message = rejection(table, "delete", column);
+              if (message) return Promise.resolve({ error: { message } });
               tables[table] = rows(table).filter(
                 (row) => !matches(row, column, values, "in"),
               );
@@ -109,9 +136,10 @@ function createMemory(
         update(values: Record<string, unknown>) {
           return {
             eq(column: string, value: string) {
-              if (fail?.table === table && fail.action === "update") {
+              const message = rejection(table, "update", column);
+              if (message) {
                 return Promise.resolve({
-                  error: { message: "update failed" },
+                  error: { message },
                 } satisfies ReaderDeletionMutationResult);
               }
               tables[table] = rows(table).map((row) =>
@@ -535,6 +563,222 @@ describe("deleteReaderAccount", () => {
     expect(memory.authDeleted).toEqual([target]);
     expect(memory.tables.users).toEqual([]);
     expect(bookDeletes.map((call) => call.size)).toEqual([
+      100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1,
+    ]);
+  });
+
+  it("não apaga nada quando a busca por responsabilidade falha", async () => {
+    const memory = createMemory(library().tables, {
+      table: "books",
+      action: "select",
+      call: 1,
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("select failed");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.inCalls).toEqual([]);
+    expect(memory.tables.books.map((row) => row.id)).toEqual([
+      "book-exclusive",
+      "book-collective",
+      "book-joined",
+    ]);
+    expect(memory.tables.users.map((row) => row.id)).toContain(target);
+  });
+
+  it("não apaga nada quando a busca por quem cadastrou falha", async () => {
+    const memory = createMemory(library().tables, {
+      table: "books",
+      action: "select",
+      column: "user_id",
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("select failed");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.inCalls).toEqual([]);
+    expect(memory.tables.books).toEqual(library().tables.books);
+    expect(memory.tables.users.map((row) => row.id)).toContain(target);
+  });
+
+  it("não apaga nada quando a página seguinte da busca falha", async () => {
+    const total = 1001;
+    const memory = createMemory(
+      {
+        users: [{ id: target, tier: "common_user" }],
+        books: Array.from({ length: total }, (_, index) => ({
+          id: `book-${String(index).padStart(4, "0")}`,
+          chosen_by: target,
+          user_id: target,
+          readers: [target],
+        })),
+      },
+      { table: "books", action: "select", call: 2 },
+    );
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("select failed");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.inCalls).toEqual([]);
+    expect(memory.tables.books).toHaveLength(total);
+    expect(memory.tables.users.map((row) => row.id)).toEqual([target]);
+  });
+
+  it("interrompe o lote e preserva o login quando apagar os livros falha", async () => {
+    const total = 250;
+    const memory = createMemory(
+      {
+        users: [{ id: target, tier: "common_user" }],
+        books: Array.from({ length: total }, (_, index) => ({
+          id: `book-${String(index).padStart(4, "0")}`,
+          chosen_by: target,
+          user_id: target,
+          readers: [target],
+        })),
+        quotes: [
+          { id: "q-first", book_id: "book-0000" },
+          { id: "q-later", book_id: "book-0100" },
+        ],
+      },
+      { table: "books", action: "delete", call: 2 },
+    );
+
+    const result = await deleteReaderAccount(memory.client, target);
+    const bookDeletes = memory.inCalls.filter(
+      (call) => call.table === "books" && call.column === "id",
+    );
+
+    expect(result.error).toBe("fk violation");
+    expect(memory.authDeleted).toEqual([]);
+    expect(bookDeletes.map((call) => call.size)).toEqual([100, 100]);
+    expect(memory.tables.books).toHaveLength(150);
+    expect(memory.tables.books.map((row) => row.id)).not.toContain("book-0000");
+    expect(memory.tables.books.map((row) => row.id)).toContain("book-0100");
+    expect(memory.tables.books.map((row) => row.id)).toContain("book-0249");
+    expect(memory.tables.quotes).toEqual([]);
+    expect(memory.tables.users.map((row) => row.id)).toEqual([target]);
+  });
+
+  it("não remove o login quando a busca das estantes falha", async () => {
+    const memory = createMemory(library().tables, {
+      table: "custom_shelves",
+      action: "select",
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("select failed");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.tables.users.map((row) => row.id)).toContain(target);
+    expect(memory.tables.books.map((row) => row.id)).not.toContain(
+      "book-exclusive",
+    );
+    expect(memory.tables.custom_shelves.map((row) => row.id)).toEqual([
+      "shelf-target",
+      "shelf-other",
+    ]);
+    expect(memory.tables.custom_shelf_books.map((row) => row.id)).toEqual([
+      "link-2",
+      "link-4",
+    ]);
+  });
+
+  it("não remove o login quando a limpeza das notificações falha", async () => {
+    const memory = createMemory(library().tables, {
+      table: "notifications",
+      action: "delete",
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("fk violation");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.tables.users.map((row) => row.id)).toContain(target);
+    expect(memory.tables.notifications.map((row) => row.id)).toEqual([
+      "n-actor",
+      "n-recipient",
+      "n-kept",
+    ]);
+    expect(memory.tables.register_invites.map((row) => row.id)).toContain(
+      "invite-target",
+    );
+    expect(memory.tables.registration_settings).toEqual([
+      { id: "settings", updated_by: target },
+    ]);
+  });
+
+  it("não remove o login quando o perfil não sai", async () => {
+    const memory = createMemory(library().tables, {
+      table: "users",
+      action: "delete",
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+
+    expect(result.error).toBe("fk violation");
+    expect(memory.authDeleted).toEqual([]);
+    expect(memory.tables.users.map((row) => row.id)).toEqual([
+      target,
+      other,
+      witness,
+    ]);
+    expect(memory.tables.register_invites.map((row) => row.id)).toEqual([
+      "invite-other",
+    ]);
+    expect(memory.tables.registration_settings).toEqual([
+      { id: "settings", updated_by: null },
+    ]);
+  });
+
+  it("apaga estantes além de uma página e ignora id vazio", async () => {
+    const total = 1001;
+    const memory = createMemory({
+      users: [
+        { id: target, tier: "common_user" },
+        { id: other, tier: "common_user" },
+      ],
+      custom_shelves: [
+        ...Array.from({ length: total }, (_, index) => ({
+          id: `shelf-${String(index).padStart(4, "0")}`,
+          user_id: target,
+        })),
+        { id: "", user_id: target },
+        { id: 404, user_id: target },
+        { id: "shelf-other", user_id: other },
+      ],
+      custom_shelf_books: [
+        ...Array.from({ length: total }, (_, index) => ({
+          id: `link-${String(index).padStart(4, "0")}`,
+          shelf_id: `shelf-${String(index).padStart(4, "0")}`,
+          book_id: "kept",
+        })),
+        { id: "link-blank", shelf_id: "", book_id: "kept" },
+        { id: "link-numeric", shelf_id: 404, book_id: "kept" },
+        { id: "link-other", shelf_id: "shelf-other", book_id: "kept" },
+      ],
+    });
+
+    const result = await deleteReaderAccount(memory.client, target);
+    const shelfDeletes = memory.inCalls.filter(
+      (call) =>
+        call.table === "custom_shelf_books" && call.column === "shelf_id",
+    );
+
+    expect(result).toEqual({ error: null });
+    expect(memory.authDeleted).toEqual([target]);
+    expect(memory.tables.users.map((row) => row.id)).toEqual([other]);
+    expect(memory.tables.custom_shelves).toEqual([
+      { id: "shelf-other", user_id: other },
+    ]);
+    expect(memory.tables.custom_shelf_books.map((row) => row.id)).toEqual([
+      "link-blank",
+      "link-numeric",
+      "link-other",
+    ]);
+    expect(shelfDeletes.map((call) => call.size)).toEqual([
       100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1,
     ]);
   });

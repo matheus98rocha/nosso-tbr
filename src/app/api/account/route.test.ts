@@ -20,23 +20,30 @@ function authLogged(userId: string): Client["auth"] {
 function usersTable(options: {
   id: string;
   tier: "admin" | "common_user";
-  adminCount?: number;
+  adminCount?: number | null;
+  countError?: { message: string } | null;
+  row?: { id: string; tier: "admin" | "common_user" } | null;
+  lookupError?: { message: string } | null;
 }) {
   return {
     select: vi.fn((_cols: string, opts?: { head?: boolean }) => {
       if (opts?.head) {
         return {
           eq: vi.fn().mockResolvedValue({
-            count: options.adminCount ?? 1,
-            error: null,
+            count: options.adminCount === undefined ? 1 : options.adminCount,
+            error: options.countError ?? null,
           }),
         };
       }
       return {
         eq: vi.fn(() => ({
           maybeSingle: vi.fn().mockResolvedValue({
-            data: { id: options.id, tier: options.tier },
-            error: null,
+            data: options.lookupError
+              ? null
+              : options.row === undefined
+                ? { id: options.id, tier: options.tier }
+                : options.row,
+            error: options.lookupError ?? null,
           }),
         })),
       };
@@ -172,5 +179,85 @@ describe("DELETE /api/account", () => {
     const res = await route.DELETE(new Request("http://localhost"));
     expect(res.status).toBe(200);
     expect(deleteReaderAccountMock).toHaveBeenCalledWith(service, "u-admin");
+  });
+
+  it("retorna 404 quando o perfil não existe", async () => {
+    const service: Client = {
+      auth: { getUser: vi.fn(), admin: { deleteUser: vi.fn() } },
+      from: vi.fn((table: string) => {
+        if (table !== "users") throw new Error(table);
+        return usersTable({ id: "u-common", tier: "common_user", row: null });
+      }),
+    };
+    const route = await loadRoute(
+      { auth: authLogged("u-common"), from: vi.fn() },
+      service,
+    );
+    const res = await route.DELETE(new Request("http://localhost"));
+    expect(res.status).toBe(404);
+    expect(deleteReaderAccountMock).not.toHaveBeenCalled();
+  });
+
+  it("retorna 500 quando a leitura do perfil falha", async () => {
+    const service: Client = {
+      auth: { getUser: vi.fn(), admin: { deleteUser: vi.fn() } },
+      from: vi.fn((table: string) => {
+        if (table !== "users") throw new Error(table);
+        return usersTable({
+          id: "u-common",
+          tier: "common_user",
+          lookupError: { message: "db down" },
+        });
+      }),
+    };
+    const route = await loadRoute(
+      { auth: authLogged("u-common"), from: vi.fn() },
+      service,
+    );
+    const res = await route.DELETE(new Request("http://localhost"));
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "db down" });
+    expect(deleteReaderAccountMock).not.toHaveBeenCalled();
+  });
+
+  it("devolve o erro da exclusão em cascata", async () => {
+    const service: Client = {
+      auth: { getUser: vi.fn(), admin: { deleteUser: vi.fn() } },
+      from: vi.fn((table: string) => {
+        if (table !== "users") throw new Error(table);
+        return usersTable({ id: "u-common", tier: "common_user" });
+      }),
+    };
+    const route = await loadRoute(
+      { auth: authLogged("u-common"), from: vi.fn() },
+      service,
+    );
+    deleteReaderAccountMock.mockResolvedValue({ error: "fk violation" });
+    const res = await route.DELETE(new Request("http://localhost"));
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "fk violation" });
+    expect(deleteReaderAccountMock).toHaveBeenCalledWith(service, "u-common");
+  });
+
+  it("não exclui a conta quando a contagem de admins falha", async () => {
+    const service: Client = {
+      auth: { getUser: vi.fn(), admin: { deleteUser: vi.fn() } },
+      from: vi.fn((table: string) => {
+        if (table !== "users") throw new Error(table);
+        return usersTable({
+          id: "u-admin",
+          tier: "admin",
+          countError: { message: "count down" },
+        });
+      }),
+    };
+    const route = await loadRoute(
+      { auth: authLogged("u-admin"), from: vi.fn() },
+      service,
+    );
+    const res = await route.DELETE(new Request("http://localhost"));
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "count down" });
+    expect(deleteReaderAccountMock).not.toHaveBeenCalled();
   });
 });
