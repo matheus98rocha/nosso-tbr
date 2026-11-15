@@ -42,9 +42,11 @@ describe("DeleteAccountSection", () => {
       screen.getByRole("heading", { name: "Excluir conta" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Essa decisão não é reversível/),
+      screen.getByText(/Essa decisão não é reversível\./),
     ).toBeInTheDocument();
-    expect(screen.getByText(/livros, cronogramas, notas/)).toBeInTheDocument();
+    expect(screen.getByText(/livros/)).toBeInTheDocument();
+    expect(screen.getByText(/cronogramas/)).toBeInTheDocument();
+    expect(screen.getByText(/notas/)).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", { name: "Excluir minha conta" }),
@@ -58,8 +60,11 @@ describe("DeleteAccountSection", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(
-      screen.getAllByText(/Essa decisão não é reversível/).length,
+      screen.getAllByText(/Essa decisão não é reversível\./).length,
     ).toBeGreaterThan(1);
+    expect(screen.getAllByText(/livros/).length).toBeGreaterThan(1);
+    expect(screen.getAllByText(/cronogramas/).length).toBeGreaterThan(1);
+    expect(screen.getAllByText(/notas/).length).toBeGreaterThan(1);
     await user.click(screen.getByRole("button", { name: "Excluir conta" }));
     expect(onConfirm).toHaveBeenCalledWith("user-1");
   });

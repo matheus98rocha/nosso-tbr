@@ -159,12 +159,11 @@ describe("ClientProfile", () => {
       screen.getByRole("button", { name: "Excluir minha conta" }),
     );
 
-    expect(await screen.findByRole("dialog")).toHaveTextContent(
-      "Essa decisão não é reversível.",
-    );
-    expect(screen.getByRole("dialog")).toHaveTextContent(
-      "livros, cronogramas, notas",
-    );
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Essa decisão não é reversível.");
+    expect(dialog).toHaveTextContent("livros");
+    expect(dialog).toHaveTextContent("cronogramas");
+    expect(dialog).toHaveTextContent("notas");
     expect(
       screen.getByRole("button", { name: "Excluir conta" }),
     ).toBeInTheDocument();

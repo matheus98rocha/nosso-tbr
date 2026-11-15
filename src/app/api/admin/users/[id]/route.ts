@@ -3,7 +3,6 @@ import {
   deleteReaderAccount,
   type ReaderDeletionClient,
 } from "@/lib/users/deleteReaderAccount";
-import { lastAdminDeletionBlock } from "@/lib/users/lastAdminDeletionBlock";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { NextResponse } from "next/server";
@@ -105,35 +104,16 @@ export async function DELETE(_request: Request, ctx: Ctx) {
     );
   }
 
-  const { data: target, error: targetError } = await adminClient
-    .from("users")
-    .select("id, tier")
-    .eq("id", targetId)
-    .maybeSingle();
-
-  if (targetError) {
-    return NextResponse.json({ error: targetError.message }, { status: 500 });
-  }
-
-  if (!target) {
-    return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
-  }
-
-  const lastAdmin = await lastAdminDeletionBlock(adminClient, target.tier);
-  if (lastAdmin) {
-    return NextResponse.json(
-      { error: lastAdmin.error },
-      { status: lastAdmin.status },
-    );
-  }
-
   const result = await deleteReaderAccount(
     adminClient as unknown as ReaderDeletionClient,
     targetId,
   );
 
   if (result.error) {
-    return NextResponse.json({ error: result.error }, { status: 500 });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status ?? 500 },
+    );
   }
 
   return NextResponse.json({ ok: true as const });

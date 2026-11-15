@@ -140,21 +140,22 @@ describe("DELETE /api/account", () => {
   it("retorna 409 quando o próprio usuário é o último admin", async () => {
     const service: Client = {
       auth: { getUser: vi.fn(), admin: { deleteUser: vi.fn() } },
-      from: vi.fn((table: string) => {
-        if (table !== "users") throw new Error(table);
-        return usersTable({ id: "u-admin", tier: "admin", adminCount: 1 });
-      }),
+      from: vi.fn(),
     };
     const route = await loadRoute(
       { auth: authLogged("u-admin"), from: vi.fn() },
       service,
     );
+    deleteReaderAccountMock.mockResolvedValue({
+      error: "Não é possível excluir o último admin.",
+      status: 409,
+    });
     const res = await route.DELETE(new Request("http://localhost"));
     expect(res.status).toBe(409);
     await expect(res.json()).resolves.toMatchObject({
       error: expect.stringContaining("último admin"),
     });
-    expect(deleteReaderAccountMock).not.toHaveBeenCalled();
+    expect(deleteReaderAccountMock).toHaveBeenCalledWith(service, "u-admin");
   });
 
   it("permite que um admin exclua a própria conta quando há outro admin", async () => {

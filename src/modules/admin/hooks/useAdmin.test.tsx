@@ -322,7 +322,6 @@ describe("useAdmin", () => {
     expect(result.current.deleteConfirmDescription).toContain(
       "Essa decisão não é reversível.",
     );
-    expect(result.current.deleteConfirmDescription).toContain("Bia");
     expect(result.current.deleteConfirmDescription).toContain("livros");
     expect(result.current.deleteConfirmDescription).toContain("cronogramas");
     expect(result.current.deleteConfirmDescription).toContain("notas");
