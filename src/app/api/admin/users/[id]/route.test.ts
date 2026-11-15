@@ -526,5 +526,58 @@ describe("/api/admin/users/[id]", () => {
         error: expect.stringContaining("login"),
       });
     });
+
+    it("encaminha a falha de leitura do alvo vinda da cascata", async () => {
+      const service: Client = {
+        auth: { getUser: vi.fn(), admin: { deleteUser: vi.fn() } },
+        from: vi.fn(),
+      };
+      const session: Client = {
+        auth: authLogged("u-admin"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          throw new Error(table);
+        }),
+      };
+      const route = await loadRoute(session, service);
+      deleteReaderAccountMock.mockResolvedValue({
+        error: "db down",
+        status: 500,
+      });
+      const res = await route.DELETE(new Request("http://localhost"), {
+        params: Promise.resolve({ id: "target" }),
+      });
+      expect(res.status).toBe(500);
+      await expect(res.json()).resolves.toEqual({ error: "db down" });
+      expect(deleteReaderAccountMock).toHaveBeenCalledWith(service, "target");
+    });
+
+    it("encaminha a falha da contagem de admins vinda da cascata", async () => {
+      const service: Client = {
+        auth: { getUser: vi.fn(), admin: { deleteUser: vi.fn() } },
+        from: vi.fn(),
+      };
+      const session: Client = {
+        auth: authLogged("u-admin"),
+        from: vi.fn((table: string) => {
+          if (table === "users") return usersTier("admin");
+          throw new Error(table);
+        }),
+      };
+      const route = await loadRoute(session, service);
+      deleteReaderAccountMock.mockResolvedValue({
+        error: "count down",
+        status: 500,
+      });
+      const res = await route.DELETE(new Request("http://localhost"), {
+        params: Promise.resolve({ id: "other-admin" }),
+      });
+      expect(res.status).toBe(500);
+      await expect(res.json()).resolves.toEqual({ error: "count down" });
+      expect(deleteReaderAccountMock).toHaveBeenCalledWith(
+        service,
+        "other-admin",
+      );
+    });
   });
 });

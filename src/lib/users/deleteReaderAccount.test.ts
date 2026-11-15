@@ -9,6 +9,7 @@ import {
 
 const target = "user-target";
 const other = "user-other";
+const witness = "user-witness";
 
 function client(options: {
   cascadeError?: { message: string; status?: number } | null;
@@ -59,24 +60,124 @@ describe("partitionReaderBooks", () => {
     });
   });
 
-  it("preserva o livro quando o outro participante está só em user_id", () => {
-    const books: ReaderBookRow[] = [
-      {
-        id: "registered-by-other",
-        chosen_by: target,
-        user_id: other,
-        readers: [target],
-      },
-    ];
+  it("entrega a responsabilidade ao primeiro leitor restante e preserva quem cadastrou", () => {
+    const [book] = partitionReaderBooks(
+      [
+        {
+          id: "handoff",
+          chosen_by: target,
+          user_id: witness,
+          readers: ["", target, witness, other],
+        },
+      ],
+      target,
+    ).detach;
 
-    expect(partitionReaderBooks(books, target)).toEqual({
+    expect(book).toEqual({
+      id: "handoff",
+      chosen_by: witness,
+      user_id: witness,
+      readers: [witness, other],
+    });
+  });
+
+  it("mantém o livro quando o responsável não está na lista de leitores", () => {
+    expect(
+      partitionReaderBooks(
+        [
+          {
+            id: "kept",
+            chosen_by: other,
+            user_id: other,
+            readers: [target],
+          },
+          {
+            id: "null-readers",
+            chosen_by: other,
+            user_id: null,
+            readers: null,
+          },
+        ],
+        target,
+      ),
+    ).toEqual({
       deleteIds: [],
       detach: [
         {
-          id: "registered-by-other",
+          id: "kept",
           chosen_by: other,
           user_id: other,
           readers: [],
+        },
+        {
+          id: "null-readers",
+          chosen_by: other,
+          user_id: null,
+          readers: [],
+        },
+      ],
+    });
+  });
+
+  it("mantém o livro quando só quem cadastrou permanece", () => {
+    expect(
+      partitionReaderBooks(
+        [
+          {
+            id: "registered",
+            chosen_by: target,
+            user_id: other,
+            readers: [target],
+          },
+        ],
+        target,
+      ),
+    ).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "registered",
+          chosen_by: other,
+          user_id: other,
+          readers: [],
+        },
+      ],
+    });
+  });
+
+  it("deduplica o mesmo livro e ignora id vazio", () => {
+    expect(
+      partitionReaderBooks(
+        [
+          {
+            id: "",
+            chosen_by: target,
+            user_id: target,
+            readers: [target],
+          },
+          {
+            id: "same",
+            chosen_by: target,
+            user_id: target,
+            readers: [target],
+          },
+          {
+            id: "same",
+            chosen_by: target,
+            user_id: target,
+            readers: [target, other],
+          },
+        ],
+        target,
+      ),
+    ).toEqual({
+      deleteIds: [],
+      detach: [
+        {
+          id: "same",
+          chosen_by: other,
+          user_id: null,
+          readers: [other],
         },
       ],
     });
@@ -106,6 +207,9 @@ describe("deleteReaderAccount", () => {
       error: "Não é possível excluir o último admin.",
       status: 409,
     });
+    expect(service.rpc).toHaveBeenCalledWith("delete_reader_cascade", {
+      p_user_id: target,
+    });
     expect(service.authDeletes).toEqual([]);
   });
 
@@ -132,6 +236,7 @@ describe("deleteReaderAccount", () => {
       error: "Usuário não encontrado.",
       status: 404,
     });
+    expect(service.authDeletes).toEqual([target]);
   });
 
   it("mantém a tentativa quando a remoção do login falha", async () => {
