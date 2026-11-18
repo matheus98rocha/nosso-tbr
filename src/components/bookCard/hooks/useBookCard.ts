@@ -20,6 +20,7 @@ import {
   openNow,
 } from "@/modules/finishedBookShare";
 import { openReviewAfterFinish, openReviewForBook } from "@/modules/reviews";
+import { invalidateReviewBookStatus } from "@/modules/reviews/utils";
 import { useMyReviewedBookIds } from "@/modules/reviews/hooks/useMyReviewedBookIds";
 
 import { useAddBookToLibrary } from "./useAddBookToLibrary";
@@ -188,6 +189,7 @@ export function useBookCard({
       };
       toast(labels[nextStatus] ?? "Status atualizado");
       await queryClient.invalidateQueries({ queryKey: ["books"], exact: false });
+      await invalidateReviewBookStatus(queryClient);
       bookDetailsModal.setIsOpen(false);
       if (
         nextStatus === "finished" &&

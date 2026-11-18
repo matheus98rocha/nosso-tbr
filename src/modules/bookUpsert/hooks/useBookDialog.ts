@@ -28,6 +28,7 @@ import { ApiError } from "@/lib/api/clientJsonFetch";
 import { buildHomeUrlWithStatusFilter } from "@/utils/buildHomeUrlWithStatusFilter";
 import { buildFinishedBookShareSubject } from "@/modules/finishedBookShare";
 import { openReviewAfterFinish } from "@/modules/reviews";
+import { invalidateReviewBookStatus } from "@/modules/reviews/utils";
 import { formatList } from "@/utils/formatters";
 
 const checkboxes: { id: Status; label: string }[] = [
@@ -231,6 +232,7 @@ export function useBookDialog({
         queryKey: ["books"],
         exact: false,
       });
+      await invalidateReviewBookStatus(queryClient);
 
       const nextStatus = variables.status;
       const previousStatus = bookData?.status;
@@ -365,6 +367,7 @@ export function useBookDialog({
 
     toast("Livro adicionado à sua biblioteca!");
     await queryClient.invalidateQueries({ queryKey: ["books"], exact: false });
+    await invalidateReviewBookStatus(queryClient);
     setIsBookFormOpen(false);
   }, [linkUserToExistingBook, queryClient, setIsBookFormOpen]);
 

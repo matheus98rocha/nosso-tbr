@@ -128,7 +128,7 @@ describe("useReviewComposerForm", () => {
     resolveBob({ review: null, ratingStars: null });
   });
 
-  it("libera as estrelas pelo status atual do livro, não pelo gravado na resenha", async () => {
+  it("libera as estrelas pelo status do livro, não pelo gravado na resenha", async () => {
     const snapshot: ReviewComposerBook = {
       id: "book-1",
       title: "O Hobbit",

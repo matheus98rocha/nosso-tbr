@@ -38,7 +38,7 @@ vi.mock("../hooks/useReviewBookOptions", () => ({
 }));
 
 describe("ReviewBookPicker", () => {
-  it("mostra o status atual na linha e filtra pelo título", async () => {
+  it("mostra o status do livro na linha e filtra pelo título", async () => {
     const onSelect = vi.fn();
     const user = userEvent.setup();
     render(<ReviewBookPicker onSelect={onSelect} />);
