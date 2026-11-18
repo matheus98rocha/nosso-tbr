@@ -68,10 +68,11 @@ describe("useReviewFeed", () => {
         queries: { retry: false, staleTime: 120_000, refetchOnMount: false },
       },
     });
-    queryClient.setQueryData(reviewQueryKeys.feed(alice.id, "all"), {
+    const aliceFeed = {
       pages: [{ reviews: [privateReview()], nextCursor: null }],
       pageParams: [null],
-    });
+    };
+    queryClient.setQueryData(reviewQueryKeys.feed(alice.id, "all"), aliceFeed);
     useUserStore.setState({ user: bob });
 
     const { result } = renderFeed(queryClient);
@@ -83,6 +84,8 @@ describe("useReviewFeed", () => {
     expect(result.current.reviews.map((review) => review.content)).not.toContain(
       "Segredo da Alice",
     );
+    expect(queryClient.getQueryData(reviewQueryKeys.feed(alice.id, "all"))).toEqual(aliceFeed);
+    expect(queryClient.getQueryData(reviewQueryKeys.feed(bob.id, "all"))).not.toEqual(aliceFeed);
     expect(listFeed).toHaveBeenCalled();
   });
 });
