@@ -50,6 +50,8 @@ export function useReviewComposerForm() {
     queryKey: reviewQueryKeys.mineByBook(viewerUserId, book?.id ?? "none"),
     queryFn: () => service.getMineByBookId(book?.id ?? ""),
     enabled: open && Boolean(book?.id) && Boolean(viewerUserId),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const hydrationKey =
@@ -76,7 +78,9 @@ export function useReviewComposerForm() {
   }, [existing.data, hydrationKey, open]);
 
   const contentState = reviewContentState(content);
-  const liveStatus = existing.data?.bookStatus ?? null;
+  const liveStatus = existing.isFetchedAfterMount
+    ? (existing.data?.bookStatus ?? null)
+    : null;
   const currentStatus = liveStatus ?? book?.status ?? "not_started";
   const shownBook = useMemo(() => {
     if (!book) return null;

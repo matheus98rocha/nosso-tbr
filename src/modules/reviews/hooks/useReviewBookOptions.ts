@@ -22,6 +22,8 @@ export function useReviewBookOptions(enabled: boolean) {
     queryKey: reviewQueryKeys.bookOptions(userId ?? "anon"),
     queryFn: () => service.listParticipatingBooks(reviewed.data ?? []),
     enabled: enabled && Boolean(userId) && reviewed.isSuccess,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   return {

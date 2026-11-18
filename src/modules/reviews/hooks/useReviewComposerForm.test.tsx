@@ -7,7 +7,7 @@ import { useUserStore } from "@/stores/userStore";
 import type { User } from "@/types/user.types";
 
 import { resetReviewComposerStore, useReviewComposerStore } from "../stores";
-import type { ReviewComposerBook, ReviewMine } from "../types";
+import type { ReviewMine } from "../types";
 import { reviewQueryKeys } from "../utils";
 import { useReviewComposerForm } from "./useReviewComposerForm";
 
@@ -78,6 +78,11 @@ describe("useReviewComposerForm", () => {
   });
 
   it("preenche a resenha salva do leitor atual", async () => {
+    getMineByBookId.mockResolvedValue({
+      review: aliceReview,
+      ratingStars: 5,
+      bookStatus: "finished",
+    });
     const { result } = renderForm();
 
     await waitFor(() => {
@@ -128,19 +133,19 @@ describe("useReviewComposerForm", () => {
     resolveBob({ review: null, ratingStars: null });
   });
 
-  it("libera as estrelas pelo status do livro, não pelo gravado na resenha", async () => {
-    const snapshot: ReviewComposerBook = {
-      id: "book-1",
-      title: "O Hobbit",
-      author: null,
-      imageUrl: null,
-      status: "reading",
-      isSolo: false,
-    };
+  it("não deixa o cache anterior travar as estrelas de quem acabou de finalizar", async () => {
+    getMineByBookId.mockReturnValue(new Promise(() => {}));
     useReviewComposerStore.setState({
       open: true,
-      mode: "compose",
-      book: snapshot,
+      mode: "finish",
+      book: {
+        id: "book-1",
+        title: "O Hobbit",
+        author: null,
+        imageUrl: null,
+        status: "finished",
+        isSolo: false,
+      },
     });
 
     const queryClient = new QueryClient({
@@ -151,7 +156,51 @@ describe("useReviewComposerForm", () => {
     queryClient.setQueryData(reviewQueryKeys.mineByBook(alice.id, "book-1"), {
       review: { ...aliceReview, readingStatus: "reading" },
       ratingStars: null,
+      bookStatus: "reading",
+    });
+
+    const { result } = renderHook(() => useReviewComposerForm(), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+    });
+
+    expect(result.current.book?.status).toBe("finished");
+    expect(result.current.starsAvailable).toBe(true);
+    act(() => {
+      result.current.setStars(4);
+    });
+    expect(result.current.stars).toBe(4);
+  });
+
+  it("passa a usar o status do livro quando a busca desta abertura responde", async () => {
+    getMineByBookId.mockResolvedValue({
+      review: { ...aliceReview, readingStatus: "reading" },
+      ratingStars: null,
       bookStatus: "finished",
+    });
+    useReviewComposerStore.setState({
+      open: true,
+      mode: "compose",
+      book: {
+        id: "book-1",
+        title: "O Hobbit",
+        author: null,
+        imageUrl: null,
+        status: "reading",
+        isSolo: false,
+      },
+    });
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, staleTime: 120_000, refetchOnMount: false },
+      },
+    });
+    queryClient.setQueryData(reviewQueryKeys.mineByBook(alice.id, "book-1"), {
+      review: null,
+      ratingStars: null,
+      bookStatus: "reading",
     });
 
     const { result } = renderHook(() => useReviewComposerForm(), {
@@ -164,25 +213,5 @@ describe("useReviewComposerForm", () => {
       expect(result.current.book?.status).toBe("finished");
     });
     expect(result.current.starsAvailable).toBe(true);
-
-    act(() => {
-      useReviewComposerStore.setState({
-        book: { ...snapshot, status: "finished" },
-      });
-    });
-    queryClient.setQueryData(reviewQueryKeys.mineByBook(alice.id, "book-1"), {
-      review: aliceReview,
-      ratingStars: 5,
-      bookStatus: "reading",
-    });
-
-    await waitFor(() => {
-      expect(result.current.book?.status).toBe("reading");
-    });
-    expect(result.current.starsAvailable).toBe(false);
-    act(() => {
-      result.current.setStars(4);
-    });
-    expect(result.current.stars).toBe(5);
   });
 });
