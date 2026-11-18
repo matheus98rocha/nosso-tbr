@@ -73,6 +73,14 @@ export default function ReviewComposerDialog() {
                 {REVIEWS_COPY.privateBook}
               </p>
             ) : null}
+            {form.loadFailed ? (
+              <div className="space-y-3 text-sm">
+                <p>{REVIEWS_COPY.loadError}</p>
+                <Button type="button" variant="outline" onClick={form.retryLoad}>
+                  {REVIEWS_COPY.retry}
+                </Button>
+              </div>
+            ) : null}
             <div className="space-y-2">
               <p className="text-sm font-medium">{REVIEWS_COPY.starsLabel}</p>
               <ReadingRatingStarsRow
@@ -149,7 +157,7 @@ export default function ReviewComposerDialog() {
               <Button
                 type="button"
                 onClick={form.submit}
-                disabled={!form.book || !form.submission.ok || form.isSaving || form.isLoadingExisting}
+                disabled={!form.canSave}
               >
                 {form.isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
                 {actionLabel}

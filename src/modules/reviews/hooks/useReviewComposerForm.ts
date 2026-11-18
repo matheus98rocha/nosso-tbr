@@ -22,8 +22,10 @@ export function useReviewComposerForm() {
   const [content, setContent] = useState("");
   const [baseline, setBaseline] = useState({ stars: null as number | null, content: "" });
   const [confirmDiscard, setConfirmDiscard] = useState(false);
-  const hydratedFor = useRef<string | null>(null);
-  const touched = useRef(false);
+  const [appliedStamp, setAppliedStamp] = useState<string | null>(null);
+  const contentTouched = useRef(false);
+  const starsTouched = useRef(false);
+  const activeBookId = useRef<string | null>(null);
 
   const existing = useQuery({
     queryKey: reviewQueryKeys.mineByBook(book?.id ?? "none"),
@@ -31,25 +33,49 @@ export function useReviewComposerForm() {
     enabled: open && Boolean(book?.id),
   });
 
+  const serverStamp = useMemo(() => {
+    if (!open || !book?.id || !existing.data) return null;
+    const review = existing.data.review;
+    return [
+      book.id,
+      review?.id ?? "",
+      review?.content ?? "",
+      review?.stars ?? "",
+      existing.data.ratingStars ?? "",
+      existing.dataUpdatedAt,
+    ].join(":");
+  }, [book?.id, existing.data, existing.dataUpdatedAt, open]);
+
+  if (open && book?.id && activeBookId.current !== book.id) {
+    activeBookId.current = book.id;
+    contentTouched.current = false;
+    starsTouched.current = false;
+  }
+
   useEffect(() => {
     if (!open) {
-      hydratedFor.current = null;
-      touched.current = false;
+      activeBookId.current = null;
+      contentTouched.current = false;
+      starsTouched.current = false;
+      setAppliedStamp(null);
       setStars(null);
       setContent("");
       setBaseline({ stars: null, content: "" });
       setConfirmDiscard(false);
       return;
     }
-    if (!book?.id || !existing.data || hydratedFor.current === book.id) return;
-    hydratedFor.current = book.id;
-    if (touched.current) return;
-    const nextStars = existing.data.review?.stars ?? existing.data.ratingStars;
-    const nextContent = existing.data.review?.content ?? "";
-    setStars(nextStars);
-    setContent(nextContent);
-    setBaseline({ stars: nextStars, content: nextContent });
-  }, [existing.data, open, book?.id]);
+    if (!existing.data || !serverStamp || appliedStamp === serverStamp) return;
+
+    const serverContent = existing.data.review?.content ?? "";
+    const serverStars = existing.data.review?.stars ?? existing.data.ratingStars;
+    if (!contentTouched.current) setContent(serverContent);
+    if (!starsTouched.current) setStars(serverStars);
+    setBaseline((current) => ({
+      stars: serverStars,
+      content: contentTouched.current ? current.content : serverContent,
+    }));
+    setAppliedStamp(serverStamp);
+  }, [appliedStamp, existing.data, open, serverStamp]);
 
   const contentState = reviewContentState(content);
   const submission = useMemo(
@@ -104,10 +130,32 @@ export function useReviewComposerForm() {
     closeReviewComposer();
   }, []);
 
+  const failedWithoutData = Boolean(book) && existing.isError && appliedStamp === null;
+  const applyingSnapshot =
+    Boolean(book) &&
+    existing.isSuccess &&
+    serverStamp !== null &&
+    appliedStamp !== serverStamp;
+  const awaitingSnapshot =
+    Boolean(book) && appliedStamp === null && (existing.isPending || existing.isFetching);
+  const unseenReview =
+    contentState.trimmed.length === 0 &&
+    Boolean(existing.data?.review?.content.trim()) &&
+    !contentTouched.current;
+  const emptyWhileRefreshing = contentState.trimmed.length === 0 && existing.isFetching;
+  const serverReady =
+    Boolean(book) && appliedStamp !== null && appliedStamp === serverStamp && !failedWithoutData;
+  const canSave =
+    submission.ok && serverReady && !save.isPending && !unseenReview && !emptyWhileRefreshing;
+
   const submit = useCallback(() => {
-    if (!book || !submission.ok || save.isPending) return;
+    if (!canSave) return;
     save.mutate();
-  }, [book, save, submission.ok]);
+  }, [canSave, save]);
+
+  const retryLoad = useCallback(() => {
+    void existing.refetch();
+  }, [existing]);
 
   return {
     open,
@@ -116,17 +164,20 @@ export function useReviewComposerForm() {
     selectBook,
     stars,
     setStars: (next: number) => {
-      touched.current = true;
+      starsTouched.current = true;
       setStars(next);
     },
     content,
     setContent: (next: string) => {
-      touched.current = true;
+      contentTouched.current = true;
       setContent(next);
     },
     contentState,
     submission,
-    isLoadingExisting: Boolean(book) && existing.isLoading,
+    isLoadingExisting: failedWithoutData || applyingSnapshot || awaitingSnapshot,
+    loadFailed: failedWithoutData,
+    canSave,
+    retryLoad,
     isSaving: save.isPending,
     confirmDiscard,
     setConfirmDiscard,
