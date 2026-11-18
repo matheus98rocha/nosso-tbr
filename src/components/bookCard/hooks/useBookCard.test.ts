@@ -662,6 +662,11 @@ describe("useBookCard", () => {
         await waitFor(() => {
           expect(useReviewComposerStore.getState().open).toBe(true);
         });
+        expect(useReviewComposerStore.getState().mode).toBe("finish");
+        expect(useReviewComposerStore.getState().book).toMatchObject({
+          id: "1",
+          status: "finished",
+        });
         expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
         expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
           bookId: "1",
@@ -686,7 +691,14 @@ describe("useBookCard", () => {
           paused.result.current.onPauseReading();
         });
         await waitFor(() => expect(editBookMock).toHaveBeenCalled());
+        expect(useReviewComposerStore.getState().open).toBe(false);
         expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+
+        act(() => {
+          paused.result.current.onAbandonReading();
+        });
+        await waitFor(() => expect(editBookMock).toHaveBeenCalledTimes(2));
+        expect(useReviewComposerStore.getState().open).toBe(false);
 
         editBookMock.mockClear();
         const shelf = renderBookCardHook(
@@ -697,6 +709,8 @@ describe("useBookCard", () => {
           shelf.result.current.onFinishReading();
         });
         await waitFor(() => expect(useReviewComposerStore.getState().open).toBe(true));
+        expect(useReviewComposerStore.getState().mode).toBe("finish");
+        expect(useReviewComposerStore.getState().book?.status).toBe("finished");
         expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
         expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
       });
@@ -736,6 +750,37 @@ describe("useBookCard", () => {
 
         expect(onEditBook).toHaveBeenCalledTimes(1);
         expect(result.current.dialogEditModal.isOpen).toBe(false);
+      });
+
+      it("abre a resenha com o status atual e trava a nota se ele não veio", () => {
+        resetReviewComposerStore();
+        const reading = renderBookCardHook({ ...baseBook, status: "reading" });
+        act(() => {
+          reading.result.current.openReview();
+        });
+        expect(useReviewComposerStore.getState()).toMatchObject({
+          open: true,
+          mode: "compose",
+          book: { id: "1", status: "reading" },
+        });
+
+        resetReviewComposerStore();
+        const finished = renderBookCardHook({ ...baseBook, status: "finished" });
+        act(() => {
+          finished.result.current.openReview();
+        });
+        expect(useReviewComposerStore.getState().book?.status).toBe("finished");
+
+        resetReviewComposerStore();
+        const missingStatus = renderBookCardHook({ ...baseBook, status: undefined });
+        act(() => {
+          missingStatus.result.current.openReview();
+        });
+        expect(useReviewComposerStore.getState()).toMatchObject({
+          open: true,
+          mode: "compose",
+          book: { id: "1", status: "not_started" },
+        });
       });
 
       it("envia todos os autores ao finalizar a leitura", async () => {

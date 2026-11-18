@@ -201,4 +201,70 @@ describe("useReviewComposerForm", () => {
     });
     expect(upsert).not.toHaveBeenCalled();
   });
+
+  it("aplica a trava ao livro escolhido na busca e publica quando ele está finalizado", async () => {
+    getMineByBookId.mockResolvedValue({ review: null, ratingStars: null });
+    useReviewComposerStore.setState({
+      open: true,
+      mode: "compose",
+      book: null,
+    });
+
+    const { result } = renderForm();
+
+    act(() => {
+      result.current.selectBook({
+        id: "book-reading",
+        title: "1984",
+        author: "George Orwell",
+        imageUrl: null,
+        status: "reading",
+        isSolo: false,
+      });
+    });
+    act(() => {
+      result.current.setStars(5);
+      result.current.setContent("Ainda no começo");
+    });
+
+    expect(result.current.stars).toBeNull();
+    expect(result.current.starsAvailable).toBe(false);
+    expect(result.current.submission.ok).toBe(false);
+
+    act(() => {
+      result.current.submit();
+    });
+    expect(upsert).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.selectBook({
+        id: "book-done",
+        title: "O Hobbit",
+        author: null,
+        imageUrl: null,
+        status: "finished",
+        isSolo: true,
+      });
+    });
+    act(() => {
+      result.current.setStars(4);
+      result.current.setContent("Terminei");
+    });
+
+    expect(result.current.stars).toBe(4);
+    expect(result.current.starsAvailable).toBe(true);
+    expect(result.current.submission.ok).toBe(true);
+
+    act(() => {
+      result.current.submit();
+    });
+
+    await waitFor(() => {
+      expect(upsert).toHaveBeenCalledWith({
+        bookId: "book-done",
+        stars: 4,
+        content: "Terminei",
+      });
+    });
+  });
 });
