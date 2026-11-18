@@ -282,4 +282,61 @@ describe("useReviewComposerForm", () => {
     await waitFor(() => expect(toastMessage).toHaveBeenCalledWith(REVIEWS_COPY.saveRating));
     expect(useReviewComposerStore.getState().open).toBe(false);
   });
+
+  it("descarta o rascunho quando a finalização troca o livro do compositor", async () => {
+    const otherBook: ReviewComposerBook = {
+      ...readingBook,
+      id: "book-2",
+      title: "Outro",
+      status: "finished",
+    };
+    const { result } = await renderComposer(readingBook, "compose");
+    await settleMine(emptyMine);
+    await waitFor(() => expect(result.current.isLoadingExisting).toBe(false));
+
+    act(() => {
+      result.current.setStars(5);
+      result.current.setContent("Sobre o Hobbit");
+    });
+
+    const callsBeforeSwitch = getMineByBookId.mock.calls.length;
+    await act(async () => {
+      useReviewComposerStore.getState().openAfterFinish(otherBook, null);
+    });
+
+    expect(result.current.book?.id).toBe("book-2");
+    expect(result.current.content).toBe("");
+    expect(result.current.stars).toBeNull();
+
+    await act(async () => {
+      result.current.submit();
+    });
+    expect(upsert).not.toHaveBeenCalled();
+
+    await waitFor(() =>
+      expect(getMineByBookId.mock.calls.length).toBeGreaterThan(callsBeforeSwitch),
+    );
+    await settleMine({
+      review: {
+        id: "review-2",
+        stars: 2,
+        content: "Do outro",
+        readingStatus: "finished",
+      },
+      ratingStars: 2,
+    });
+
+    await waitFor(() => expect(result.current.content).toBe("Do outro"));
+    expect(result.current.stars).toBe(2);
+
+    await act(async () => {
+      result.current.submit();
+    });
+    await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
+    expect(upsert).toHaveBeenCalledWith({
+      bookId: "book-2",
+      stars: 2,
+      content: "Do outro",
+    });
+  });
 });
