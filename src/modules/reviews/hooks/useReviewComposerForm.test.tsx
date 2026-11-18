@@ -282,4 +282,62 @@ describe("useReviewComposerForm", () => {
     await waitFor(() => expect(toastMessage).toHaveBeenCalledWith(REVIEWS_COPY.saveRating));
     expect(useReviewComposerStore.getState().open).toBe(false);
   });
+
+  it("não apaga a resenha salva quando as estrelas são escolhidas antes do texto chegar", async () => {
+    const { result } = await renderComposer(finishedBook, "finish");
+
+    act(() => {
+      result.current.setStars(5);
+    });
+    await settleMine({ review: savedReview, ratingStars: 2 });
+
+    await waitFor(() => expect(result.current.content).toBe("Salva"));
+    expect(result.current.stars).toBe(5);
+    expect(result.current.isLoadingExisting).toBe(false);
+
+    await act(async () => {
+      result.current.submit();
+    });
+
+    expect(upsert).toHaveBeenCalledWith({
+      bookId: "book-1",
+      stars: 5,
+      content: "Salva",
+    });
+  });
+
+  it("apaga a resenha quando a pessoa apaga o texto na finalização", async () => {
+    const { result } = await renderComposer(finishedBook, "finish");
+    await settleMine({ review: savedReview, ratingStars: 4 });
+    await waitFor(() => expect(result.current.content).toBe("Salva"));
+
+    act(() => {
+      result.current.setContent("");
+    });
+    await act(async () => {
+      result.current.submit();
+    });
+
+    expect(upsert).toHaveBeenCalledWith({
+      bookId: "book-1",
+      stars: 4,
+      content: "",
+    });
+  });
+
+  it("não grava a avaliação quando a resenha salva não pôde ser lida", async () => {
+    getMineByBookId.mockRejectedValue(new Error("down"));
+    const { result } = await renderComposer(finishedBook, "finish");
+
+    await waitFor(() => expect(result.current.loadFailed).toBe(true));
+    act(() => {
+      result.current.setStars(5);
+    });
+    await act(async () => {
+      result.current.submit();
+    });
+
+    expect(upsert).not.toHaveBeenCalled();
+    expect(useReviewComposerStore.getState().open).toBe(true);
+  });
 });
