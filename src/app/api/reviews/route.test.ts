@@ -104,7 +104,7 @@ describe("PUT /api/reviews", () => {
     expect(response.status).toBe(403);
   });
 
-  it("retorna 400 sem texto quando o livro não está finalizado", async () => {
+  it("recusa a nota quando a leitura não está finalizada", async () => {
     const client = clientFor({
       book: {
         status: "reading",
@@ -114,8 +114,13 @@ describe("PUT /api/reviews", () => {
       },
     });
     const route = await loadRoute(client);
-    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "   " }));
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "Texto" }));
     expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "As estrelas ficam disponíveis quando a leitura está finalizada.",
+    });
+    expect(client.from).not.toHaveBeenCalledWith("book_reviews");
+    expect(client.from).not.toHaveBeenCalledWith("book_reading_ratings");
   });
 
   it("publica a resenha e grava as estrelas quando o livro está finalizado", async () => {

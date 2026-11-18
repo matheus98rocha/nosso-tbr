@@ -19,6 +19,7 @@ import ReadingRatingStarsRow from "@/modules/bookRating/components/readingRating
 import { REVIEWS_COPY } from "../constants";
 import { useReviewComposerForm } from "../hooks";
 import ReviewBookPicker from "./reviewBookPicker";
+import ReviewBookStatusBadge from "./reviewBookStatusBadge";
 
 export default function ReviewComposerDialog() {
   const form = useReviewComposerForm();
@@ -41,7 +42,7 @@ export default function ReviewComposerDialog() {
         if (!next) form.requestClose();
       }}
     >
-      <DialogContent className="max-h-[min(90dvh,44rem)] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="flex max-h-[min(90dvh,44rem)] min-w-0 flex-col overflow-x-hidden overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -52,8 +53,8 @@ export default function ReviewComposerDialog() {
         {!form.book ? <ReviewBookPicker onSelect={form.selectBook} /> : null}
 
         {form.book ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
+          <div className="min-w-0 space-y-4">
+            <div className="flex min-w-0 items-center gap-3">
               <BookCover
                 src={form.book.imageUrl}
                 alt=""
@@ -66,6 +67,9 @@ export default function ReviewComposerDialog() {
                 {form.book.author ? (
                   <p className="truncate text-sm text-muted-foreground">{form.book.author}</p>
                 ) : null}
+                <div className="mt-1">
+                  <ReviewBookStatusBadge status={form.book.status} />
+                </div>
               </div>
             </div>
             {form.book.isSolo ? (
@@ -77,10 +81,13 @@ export default function ReviewComposerDialog() {
               <p className="text-sm font-medium">{REVIEWS_COPY.starsLabel}</p>
               <ReadingRatingStarsRow
                 displayValue={form.stars}
-                disabled={form.isSaving || form.isLoadingExisting}
+                disabled={!form.starsAvailable || form.isSaving || form.isLoadingExisting}
                 ariaOwnsSuffix={form.book.id}
                 onPick={form.setStars}
               />
+              {form.starsAvailable ? null : (
+                <p className="text-sm text-muted-foreground">{REVIEWS_COPY.starsLocked}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label htmlFor="review-content" className="text-sm font-medium">

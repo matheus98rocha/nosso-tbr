@@ -60,6 +60,7 @@ export const REVIEWS_COPY = {
   searchBooks: "Buscar nos seus livros",
   noBooks: "Nenhum livro seu para resenhar.",
   starsLabel: "Nota de 1 a 5 estrelas",
+  starsLocked: "As estrelas ficam disponíveis quando a leitura está finalizada.",
   textLabel: "O que você achou",
   menu: "Ações da resenha",
 } as const;

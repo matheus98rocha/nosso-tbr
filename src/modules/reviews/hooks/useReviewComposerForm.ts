@@ -9,7 +9,12 @@ import { useUserStore } from "@/stores/userStore";
 import { REVIEWS_COPY } from "../constants";
 import { ReviewsService } from "../services";
 import { closeReviewComposer, useReviewComposerStore } from "../stores";
-import { canSubmitReview, reviewContentState, reviewQueryKeys } from "../utils";
+import {
+  canSubmitReview,
+  reviewContentState,
+  reviewQueryKeys,
+  reviewStarsAvailable,
+} from "../utils";
 
 const service = new ReviewsService();
 
@@ -71,6 +76,10 @@ export function useReviewComposerForm() {
   }, [existing.data, hydrationKey, open]);
 
   const contentState = reviewContentState(content);
+  const starsAvailable = useMemo(
+    () => reviewStarsAvailable(book?.status ?? "not_started"),
+    [book?.status],
+  );
   const submission = useMemo(
     () =>
       canSubmitReview({
@@ -134,21 +143,30 @@ export function useReviewComposerForm() {
     save.mutate();
   }, [book, save, submission.ok, viewerUserId]);
 
+  const pickStars = useCallback(
+    (next: number) => {
+      if (!reviewStarsAvailable(book?.status ?? "not_started")) return;
+      touched.current = true;
+      setStars(next);
+    },
+    [book?.status],
+  );
+
+  const updateContent = useCallback((next: string) => {
+    touched.current = true;
+    setContent(next);
+  }, []);
+
   return {
     open,
     mode,
     book,
     selectBook,
     stars,
-    setStars: (next: number) => {
-      touched.current = true;
-      setStars(next);
-    },
+    starsAvailable,
+    setStars: pickStars,
     content,
-    setContent: (next: string) => {
-      touched.current = true;
-      setContent(next);
-    },
+    setContent: updateContent,
     contentState,
     submission,
     isLoadingExisting: Boolean(book) && existing.isLoading,

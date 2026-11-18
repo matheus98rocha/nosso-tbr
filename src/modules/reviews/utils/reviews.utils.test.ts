@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { buildReviewTweetText, xWeightedLength } from "./buildReviewTweetText";
 import { parseReviewTab, scopeFromTab } from "./parseReviewTab";
+import { currentBookStatus, reviewStarsAvailable } from "./currentBookStatus";
+import { filterReviewBooks } from "./filterReviewBooks";
 import { canSubmitReview, reviewContentState } from "./reviewContent";
 import { toggleReviewReaction } from "./reviewReaction";
 import { reviewStatusLabel } from "./reviewStatusLabel";
@@ -44,9 +46,47 @@ describe("resenhas", () => {
         mode: "compose",
         stars: 4,
         content: "  Um livro  ",
-        bookStatus: "reading",
+        bookStatus: "finished",
       }).publishesReview,
     ).toBe(true);
+    expect(
+      canSubmitReview({
+        mode: "compose",
+        stars: 4,
+        content: "Um livro",
+        bookStatus: "reading",
+      }),
+    ).toMatchObject({ publishesReview: false, starsAvailable: false, ok: false });
+    expect(reviewStarsAvailable("finished")).toBe(true);
+    expect(reviewStarsAvailable("paused")).toBe(false);
+    expect(currentBookStatus("finished").label).toBe("Leitura finalizada");
+    expect(currentBookStatus("reading").label).toBe("Lendo agora");
+    expect(currentBookStatus("abandoned").label).toBe("Livro abandonado");
+    expect(
+      filterReviewBooks(
+        [
+          {
+            id: "1",
+            title: "1984",
+            author: "George Orwell",
+            imageUrl: null,
+            status: "reading",
+            isSolo: false,
+            hasReview: false,
+          },
+          {
+            id: "2",
+            title: "O Hobbit",
+            author: "Tolkien",
+            imageUrl: null,
+            status: "finished",
+            isSolo: false,
+            hasReview: true,
+          },
+        ],
+        "hobbit",
+      ).map((book) => book.id),
+    ).toEqual(["2"]);
     expect(
       canSubmitReview({
         mode: "compose",

@@ -1,39 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
 import { BookCover } from "@/components/bookCover";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 import { REVIEWS_COPY } from "../constants";
-import { useReviewBookOptions } from "../hooks";
-import type { ReviewComposerBook } from "../types";
-
-type ReviewBookPickerProps = {
-  onSelect: (book: ReviewComposerBook) => void;
-};
+import { useReviewBookPicker } from "../hooks";
+import type { ReviewBookPickerProps } from "../types";
+import ReviewBookStatusBadge from "./reviewBookStatusBadge";
 
 export default function ReviewBookPicker({ onSelect }: ReviewBookPickerProps) {
-  const { books, isLoading, isError } = useReviewBookOptions(true);
-  const [query, setQuery] = useState("");
-
-  const visible = useMemo(() => {
-    const term = query.trim().toLocaleLowerCase();
-    if (!term) return books;
-    return books.filter((book) =>
-      `${book.title} ${book.author ?? ""}`.toLocaleLowerCase().includes(term),
-    );
-  }, [books, query]);
+  const { query, onQueryChange, visibleBooks, isLoading, isError } = useReviewBookPicker(true);
 
   return (
-    <div className="space-y-3">
+    <div className="flex min-h-0 min-w-0 flex-col gap-3">
       <Input
         value={query}
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => onQueryChange(event.target.value)}
         placeholder={REVIEWS_COPY.searchBooks}
         aria-label={REVIEWS_COPY.searchBooks}
+        className="shrink-0"
       />
       {isLoading ? (
         <div className="space-y-2" aria-busy="true">
@@ -41,18 +27,16 @@ export default function ReviewBookPicker({ onSelect }: ReviewBookPickerProps) {
           <Skeleton className="h-16 w-full rounded-xl" />
         </div>
       ) : null}
-      {isError ? (
-        <p className="text-sm text-muted-foreground">{REVIEWS_COPY.loadError}</p>
-      ) : null}
-      {!isLoading && !isError && visible.length === 0 ? (
+      {isError ? <p className="text-sm text-muted-foreground">{REVIEWS_COPY.loadError}</p> : null}
+      {!isLoading && !isError && visibleBooks.length === 0 ? (
         <p className="text-sm text-muted-foreground">{REVIEWS_COPY.noBooks}</p>
       ) : null}
-      <ul className="max-h-72 space-y-1 overflow-y-auto">
-        {visible.map((book) => (
-          <li key={book.id}>
+      <ul className="max-h-[min(18rem,45dvh)] min-w-0 space-y-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+        {visibleBooks.map((book) => (
+          <li key={book.id} className="min-w-0">
             <button
               type="button"
-              className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-muted"
+              className="flex w-full min-w-0 items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-muted"
               onClick={() =>
                 onSelect({
                   id: book.id,
@@ -78,11 +62,12 @@ export default function ReviewBookPicker({ onSelect }: ReviewBookPickerProps) {
                     {book.author}
                   </span>
                 ) : null}
+                <span className="mt-1 flex min-w-0">
+                  <ReviewBookStatusBadge status={book.status} />
+                </span>
               </span>
               {book.hasReview ? (
-                <span className={cn("shrink-0 text-xs text-muted-foreground")}>
-                  {REVIEWS_COPY.edit}
-                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">{REVIEWS_COPY.edit}</span>
               ) : null}
             </button>
           </li>

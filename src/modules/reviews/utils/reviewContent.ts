@@ -1,6 +1,8 @@
+import type { Status } from "@/types/books.types";
+
 import { REVIEW_MAX_LENGTH, REVIEW_WARN_LENGTH } from "../constants";
 import type { ReviewComposerMode } from "../types";
-import type { Status } from "@/types/books.types";
+import { reviewStarsAvailable } from "./currentBookStatus";
 
 export type ReviewContentTone = "ok" | "warn" | "limit";
 
@@ -24,18 +26,17 @@ export function canSubmitReview(input: {
   content: string;
   bookStatus: Status;
 }) {
-  const starsOk = input.stars !== null && input.stars >= 1 && input.stars <= 5;
+  const starsAvailable = reviewStarsAvailable(input.bookStatus);
+  const starsOk =
+    starsAvailable && input.stars !== null && input.stars >= 1 && input.stars <= 5;
   const text = input.content.trim();
   const publishesReview = starsOk && text.length > 0;
-  const savesRatingOnly =
-    input.mode === "finish" &&
-    starsOk &&
-    text.length === 0 &&
-    input.bookStatus === "finished";
+  const savesRatingOnly = input.mode === "finish" && starsOk && text.length === 0;
 
   return {
     publishesReview,
     savesRatingOnly,
+    starsAvailable,
     ok: publishesReview || savesRatingOnly,
   };
 }
