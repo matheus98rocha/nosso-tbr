@@ -123,6 +123,56 @@ describe("PUT /api/reviews", () => {
     expect(client.from).not.toHaveBeenCalledWith("book_reading_ratings");
   });
 
+  it("recusa a nota em qualquer status que não seja leitura finalizada", async () => {
+    const statuses: Array<string | null> = [
+      "paused",
+      "abandoned",
+      "planned",
+      "not_started",
+      "Finished",
+      "",
+      null,
+    ];
+
+    for (const status of statuses) {
+      const client = clientFor({
+        book: {
+          status,
+          user_id: USER_ID,
+          chosen_by: USER_ID,
+          readers: [USER_ID],
+        },
+      });
+      const route = await loadRoute(client);
+      const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "Texto" }));
+      expect(response.status, `status ${String(status)}`).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({
+        error: "As estrelas ficam disponíveis quando a leitura está finalizada.",
+      });
+      expect(client.from).not.toHaveBeenCalledWith("book_reviews");
+      expect(client.from).not.toHaveBeenCalledWith("book_reading_ratings");
+    }
+  });
+
+  it("recusa a nota mesmo com texto em branco quando a leitura não terminou", async () => {
+    const client = clientFor({
+      book: {
+        status: "paused",
+        user_id: USER_ID,
+        chosen_by: USER_ID,
+        readers: [USER_ID],
+      },
+    });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "   " }));
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "As estrelas ficam disponíveis quando a leitura está finalizada.",
+    });
+    expect(client.from).not.toHaveBeenCalledWith("book_reviews");
+    expect(client.from).not.toHaveBeenCalledWith("book_reading_ratings");
+  });
+
   it("publica a resenha e grava as estrelas quando o livro está finalizado", async () => {
     const client = clientFor({});
     const route = await loadRoute(client);
@@ -148,6 +198,20 @@ describe("PUT /api/reviews", () => {
       published: false,
       reviewId: null,
       stars: 3,
+    });
+    expect(client.from).not.toHaveBeenCalledWith("book_reviews");
+    expect(client.from).toHaveBeenCalledWith("book_reading_ratings");
+  });
+
+  it("não publica resenha em branco quando a leitura está finalizada", async () => {
+    const client = clientFor({});
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 2, content: "   " }));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      published: false,
+      reviewId: null,
+      stars: 2,
     });
     expect(client.from).not.toHaveBeenCalledWith("book_reviews");
     expect(client.from).toHaveBeenCalledWith("book_reading_ratings");

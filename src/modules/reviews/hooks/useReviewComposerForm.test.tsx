@@ -278,4 +278,88 @@ describe("useReviewComposerForm", () => {
       });
     });
   });
+
+  it("não publica a resenha salva quando a leitura deixou de estar finalizada", async () => {
+    getMineByBookId.mockResolvedValue({
+      review: aliceReview,
+      ratingStars: 5,
+      bookStatus: "reading",
+    });
+    useReviewComposerStore.setState({
+      open: true,
+      mode: "compose",
+      book: {
+        id: "book-1",
+        title: "O Hobbit",
+        author: null,
+        imageUrl: null,
+        status: "reading",
+        isSolo: true,
+      },
+    });
+
+    const { result } = renderForm();
+
+    await waitFor(() => {
+      expect(result.current.content).toBe("Texto privado da Alice");
+    });
+    expect(result.current.book?.status).toBe("reading");
+    expect(result.current.stars).toBe(5);
+    expect(result.current.starsAvailable).toBe(false);
+    expect(result.current.submission.ok).toBe(false);
+
+    act(() => {
+      result.current.setStars(1);
+    });
+    expect(result.current.stars).toBe(5);
+
+    act(() => {
+      result.current.submit();
+    });
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it("não salva a avaliação na finalização se o livro não está finalizado", async () => {
+    getMineByBookId.mockResolvedValue({
+      review: null,
+      ratingStars: null,
+      bookStatus: "paused",
+    });
+    useReviewComposerStore.setState({
+      open: true,
+      mode: "finish",
+      book: {
+        id: "book-2",
+        title: "1984",
+        author: "George Orwell",
+        imageUrl: null,
+        status: "paused",
+        isSolo: false,
+      },
+    });
+
+    const { result } = renderForm();
+
+    await waitFor(() => {
+      expect(result.current.book?.status).toBe("paused");
+    });
+
+    act(() => {
+      result.current.setStars(4);
+      result.current.setContent("Quase");
+    });
+
+    expect(result.current.stars).toBeNull();
+    expect(result.current.starsAvailable).toBe(false);
+    expect(result.current.submission).toMatchObject({
+      publishesReview: false,
+      savesRatingOnly: false,
+      ok: false,
+    });
+
+    act(() => {
+      result.current.submit();
+    });
+    expect(upsert).not.toHaveBeenCalled();
+  });
 });
