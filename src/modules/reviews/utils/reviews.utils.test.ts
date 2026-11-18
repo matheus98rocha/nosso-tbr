@@ -115,4 +115,18 @@ describe("resenhas", () => {
     expect(long.endsWith("— Ana")).toBe(true);
     expect(long).toContain("…");
   });
+
+  it("pesa um caractere fora do BMP como 2 e completa título, autor e leitor vazios", () => {
+    expect(xWeightedLength("á")).toBe(1);
+    expect(xWeightedLength("😀")).toBe(2);
+
+    expect(
+      buildReviewTweetText({
+        title: "  ",
+        author: "   ",
+        content: "Oi",
+        readerName: "  ",
+      }),
+    ).toBe("Resenha de “um livro”: Oi — um leitor");
+  });
 });
