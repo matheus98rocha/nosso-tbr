@@ -76,9 +76,16 @@ export function useReviewComposerForm() {
   }, [existing.data, hydrationKey, open]);
 
   const contentState = reviewContentState(content);
+  const liveStatus = existing.data?.bookStatus ?? null;
+  const currentStatus = liveStatus ?? book?.status ?? "not_started";
+  const shownBook = useMemo(() => {
+    if (!book) return null;
+    if (!liveStatus || liveStatus === book.status) return book;
+    return { ...book, status: liveStatus };
+  }, [book, liveStatus]);
   const starsAvailable = useMemo(
-    () => reviewStarsAvailable(book?.status ?? "not_started"),
-    [book?.status],
+    () => reviewStarsAvailable(currentStatus),
+    [currentStatus],
   );
   const submission = useMemo(
     () =>
@@ -86,9 +93,9 @@ export function useReviewComposerForm() {
         mode: mode ?? "compose",
         stars,
         content,
-        bookStatus: book?.status ?? "not_started",
+        bookStatus: currentStatus,
       }),
-    [book?.status, content, mode, stars],
+    [content, currentStatus, mode, stars],
   );
 
   const dirty =
@@ -145,11 +152,11 @@ export function useReviewComposerForm() {
 
   const pickStars = useCallback(
     (next: number) => {
-      if (!reviewStarsAvailable(book?.status ?? "not_started")) return;
+      if (!reviewStarsAvailable(currentStatus)) return;
       touched.current = true;
       setStars(next);
     },
-    [book?.status],
+    [currentStatus],
   );
 
   const updateContent = useCallback((next: string) => {
@@ -160,7 +167,7 @@ export function useReviewComposerForm() {
   return {
     open,
     mode,
-    book,
+    book: shownBook,
     selectBook,
     stars,
     starsAvailable,

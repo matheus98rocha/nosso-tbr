@@ -96,13 +96,14 @@ export class ReviewsService {
   async getMineByBookId(bookId: string): Promise<{
     review: ReviewMine | null;
     ratingStars: number | null;
+    bookStatus: Status | null;
   }> {
     const {
       data: { user },
     } = await this.supabase.auth.getUser();
-    if (!user) return { review: null, ratingStars: null };
+    if (!user) return { review: null, ratingStars: null, bookStatus: null };
 
-    const [reviewResult, ratingResult] = await Promise.all([
+    const [reviewResult, ratingResult, bookResult] = await Promise.all([
       this.supabase
         .from("book_reviews")
         .select("id, stars, content, reading_status")
@@ -115,10 +116,12 @@ export class ReviewsService {
         .eq("user_id", user.id)
         .eq("book_id", bookId)
         .maybeSingle(),
+      this.supabase.from("books").select("status").eq("id", bookId).maybeSingle(),
     ]);
 
     if (reviewResult.error) throw new Error(reviewResult.error.message);
     if (ratingResult.error) throw new Error(ratingResult.error.message);
+    if (bookResult.error) throw new Error(bookResult.error.message);
 
     return {
       review: reviewResult.data
@@ -133,6 +136,7 @@ export class ReviewsService {
         : null,
       ratingStars:
         typeof ratingResult.data?.stars === "number" ? ratingResult.data.stars : null,
+      bookStatus: bookResult.data ? asStatus(bookResult.data.status as string | null) : null,
     };
   }
 

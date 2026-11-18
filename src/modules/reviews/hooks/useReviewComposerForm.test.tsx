@@ -7,7 +7,7 @@ import { useUserStore } from "@/stores/userStore";
 import type { User } from "@/types/user.types";
 
 import { resetReviewComposerStore, useReviewComposerStore } from "../stores";
-import type { ReviewMine } from "../types";
+import type { ReviewComposerBook, ReviewMine } from "../types";
 import { reviewQueryKeys } from "../utils";
 import { useReviewComposerForm } from "./useReviewComposerForm";
 
@@ -126,5 +126,63 @@ describe("useReviewComposerForm", () => {
     });
 
     resolveBob({ review: null, ratingStars: null });
+  });
+
+  it("libera as estrelas pelo status atual do livro, não pelo gravado na resenha", async () => {
+    const snapshot: ReviewComposerBook = {
+      id: "book-1",
+      title: "O Hobbit",
+      author: null,
+      imageUrl: null,
+      status: "reading",
+      isSolo: false,
+    };
+    useReviewComposerStore.setState({
+      open: true,
+      mode: "compose",
+      book: snapshot,
+    });
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, staleTime: 120_000, refetchOnMount: false },
+      },
+    });
+    queryClient.setQueryData(reviewQueryKeys.mineByBook(alice.id, "book-1"), {
+      review: { ...aliceReview, readingStatus: "reading" },
+      ratingStars: null,
+      bookStatus: "finished",
+    });
+
+    const { result } = renderHook(() => useReviewComposerForm(), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+    });
+
+    await waitFor(() => {
+      expect(result.current.book?.status).toBe("finished");
+    });
+    expect(result.current.starsAvailable).toBe(true);
+
+    act(() => {
+      useReviewComposerStore.setState({
+        book: { ...snapshot, status: "finished" },
+      });
+    });
+    queryClient.setQueryData(reviewQueryKeys.mineByBook(alice.id, "book-1"), {
+      review: aliceReview,
+      ratingStars: 5,
+      bookStatus: "reading",
+    });
+
+    await waitFor(() => {
+      expect(result.current.book?.status).toBe("reading");
+    });
+    expect(result.current.starsAvailable).toBe(false);
+    act(() => {
+      result.current.setStars(4);
+    });
+    expect(result.current.stars).toBe(5);
   });
 });
