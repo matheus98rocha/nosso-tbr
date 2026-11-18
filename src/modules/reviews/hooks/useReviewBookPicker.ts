@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { filterReviewBooks } from "../utils";
+import { filterReviewBooks, sortReviewBooksByStatusPriority } from "../utils";
 import { useReviewBookOptions } from "./useReviewBookOptions";
 
 export function useReviewBookPicker(enabled: boolean) {
@@ -13,7 +13,11 @@ export function useReviewBookPicker(enabled: boolean) {
     setQuery(value);
   }, []);
 
-  const visibleBooks = useMemo(() => filterReviewBooks(books, query), [books, query]);
+  const sortedBooks = useMemo(() => sortReviewBooksByStatusPriority(books), [books]);
+  const visibleBooks = useMemo(
+    () => filterReviewBooks(sortedBooks, query),
+    [sortedBooks, query],
+  );
 
   return useMemo(
     () => ({
