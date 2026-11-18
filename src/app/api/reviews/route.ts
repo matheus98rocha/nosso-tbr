@@ -101,6 +101,18 @@ export async function PUT(request: Request) {
     if (ratingErr) {
       return NextResponse.json({ error: ratingErr.message }, { status: 500 });
     }
+
+    if (!content) {
+      const { error: deleteErr } = await supabase
+        .from("book_reviews")
+        .delete()
+        .eq("user_id", auth.user.id)
+        .eq("book_id", parsed.data.bookId);
+
+      if (deleteErr) {
+        return NextResponse.json({ error: deleteErr.message }, { status: 500 });
+      }
+    }
   }
 
   return NextResponse.json({

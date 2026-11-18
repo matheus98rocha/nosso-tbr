@@ -4,16 +4,40 @@ const BOOK_ID = "550e8400-e29b-41d4-a716-446655440001";
 const USER_ID = "660e8400-e29b-41d4-a716-446655440002";
 const OTHER_ID = "770e8400-e29b-41d4-a716-446655440003";
 
-function table(result: { data: unknown; error: unknown }) {
-  const promise = Promise.resolve(result);
+type QueryCall = {
+  table: string;
+  op: string;
+  filters: Array<[string, unknown]>;
+};
+
+function table(
+  calls: QueryCall[],
+  name: string,
+  resultFor: (op: string) => { data: unknown; error: { message: string } | null },
+) {
+  let op = "select";
+  const filters: Array<[string, unknown]> = [];
   const proxy: object = new Proxy(
     {},
     {
       get(_target, prop) {
         if (prop === "then") {
-          return promise.then.bind(promise);
+          return (
+            onFulfilled?: (value: unknown) => unknown,
+            onRejected?: (reason: unknown) => unknown,
+          ) => {
+            calls.push({ table: name, op, filters: [...filters] });
+            return Promise.resolve(resultFor(op)).then(onFulfilled, onRejected);
+          };
         }
-        return () => proxy;
+        return (...args: unknown[]) => {
+          if (prop === "upsert" || prop === "delete" || prop === "insert") {
+            op = prop;
+          } else if (prop === "eq") {
+            filters.push([String(args[0]), args[1]]);
+          }
+          return proxy;
+        };
       },
     },
   );
@@ -24,35 +48,51 @@ function clientFor(options: {
   userId?: string | null;
   book?: Record<string, unknown> | null;
   reviewId?: string;
+  ratingError?: string | null;
+  reviewDeleteError?: string | null;
 }) {
   const userId = options.userId === undefined ? USER_ID : options.userId;
+  const calls: QueryCall[] = [];
+  const book =
+    options.book === undefined
+      ? {
+          status: "finished",
+          user_id: USER_ID,
+          chosen_by: USER_ID,
+          readers: [USER_ID],
+        }
+      : options.book;
   return {
+    calls,
     auth: {
       getUser: vi.fn().mockResolvedValue({
         data: { user: userId ? { id: userId } : null },
         error: null,
       }),
     },
-    from: vi.fn((name: string) => {
-      if (name === "books") {
-        return table({
-          data:
-            options.book === undefined
-              ? {
-                  status: "finished",
-                  user_id: USER_ID,
-                  chosen_by: USER_ID,
-                  readers: [USER_ID],
-                }
-              : options.book,
-          error: null,
-        });
-      }
-      if (name === "book_reviews") {
-        return table({ data: { id: options.reviewId ?? "review-1" }, error: null });
-      }
-      return table({ data: null, error: null });
-    }),
+    from: vi.fn((name: string) =>
+      table(calls, name, (op) => {
+        if (name === "books") return { data: book, error: null };
+        if (name === "book_reviews" && op === "delete") {
+          return {
+            data: null,
+            error: options.reviewDeleteError
+              ? { message: options.reviewDeleteError }
+              : null,
+          };
+        }
+        if (name === "book_reviews") {
+          return { data: { id: options.reviewId ?? "review-1" }, error: null };
+        }
+        if (name === "book_reading_ratings") {
+          return {
+            data: null,
+            error: options.ratingError ? { message: options.ratingError } : null,
+          };
+        }
+        return { data: null, error: null };
+      }),
+    ),
   };
 }
 
@@ -130,22 +170,65 @@ describe("PUT /api/reviews", () => {
       reviewId: "review-1",
       stars: 5,
     });
-    expect(client.from).toHaveBeenCalledWith("book_reviews");
-    expect(client.from).toHaveBeenCalledWith("book_reading_ratings");
+    expect(client.calls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ table: "book_reviews", op: "upsert" }),
+        expect.objectContaining({ table: "book_reading_ratings", op: "upsert" }),
+      ]),
+    );
+    expect(client.calls.some((call) => call.op === "delete")).toBe(false);
   });
 
   it("salva só a avaliação quando a finalização vem sem texto", async () => {
     const client = clientFor({});
     const route = await loadRoute(client);
-    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 3, content: "" }));
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 3, content: "   " }));
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
       published: false,
       reviewId: null,
       stars: 3,
     });
-    expect(client.from).not.toHaveBeenCalledWith("book_reviews");
-    expect(client.from).toHaveBeenCalledWith("book_reading_ratings");
+    expect(client.calls.filter((call) => call.table === "book_reviews")).toEqual([
+      {
+        table: "book_reviews",
+        op: "delete",
+        filters: [
+          ["user_id", USER_ID],
+          ["book_id", BOOK_ID],
+        ],
+      },
+    ]);
+    const ratingIndex = client.calls.findIndex(
+      (call) => call.table === "book_reading_ratings" && call.op === "upsert",
+    );
+    const deleteIndex = client.calls.findIndex(
+      (call) => call.table === "book_reviews" && call.op === "delete",
+    );
+    expect(ratingIndex).toBeGreaterThanOrEqual(0);
+    expect(deleteIndex).toBeGreaterThan(ratingIndex);
+  });
+
+  it("mantém a resenha publicada se a avaliação privada falha", async () => {
+    const client = clientFor({ ratingError: "rating down" });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 3, content: "" }));
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "rating down" });
+    expect(client.calls.some((call) => call.op === "delete")).toBe(false);
+  });
+
+  it("retorna 500 quando a resenha antiga não sai depois das estrelas", async () => {
+    const client = clientFor({ reviewDeleteError: "delete down" });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 3, content: "" }));
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "delete down" });
+    expect(
+      client.calls.some(
+        (call) => call.table === "book_reading_ratings" && call.op === "upsert",
+      ),
+    ).toBe(true);
   });
 
   it("publica a resenha de um livro em andamento sem gravar a avaliação privada", async () => {
