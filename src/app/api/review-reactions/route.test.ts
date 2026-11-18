@@ -86,10 +86,17 @@ describe("POST /api/review-reactions", () => {
     expect(response.status).toBe(400);
   });
 
-  it("retorna 403 na própria resenha", async () => {
-    const { route } = await loadRoute({ userId: AUTHOR_ID, authorId: AUTHOR_ID });
+  it("retorna 403 na própria resenha e não grava reação", async () => {
+    const writes: { op: string }[] = [];
+    const { route, client } = await loadRoute({
+      userId: AUTHOR_ID,
+      authorId: AUTHOR_ID,
+      writes,
+    });
     const response = await route.POST(post({ reviewId: REVIEW_ID, reaction: "like" }));
     expect(response.status).toBe(403);
+    expect(client.from).not.toHaveBeenCalledWith("book_review_reactions");
+    expect(writes).toEqual([]);
   });
 
   it("grava a reação e devolve as contagens", async () => {
