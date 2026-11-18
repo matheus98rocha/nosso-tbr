@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ApiError } from "@/lib/api/clientJsonFetch";
 import { useUserStore } from "@/stores/userStore";
 
 import { REVIEWS_COPY } from "../constants";
@@ -29,16 +30,26 @@ export function useReviewComposerForm() {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const hydratedFor = useRef<string | null>(null);
   const touched = useRef(false);
+  const shownReviewId = useRef<string | null>(null);
+  const removedReviewId = useRef<string | null>(null);
+  const bookId = book?.id ?? null;
   const [draftUserId, setDraftUserId] = useState(viewerUserId);
+  const [draftBookId, setDraftBookId] = useState(bookId);
 
-  if (draftUserId !== viewerUserId) {
+  if (draftUserId !== viewerUserId || draftBookId !== bookId) {
+    const userChanged = draftUserId !== viewerUserId;
     setDraftUserId(viewerUserId);
+    setDraftBookId(bookId);
     hydratedFor.current = null;
-    touched.current = false;
-    setStars(null);
-    setContent("");
-    setBaseline(emptyBaseline);
-    setConfirmDiscard(false);
+    shownReviewId.current = null;
+    removedReviewId.current = null;
+    if (userChanged) {
+      touched.current = false;
+      setStars(null);
+      setContent("");
+      setBaseline(emptyBaseline);
+      setConfirmDiscard(false);
+    }
   }
 
   const existing = useQuery({
@@ -53,6 +64,8 @@ export function useReviewComposerForm() {
   useEffect(() => {
     if (!open) {
       hydratedFor.current = null;
+      shownReviewId.current = null;
+      removedReviewId.current = null;
       touched.current = false;
       setStars(null);
       setContent("");
@@ -62,7 +75,11 @@ export function useReviewComposerForm() {
     }
     if (!hydrationKey || !existing.data || hydratedFor.current === hydrationKey) return;
     hydratedFor.current = hydrationKey;
-    if (touched.current) return;
+    if (touched.current) {
+      shownReviewId.current = null;
+      return;
+    }
+    shownReviewId.current = existing.data.review?.id ?? null;
     const nextStars = existing.data.review?.stars ?? existing.data.ratingStars;
     const nextContent = existing.data.review?.content ?? "";
     setStars(nextStars);
@@ -86,15 +103,25 @@ export function useReviewComposerForm() {
     stars !== baseline.stars || content.trim() !== baseline.content.trim();
 
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const currentUserId = useUserStore.getState().user?.id ?? null;
       if (!book?.id || currentUserId !== viewerUserId) {
         return Promise.reject(new Error("stale-review-session"));
       }
+      const trimmed = contentState.trimmed;
+      const reviewId = shownReviewId.current;
+      if (!trimmed && reviewId && reviewId !== removedReviewId.current) {
+        try {
+          await service.deleteReview(reviewId);
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.status !== 404) throw error;
+        }
+        removedReviewId.current = reviewId;
+      }
       return service.upsert({
         bookId: book.id,
         stars: stars ?? 0,
-        content: contentState.trimmed,
+        content: trimmed,
       });
     },
     onSuccess: (result) => {
