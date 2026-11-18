@@ -215,7 +215,114 @@ describe("ReviewsService", () => {
     );
   });
 
-  it("lê o autor em lista e descarta nome em branco ou status fora da lista", async () => {
+  it("lista só as resenhas da sessão e falha sem devolver ids", async () => {
+    const filters: Array<[string, unknown]> = [];
+    const promise = Promise.resolve({
+      data: [{ book_id: "book-1" }, { book_id: "book-2" }],
+      error: null,
+    });
+    const query = {
+      select: vi.fn(),
+      eq: vi.fn((column: string, value: unknown) => {
+        filters.push([column, value]);
+        return query;
+      }),
+      then: promise.then.bind(promise),
+    };
+    query.select.mockReturnValue(query);
+    from.mockReturnValue(query);
+
+    await expect(new ReviewsService().listMyBookIds()).resolves.toEqual(["book-1", "book-2"]);
+    expect(from).toHaveBeenCalledWith("book_reviews");
+    expect(filters).toEqual([["user_id", "user-1"]]);
+
+    from.mockReturnValue(chain({ data: null, error: { message: "ids down" } }));
+    await expect(new ReviewsService().listMyBookIds()).rejects.toThrow("ids down");
+  });
+
+  it("não devolve a resenha salva quando a nota privada falha", async () => {
+    from.mockImplementation((table: string) => {
+      if (table === "book_reviews") {
+        return chain({
+          data: {
+            id: "review-1",
+            stars: 4,
+            content: "Oi",
+            reading_status: "finished",
+          },
+          error: null,
+        });
+      }
+      return chain({ data: null, error: { message: "rating down" } });
+    });
+
+    await expect(new ReviewsService().getMineByBookId("book-1")).rejects.toThrow("rating down");
+  });
+
+  it("não oferece livro quando a busca de participação falha", async () => {
+    const query = {
+      or: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data: null, error: { message: "books down" } }),
+    };
+    from.mockReturnValue({ select: vi.fn(() => query) });
+
+    await expect(new ReviewsService().listParticipatingBooks([])).rejects.toThrow("books down");
+  });
+
+  it("lista os comentários da resenha em ordem cronológica", async () => {
+    const filters: Array<[string, unknown]> = [];
+    const orders: Array<[string, unknown]> = [];
+    const promise = Promise.resolve({
+      data: [
+        {
+          id: "comment-1",
+          review_id: "review-1",
+          user_id: "user-2",
+          parent_id: null,
+          content: "Oi",
+          created_at: "2026-11-01T00:00:00.000Z",
+          users: [{ display_name: "  Ana  ", avatar_seed: "seed" }],
+        },
+      ],
+      error: null,
+    });
+    const query = {
+      select: vi.fn(),
+      eq: vi.fn((column: string, value: unknown) => {
+        filters.push([column, value]);
+        return query;
+      }),
+      order: vi.fn((column: string, options: unknown) => {
+        orders.push([column, options]);
+        return query;
+      }),
+      then: promise.then.bind(promise),
+    };
+    query.select.mockReturnValue(query);
+    from.mockReturnValue(query);
+
+    await expect(new ReviewsService().listComments("review-1")).resolves.toEqual([
+      {
+        id: "comment-1",
+        reviewId: "review-1",
+        userId: "user-2",
+        parentId: null,
+        content: "Oi",
+        createdAt: "2026-11-01T00:00:00.000Z",
+        authorDisplayName: "Ana",
+        authorAvatarSeed: "seed",
+      },
+    ]);
+    expect(from).toHaveBeenCalledWith("book_review_comments");
+    expect(filters).toEqual([["review_id", "review-1"]]);
+    expect(orders).toEqual([["created_at", { ascending: true }]]);
+
+    from.mockReturnValue(chain({ data: null, error: { message: "comments down" } }));
+    await expect(new ReviewsService().listComments("review-1")).rejects.toThrow("comments down");
+  });
+
+  it("lista o autor em lista e descarta nome em branco ou status fora da lista", async () => {
     const query = {
       or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),

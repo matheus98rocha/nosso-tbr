@@ -47,7 +47,9 @@ function table(
 function clientFor(options: {
   userId?: string | null;
   book?: Record<string, unknown> | null;
+  bookError?: string | null;
   reviewId?: string;
+  reviewError?: string | null;
   ratingError?: string | null;
   reviewDeleteError?: string | null;
 }) {
@@ -72,7 +74,12 @@ function clientFor(options: {
     },
     from: vi.fn((name: string) =>
       table(calls, name, (op) => {
-        if (name === "books") return { data: book, error: null };
+        if (name === "books") {
+          return {
+            data: book,
+            error: options.bookError ? { message: options.bookError } : null,
+          };
+        }
         if (name === "book_reviews" && op === "delete") {
           return {
             data: null,
@@ -82,7 +89,10 @@ function clientFor(options: {
           };
         }
         if (name === "book_reviews") {
-          return { data: { id: options.reviewId ?? "review-1" }, error: null };
+          return {
+            data: options.reviewError ? null : { id: options.reviewId ?? "review-1" },
+            error: options.reviewError ? { message: options.reviewError } : null,
+          };
         }
         if (name === "book_reading_ratings") {
           return {
@@ -216,6 +226,86 @@ describe("PUT /api/reviews", () => {
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({ error: "rating down" });
     expect(client.calls.some((call) => call.op === "delete")).toBe(false);
+  });
+
+  it("recusa JSON inválido sem consultar o banco", async () => {
+    const client = clientFor({});
+    const route = await loadRoute(client);
+    const response = await route.PUT(
+      new Request("http://localhost/api/reviews", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: "{",
+      }),
+    );
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "JSON inválido" });
+    expect(client.from).not.toHaveBeenCalled();
+  });
+
+  it("recusa texto acima de 500 sem consultar o banco", async () => {
+    const client = clientFor({});
+    const route = await loadRoute(client);
+    const response = await route.PUT(
+      put({ bookId: BOOK_ID, stars: 5, content: "a".repeat(501) }),
+    );
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "Dados inválidos" });
+    expect(client.from).not.toHaveBeenCalled();
+  });
+
+  it("retorna 404 sem gravar quando o livro não existe", async () => {
+    const client = clientFor({ book: null });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "Texto" }));
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: "Livro não encontrado" });
+    expect(client.calls.map((call) => call.table)).toEqual(["books"]);
+  });
+
+  it("retorna 500 sem gravar quando a leitura do livro falha", async () => {
+    const client = clientFor({ bookError: "book down" });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "Texto" }));
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "book down" });
+    expect(client.calls.some((call) => call.op === "upsert" || call.op === "delete")).toBe(
+      false,
+    );
+  });
+
+  it("publica a resenha de quem só está em readers e não grava avaliação de livro em leitura", async () => {
+    const client = clientFor({
+      book: {
+        status: "reading",
+        user_id: OTHER_ID,
+        chosen_by: OTHER_ID,
+        readers: [OTHER_ID, USER_ID],
+      },
+    });
+    const route = await loadRoute(client);
+    const response = await route.PUT(
+      put({ bookId: BOOK_ID, stars: 4, content: "  No meio  " }),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      published: true,
+      reviewId: "review-1",
+      stars: 4,
+    });
+    expect(client.calls.some((call) => call.table === "book_reviews" && call.op === "upsert")).toBe(
+      true,
+    );
+    expect(client.calls.some((call) => call.table === "book_reading_ratings")).toBe(false);
+  });
+
+  it("não grava a avaliação quando a resenha não entra", async () => {
+    const client = clientFor({ reviewError: "review down" });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 5, content: "Texto" }));
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "review down" });
+    expect(client.calls.some((call) => call.table === "book_reading_ratings")).toBe(false);
   });
 
   it("retorna 500 quando a resenha antiga não sai depois das estrelas", async () => {
