@@ -143,4 +143,78 @@ describe("contrato posicional de resenhas", () => {
     expect(earlyReturn).toBeGreaterThan(guard);
     expect(statusAssign).toBeGreaterThan(earlyReturn);
   });
+
+  it("restringe o feed a tudo, às próprias ou a quem a sessão segue, e limita a página", () => {
+    const body = functionBody("FUNCTION public.get_review_feed(");
+    const guard = body.indexOf("p_scope NOT IN ('all', 'following', 'mine')");
+    const raised = body.indexOf("RAISE EXCEPTION", guard);
+    const query = body.indexOf("RETURN QUERY", raised);
+    const where = body.slice(body.indexOf("WHERE ("));
+    const following = where.slice(where.indexOf("p_scope = 'following'"));
+
+    expect(guard).toBeGreaterThan(-1);
+    expect(raised).toBeGreaterThan(guard);
+    expect(query).toBeGreaterThan(raised);
+    expect(body).toContain("LEAST(GREATEST(COALESCE(p_limit, 10), 1), 30)");
+    expect(where).toContain("p_scope = 'all'");
+    expect(where).toContain("p_scope = 'mine' AND r.user_id = auth.uid()");
+    expect(following).toContain("FROM public.user_followers AS uf");
+    expect(following).toContain("uf.follower_id = auth.uid()");
+    expect(following).toContain("uf.following_id = r.user_id");
+    expect(following.indexOf("uf.follower_id = auth.uid()")).toBeLessThan(
+      following.indexOf("ORDER BY"),
+    );
+  });
+
+  it("espelha a nota privada só na resenha da mesma pessoa e do mesmo livro", () => {
+    const body = functionBody("FUNCTION public.book_reading_ratings_sync_review_stars()");
+
+    expect(body).toContain("UPDATE public.book_reviews");
+    expect(body).toContain("SET stars = NEW.stars");
+    expect(body).toContain("user_id = NEW.user_id");
+    expect(body).toContain("book_id = NEW.book_id");
+    expect(body).toContain("stars IS DISTINCT FROM NEW.stars");
+    expect(body).not.toContain("content");
+    expect(body).not.toContain("reading_status");
+  });
+
+  it("recusa resposta a uma resposta e resposta de outra resenha", () => {
+    const body = functionBody("FUNCTION public.book_review_comments_validate_parent()");
+    const early = body.indexOf("IF NEW.parent_id IS NULL");
+    const earlyReturn = body.indexOf("RETURN NEW", early);
+    const lookup = body.indexOf("FROM public.book_review_comments", earlyReturn);
+
+    expect(early).toBeGreaterThan(-1);
+    expect(earlyReturn).toBeGreaterThan(early);
+    expect(lookup).toBeGreaterThan(earlyReturn);
+    expect(body).toContain("IF v_parent_parent IS NOT NULL");
+    expect(body).toContain("Respostas só podem ser feitas ao comentário principal.");
+    expect(body).toContain("v_parent_review IS DISTINCT FROM NEW.review_id");
+    expect(body).toContain("A resposta precisa ser da mesma resenha.");
+  });
+
+  it("impede reação na própria resenha e só deixa apagar comentário do autor ou de quem publicou", () => {
+    const insert = sql.slice(
+      sql.indexOf("CREATE POLICY book_review_reactions_insert_visible"),
+      sql.indexOf("CREATE POLICY book_review_reactions_update_own"),
+    );
+    const commentDelete = sql.slice(
+      sql.indexOf("CREATE POLICY book_review_comments_delete_author_or_review_author"),
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.get_review_feed("),
+    );
+    const commentGrant = sql.slice(
+      sql.indexOf("GRANT SELECT, INSERT, DELETE ON public.book_review_comments"),
+    );
+
+    expect(insert).toContain("user_id = auth.uid()");
+    expect(insert).toContain("NOT EXISTS");
+    expect(insert).toContain("r.user_id = auth.uid()");
+    expect(commentDelete).toContain("user_id = auth.uid()");
+    expect(commentDelete).toContain("r.user_id = auth.uid()");
+    expect(commentDelete).not.toContain("FOR UPDATE");
+    expect(commentGrant.startsWith(
+      "GRANT SELECT, INSERT, DELETE ON public.book_review_comments TO authenticated;",
+    )).toBe(true);
+    expect(sql).not.toContain("GRANT UPDATE ON public.book_review_comments");
+  });
 });
