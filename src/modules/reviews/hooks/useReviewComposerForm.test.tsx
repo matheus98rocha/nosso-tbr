@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+﻿import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -248,7 +248,13 @@ describe("useReviewComposerForm", () => {
     expect(deleteReview).toHaveBeenCalledTimes(1);
   });
 
-  it("não exclui a resenha de outro livro quando a finalização troca o livro", async () => {
+  it("descarta o rascunho quando a finalização troca o livro do compositor", async () => {
+    const otherReview: ReviewMine = {
+      id: "review-2",
+      stars: 2,
+      content: "Do outro",
+      readingStatus: "finished",
+    };
     const otherBook: ReviewComposerBook = {
       id: "book-2",
       title: "Outro",
@@ -259,15 +265,71 @@ describe("useReviewComposerForm", () => {
     };
     getMineByBookId.mockImplementation(async (id: string) => {
       if (id === otherBook.id) {
-        return {
-          review: {
-            id: "review-2",
-            stars: 2,
-            content: "Do outro",
-            readingStatus: "finished" as const,
-          },
-          ratingStars: 2,
-        };
+        return { review: otherReview, ratingStars: 2 };
+      }
+      return { review: aliceReview, ratingStars: 5 };
+    });
+
+    const { result } = renderForm();
+
+    await waitFor(() => {
+      expect(result.current.content).toBe("Texto privado da Alice");
+    });
+
+    act(() => {
+      result.current.setStars(4);
+      result.current.setContent("Sobre o Hobbit");
+    });
+
+    act(() => {
+      useReviewComposerStore.getState().openAfterFinish(otherBook, null);
+    });
+
+    expect(result.current.book?.id).toBe(otherBook.id);
+    expect(result.current.content).toBe("");
+    expect(result.current.stars).toBeNull();
+
+    act(() => {
+      result.current.submit();
+    });
+    expect(upsert).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(result.current.content).toBe("Do outro");
+    });
+    expect(result.current.stars).toBe(2);
+
+    act(() => {
+      result.current.submit();
+    });
+
+    await waitFor(() => {
+      expect(upsert).toHaveBeenCalledWith({
+        bookId: "book-2",
+        stars: 2,
+        content: "Do outro",
+      });
+    });
+  });
+
+  it("não exclui a resenha de outro livro quando a finalização troca o livro após limpar o texto", async () => {
+    const otherReview: ReviewMine = {
+      id: "review-2",
+      stars: 2,
+      content: "Do outro",
+      readingStatus: "finished",
+    };
+    const otherBook: ReviewComposerBook = {
+      id: "book-2",
+      title: "Outro",
+      author: null,
+      imageUrl: null,
+      status: "finished",
+      isSolo: false,
+    };
+    getMineByBookId.mockImplementation(async (id: string) => {
+      if (id === otherBook.id) {
+        return { review: otherReview, ratingStars: 2 };
       }
       return { review: aliceReview, ratingStars: 5 };
     });
@@ -285,6 +347,17 @@ describe("useReviewComposerForm", () => {
     act(() => {
       useReviewComposerStore.getState().openAfterFinish(otherBook, null);
     });
+
+    expect(result.current.book?.id).toBe(otherBook.id);
+    expect(result.current.content).toBe("");
+    expect(result.current.stars).toBeNull();
+    expect(deleteReview).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(result.current.content).toBe("Do outro");
+    });
+    expect(result.current.stars).toBe(2);
+
     act(() => {
       result.current.submit();
     });
@@ -292,8 +365,8 @@ describe("useReviewComposerForm", () => {
     await waitFor(() => {
       expect(upsert).toHaveBeenCalledWith({
         bookId: "book-2",
-        stars: 4,
-        content: "",
+        stars: 2,
+        content: "Do outro",
       });
     });
     expect(deleteReview).not.toHaveBeenCalled();

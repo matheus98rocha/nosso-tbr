@@ -37,19 +37,16 @@ export function useReviewComposerForm() {
   const [draftBookId, setDraftBookId] = useState(bookId);
 
   if (draftUserId !== viewerUserId || draftBookId !== bookId) {
-    const userChanged = draftUserId !== viewerUserId;
     setDraftUserId(viewerUserId);
     setDraftBookId(bookId);
     hydratedFor.current = null;
     shownReviewId.current = null;
     removedReviewId.current = null;
-    if (userChanged) {
-      touched.current = false;
-      setStars(null);
-      setContent("");
-      setBaseline(emptyBaseline);
-      setConfirmDiscard(false);
-    }
+    touched.current = false;
+    setStars(null);
+    setContent("");
+    setBaseline(emptyBaseline);
+    setConfirmDiscard(false);
   }
 
   const existing = useQuery({
