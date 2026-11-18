@@ -29,10 +29,13 @@ export function useReviewComposerForm() {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const hydratedFor = useRef<string | null>(null);
   const touched = useRef(false);
+  const bookId = book?.id ?? null;
   const [draftUserId, setDraftUserId] = useState(viewerUserId);
+  const [draftBookId, setDraftBookId] = useState(bookId);
 
-  if (draftUserId !== viewerUserId) {
+  if (draftUserId !== viewerUserId || draftBookId !== bookId) {
     setDraftUserId(viewerUserId);
+    setDraftBookId(bookId);
     hydratedFor.current = null;
     touched.current = false;
     setStars(null);
