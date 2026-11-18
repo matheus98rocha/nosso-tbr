@@ -176,6 +176,7 @@ describe("useHeader — destinações por superfície", () => {
     expect(names).toEqual([
       "Início",
       "Estatisticas",
+      "Resenhas",
       "Comunidade",
       "Ver Estantes",
     ]);
@@ -193,6 +194,7 @@ describe("useHeader — destinações por superfície", () => {
     expect(names).toEqual([
       "Início",
       "Estatisticas",
+      "Resenhas",
       "Comunidade",
       "Ver Estantes",
       "Autores",
@@ -200,11 +202,11 @@ describe("useHeader — destinações por superfície", () => {
     ]);
   });
 
-  it("expõe Início, Estatisticas, Comunidade e Ver Estantes em mobilePrimaryItems quando autenticado", () => {
+  it("expõe Início, Resenhas, Comunidade e Ver Estantes em mobilePrimaryItems quando autenticado", () => {
     const { result } = renderHook(() => useHeader());
 
     expect(itemLabels(headerSurfaces(result.current).mobilePrimaryItems)).toEqual(
-      ["Início", "Estatisticas", "Comunidade", "Ver Estantes"],
+      ["Início", "Resenhas", "Comunidade", "Ver Estantes"],
     );
   });
 
@@ -240,10 +242,12 @@ describe("useHeader — destinações por superfície", () => {
     ]);
     expect(itemLabels(surfaces.mobilePrimaryItems)).toEqual([
       "Início",
-      "Estatisticas",
       "Ver Estantes",
     ]);
-    expect(overflowLabels(result.current)).toEqual(["Adicionar Estante"]);
+    expect(overflowLabels(result.current)).toEqual([
+      "Estatisticas",
+      "Adicionar Estante",
+    ]);
   });
 
   it("propaga requiresAuth e requiresAdmin nos itens ligados", () => {

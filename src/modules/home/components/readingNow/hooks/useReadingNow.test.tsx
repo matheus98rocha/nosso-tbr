@@ -12,6 +12,11 @@ import {
   close,
   useFinishedBookShareStore,
 } from "@/modules/finishedBookShare/stores";
+import {
+  closeReviewComposer,
+  resetReviewComposerStore,
+  useReviewComposerStore,
+} from "@/modules/reviews";
 
 import { useReadingNow } from "./useReadingNow";
 
@@ -107,6 +112,7 @@ describe("useReadingNow", () => {
     editBook.mockReset();
     editBook.mockResolvedValue(undefined);
     close();
+    resetReviewComposerStore();
     clearArmed(solo.id ?? "book-solo");
     clearArmed(collective.id ?? "book-shared");
     getAll.mockResolvedValue({ data: [collective, solo], total: 2 });
@@ -170,9 +176,10 @@ describe("useReadingNow", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.ratingPromptBookId).toBe(solo.id);
+      expect(useReviewComposerStore.getState().book?.id).toBe(solo.id);
     });
 
+    expect(useReviewComposerStore.getState().open).toBe(true);
     expect(useFinishedBookShareStore.getState().armedBookId).toBe(solo.id);
     expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
       bookId: solo.id,
@@ -183,10 +190,10 @@ describe("useReadingNow", () => {
     expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
 
     act(() => {
-      result.current.dismissRatingPrompt();
+      closeReviewComposer();
     });
 
-    expect(result.current.ratingPromptBookId).toBeNull();
+    expect(useReviewComposerStore.getState().open).toBe(false);
     expect(useFinishedBookShareStore.getState().activeSubject?.bookId).toBe(solo.id);
   });
 
@@ -223,7 +230,7 @@ describe("useReadingNow", () => {
       result.current.finishReading(solo as BookDomain & { id: string });
     });
     await waitFor(() => expect(editBook).toHaveBeenCalledTimes(3));
-    expect(result.current.ratingPromptBookId).toBeNull();
+    expect(useReviewComposerStore.getState().open).toBe(false);
     expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
   });
 
@@ -239,14 +246,19 @@ describe("useReadingNow", () => {
     act(() => {
       result.current.finishReading(solo as BookDomain & { id: string });
     });
-    await waitFor(() => expect(result.current.ratingPromptBookId).toBe(solo.id));
+    await waitFor(() => expect(useReviewComposerStore.getState().open).toBe(true));
 
     await waitFor(() => expect(result.current.shouldRender).toBe(false));
     expect(useFinishedBookShareStore.getState().armedBookId).toBe(solo.id);
     expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
 
     unmount();
-    expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
-    expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+    expect(useFinishedBookShareStore.getState().armedBookId).toBe(solo.id);
+    expect(useReviewComposerStore.getState().open).toBe(true);
+
+    act(() => {
+      closeReviewComposer();
+    });
+    expect(useFinishedBookShareStore.getState().activeSubject?.bookId).toBe(solo.id);
   });
 });

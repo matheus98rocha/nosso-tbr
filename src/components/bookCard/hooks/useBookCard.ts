@@ -19,6 +19,8 @@ import {
   canShareFinishedBook,
   openNow,
 } from "@/modules/finishedBookShare";
+import { openReviewAfterFinish, openReviewForBook } from "@/modules/reviews";
+import { useMyReviewedBookIds } from "@/modules/reviews/hooks/useMyReviewedBookIds";
 
 import { useAddBookToLibrary } from "./useAddBookToLibrary";
 
@@ -40,6 +42,7 @@ export function useBookCard({
   const currentUser = useUserStore((state) => state.user);
   const { toggle: toggleFavorite, isPending: isFavoritePending } =
     useToggleBookFavorite();
+  const reviewedBooks = useMyReviewedBookIds();
 
   const isSoloBook = useMemo(() => BookMapper.isSoloBook(book), [book]);
   const isOwnSoloBook = useMemo(
@@ -189,16 +192,26 @@ export function useBookCard({
       if (
         nextStatus === "finished" &&
         book.status !== "finished" &&
-        !isShelf &&
         book.id
       ) {
-        openNow(
-          buildFinishedBookShareSubject({
-            bookId: book.id,
+        const shareSubject = !isShelf
+          ? buildFinishedBookShareSubject({
+              bookId: book.id,
+              title: book.title,
+              author: book.author,
+              imageUrl: book.image_url,
+            })
+          : null;
+        openReviewAfterFinish(
+          {
+            id: book.id,
             title: book.title,
             author: book.author,
-            imageUrl: book.image_url,
-          }),
+            imageUrl: shareSubject?.imageUrl ?? book.image_url ?? null,
+            status: "finished",
+            isSolo: isSoloBook,
+          },
+          shareSubject,
         );
       }
     },
@@ -377,6 +390,23 @@ export function useBookCard({
     showResumeReadingAction ||
     showAddToLibrary;
 
+  const showReviewAction =
+    isLogged && isBookParticipant && !isShelf && Boolean(book.id);
+
+  const hasReview = Boolean(book.id && reviewedBooks.ids.has(book.id));
+
+  const openReview = useCallback(() => {
+    if (!book.id) return;
+    openReviewForBook({
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      imageUrl: book.image_url || null,
+      status: book.status ?? "not_started",
+      isSolo: isSoloBook,
+    });
+  }, [book.author, book.id, book.image_url, book.status, book.title, isSoloBook]);
+
   const showShareOnX = canShareFinishedBook({
     isLogged,
     isParticipant: isBookParticipant,
@@ -443,6 +473,9 @@ export function useBookCard({
     statusDisplay,
     isOwnSoloBook,
     showFavoriteToggle,
+    showReviewAction,
+    hasReview,
+    openReview,
     showBookOptionsMenu,
     handleFavoriteClick,
     isFavoritePending,

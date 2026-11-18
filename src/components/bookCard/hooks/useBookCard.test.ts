@@ -11,6 +11,11 @@ import {
   close,
   useFinishedBookShareStore,
 } from "@/modules/finishedBookShare/stores";
+import {
+  closeReviewComposer,
+  resetReviewComposerStore,
+  useReviewComposerStore,
+} from "@/modules/reviews";
 import { BookshelfServiceBooks } from "@/modules/bookshelves/services/bookshelvesBooks.service";
 
 vi.mock("next/navigation", () => ({ useRouter: vi.fn() }));
@@ -607,6 +612,7 @@ describe("useBookCard", () => {
     describe("compartilhar no X", () => {
       beforeEach(() => {
         close();
+        resetReviewComposerStore();
         editBookMock.mockClear();
         isLoggedInMock.value = true;
       });
@@ -654,15 +660,25 @@ describe("useBookCard", () => {
         });
 
         await waitFor(() => {
-          expect(useFinishedBookShareStore.getState().activeSubject).toMatchObject({
-            bookId: "1",
-            title: "Test Book",
-            author: "Test Author",
-            imageUrl: "https://example.com/test.jpg",
-          });
+          expect(useReviewComposerStore.getState().open).toBe(true);
+        });
+        expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
+        expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
+          bookId: "1",
+          title: "Test Book",
+          author: "Test Author",
+          imageUrl: "https://example.com/test.jpg",
+        });
+
+        act(() => {
+          closeReviewComposer();
+        });
+        expect(useFinishedBookShareStore.getState().activeSubject).toMatchObject({
+          bookId: "1",
         });
 
         close();
+        resetReviewComposerStore();
         editBookMock.mockClear();
 
         const paused = renderBookCardHook({ ...baseBook, status: "reading" });
@@ -680,7 +696,8 @@ describe("useBookCard", () => {
         act(() => {
           shelf.result.current.onFinishReading();
         });
-        await waitFor(() => expect(editBookMock).toHaveBeenCalled());
+        await waitFor(() => expect(useReviewComposerStore.getState().open).toBe(true));
+        expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
         expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
       });
 
@@ -692,6 +709,7 @@ describe("useBookCard", () => {
         });
 
         await waitFor(() => expect(editBookMock).toHaveBeenCalled());
+        expect(useReviewComposerStore.getState().open).toBe(false);
         expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
       });
     });

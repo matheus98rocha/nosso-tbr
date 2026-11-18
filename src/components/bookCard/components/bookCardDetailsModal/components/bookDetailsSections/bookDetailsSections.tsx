@@ -12,6 +12,7 @@ import {
   Library,
   Lock,
   MessageSquareQuote,
+  NotebookPen,
   PauseCircle,
   Pencil,
   PlayCircle,
@@ -65,6 +66,7 @@ const actionIcons: Record<BookDetailsActionIcon, typeof CalendarDays> = {
   finish: CheckCircle2,
   trash: Trash2,
   reader: UserPlus,
+  review: NotebookPen,
 };
 
 const primaryToneClassName: Record<BookDetailsPrimaryTone, string> = {

@@ -6,12 +6,9 @@ import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/keys";
 import { useModal } from "@/hooks";
 import { BookUpsertService } from "@/modules/bookUpsert/services/bookUpsert.service";
-import {
-  armAfterRating,
-  buildFinishedBookShareSubject,
-  clearArmed,
-  revealArmed,
-} from "@/modules/finishedBookShare";
+import { buildFinishedBookShareSubject } from "@/modules/finishedBookShare";
+import { openReviewAfterFinish } from "@/modules/reviews";
+import { BookMapper } from "@/services/books/books.mapper";
 import { useReadingProgressMany } from "@/modules/schedule/hooks/useReadingProgressMany";
 import { BookService } from "@/services/books/books.service";
 import { useIsLoggedIn } from "@/stores/hooks/useAuth";
@@ -95,20 +92,12 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
   const [detailsBook, setDetailsBook] = useState<(BookDomain & { id: string }) | null>(
     null,
   );
-  const [ratingPromptBookId, setRatingPromptBookId] = useState<string | null>(null);
   const [transitioningBookId, setTransitioningBookId] = useState<string | null>(null);
   const [pendingStatusTransition, setPendingStatusTransition] =
     useState<ReadingNowStatusTransitionTarget | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const armedBookIdRef = useRef<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    return () => {
-      if (armedBookIdRef.current) clearArmed(armedBookIdRef.current);
-    };
-  }, []);
 
   const { data, isLoading, isError, isFetched } = useQuery({
     queryKey: [...QUERY_KEYS.books.all, "reading-now", userId] as const,
@@ -262,11 +251,6 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
     [detailsModal],
   );
 
-  const dismissRatingPrompt = useCallback(() => {
-    if (ratingPromptBookId) revealArmed(ratingPromptBookId);
-    setRatingPromptBookId(null);
-  }, [ratingPromptBookId]);
-
   const statusTransitionMutation = useMutation({
     mutationFn: async ({
       book,
@@ -298,17 +282,23 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
       }
 
       if (nextStatus === "finished") {
-        armedBookIdRef.current = bookId;
-        armAfterRating(
+        const shareSubject = buildFinishedBookShareSubject({
           bookId,
-          buildFinishedBookShareSubject({
-            bookId,
+          title: variables.book.title,
+          author: variables.book.author,
+          imageUrl: variables.book.image_url,
+        });
+        openReviewAfterFinish(
+          {
+            id: bookId,
             title: variables.book.title,
             author: variables.book.author,
-            imageUrl: variables.book.image_url,
-          }),
+            imageUrl: shareSubject.imageUrl,
+            status: "finished",
+            isSolo: BookMapper.isSoloBook(variables.book),
+          },
+          shareSubject,
         );
-        setRatingPromptBookId(bookId);
       }
     },
     onError: (error) => {
@@ -425,7 +415,5 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
     confirmStatusTransition,
     isStatusPending,
     transitioningBookId,
-    ratingPromptBookId,
-    dismissRatingPrompt,
   };
 }

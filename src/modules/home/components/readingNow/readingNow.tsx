@@ -6,7 +6,6 @@ import { BookOpen, ChevronLeft, ChevronRight, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import FinishedReadingRatingDialog from "@/modules/bookRating/components/finishedReadingRatingDialog";
 import { cn } from "@/lib/utils";
 
 import ReadingNowBookDetailsModal from "./components/readingNowBookDetailsModal";
@@ -82,11 +81,9 @@ export default function ReadingNow({
     confirmStatusTransition,
     isStatusPending,
     transitioningBookId,
-    ratingPromptBookId,
-    dismissRatingPrompt,
   } = useReadingNow(scope);
 
-  if (!shouldRender && ratingPromptBookId === null) {
+  if (!shouldRender) {
     return null;
   }
 
@@ -103,12 +100,6 @@ export default function ReadingNow({
           isStatusPending={isStatusPending}
         />
       ) : null}
-
-      <FinishedReadingRatingDialog
-        bookId={ratingPromptBookId}
-        open={ratingPromptBookId !== null}
-        onDismiss={dismissRatingPrompt}
-      />
 
       <ReadingNowStatusConfirmationDialog
         target={pendingStatusTransition}
