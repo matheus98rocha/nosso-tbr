@@ -33,7 +33,6 @@ import { Switch } from "@/components/ui/switch";
 import { genders } from "@/constants/genders";
 import { cn } from "@/lib/utils";
 import { AuthorUpsert } from "@/modules/authors/components";
-import { FinishedReadingRatingDialog } from "@/modules/bookRating";
 import { DateUtils } from "@/utils";
 
 import { CreateBookProps } from "./bookUpsert.types";
@@ -98,8 +97,6 @@ export function BookUpsert(props: CreateBookProps) {
     lookupQuery,
     handleLookupQueryChange,
     handleSearchBooks,
-    ratingPromptBookId,
-    handleDismissRatingPrompt,
   } = useBookUpsert(props);
 
   const isCreate = !props.bookData;
@@ -119,11 +116,6 @@ export function BookUpsert(props: CreateBookProps) {
 
   return (
     <>
-      <FinishedReadingRatingDialog
-        bookId={ratingPromptBookId}
-        open={Boolean(ratingPromptBookId)}
-        onDismiss={handleDismissRatingPrompt}
-      />
       <AuthorUpsert
         isOpen={isAuthorModalOpen}
         onOpenChange={handleAuthorModalOpenChange}

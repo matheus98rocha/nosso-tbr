@@ -5,12 +5,14 @@ import React from "react";
 import ReactQueryProvider from "@/providers/ReactQuery.provider";
 import { Toaster } from "@/components/ui/sonner";
 import { FinishedBookShareHost } from "@/modules/finishedBookShare";
+import { ReviewComposerHost } from "@/modules/reviews";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ReactQueryProvider>
       {children}
       <FinishedBookShareHost />
+      <ReviewComposerHost />
       <Toaster
         position="top-center"
         toastOptions={{

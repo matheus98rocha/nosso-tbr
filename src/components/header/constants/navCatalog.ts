@@ -1,4 +1,5 @@
 import { COMMUNITY_PATH } from "@/lib/routes/community";
+import { REVIEWS_PATH } from "@/lib/routes/reviews";
 import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 
 import type { NavDestination, NavSurface } from "../types/navCatalog.types";
@@ -14,6 +15,12 @@ export const NAV_DESTINATIONS: NavDestination[] = [
   {
     label: "Estatisticas",
     path: "/stats",
+    surfaces: ["desktop", "mobileOverflow"],
+  },
+  {
+    label: "Resenhas",
+    path: REVIEWS_PATH,
+    requiresAuth: true,
     surfaces: ["desktop", "mobilePrimary"],
   },
   {

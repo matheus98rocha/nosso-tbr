@@ -54,6 +54,8 @@ export function useBookCardDetailsModal({
   onAbandonReading,
   onShare,
   onShareOnX,
+  onWriteReview,
+  hasReview = false,
   onToggleFavorite,
   onAddToShelf,
   onEdit,
@@ -268,6 +270,17 @@ export function useBookCardDetailsModal({
       },
     });
 
+    if (onWriteReview) {
+      items.push({
+        id: "review",
+        label: hasReview ? "Editar resenha" : "Escrever resenha",
+        hint: hasReview ? "Atualizar o que você escreveu" : "Contar o que achou",
+        icon: "review",
+        disabled: false,
+        onSelect: onWriteReview,
+      });
+    }
+
     if (onShare) {
       items.push({
         id: "share",
@@ -365,8 +378,10 @@ export function useBookCardDetailsModal({
     onEdit,
     onOpenQuotes,
     onOpenSchedule,
+    hasReview,
     onShare,
     onShareOnX,
+    onWriteReview,
     onToggleFavorite,
     quotesDisabled,
     referenceCopied,

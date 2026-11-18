@@ -5,6 +5,7 @@ import {
   Home,
   Library,
   LogOut,
+  MessageSquareQuote,
   MoreHorizontal,
   Plus,
   Shield,
@@ -15,6 +16,7 @@ import {
 export const NAV_ICON_MAP: Record<string, LucideIcon> = {
   Início: Home,
   Estatisticas: BarChart3,
+  Resenhas: MessageSquareQuote,
   Comunidade: Users,
   "Ver Estantes": Library,
   Autores: BookUser,

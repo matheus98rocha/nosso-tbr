@@ -12,6 +12,11 @@ import {
   close,
   useFinishedBookShareStore,
 } from "@/modules/finishedBookShare/stores";
+import {
+  closeReviewComposer,
+  resetReviewComposerStore,
+  useReviewComposerStore,
+} from "@/modules/reviews";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn(),
@@ -443,6 +448,7 @@ describe("useBookDialog — query de estantes", () => {
       close();
       clearArmed("book-1");
       clearArmed("book-new");
+      resetReviewComposerStore();
     });
 
     it("arma na transição para finished e revela no dismiss", async () => {
@@ -450,7 +456,7 @@ describe("useBookDialog — query de estantes", () => {
       const resolveAuthorNames = vi.fn((ids: string[]) =>
         ids.flatMap((id) => (id === "author-1" ? ["Suzanne Collins"] : [])),
       );
-      const { result } = renderHook(() =>
+      renderHook(() =>
         useBookDialog({
           ...defaultProps,
           bookData: readingBook,
@@ -472,7 +478,8 @@ describe("useBookDialog — query de estantes", () => {
       });
 
       expect(resolveAuthorNames).toHaveBeenCalledWith(["author-1", "sem-nome"]);
-      expect(result.current.ratingPromptBookId).toBe("book-1");
+      expect(useReviewComposerStore.getState().open).toBe(true);
+      expect(useReviewComposerStore.getState().book?.id).toBe("book-1");
       expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
       expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
         bookId: "book-1",
@@ -482,16 +489,16 @@ describe("useBookDialog — query de estantes", () => {
       });
 
       act(() => {
-        result.current.handleDismissRatingPrompt();
+        closeReviewComposer();
       });
 
-      expect(result.current.ratingPromptBookId).toBeNull();
+      expect(useReviewComposerStore.getState().open).toBe(false);
       expect(useFinishedBookShareStore.getState().activeSubject?.bookId).toBe("book-1");
     });
 
     it("não arma ao regravar finished nem no erro", async () => {
       setupMocks({ isLoggedIn: true });
-      const { result, unmount } = renderHook(() =>
+      const { unmount } = renderHook(() =>
         useBookDialog({
           ...defaultProps,
           bookData: { ...readingBook, status: "finished" },
@@ -511,7 +518,7 @@ describe("useBookDialog — query de estantes", () => {
         mutationOptions.onError?.(new Error("falha"));
       });
       expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
-      expect(result.current.ratingPromptBookId).toBeNull();
+      expect(useReviewComposerStore.getState().open).toBe(false);
 
       unmount();
       expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
@@ -524,7 +531,7 @@ describe("useBookDialog — query de estantes", () => {
           id === "author-1" ? ["Suzanne Collins"] : id === "author-2" ? ["Outro"] : [],
         ),
       );
-      const { result, unmount } = renderHook(() =>
+      const { unmount } = renderHook(() =>
         useBookDialog({
           ...defaultProps,
           resolveAuthorNames,
@@ -554,7 +561,8 @@ describe("useBookDialog — query de estantes", () => {
 
       unmount();
       expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
-      expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
+      expect(useFinishedBookShareStore.getState().armedBookId).toBe("book-new");
+      expect(useReviewComposerStore.getState().open).toBe(true);
     });
 
     it("repassa o resolvedor recebido", () => {

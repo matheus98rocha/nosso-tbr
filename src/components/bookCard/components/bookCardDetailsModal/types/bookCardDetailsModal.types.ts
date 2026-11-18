@@ -20,7 +20,8 @@ export type BookDetailsActionIcon =
   | "library"
   | "finish"
   | "trash"
-  | "reader";
+  | "reader"
+  | "review";
 
 export type BookDetailsInsight = {
   id: string;
@@ -109,6 +110,8 @@ export type BookCardDetailsModalProps = {
   onAbandonReading?: () => void;
   onShare?: () => void;
   onShareOnX?: () => void;
+  onWriteReview?: () => void;
+  hasReview?: boolean;
   onToggleFavorite?: () => void;
   onAddToShelf?: () => void;
   onEdit?: () => void;

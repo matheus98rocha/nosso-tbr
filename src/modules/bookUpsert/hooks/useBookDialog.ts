@@ -26,12 +26,8 @@ import { QUERY_KEYS } from "@/constants/keys";
 import { SHELF_BOOK_CANNOT_ADD_MESSAGE } from "@/constants/shelfBook";
 import { ApiError } from "@/lib/api/clientJsonFetch";
 import { buildHomeUrlWithStatusFilter } from "@/utils/buildHomeUrlWithStatusFilter";
-import {
-  armAfterRating,
-  buildFinishedBookShareSubject,
-  clearArmed,
-  revealArmed,
-} from "@/modules/finishedBookShare";
+import { buildFinishedBookShareSubject } from "@/modules/finishedBookShare";
+import { openReviewAfterFinish } from "@/modules/reviews";
 import { formatList } from "@/utils/formatters";
 
 const checkboxes: { id: Status; label: string }[] = [
@@ -50,13 +46,6 @@ export function useBookDialog({
 }: UseCreateBookDialog) {
   const resolveAuthorNamesRef = useRef(resolveAuthorNames);
   resolveAuthorNamesRef.current = resolveAuthorNames;
-  const armedBookIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (armedBookIdRef.current) clearArmed(armedBookIdRef.current);
-    };
-  }, []);
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -67,15 +56,6 @@ export function useBookDialog({
   const [selected, setSelected] = useState<Status | null>("not_started");
   const [isAddToShelfEnabled, setIsAddToShelfEnabled] = useState(false);
   const [selectedShelfId, setSelectedShelfId] = useState("");
-  const [ratingPromptBookId, setRatingPromptBookId] = useState<string | null>(
-    null,
-  );
-
-  const handleDismissRatingPrompt = useCallback(() => {
-    if (ratingPromptBookId) revealArmed(ratingPromptBookId);
-    setRatingPromptBookId(null);
-  }, [ratingPromptBookId]);
-
   const isEdit: boolean = Boolean(bookData && bookData.id);
 
   const bookUpsertService = useMemo(() => new BookUpsertService(), []);
@@ -271,9 +251,18 @@ export function useBookDialog({
       }
 
       if (shouldOpenRatingPrompt && promptTargetId && shareSubject) {
-        armedBookIdRef.current = promptTargetId;
-        armAfterRating(promptTargetId, shareSubject);
-        setRatingPromptBookId(promptTargetId);
+        const readers = variables.readers ?? [];
+        openReviewAfterFinish(
+          {
+            id: promptTargetId,
+            title: variables.title ?? "",
+            author,
+            imageUrl: shareSubject.imageUrl,
+            status: "finished",
+            isSolo: readers.length === 1 && readers[0] === variables.chosen_by,
+          },
+          shareSubject,
+        );
       }
     },
     onError: (error) => {
@@ -447,8 +436,6 @@ export function useBookDialog({
     handleChosenByChange,
     handleStatusChange,
 
-    ratingPromptBookId,
-    handleDismissRatingPrompt,
     resolveAuthorNames,
   };
 }

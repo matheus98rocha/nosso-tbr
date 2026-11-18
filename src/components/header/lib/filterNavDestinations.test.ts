@@ -91,6 +91,7 @@ describe("selectBySurface", () => {
       expect(labels(selectBySurface(visible, "desktop"))).toEqual([
         "Início",
         "Estatisticas",
+        "Resenhas",
         "Comunidade",
         "Ver Estantes",
       ]);
@@ -105,6 +106,7 @@ describe("selectBySurface", () => {
       expect(labels(selectBySurface(visible, "desktop"))).toEqual([
         "Início",
         "Estatisticas",
+        "Resenhas",
         "Comunidade",
         "Ver Estantes",
         "Autores",
@@ -153,7 +155,7 @@ describe("selectBySurface", () => {
 
       expect(labels(selectBySurface(visible, "mobilePrimary"))).toEqual([
         "Início",
-        "Estatisticas",
+        "Resenhas",
         "Comunidade",
         "Ver Estantes",
       ]);

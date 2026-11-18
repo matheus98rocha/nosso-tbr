@@ -72,6 +72,139 @@ export type Database = {
           },
         ]
       }
+      book_review_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_review_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "book_review_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_review_comments_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "book_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_review_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      book_review_reactions: {
+        Row: {
+          created_at: string
+          reaction: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          reaction: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          reaction?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_review_reactions_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "book_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_review_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      book_reviews: {
+        Row: {
+          book_id: string
+          content: string
+          created_at: string
+          id: string
+          reading_status: string
+          stars: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          content: string
+          created_at?: string
+          id?: string
+          reading_status?: string
+          stars: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          reading_status?: string
+          stars?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_reviews_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           author_id: string | null
@@ -641,6 +774,34 @@ export type Database = {
           gender: string
           reader_id: string
           registered_count: number
+        }[]
+      }
+      get_review_feed: {
+        Args: {
+          p_before_created_at?: string
+          p_before_id?: string
+          p_limit?: number
+          p_scope: string
+        }
+        Returns: {
+          author_avatar_seed: string | null
+          author_display_name: string | null
+          book_authors: string | null
+          book_id: string
+          book_is_solo: boolean
+          book_image_url: string | null
+          book_title: string
+          comment_count: number
+          content: string
+          created_at: string
+          dislike_count: number
+          id: string
+          like_count: number
+          reading_status: string
+          stars: number
+          updated_at: string
+          user_id: string
+          user_reaction: string | null
         }[]
       }
       get_popular_readers_for_home: {
