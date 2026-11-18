@@ -774,5 +774,75 @@ describe("useBookCard", () => {
         expect(result.current.dialogDeleteModal.isOpen).toBe(true);
       });
     });
+
+    describe("resenha na ficha", () => {
+      it("oferece a resenha a quem participa fora da estante", () => {
+        const reading = renderBookCardHook(baseBook);
+        expect(reading.result.current.showReviewAction).toBe(true);
+
+        const shelf = renderBookCardHook(baseBook, { isShelf: true, shelfId: "shelf-1" });
+        expect(shelf.result.current.showReviewAction).toBe(false);
+
+        isLoggedInMock.value = false;
+        const signedOut = renderBookCardHook(baseBook);
+        expect(signedOut.result.current.showReviewAction).toBe(false);
+
+        isLoggedInMock.value = true;
+        const stranger = renderBookCardHook(othersBook);
+        expect(stranger.result.current.showReviewAction).toBe(false);
+
+        const hiddenChrome = renderBookCardHook(
+          { ...baseBook, status: "finished" },
+          { hideInteractions: true },
+        );
+        expect(hiddenChrome.result.current.showReviewAction).toBe(true);
+        expect(hiddenChrome.result.current.showFavoriteToggle).toBe(false);
+      });
+
+      it("abre o compositor com o livro e não abre sem id", () => {
+        resetReviewComposerStore();
+        const solo = renderBookCardHook({
+          ...baseBook,
+          readerIds: ["user-123"],
+          chosen_by: "user-123",
+          status: "reading",
+        });
+
+        act(() => {
+          solo.result.current.openReview();
+        });
+
+        expect(useReviewComposerStore.getState()).toMatchObject({
+          open: true,
+          mode: "compose",
+          book: {
+            id: "1",
+            title: "Test Book",
+            author: "Test Author",
+            imageUrl: "https://example.com/test.jpg",
+            status: "reading",
+            isSolo: true,
+          },
+        });
+
+        resetReviewComposerStore();
+        const shared = renderBookCardHook(baseBook);
+        act(() => {
+          shared.result.current.openReview();
+        });
+        expect(useReviewComposerStore.getState().book).toMatchObject({
+          id: "1",
+          isSolo: false,
+        });
+
+        resetReviewComposerStore();
+        const missingId = renderBookCardHook({ ...baseBook, id: undefined });
+        expect(missingId.result.current.showReviewAction).toBe(false);
+        act(() => {
+          missingId.result.current.openReview();
+        });
+        expect(useReviewComposerStore.getState().open).toBe(false);
+      });
+    });
   });
 });
