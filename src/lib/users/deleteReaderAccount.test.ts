@@ -35,6 +35,179 @@ function client(options: {
   };
 }
 
+const missingCascade = {
+  message:
+    "Could not find the function public.delete_reader_cascade(p_user_id) in the schema cache",
+};
+
+type StoredRow = Record<string, unknown>;
+
+type PageQuery = {
+  table: string;
+  column: string | null;
+  value: string | null;
+  from: number;
+  to: number;
+};
+
+function whenAwaited(apply: () => void) {
+  return {
+    then(
+      onFulfilled?: (value: { error: null }) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ) {
+      return Promise.resolve()
+        .then(() => {
+          apply();
+          return { error: null as null };
+        })
+        .then(onFulfilled, onRejected);
+    },
+  };
+}
+
+function rowsOf(
+  tables: Record<string, StoredRow[]>,
+  table: string,
+  column: string | null,
+  value: string | null,
+  contains: boolean,
+) {
+  const filtered = (tables[table] ?? []).filter((row) => {
+    if (!column) return true;
+    if (contains) {
+      const current = row[column];
+      return Array.isArray(current) && value !== null && current.includes(value);
+    }
+    return row[column] === value;
+  });
+  return [...filtered].sort((left, right) =>
+    String(left.id ?? "").localeCompare(String(right.id ?? "")),
+  );
+}
+
+function pagingFallback(options: {
+  tables: Record<string, StoredRow[]>;
+  adminCounts?: number[];
+  page?: (query: PageQuery) => StoredRow[] | null;
+  onSettingsUpdate?: () => void;
+}) {
+  const { tables } = options;
+  const authDeletes: string[] = [];
+  const adminReads = { count: 0 };
+  const service = {
+    authDeletes,
+    adminReads,
+    rpc: vi.fn().mockResolvedValue({ error: missingCascade }),
+    from(table: string) {
+      return {
+        select(_columns: string, queryOptions?: { head?: boolean }) {
+          const filters: Array<{ column: string; value: string; contains: boolean }> =
+            [];
+          const chain = {
+            eq(column: string, value: string) {
+              if (queryOptions?.head) {
+                const count =
+                  table === "users"
+                    ? (options.adminCounts?.[adminReads.count] ?? 0)
+                    : 0;
+                if (table === "users") adminReads.count += 1;
+                return Promise.resolve({ data: null, error: null, count });
+              }
+              filters.push({ column, value, contains: false });
+              return chain;
+            },
+            contains(column: string, values: string[]) {
+              filters.push({
+                column,
+                value: values[0] ?? "",
+                contains: true,
+              });
+              return chain;
+            },
+            order() {
+              return chain;
+            },
+            range(from: number, to: number) {
+              const filter = filters[0];
+              const query = {
+                table,
+                column: filter?.column ?? null,
+                value: filter?.value ?? null,
+                from,
+                to,
+              };
+              const custom = options.page?.(query);
+              const data =
+                custom ??
+                (() => {
+                  if (from > to || from < 0) return [];
+                  const visible = rowsOf(
+                    tables,
+                    table,
+                    query.column,
+                    query.value,
+                    filter?.contains ?? false,
+                  );
+                  const row = visible[from];
+                  return row ? [row] : [];
+                })();
+              return Promise.resolve({ data, error: null });
+            },
+            maybeSingle() {
+              const filter = filters[0];
+              const visible = rowsOf(
+                tables,
+                table,
+                filter?.column ?? null,
+                filter?.value ?? null,
+                filter?.contains ?? false,
+              );
+              return Promise.resolve({ data: visible[0] ?? null, error: null });
+            },
+          };
+          return chain;
+        },
+        delete() {
+          return {
+            eq: (column: string, value: string) =>
+              whenAwaited(() => {
+                tables[table] = (tables[table] ?? []).filter(
+                  (row) => row[column] !== value,
+                );
+              }),
+            in: (column: string, values: string[]) =>
+              whenAwaited(() => {
+                tables[table] = (tables[table] ?? []).filter(
+                  (row) => !values.includes(String(row[column])),
+                );
+              }),
+          };
+        },
+        update: (values: Record<string, unknown>) => ({
+          eq: (column: string, value: string) =>
+            whenAwaited(() => {
+              if (table === "registration_settings") options.onSettingsUpdate?.();
+              tables[table] = (tables[table] ?? []).map((row) =>
+                row[column] === value ? { ...row, ...values } : row,
+              );
+            }),
+        }),
+      };
+    },
+    auth: {
+      admin: {
+        deleteUser: vi.fn(async (userId: string) => {
+          authDeletes.push(userId);
+          return { error: null };
+        }),
+      },
+    },
+  };
+
+  return service;
+}
+
 describe("partitionReaderBooks", () => {
   it("apaga o livro exclusivo e destaca o leitor dos livros compartilhados", () => {
     const books: ReaderBookRow[] = [
@@ -544,5 +717,159 @@ describe("deleteReaderAccount", () => {
     expect(result).toEqual({ error: null, status: 200 });
     expect(service.authDeletes).toEqual([target]);
     expect(tables.users).toEqual([]);
+  });
+
+  it("continua a página curta e apaga o livro exclusivo que vem depois", async () => {
+    const tables: Record<string, StoredRow[]> = {
+      users: [
+        { id: target, tier: "common_user" },
+        { id: other, tier: "common_user" },
+      ],
+      books: [
+        {
+          id: "book-a",
+          chosen_by: target,
+          user_id: target,
+          readers: [target],
+        },
+        {
+          id: "book-b",
+          chosen_by: target,
+          user_id: target,
+          readers: [target],
+        },
+        {
+          id: "book-other",
+          chosen_by: other,
+          user_id: other,
+          readers: [other],
+        },
+      ],
+      quotes: [
+        { id: "q-a", book_id: "book-a" },
+        { id: "q-b", book_id: "book-b" },
+        { id: "q-other", book_id: "book-other" },
+      ],
+    };
+    const service = pagingFallback({ tables });
+
+    const result = await deleteReaderAccount(
+      service as unknown as ReaderDeletionClient,
+      target,
+    );
+
+    expect(result).toEqual({ error: null, status: 200 });
+    expect(tables.books).toEqual([
+      {
+        id: "book-other",
+        chosen_by: other,
+        user_id: other,
+        readers: [other],
+      },
+    ]);
+    expect(tables.quotes).toEqual([{ id: "q-other", book_id: "book-other" }]);
+    expect(tables.users.map((row) => row.id)).toEqual([other]);
+    expect(service.authDeletes).toEqual([target]);
+  });
+
+  it("interrompe a página que repete o último id e ainda apaga esse livro", async () => {
+    const stuck = {
+      id: "stuck-book",
+      chosen_by: target,
+      user_id: target,
+      readers: [target],
+    };
+    const tables: Record<string, StoredRow[]> = {
+      users: [
+        { id: target, tier: "common_user" },
+        { id: other, tier: "common_user" },
+      ],
+      books: [stuck],
+    };
+    const chosenReads = { count: 0 };
+    const service = pagingFallback({
+      tables,
+      page: (query) => {
+        if (query.table !== "books" || query.column !== "chosen_by") return null;
+        chosenReads.count += 1;
+        if (chosenReads.count > 6) return [];
+        return [stuck];
+      },
+    });
+
+    const result = await deleteReaderAccount(
+      service as unknown as ReaderDeletionClient,
+      target,
+    );
+
+    expect(result).toEqual({ error: null, status: 200 });
+    expect(chosenReads.count).toBe(4);
+    expect(tables.books).toEqual([]);
+    expect(service.authDeletes).toEqual([target]);
+  });
+
+  it("relê os livros antes de apagar o perfil", async () => {
+    const tables: Record<string, StoredRow[]> = {
+      users: [
+        { id: target, tier: "common_user" },
+        { id: other, tier: "common_user" },
+      ],
+      books: [
+        {
+          id: "book-other",
+          chosen_by: other,
+          user_id: other,
+          readers: [other],
+        },
+      ],
+    };
+    const service = pagingFallback({
+      tables,
+      onSettingsUpdate: () => {
+        if (tables.books.some((row) => row.id === "late-book")) return;
+        tables.books.push({
+          id: "late-book",
+          chosen_by: target,
+          user_id: target,
+          readers: [target],
+        });
+      },
+    });
+
+    const result = await deleteReaderAccount(
+      service as unknown as ReaderDeletionClient,
+      target,
+    );
+
+    expect(result).toEqual({ error: null, status: 200 });
+    expect(tables.books.map((row) => row.id)).toEqual(["book-other"]);
+    expect(tables.users.map((row) => row.id)).toEqual([other]);
+    expect(service.authDeletes).toEqual([target]);
+  });
+
+  it("não apaga o perfil nem o login se o outro admin sumir no meio da exclusão", async () => {
+    const tables: Record<string, StoredRow[]> = {
+      users: [
+        { id: other, tier: "admin" },
+        { id: target, tier: "admin" },
+      ],
+    };
+    const service = pagingFallback({
+      tables,
+      adminCounts: [2, 1],
+    });
+
+    const result = await deleteReaderAccount(
+      service as unknown as ReaderDeletionClient,
+      target,
+    );
+
+    expect(result).toEqual({
+      error: "Não é possível excluir o último admin.",
+      status: 409,
+    });
+    expect(service.adminReads.count).toBe(2);
+    expect(tables.users.map((row) => row.id)).toEqual([other, target]);
+    expect(service.authDeletes).toEqual([]);
   });
 });
