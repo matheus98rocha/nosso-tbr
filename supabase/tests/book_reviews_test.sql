@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(10);
+SELECT plan(14);
 
 INSERT INTO public.users (id, display_name, email)
 VALUES
@@ -126,6 +126,37 @@ SELECT is(
   ),
   'reading',
   'a later book status change does not rewrite the review'
+);
+
+UPDATE public.books
+SET status = 'finished'
+WHERE id = '00000000-0000-4000-8000-000000000281';
+
+INSERT INTO public.book_reading_ratings (user_id, book_id, stars)
+VALUES (
+  '00000000-0000-4000-8000-000000000081',
+  '00000000-0000-4000-8000-000000000281',
+  3
+);
+
+SELECT is(
+  (
+    SELECT reading_status::text
+    FROM public.book_reviews
+    WHERE book_id = '00000000-0000-4000-8000-000000000281'
+  ),
+  'reading',
+  'saving a private rating keeps the status from publication'
+);
+
+SELECT is(
+  (
+    SELECT stars
+    FROM public.book_reviews
+    WHERE book_id = '00000000-0000-4000-8000-000000000281'
+  ),
+  3::smallint,
+  'saving a private rating still updates the review stars'
 );
 
 SELECT is(

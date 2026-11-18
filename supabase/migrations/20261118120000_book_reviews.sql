@@ -72,9 +72,11 @@ BEGIN
   END IF;
 
   NEW.content := btrim(NEW.content);
-  NEW.reading_status := v_status;
 
-  IF TG_OP = 'UPDATE' THEN
+  IF TG_OP = 'INSERT' THEN
+    NEW.reading_status := v_status;
+  ELSE
+    NEW.reading_status := OLD.reading_status;
     NEW.updated_at := now();
   END IF;
 
