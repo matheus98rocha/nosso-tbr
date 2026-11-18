@@ -72,6 +72,11 @@ BEGIN
   END IF;
 
   NEW.content := btrim(NEW.content);
+
+  IF TG_OP = 'UPDATE' AND NEW.content IS NOT DISTINCT FROM OLD.content THEN
+    RETURN NEW;
+  END IF;
+
   NEW.reading_status := v_status;
 
   IF TG_OP = 'UPDATE' THEN
@@ -340,7 +345,8 @@ RETURNS TABLE (
   like_count bigint,
   dislike_count bigint,
   comment_count bigint,
-  user_reaction text
+  user_reaction text,
+  book_is_solo boolean
 )
 LANGUAGE plpgsql
 STABLE
@@ -385,6 +391,10 @@ BEGIN
     r.reading_status,
     r.created_at,
     r.updated_at,
+    (
+      array_length(COALESCE(b.readers, ARRAY[]::uuid[]), 1) = 1
+      AND (COALESCE(b.readers, ARRAY[]::uuid[]))[1] = b.chosen_by
+    ),
     (
       SELECT count(*)
       FROM public.book_review_reactions AS rr

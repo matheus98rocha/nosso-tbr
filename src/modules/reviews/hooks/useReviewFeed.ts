@@ -24,8 +24,12 @@ export function useReviewFeed(scope: ReviewScope) {
   });
 
   const reviews = useMemo(
-    () => query.data?.pages.flatMap((page) => page.reviews) ?? [],
-    [query.data],
+    () =>
+      (query.data?.pages.flatMap((page) => page.reviews) ?? []).map((review) => ({
+        ...review,
+        isOwn: viewerUserId !== null && review.userId === viewerUserId,
+      })),
+    [query.data, viewerUserId],
   );
 
   return {

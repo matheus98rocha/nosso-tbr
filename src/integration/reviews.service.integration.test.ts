@@ -45,6 +45,7 @@ describe("ReviewsService", () => {
           dislike_count: 0,
           comment_count: 1,
           user_reaction: "like",
+          book_is_solo: true,
         },
       ],
       error: null,
@@ -70,6 +71,7 @@ describe("ReviewsService", () => {
       likeCount: 2,
       userReaction: "like",
       isOwn: false,
+      bookIsSolo: true,
     });
     expect(page.nextCursor).toBeNull();
   });

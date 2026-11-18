@@ -788,6 +788,7 @@ export type Database = {
           author_display_name: string | null
           book_authors: string | null
           book_id: string
+          book_is_solo: boolean
           book_image_url: string | null
           book_title: string
           comment_count: number

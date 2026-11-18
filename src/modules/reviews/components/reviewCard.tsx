@@ -90,7 +90,7 @@ export default function ReviewCard({ review, onReact }: ReviewCardProps) {
                     author: review.bookAuthors || null,
                     imageUrl: review.bookImageUrl,
                     status: review.readingStatus,
-                    isSolo: false,
+                    isSolo: review.bookIsSolo,
                   })
                 }
               >
