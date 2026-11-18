@@ -180,6 +180,11 @@ describe("useReadingNow", () => {
     });
 
     expect(useReviewComposerStore.getState().open).toBe(true);
+    expect(useReviewComposerStore.getState().mode).toBe("finish");
+    expect(useReviewComposerStore.getState().book).toMatchObject({
+      id: solo.id,
+      status: "finished",
+    });
     expect(useFinishedBookShareStore.getState().armedBookId).toBe(solo.id);
     expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
       bookId: solo.id,
@@ -205,12 +210,14 @@ describe("useReadingNow", () => {
       result.current.pauseReading(solo as BookDomain & { id: string });
     });
     await waitFor(() => expect(editBook).toHaveBeenCalled());
+    expect(useReviewComposerStore.getState().open).toBe(false);
     expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
 
     act(() => {
       result.current.abandonReading(solo as BookDomain & { id: string });
     });
     await waitFor(() => expect(editBook).toHaveBeenCalledTimes(2));
+    expect(useReviewComposerStore.getState().open).toBe(false);
     expect(useFinishedBookShareStore.getState().armedBookId).toBeNull();
 
     act(() => {

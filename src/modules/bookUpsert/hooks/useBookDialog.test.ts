@@ -479,7 +479,11 @@ describe("useBookDialog — query de estantes", () => {
 
       expect(resolveAuthorNames).toHaveBeenCalledWith(["author-1", "sem-nome"]);
       expect(useReviewComposerStore.getState().open).toBe(true);
-      expect(useReviewComposerStore.getState().book?.id).toBe("book-1");
+      expect(useReviewComposerStore.getState().mode).toBe("finish");
+      expect(useReviewComposerStore.getState().book).toMatchObject({
+        id: "book-1",
+        status: "finished",
+      });
       expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
       expect(useFinishedBookShareStore.getState().armedSubject).toMatchObject({
         bookId: "book-1",
@@ -563,6 +567,8 @@ describe("useBookDialog — query de estantes", () => {
       expect(useFinishedBookShareStore.getState().activeSubject).toBeNull();
       expect(useFinishedBookShareStore.getState().armedBookId).toBe("book-new");
       expect(useReviewComposerStore.getState().open).toBe(true);
+      expect(useReviewComposerStore.getState().mode).toBe("finish");
+      expect(useReviewComposerStore.getState().book?.status).toBe("finished");
     });
 
     it("repassa o resolvedor recebido", () => {
