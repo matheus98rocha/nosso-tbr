@@ -35,7 +35,7 @@ function ReadingRecapPreview({
   if (isError) {
     return (
       <div
-        className="mx-auto flex aspect-[9/16] w-[min(100%,360px)] items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-4 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+        className="mx-auto flex aspect-[9/16] w-[min(100%,320px)] items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-4 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
         role="alert"
       >
         Não foi possível carregar suas leituras.
@@ -56,7 +56,7 @@ function ReadingRecapPreview({
         className={cn(
           "grid w-full items-center justify-center gap-2",
           showNavigation
-            ? "grid-cols-[auto_minmax(0,360px)_auto]"
+            ? "grid-cols-[auto_minmax(0,320px)_auto]"
             : "grid-cols-1",
         )}
       >
@@ -73,7 +73,7 @@ function ReadingRecapPreview({
             <ChevronLeft />
           </Button>
         ) : null}
-        <figure className="mx-auto w-[min(100%,360px)]">
+        <figure className="mx-auto w-[min(100%,320px)]">
           <div
             className={cn(
               "relative isolate aspect-[9/16] overflow-hidden rounded-2xl",

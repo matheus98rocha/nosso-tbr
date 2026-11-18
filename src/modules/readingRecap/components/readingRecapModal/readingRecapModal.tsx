@@ -27,7 +27,7 @@ function ReadingRecapModal({ isOpen, onOpenChange }: ReadingRecapModalProps) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         aria-busy={recap.isShellPending || recap.isLoading}
-        className="max-h-[90dvh] gap-5 overflow-y-auto rounded-2xl border-border/70 bg-[var(--reading-surface)] p-5 sm:max-w-lg sm:p-6"
+        className="max-h-[90dvh] gap-5 overflow-y-auto rounded-2xl border-border/70 bg-[var(--reading-surface)] p-5 sm:max-w-md sm:p-6"
       >
         <DialogHeader className="gap-1.5 sm:text-left">
           <DialogTitle className="brand-display text-2xl font-semibold tracking-tight text-[var(--reading-ink)]">

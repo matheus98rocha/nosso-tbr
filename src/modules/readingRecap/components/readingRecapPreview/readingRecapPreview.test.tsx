@@ -7,7 +7,7 @@ import { BOOK_COVER_PLACEHOLDER_SRC } from "@/constants/bookCover";
 import type { RecapImage, RecapImageCover, ReadingRecapPreviewProps } from "../../types";
 import ReadingRecapPreview from "./readingRecapPreview";
 
-const PREVIEW_FRAME_WIDTH_CLASS = "w-[min(100%,360px)]";
+const PREVIEW_FRAME_WIDTH_CLASS = "w-[min(100%,320px)]";
 const AMAZON_A = "https://m.media-amazon.com/images/I/81abc.jpg";
 const AMAZON_B = "https://m.media-amazon.com/images/I/81def.jpg";
 
@@ -262,7 +262,7 @@ describe("ReadingRecapPreview", () => {
     expect(grid?.className).not.toContain("grid-rows-5");
   });
 
-  it("usa frame maior que 220px com teto de 360px", () => {
+  it("usa frame harmonioso com teto de 320px", () => {
     render(
       <ReadingRecapPreview
         image={filledImage}
