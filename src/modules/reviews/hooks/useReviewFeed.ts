@@ -16,7 +16,7 @@ export function useReviewFeed(scope: ReviewScope) {
   const viewerUserId = useUserStore((state) => state.user?.id ?? null);
 
   const query = useInfiniteQuery({
-    queryKey: reviewQueryKeys.feed(scope),
+    queryKey: reviewQueryKeys.feed(viewerUserId, scope),
     initialPageParam: null as ReviewCursor | null,
     queryFn: ({ pageParam }) =>
       service.listFeed(scope, pageParam, viewerUserId, REVIEW_PAGE_SIZE),
