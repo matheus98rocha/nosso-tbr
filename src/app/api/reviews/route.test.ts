@@ -320,4 +320,76 @@ describe("PUT /api/reviews", () => {
       ),
     ).toBe(true);
   });
+
+  it("publica quem escolheu o livro mesmo fora da lista de leitores", async () => {
+    const client = clientFor({
+      book: {
+        status: "reading",
+        user_id: OTHER_ID,
+        chosen_by: USER_ID,
+        readers: [OTHER_ID],
+      },
+    });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "Escolhi" }));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      published: true,
+      reviewId: "review-1",
+      stars: 4,
+    });
+    expect(client.calls.some((call) => call.table === "book_reviews" && call.op === "upsert")).toBe(
+      true,
+    );
+    expect(client.calls.some((call) => call.table === "book_reading_ratings")).toBe(false);
+  });
+
+  it("publica o ator do cadastro quando a lista de leitores vem nula", async () => {
+    const client = clientFor({
+      book: {
+        status: "paused",
+        user_id: USER_ID,
+        chosen_by: OTHER_ID,
+        readers: null,
+      },
+    });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 2, content: "Cadastrei" }));
+
+    expect(response.status).toBe(200);
+    expect(client.calls.some((call) => call.table === "book_reviews" && call.op === "upsert")).toBe(
+      true,
+    );
+    expect(client.calls.some((call) => call.op === "delete")).toBe(false);
+  });
+
+  it("nega quem está fora do livro com leitores nulos e não grava", async () => {
+    const client = clientFor({
+      book: {
+        status: "finished",
+        user_id: OTHER_ID,
+        chosen_by: OTHER_ID,
+        readers: null,
+      },
+    });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 5, content: "De fora" }));
+
+    expect(response.status).toBe(403);
+    expect(client.calls.some((call) => call.op === "upsert" || call.op === "delete")).toBe(false);
+  });
+
+  it("não apaga a resenha já gravada quando a nota do livro finalizado falha", async () => {
+    const client = clientFor({ ratingError: "rating down" });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 5, content: "Texto publicado" }));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "rating down" });
+    expect(client.calls.some((call) => call.table === "book_reviews" && call.op === "upsert")).toBe(
+      true,
+    );
+    expect(client.calls.some((call) => call.op === "delete")).toBe(false);
+  });
 });

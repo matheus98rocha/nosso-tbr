@@ -19,6 +19,24 @@ function functionBody(signature: string) {
   return sql.slice(start, end);
 }
 
+function functionHeader(signature: string) {
+  const start = sql.indexOf(signature);
+  if (start < 0) throw new Error(`missing ${signature}`);
+  const end = sql.indexOf("AS $$", start);
+  if (end < 0) throw new Error(`missing header of ${signature}`);
+  return sql.slice(start, end);
+}
+
+function policySql(name: string) {
+  const marker = `CREATE POLICY ${name}`;
+  const start = sql.indexOf(marker);
+  if (start < 0) throw new Error(`missing ${name}`);
+  const nextPolicy = sql.indexOf("CREATE POLICY ", start + marker.length);
+  const nextFunction = sql.indexOf("CREATE OR REPLACE FUNCTION", start + marker.length);
+  const ends = [nextPolicy, nextFunction].filter((index) => index > start);
+  return sql.slice(start, Math.min(...ends));
+}
+
 function splitTopLevel(input: string) {
   const items: string[] = [];
   let depth = 0;
@@ -216,5 +234,97 @@ describe("contrato posicional de resenhas", () => {
       "GRANT SELECT, INSERT, DELETE ON public.book_review_comments TO authenticated;",
     )).toBe(true);
     expect(sql).not.toContain("GRANT UPDATE ON public.book_review_comments");
+  });
+
+  it("só mostra a resenha para a autora ou para quem já vê o livro, e só ela escreve a própria", () => {
+    const select = policySql("book_reviews_select_visible");
+    const insert = policySql("book_reviews_insert_participant");
+    const update = policySql("book_reviews_update_own");
+    const remove = policySql("book_reviews_delete_own");
+    const reactionUpdate = policySql("book_review_reactions_update_own");
+    const commentInsert = policySql("book_review_comments_insert_visible");
+    const feedHeader = functionHeader("FUNCTION public.get_review_feed(");
+
+    expect(sql).toContain("ALTER TABLE public.book_reviews FORCE ROW LEVEL SECURITY;");
+    expect(sql).toContain(
+      "ALTER TABLE public.book_review_reactions FORCE ROW LEVEL SECURITY;",
+    );
+    expect(sql).toContain(
+      "ALTER TABLE public.book_review_comments FORCE ROW LEVEL SECURITY;",
+    );
+    expect(select).toContain("user_id = auth.uid()");
+    expect(select).toContain(
+      "public.is_book_visible_to_current_user(b.readers, b.chosen_by)",
+    );
+    expect(select).not.toContain("USING (true)");
+    expect(insert).toContain("user_id = auth.uid()");
+    expect(insert).toContain("b.user_id IS NOT DISTINCT FROM auth.uid()");
+    expect(insert).toContain("b.chosen_by = auth.uid()");
+    expect(insert).toContain("auth.uid() = ANY (COALESCE(b.readers, '{}'::uuid[]))");
+    expect(update).toContain("USING (user_id = auth.uid())");
+    expect(update).toContain("b.chosen_by = auth.uid()");
+    expect(update).toContain("auth.uid() = ANY (COALESCE(b.readers, '{}'::uuid[]))");
+    expect(remove).toContain("USING (user_id = auth.uid())");
+    expect(remove).not.toContain("is_book_visible_to_current_user");
+    expect(remove).not.toContain("chosen_by");
+    expect(reactionUpdate).toContain("USING (user_id = auth.uid())");
+    expect(reactionUpdate).toContain("NOT EXISTS");
+    expect(reactionUpdate).toContain("r.user_id = auth.uid()");
+    expect(commentInsert).toContain("user_id = auth.uid()");
+    expect(commentInsert).toContain("r.id = book_review_comments.review_id");
+    expect(feedHeader).toContain("SECURITY INVOKER");
+    expect(feedHeader).not.toContain("SECURITY DEFINER");
+    expect(sql).toContain(
+      "REVOKE ALL ON FUNCTION public.get_review_feed(text, integer, timestamptz, uuid) FROM PUBLIC;",
+    );
+    expect(sql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.get_review_feed(text, integer, timestamptz, uuid) TO authenticated;",
+    );
+    expect(sql).not.toContain("TO anon");
+  });
+
+  it("recusa livro ausente, corta o texto e só atualiza a data quando o texto muda", () => {
+    const body = functionBody("FUNCTION public.book_reviews_before_write()");
+    const missing = body.indexOf("IF v_status IS NULL");
+    const raised = body.indexOf("Livro não encontrado para a resenha.", missing);
+    const trim = body.indexOf("NEW.content := btrim(NEW.content)");
+    const unchanged = body.indexOf("NEW.content IS NOT DISTINCT FROM OLD.content");
+    const earlyReturn = body.indexOf("RETURN NEW", unchanged);
+    const statusAssign = body.indexOf("NEW.reading_status := v_status");
+    const updateGuard = body.indexOf("IF TG_OP = 'UPDATE'", statusAssign);
+    const touch = body.indexOf("NEW.updated_at := now()", updateGuard);
+    const trigger = sql.slice(
+      sql.indexOf("CREATE TRIGGER book_reviews_before_write"),
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.book_reading_ratings_sync_review_stars()"),
+    );
+
+    expect(missing).toBeGreaterThan(-1);
+    expect(raised).toBeGreaterThan(missing);
+    expect(body).toContain("ERRCODE = 'P0002'");
+    expect(trim).toBeGreaterThan(raised);
+    expect(unchanged).toBeGreaterThan(trim);
+    expect(statusAssign).toBeGreaterThan(earlyReturn);
+    expect(updateGuard).toBeGreaterThan(statusAssign);
+    expect(touch).toBeGreaterThan(updateGuard);
+    expect(trigger).toContain(
+      "BEFORE INSERT OR UPDATE ON public.book_reviews",
+    );
+    expect(sql).toContain(
+      "AFTER INSERT OR UPDATE OF stars ON public.book_reading_ratings",
+    );
+  });
+
+  it("pede a página anterior pela criação e pelo id, sem reordenar por edição", () => {
+    const body = functionBody("FUNCTION public.get_review_feed(");
+    const where = body.indexOf("p_before_created_at IS NULL");
+    const cursor = body.indexOf(
+      "(r.created_at, r.id) < (p_before_created_at, p_before_id)",
+    );
+    const order = body.slice(body.indexOf("ORDER BY", cursor));
+
+    expect(where).toBeGreaterThan(-1);
+    expect(cursor).toBeGreaterThan(where);
+    expect(order.startsWith("ORDER BY r.created_at DESC, r.id DESC")).toBe(true);
+    expect(order).not.toContain("updated_at");
   });
 });

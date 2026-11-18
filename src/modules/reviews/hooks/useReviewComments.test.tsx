@@ -156,4 +156,47 @@ describe("useReviewComments", () => {
     expect(createComment).not.toHaveBeenCalled();
     expect(result.current.comments).toEqual([]);
   });
+
+  it("mostra o comentário na hora e devolve a lista se a publicação falha", async () => {
+    let rejectCreate: (error: Error) => void = () => undefined;
+    createComment.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectCreate = reject;
+        }),
+    );
+    const { result } = renderHook(() => useReviewComments(REVIEW_ID), { wrapper });
+
+    await waitFor(() => expect(result.current.comments).toHaveLength(2));
+
+    act(() => {
+      result.current.publish("  novo comentário  ");
+    });
+
+    await waitFor(() =>
+      expect(result.current.comments.map((item) => item.content)).toEqual([
+        "Raiz",
+        "Resposta",
+        "novo comentário",
+      ]),
+    );
+    expect(result.current.comments.at(-1)).toMatchObject({
+      pending: true,
+      userId: VIEWER_ID,
+      authorDisplayName: "Você",
+      parentId: null,
+    });
+    expect(result.current.replyTo).toBeNull();
+
+    await act(async () => {
+      rejectCreate(new Error("down"));
+    });
+
+    await waitFor(() =>
+      expect(result.current.comments.map((item) => item.id)).toEqual(["root", "reply"]),
+    );
+    expect(toastError).toHaveBeenCalledWith(REVIEWS_COPY.commentError, {
+      className: "toast-error",
+    });
+  });
 });
