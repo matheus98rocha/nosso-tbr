@@ -24,7 +24,7 @@ export function useReviewReaction(scope: ReviewScope) {
   const queryClient = useQueryClient();
   const viewerUserId = useUserStore((state) => state.user?.id ?? null);
   const pendingIds = useRef(new Set<string>());
-  const queryKey = reviewQueryKeys.feed(scope);
+  const queryKey = reviewQueryKeys.feed(viewerUserId, scope);
 
   const mutation = useMutation({
     mutationFn: (input: ReactionInput) => service.setReaction(input.reviewId, input.next),
@@ -50,20 +50,21 @@ export function useReviewReaction(scope: ReviewScope) {
           })),
         };
       });
-      return { previous };
+      return { previous, queryKey };
     },
     onError: (_error, input, context) => {
       pendingIds.current.delete(input.reviewId);
       if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
+        queryClient.setQueryData(context.queryKey, context.previous);
       }
       toast.error(REVIEWS_COPY.reactionError, { className: "toast-error" });
     },
     onSuccess: (_data, input) => {
       pendingIds.current.delete(input.reviewId);
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey });
+    onSettled: (_data, _error, _input, context) => {
+      if (!context?.queryKey) return;
+      void queryClient.invalidateQueries({ queryKey: context.queryKey });
     },
   });
 
