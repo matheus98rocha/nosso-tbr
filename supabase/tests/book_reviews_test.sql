@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(11);
+SELECT plan(15);
 
 INSERT INTO public.users (id, display_name, email)
 VALUES
@@ -272,6 +272,31 @@ SELECT is(
   ),
   'finished:1',
   'a stars-only rating keeps the review status snapshot'
+);
+
+SELECT is(
+  (
+    SELECT like_count::text
+      || ':' || dislike_count::text
+      || ':' || comment_count::text
+      || ':' || book_is_solo::text
+    FROM public.get_review_feed('all', 30, NULL, NULL)
+    WHERE book_id = '00000000-0000-4000-8000-000000000281'
+  ),
+  '1:0:0:true',
+  'the feed keeps reaction counts apart from the solo flag'
+);
+
+SELECT is(
+  (
+    SELECT like_count::text
+      || ':' || comment_count::text
+      || ':' || book_is_solo::text
+    FROM public.get_review_feed('all', 30, NULL, NULL)
+    WHERE book_id = '00000000-0000-4000-8000-000000000282'
+  ),
+  '0:1:false',
+  'a collective review is not marked solo in the feed'
 );
 
 DO $$
