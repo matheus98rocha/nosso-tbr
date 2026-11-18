@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(11);
+SELECT plan(15);
 
 INSERT INTO public.users (id, display_name, email)
 VALUES
@@ -88,8 +88,31 @@ SELECT is(
       )
     $sql$
   ),
+  'P0001',
+  'a participant cannot publish a review before the book is finished'
+);
+
+RESET ROLE;
+
+UPDATE public.books
+SET status = 'finished'
+WHERE id = '00000000-0000-4000-8000-000000000281';
+
+SELECT is(
+  pg_temp.review_as(
+    '00000000-0000-4000-8000-000000000081',
+    $sql$
+      INSERT INTO public.book_reviews (user_id, book_id, stars, content)
+      VALUES (
+        '00000000-0000-4000-8000-000000000081',
+        '00000000-0000-4000-8000-000000000281',
+        5,
+        '  Gostei do meio  '
+      )
+    $sql$
+  ),
   'ok',
-  'a participant can publish a review in any status'
+  'a participant can publish a review after finishing the book'
 );
 
 RESET ROLE;
@@ -100,7 +123,7 @@ SELECT is(
     FROM public.book_reviews
     WHERE book_id = '00000000-0000-4000-8000-000000000281'
   ),
-  'reading',
+  'finished',
   'the stored status is the book status at write time'
 );
 
@@ -124,7 +147,7 @@ SELECT is(
     FROM public.book_reviews
     WHERE book_id = '00000000-0000-4000-8000-000000000281'
   ),
-  'reading',
+  'finished',
   'a later book status change does not rewrite the review'
 );
 
@@ -259,10 +282,21 @@ UPDATE public.books
 SET status = 'paused'
 WHERE id = '00000000-0000-4000-8000-000000000282';
 
-UPDATE public.book_reading_ratings
-SET stars = 1
-WHERE user_id = '00000000-0000-4000-8000-000000000081'
-  AND book_id = '00000000-0000-4000-8000-000000000282';
+SELECT is(
+  pg_temp.review_as(
+    '00000000-0000-4000-8000-000000000081',
+    $sql$
+      UPDATE public.book_reviews
+      SET stars = 1
+      WHERE user_id = '00000000-0000-4000-8000-000000000081'
+        AND book_id = '00000000-0000-4000-8000-000000000282'
+    $sql$
+  ),
+  'P0001',
+  'a rating change after the book leaves finished does not rewrite the review'
+);
+
+RESET ROLE;
 
 SELECT is(
   (
@@ -270,8 +304,8 @@ SELECT is(
     FROM public.book_reviews
     WHERE book_id = '00000000-0000-4000-8000-000000000282'
   ),
-  'finished:1',
-  'a stars-only rating keeps the review status snapshot'
+  'finished:2',
+  'the published note keeps the stars from when the book was finished'
 );
 
 DO $$

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireUser } from "@/app/api/_utils/requireUser";
 import { canUserParticipateInBook } from "@/lib/security/bookParticipation";
 import { createClient } from "@/lib/supabase/server";
+import { REVIEWS_COPY } from "@/modules/reviews/constants";
 
 const bodySchema = z.object({
   bookId: z.string().uuid(),
@@ -56,11 +57,8 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!content && book.status !== "finished") {
-    return NextResponse.json(
-      { error: "Escreva sua resenha para publicar." },
-      { status: 400 },
-    );
+  if (book.status !== "finished") {
+    return NextResponse.json({ error: REVIEWS_COPY.starsLocked }, { status: 400 });
   }
 
   let reviewId: string | null = null;

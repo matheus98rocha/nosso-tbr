@@ -1,5 +1,8 @@
 export { buildReviewIntentUrl, buildReviewTweetText, xWeightedLength } from "./buildReviewTweetText";
 export { parseReviewTab, scopeFromTab } from "./parseReviewTab";
+export { currentBookStatus, reviewStarsAvailable } from "./currentBookStatus";
+export { filterReviewBooks } from "./filterReviewBooks";
+export { invalidateReviewBookStatus } from "./invalidateReviewBookStatus";
 export { canSubmitReview, reviewContentState } from "./reviewContent";
 export { readerInitials } from "./readerInitials";
 export { reviewQueryKeys } from "./reviewQueryKeys";

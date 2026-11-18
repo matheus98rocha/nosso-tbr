@@ -10,7 +10,12 @@ import { useUserStore } from "@/stores/userStore";
 import { REVIEWS_COPY } from "../constants";
 import { ReviewsService } from "../services";
 import { closeReviewComposer, useReviewComposerStore } from "../stores";
-import { canSubmitReview, reviewContentState, reviewQueryKeys } from "../utils";
+import {
+  canSubmitReview,
+  reviewContentState,
+  reviewQueryKeys,
+  reviewStarsAvailable,
+} from "../utils";
 
 const service = new ReviewsService();
 
@@ -53,6 +58,8 @@ export function useReviewComposerForm() {
     queryKey: reviewQueryKeys.mineByBook(viewerUserId, book?.id ?? "none"),
     queryFn: () => service.getMineByBookId(book?.id ?? ""),
     enabled: open && Boolean(book?.id) && Boolean(viewerUserId),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const hydrationKey =
@@ -85,15 +92,28 @@ export function useReviewComposerForm() {
   }, [existing.data, hydrationKey, open]);
 
   const contentState = reviewContentState(content);
+  const liveStatus = existing.isFetchedAfterMount
+    ? (existing.data?.bookStatus ?? null)
+    : null;
+  const currentStatus = liveStatus ?? book?.status ?? "not_started";
+  const shownBook = useMemo(() => {
+    if (!book) return null;
+    if (!liveStatus || liveStatus === book.status) return book;
+    return { ...book, status: liveStatus };
+  }, [book, liveStatus]);
+  const starsAvailable = useMemo(
+    () => reviewStarsAvailable(currentStatus),
+    [currentStatus],
+  );
   const submission = useMemo(
     () =>
       canSubmitReview({
         mode: mode ?? "compose",
         stars,
         content,
-        bookStatus: book?.status ?? "not_started",
+        bookStatus: currentStatus,
       }),
-    [book?.status, content, mode, stars],
+    [content, currentStatus, mode, stars],
   );
 
   const dirty =
@@ -158,21 +178,30 @@ export function useReviewComposerForm() {
     save.mutate();
   }, [book, save, submission.ok, viewerUserId]);
 
-  return {
-    open,
-    mode,
-    book,
-    selectBook,
-    stars,
-    setStars: (next: number) => {
+  const pickStars = useCallback(
+    (next: number) => {
+      if (!reviewStarsAvailable(currentStatus)) return;
       touched.current = true;
       setStars(next);
     },
+    [currentStatus],
+  );
+
+  const updateContent = useCallback((next: string) => {
+    touched.current = true;
+    setContent(next);
+  }, []);
+
+  return {
+    open,
+    mode,
+    book: shownBook,
+    selectBook,
+    stars,
+    starsAvailable,
+    setStars: pickStars,
     content,
-    setContent: (next: string) => {
-      touched.current = true;
-      setContent(next);
-    },
+    setContent: updateContent,
     contentState,
     submission,
     isLoadingExisting: Boolean(book) && existing.isLoading,

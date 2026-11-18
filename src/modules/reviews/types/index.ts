@@ -1,5 +1,8 @@
 export type {
+  CurrentBookStatusPresentation,
   ReviewBookOption,
+  ReviewBookPickerProps,
+  ReviewBookStatusBadgeProps,
   ReviewComment,
   ReviewComposerBook,
   ReviewComposerMode,

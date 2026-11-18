@@ -1,6 +1,7 @@
 export { useDeleteReview } from "./useDeleteReview";
 export { useMyReviewedBookIds } from "./useMyReviewedBookIds";
 export { useReviewBookOptions } from "./useReviewBookOptions";
+export { useReviewBookPicker } from "./useReviewBookPicker";
 export { useReviewComments } from "./useReviewComments";
 export { useReviewComposerForm } from "./useReviewComposerForm";
 export { useReviewFeed } from "./useReviewFeed";

@@ -31,13 +31,14 @@ describe("ReviewComposerDialog", () => {
         title: "O Hobbit",
         author: "Tolkien",
         imageUrl: null,
-        status: "reading",
+        status: "finished",
         isSolo: false,
       },
     });
     const user = userEvent.setup();
     renderDialog();
 
+    expect(screen.getByText("Leitura finalizada")).toBeInTheDocument();
     expect(screen.getByText("0/500")).toBeInTheDocument();
     const field = screen.getByLabelText("O que você achou");
     await user.click(screen.getByRole("button", { name: "5 estrelas (ótima)" }));
@@ -66,5 +67,30 @@ describe("ReviewComposerDialog", () => {
     expect(screen.getByText(/Livro privado/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "4 estrelas" }));
     expect(screen.getByRole("button", { name: "Salvar avaliação" })).toBeEnabled();
+  });
+
+  it("bloqueia as estrelas quando a leitura não está finalizada", async () => {
+    useReviewComposerStore.setState({
+      open: true,
+      mode: "compose",
+      book: {
+        id: "book-2",
+        title: "1984",
+        author: "George Orwell",
+        imageUrl: null,
+        status: "reading",
+        isSolo: false,
+      },
+    });
+    const user = userEvent.setup();
+    renderDialog();
+
+    expect(screen.getByText("Lendo agora")).toBeInTheDocument();
+    expect(
+      screen.getByText("As estrelas ficam disponíveis quando a leitura está finalizada."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "5 estrelas (ótima)" })).toBeDisabled();
+    await user.type(screen.getByLabelText("O que você achou"), "Ainda lendo");
+    expect(screen.getByRole("button", { name: "Publicar resenha" })).toBeDisabled();
   });
 });

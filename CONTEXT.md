@@ -117,7 +117,7 @@ _Avoid_: capa, highlight, story
 ## Resenhas
 
 **Resenha**:
-Texto de até 500 caracteres que um Leitor publica sobre um Livro de que participa, com uma nota de 1 a 5 estrelas. Cada Leitor tem no máximo uma resenha por livro, e pode editá-la. A edição não muda a posição no feed: a ordem é a de criação, mais recente primeiro. Uma resenha editada mostra a marca "editada". Quem pode ver a resenha é quem pode ver o livro.
+Texto de até 500 caracteres que um Leitor publica sobre um Livro de que participa, com uma nota de 1 a 5 estrelas. A nota só fica disponível quando o livro está com a leitura finalizada; sem ela, a resenha não é publicada. Cada Leitor tem no máximo uma resenha por livro, e pode editá-la. A edição não muda a posição no feed: a ordem é a de criação, mais recente primeiro. Uma resenha editada mostra a marca "editada". Quem pode ver a resenha é quem pode ver o livro.
 _Avoid_: avaliação privada, citação, comentário da leitura coletiva
 
 **Status na resenha**:

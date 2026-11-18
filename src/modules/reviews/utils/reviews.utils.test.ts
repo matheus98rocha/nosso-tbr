@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { buildReviewTweetText, xWeightedLength } from "./buildReviewTweetText";
 import { parseReviewTab, scopeFromTab } from "./parseReviewTab";
+import { currentBookStatus, reviewStarsAvailable } from "./currentBookStatus";
+import { filterReviewBooks } from "./filterReviewBooks";
 import { canSubmitReview, reviewContentState } from "./reviewContent";
 import { toggleReviewReaction } from "./reviewReaction";
 import { reviewStatusLabel } from "./reviewStatusLabel";
@@ -44,9 +46,47 @@ describe("resenhas", () => {
         mode: "compose",
         stars: 4,
         content: "  Um livro  ",
-        bookStatus: "reading",
+        bookStatus: "finished",
       }).publishesReview,
     ).toBe(true);
+    expect(
+      canSubmitReview({
+        mode: "compose",
+        stars: 4,
+        content: "Um livro",
+        bookStatus: "reading",
+      }),
+    ).toMatchObject({ publishesReview: false, starsAvailable: false, ok: false });
+    expect(reviewStarsAvailable("finished")).toBe(true);
+    expect(reviewStarsAvailable("paused")).toBe(false);
+    expect(currentBookStatus("finished").label).toBe("Leitura finalizada");
+    expect(currentBookStatus("reading").label).toBe("Lendo agora");
+    expect(currentBookStatus("abandoned").label).toBe("Livro abandonado");
+    expect(
+      filterReviewBooks(
+        [
+          {
+            id: "1",
+            title: "1984",
+            author: "George Orwell",
+            imageUrl: null,
+            status: "reading",
+            isSolo: false,
+            hasReview: false,
+          },
+          {
+            id: "2",
+            title: "O Hobbit",
+            author: "Tolkien",
+            imageUrl: null,
+            status: "finished",
+            isSolo: false,
+            hasReview: true,
+          },
+        ],
+        "hobbit",
+      ).map((book) => book.id),
+    ).toEqual(["2"]);
     expect(
       canSubmitReview({
         mode: "compose",
@@ -63,6 +103,91 @@ describe("resenhas", () => {
         bookStatus: "reading",
       }).ok,
     ).toBe(false);
+  });
+
+  it("só libera estrelas na leitura finalizada e ignora autor vazio na busca", () => {
+    const blocked = ["reading", "paused", "abandoned", "planned", "not_started"] as const;
+
+    for (const status of blocked) {
+      expect(reviewStarsAvailable(status)).toBe(false);
+      expect(
+        canSubmitReview({
+          mode: "finish",
+          stars: 5,
+          content: "Texto",
+          bookStatus: status,
+        }),
+      ).toMatchObject({
+        publishesReview: false,
+        savesRatingOnly: false,
+        starsAvailable: false,
+        ok: false,
+      });
+    }
+
+    expect(reviewStarsAvailable("Finished")).toBe(false);
+    expect(reviewStarsAvailable("")).toBe(false);
+    expect(currentBookStatus("paused").label).toBe("Leitura pausada");
+    expect(currentBookStatus("planned").label).toBe("Vou ler");
+    expect(currentBookStatus("not_started").label).toBe("Vou ler");
+    expect(currentBookStatus("Finished").label).toBe("Vou ler");
+    expect(currentBookStatus("").label).toBe("Vou ler");
+
+    expect(
+      canSubmitReview({
+        mode: "compose",
+        stars: 4,
+        content: "   ",
+        bookStatus: "finished",
+      }),
+    ).toMatchObject({
+      publishesReview: false,
+      savesRatingOnly: false,
+      starsAvailable: true,
+      ok: false,
+    });
+    expect(
+      canSubmitReview({
+        mode: "finish",
+        stars: 0,
+        content: "",
+        bookStatus: "finished",
+      }).ok,
+    ).toBe(false);
+    expect(
+      canSubmitReview({
+        mode: "compose",
+        stars: 6,
+        content: "Texto",
+        bookStatus: "finished",
+      }).ok,
+    ).toBe(false);
+
+    const books = [
+      {
+        id: "1",
+        title: "1984",
+        author: "George Orwell",
+        imageUrl: null,
+        status: "reading" as const,
+        isSolo: false,
+        hasReview: false,
+      },
+      {
+        id: "2",
+        title: "Ação e Reação",
+        author: null,
+        imageUrl: null,
+        status: "paused" as const,
+        isSolo: true,
+        hasReview: false,
+      },
+    ];
+
+    expect(filterReviewBooks(books, "   ").map((book) => book.id)).toEqual(["1", "2"]);
+    expect(filterReviewBooks(books, "  ORWELL ").map((book) => book.id)).toEqual(["1"]);
+    expect(filterReviewBooks(books, "AÇÃO").map((book) => book.id)).toEqual(["2"]);
+    expect(filterReviewBooks(books, "null")).toEqual([]);
   });
 
   it("alterna curtida e não curtida sem contagem negativa", () => {

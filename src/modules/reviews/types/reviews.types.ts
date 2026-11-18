@@ -79,6 +79,20 @@ export type ReviewBookOption = {
   hasReview: boolean;
 };
 
+export type ReviewBookPickerProps = {
+  onSelect: (book: ReviewComposerBook) => void;
+};
+
+export type ReviewBookStatusBadgeProps = {
+  status: Status;
+};
+
+export type CurrentBookStatusPresentation = {
+  label: string;
+  colorClass: string;
+  dotClass: string;
+};
+
 export type ReviewStatusPresentation = {
   label: string;
   badgeClassName: string;
