@@ -22,34 +22,47 @@ export function useReviewComposerForm() {
   const [content, setContent] = useState("");
   const [baseline, setBaseline] = useState({ stars: null as number | null, content: "" });
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [draftBookId, setDraftBookId] = useState<string | null>(null);
   const hydratedFor = useRef<string | null>(null);
   const touched = useRef(false);
+  const bookId = book?.id ?? null;
 
-  const existing = useQuery({
-    queryKey: reviewQueryKeys.mineByBook(book?.id ?? "none"),
-    queryFn: () => service.getMineByBookId(book?.id ?? ""),
-    enabled: open && Boolean(book?.id),
-  });
-
-  useEffect(() => {
-    if (!open) {
-      hydratedFor.current = null;
-      touched.current = false;
+  if (!open) {
+    if (draftBookId !== null || stars !== null || content !== "" || confirmDiscard) {
+      setDraftBookId(null);
       setStars(null);
       setContent("");
       setBaseline({ stars: null, content: "" });
       setConfirmDiscard(false);
-      return;
+      hydratedFor.current = null;
+      touched.current = false;
     }
-    if (!book?.id || !existing.data || hydratedFor.current === book.id) return;
-    hydratedFor.current = book.id;
+  } else if (draftBookId !== bookId) {
+    setDraftBookId(bookId);
+    setStars(null);
+    setContent("");
+    setBaseline({ stars: null, content: "" });
+    setConfirmDiscard(false);
+    hydratedFor.current = null;
+    touched.current = false;
+  }
+
+  const existing = useQuery({
+    queryKey: reviewQueryKeys.mineByBook(bookId ?? "none"),
+    queryFn: () => service.getMineByBookId(bookId ?? ""),
+    enabled: open && Boolean(bookId),
+  });
+
+  useEffect(() => {
+    if (!open || !bookId || !existing.data || hydratedFor.current === bookId) return;
+    hydratedFor.current = bookId;
     if (touched.current) return;
     const nextStars = existing.data.review?.stars ?? existing.data.ratingStars;
     const nextContent = existing.data.review?.content ?? "";
     setStars(nextStars);
     setContent(nextContent);
     setBaseline({ stars: nextStars, content: nextContent });
-  }, [existing.data, open, book?.id]);
+  }, [existing.data, open, bookId]);
 
   const contentState = reviewContentState(content);
   const submission = useMemo(
