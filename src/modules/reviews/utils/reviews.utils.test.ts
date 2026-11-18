@@ -7,6 +7,7 @@ import { filterReviewBooks } from "./filterReviewBooks";
 import { canSubmitReview, reviewContentState } from "./reviewContent";
 import { toggleReviewReaction } from "./reviewReaction";
 import { reviewStatusLabel } from "./reviewStatusLabel";
+import { sortReviewBooksByStatusPriority } from "./sortReviewBooksByStatusPriority";
 
 describe("resenhas", () => {
   it("mapeia a aba da URL para o recorte do feed", () => {
@@ -188,6 +189,64 @@ describe("resenhas", () => {
     expect(filterReviewBooks(books, "  ORWELL ").map((book) => book.id)).toEqual(["1"]);
     expect(filterReviewBooks(books, "AÇÃO").map((book) => book.id)).toEqual(["2"]);
     expect(filterReviewBooks(books, "null")).toEqual([]);
+  });
+
+  it("prioriza finalizados, depois em andamento e mantém a ordem entre os demais", () => {
+    const books = [
+      {
+        id: "planned",
+        title: "Planejado",
+        author: null,
+        imageUrl: null,
+        status: "planned" as const,
+        isSolo: false,
+        hasReview: false,
+      },
+      {
+        id: "reading",
+        title: "Lendo",
+        author: null,
+        imageUrl: null,
+        status: "reading" as const,
+        isSolo: false,
+        hasReview: false,
+      },
+      {
+        id: "paused",
+        title: "Pausado",
+        author: null,
+        imageUrl: null,
+        status: "paused" as const,
+        isSolo: false,
+        hasReview: false,
+      },
+      {
+        id: "finished",
+        title: "Finalizado",
+        author: null,
+        imageUrl: null,
+        status: "finished" as const,
+        isSolo: false,
+        hasReview: false,
+      },
+      {
+        id: "abandoned",
+        title: "Abandonado",
+        author: null,
+        imageUrl: null,
+        status: "abandoned" as const,
+        isSolo: false,
+        hasReview: false,
+      },
+    ];
+
+    expect(sortReviewBooksByStatusPriority(books).map((book) => book.id)).toEqual([
+      "finished",
+      "reading",
+      "planned",
+      "paused",
+      "abandoned",
+    ]);
   });
 
   it("alterna curtida e não curtida sem contagem negativa", () => {

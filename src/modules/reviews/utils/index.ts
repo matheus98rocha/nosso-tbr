@@ -8,3 +8,4 @@ export { readerInitials } from "./readerInitials";
 export { reviewQueryKeys } from "./reviewQueryKeys";
 export { toggleReviewReaction } from "./reviewReaction";
 export { reviewStatusLabel } from "./reviewStatusLabel";
+export { sortReviewBooksByStatusPriority } from "./sortReviewBooksByStatusPriority";
