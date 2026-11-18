@@ -124,6 +124,10 @@ function presetUseBookCard(
     dropdownModal: ModalMock;
     bookDetailsModal: ModalMock;
     showFavoriteToggle: boolean;
+    showReviewAction: boolean;
+    hasReview: boolean;
+    openReview: () => void;
+    handleFavoriteClick: () => void;
     showBookOptionsMenu: boolean;
     showAddToLibrary: boolean;
     addToLibrary: () => void;
@@ -219,11 +223,14 @@ function presetUseBookCard(
     statusDisplay,
     isOwnSoloBook,
     showFavoriteToggle: patch.showFavoriteToggle ?? false,
+    showReviewAction: patch.showReviewAction ?? false,
+    hasReview: patch.hasReview ?? false,
+    openReview: patch.openReview ?? vi.fn(),
     showBookOptionsMenu: patch.showBookOptionsMenu ?? isLogged,
     showAddToLibrary: patch.showAddToLibrary ?? false,
     addToLibrary: patch.addToLibrary ?? vi.fn(),
     isAddToLibraryPending: patch.isAddToLibraryPending ?? false,
-    handleFavoriteClick: vi.fn(),
+    handleFavoriteClick: patch.handleFavoriteClick ?? vi.fn(),
     isFavoritePending: false,
     canAccessCollectiveReading: patch.canAccessCollectiveReading ?? false,
     collectiveReadingHref: "/collective-reading/book-1/Mem%C3%B3rias%20P%C3%B3stumas",
@@ -644,5 +651,81 @@ describe("BookCard", () => {
     );
 
     expect(handleAddToShelfFromDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it("deixa a resenha só na ficha e mantém o favorito no card", async () => {
+    const user = userEvent.setup();
+    const finishedBook = { ...baseBook, status: "finished" as const };
+    const openReview = vi.fn();
+    const handleOpenBookDetails = vi.fn();
+    const handleFavoriteClick = vi.fn();
+    presetUseBookCard(finishedBook, {
+      showFavoriteToggle: true,
+      showReviewAction: true,
+      hasReview: false,
+      openReview,
+      handleOpenBookDetails,
+      handleFavoriteClick,
+    });
+    const view = render(<BookCard book={finishedBook} />);
+
+    expect(screen.queryByRole("button", { name: /resenha/i })).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: /Ver detalhes: Memórias Póstumas/i }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: 'Marcar "Memórias Póstumas" como favorito',
+      }),
+    );
+    expect(handleOpenBookDetails).toHaveBeenCalledTimes(1);
+    expect(handleFavoriteClick).toHaveBeenCalledTimes(1);
+    expect(openReview).not.toHaveBeenCalled();
+    view.unmount();
+
+    presetUseBookCard(finishedBook, {
+      showFavoriteToggle: true,
+      showReviewAction: true,
+      hasReview: false,
+      openReview,
+      handleOpenBookDetails,
+      handleFavoriteClick,
+      bookDetailsModal: modalState(true),
+    });
+    const writing = render(<BookCard book={finishedBook} />);
+
+    await user.click(screen.getByRole("button", { name: /Escrever resenha/ }));
+    expect(openReview).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole("button", { name: /Escrever resenha/ })).toHaveLength(1);
+    writing.unmount();
+
+    presetUseBookCard(finishedBook, {
+      showFavoriteToggle: true,
+      showReviewAction: true,
+      hasReview: true,
+      openReview,
+      bookDetailsModal: modalState(true),
+    });
+    render(<BookCard book={finishedBook} />);
+
+    expect(screen.getByRole("button", { name: /Editar resenha/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Escrever resenha/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: 'Marcar "Memórias Póstumas" como favorito',
+        hidden: true,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("não oferece resenha na ficha quando o hook esconde a ação", () => {
+    presetUseBookCard(baseBook, {
+      bookDetailsModal: modalState(true),
+      showReviewAction: false,
+      hasReview: true,
+    });
+    render(<BookCard book={baseBook} isShelf shelfId="shelf-1" />);
+
+    expect(screen.queryByRole("button", { name: /resenha/i })).not.toBeInTheDocument();
   });
 });
