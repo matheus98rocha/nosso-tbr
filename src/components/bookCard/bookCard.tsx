@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, NotebookPen, Users } from "lucide-react";
+import { Heart, Users } from "lucide-react";
 
 import { BookCover } from "@/components/bookCover";
 
@@ -69,7 +69,7 @@ export function BookCard(props: BookCardProps) {
     isAddToLibraryPending,
   } = useBookCard(props);
 
-  const showTopActions = showFavoriteToggle || showReviewAction;
+  const showTopActions = showFavoriteToggle;
   const showReadersOnCard = isLogged && Boolean(book.readersDisplay?.trim());
   const cardStatusDisplay =
     statusDisplay && book.status === "finished"
@@ -311,33 +311,6 @@ export function BookCard(props: BookCardProps) {
                   onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.stopPropagation()}
                 >
-                  {showReviewAction && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={openReview}
-                      title={hasReview ? "Editar sua resenha" : "Escrever resenha"}
-                      aria-label={
-                        hasReview
-                          ? `Editar sua resenha de "${book.title}"`
-                          : `Escrever resenha de "${book.title}"`
-                      }
-                      className={cn(
-                        "rounded-full border border-transparent text-muted-foreground transition-colors duration-200 hover:border-foreground/15 hover:bg-muted hover:text-foreground",
-                        isShelf ? "size-7" : "size-9",
-                        hasReview && "text-foreground",
-                      )}
-                    >
-                      <NotebookPen
-                        className={cn(
-                          isShelf ? "h-3 w-3" : "h-4 w-4",
-                          hasReview && "fill-current",
-                        )}
-                        aria-hidden
-                      />
-                    </Button>
-                  )}
                   {showFavoriteToggle && (
                     <Button
                       type="button"
