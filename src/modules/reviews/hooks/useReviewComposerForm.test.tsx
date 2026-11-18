@@ -7,7 +7,7 @@ import { useUserStore } from "@/stores/userStore";
 import type { User } from "@/types/user.types";
 
 import { resetReviewComposerStore, useReviewComposerStore } from "../stores";
-import type { ReviewMine } from "../types";
+import type { ReviewComposerBook, ReviewMine } from "../types";
 import { reviewQueryKeys } from "../utils";
 import { useReviewComposerForm } from "./useReviewComposerForm";
 
@@ -213,5 +213,69 @@ describe("useReviewComposerForm", () => {
       expect(result.current.book?.status).toBe("finished");
     });
     expect(result.current.starsAvailable).toBe(true);
+  });
+
+  it("descarta o rascunho quando a finalização troca o livro do compositor", async () => {
+    const otherReview: ReviewMine = {
+      id: "review-2",
+      stars: 2,
+      content: "Do outro",
+      readingStatus: "finished",
+    };
+    const otherBook: ReviewComposerBook = {
+      id: "book-2",
+      title: "Outro",
+      author: null,
+      imageUrl: null,
+      status: "finished",
+      isSolo: false,
+    };
+    getMineByBookId.mockImplementation(async (id: string) => {
+      if (id === otherBook.id) {
+        return { review: otherReview, ratingStars: 2, bookStatus: "finished" };
+      }
+      return { review: aliceReview, ratingStars: 5, bookStatus: "finished" };
+    });
+
+    const { result } = renderForm();
+
+    await waitFor(() => {
+      expect(result.current.content).toBe("Texto privado da Alice");
+    });
+
+    act(() => {
+      result.current.setStars(4);
+      result.current.setContent("Sobre o Hobbit");
+    });
+
+    act(() => {
+      useReviewComposerStore.getState().openAfterFinish(otherBook, null);
+    });
+
+    expect(result.current.book?.id).toBe(otherBook.id);
+    expect(result.current.content).toBe("");
+    expect(result.current.stars).toBeNull();
+
+    act(() => {
+      result.current.submit();
+    });
+    expect(upsert).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(result.current.content).toBe("Do outro");
+    });
+    expect(result.current.stars).toBe(2);
+
+    act(() => {
+      result.current.submit();
+    });
+
+    await waitFor(() => {
+      expect(upsert).toHaveBeenCalledWith({
+        bookId: "book-2",
+        stars: 2,
+        content: "Do outro",
+      });
+    });
   });
 });
