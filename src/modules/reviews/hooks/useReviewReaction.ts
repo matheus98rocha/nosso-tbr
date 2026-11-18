@@ -24,7 +24,7 @@ export function useReviewReaction(scope: ReviewScope) {
   const queryClient = useQueryClient();
   const viewerUserId = useUserStore((state) => state.user?.id ?? null);
   const pendingIds = useRef(new Set<string>());
-  const queryKey = reviewQueryKeys.feed(scope);
+  const queryKey = reviewQueryKeys.feed(scope, viewerUserId);
 
   const mutation = useMutation({
     mutationFn: (input: ReactionInput) => service.setReaction(input.reviewId, input.next),
