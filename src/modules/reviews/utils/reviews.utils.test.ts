@@ -65,6 +65,46 @@ describe("resenhas", () => {
     ).toBe(false);
   });
 
+  it("só salva a avaliação na finalização de um livro concluído", () => {
+    expect(
+      canSubmitReview({
+        mode: "compose",
+        stars: 4,
+        content: "   ",
+        bookStatus: "finished",
+      }),
+    ).toMatchObject({ ok: false, publishesReview: false, savesRatingOnly: false });
+
+    expect(
+      canSubmitReview({
+        mode: "finish",
+        stars: 4,
+        content: "",
+        bookStatus: "paused",
+      }).ok,
+    ).toBe(false);
+
+    for (const stars of [0, 6]) {
+      expect(
+        canSubmitReview({
+          mode: "finish",
+          stars,
+          content: "",
+          bookStatus: "finished",
+        }).ok,
+      ).toBe(false);
+    }
+
+    expect(
+      canSubmitReview({
+        mode: "finish",
+        stars: 1,
+        content: "",
+        bookStatus: "finished",
+      }),
+    ).toMatchObject({ ok: true, publishesReview: false, savesRatingOnly: true });
+  });
+
   it("alterna curtida e não curtida sem contagem negativa", () => {
     expect(
       toggleReviewReaction(
