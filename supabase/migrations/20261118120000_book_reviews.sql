@@ -73,13 +73,14 @@ BEGIN
 
   NEW.content := btrim(NEW.content);
 
-  IF TG_OP = 'UPDATE' AND NEW.content IS NOT DISTINCT FROM OLD.content THEN
+  IF TG_OP = 'INSERT' THEN
+    NEW.reading_status := v_status;
     RETURN NEW;
   END IF;
 
-  NEW.reading_status := v_status;
+  NEW.reading_status := OLD.reading_status;
 
-  IF TG_OP = 'UPDATE' THEN
+  IF NEW.content IS DISTINCT FROM OLD.content THEN
     NEW.updated_at := now();
   END IF;
 

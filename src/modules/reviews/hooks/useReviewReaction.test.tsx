@@ -3,6 +3,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useUserStore } from "@/stores/userStore";
+import type { User } from "@/types/user.types";
+
 import { REVIEWS_COPY } from "../constants";
 import type { ReviewFeedItem, ReviewFeedPage } from "../types";
 import { reviewQueryKeys } from "../utils";
@@ -33,6 +36,7 @@ function feedItem(overrides: Partial<ReviewFeedItem> = {}): ReviewFeedItem {
     bookTitle: "O Hobbit",
     bookImageUrl: null,
     bookAuthors: "Tolkien",
+    bookIsSolo: false,
     stars: 5,
     content: "Bom",
     readingStatus: "finished",
@@ -48,11 +52,15 @@ function feedItem(overrides: Partial<ReviewFeedItem> = {}): ReviewFeedItem {
   };
 }
 
-function renderReaction(item: ReviewFeedItem) {
+const VIEWER_ID = "viewer-1";
+
+function renderReaction(item: ReviewFeedItem, viewerUserId = VIEWER_ID) {
+  useUserStore.setState({ user: { id: viewerUserId } as User });
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  client.setQueryData<InfiniteData<ReviewFeedPage>>(reviewQueryKeys.feed("all"), {
+  const queryKey = reviewQueryKeys.feed("all", viewerUserId);
+  client.setQueryData<InfiniteData<ReviewFeedPage>>(queryKey, {
     pages: [{ reviews: [item], nextCursor: null }],
     pageParams: [null],
   });
@@ -60,8 +68,7 @@ function renderReaction(item: ReviewFeedItem) {
     createElement(QueryClientProvider, { client }, children);
   const hook = renderHook(() => useReviewReaction("all"), { wrapper });
   const stored = () =>
-    client.getQueryData<InfiniteData<ReviewFeedPage>>(reviewQueryKeys.feed("all"))
-      ?.pages[0]?.reviews[0];
+    client.getQueryData<InfiniteData<ReviewFeedPage>>(queryKey)?.pages[0]?.reviews[0];
   return { ...hook, stored };
 }
 
@@ -69,10 +76,14 @@ describe("useReviewReaction", () => {
   beforeEach(() => {
     setReaction.mockReset();
     toastError.mockReset();
+    useUserStore.setState({ user: null });
   });
 
   it("não reage à própria resenha nem a um card que não está no feed", () => {
-    const own = renderReaction(feedItem({ isOwn: true, likeCount: 3 }));
+    const own = renderReaction(
+      feedItem({ userId: VIEWER_ID, isOwn: true, likeCount: 3 }),
+      VIEWER_ID,
+    );
     act(() => {
       own.result.current.react("review-1", "like");
     });
