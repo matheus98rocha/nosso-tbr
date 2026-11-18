@@ -113,3 +113,21 @@ _Avoid_: filtro da estante, filtro da home
 **Imagem do recap**:
 Uma das imagens que formam um Recap de leitura. Inclui todas as leituras finalizadas do período; nenhum livro é omitido automaticamente. Sem Capa cadastrada, o placeholder ocupa o slot. Preview e PNG usam os mesmos livros na mesma ordem e a mesma Capa cadastrada (incluindo capa da Open Library). Falha de load não tira o livro: o slot fica com o placeholder. Só o Leitor tira um livro pelo X no preview; a paginação recompõe. Até 12 capas por imagem (3×4, tamanho do BookCard). O modal abre com skeleton do conjunto e só revela filtros, preview e ações juntos depois do probe das capas da primeira vista. Com mais de uma imagem, o preview mostra uma por vez com setas e dots; com uma imagem, vazio, carregamento ou erro, não há setas nem dots.
 _Avoid_: capa, highlight, story
+
+## Resenhas
+
+**Resenha**:
+Texto de até 500 caracteres que um Leitor publica sobre um Livro de que participa, com uma nota de 1 a 5 estrelas. Cada Leitor tem no máximo uma resenha por livro, e pode editá-la. A edição não muda a posição no feed: a ordem é a de criação, mais recente primeiro. Uma resenha editada mostra a marca "editada". Quem pode ver a resenha é quem pode ver o livro.
+_Avoid_: avaliação privada, citação, comentário da leitura coletiva
+
+**Status na resenha**:
+Status do livro gravado no momento em que a resenha é publicada ou editada. Não acompanha mudanças posteriores do livro até a próxima edição da resenha. O Leitor não escolhe esse valor.
+_Avoid_: status atual, progresso do cronograma
+
+**Reação**:
+Curtir ou não curtir uma resenha. As duas são exclusivas, e o autor da resenha não reage à própria. Curtir de novo desfaz a reação.
+_Avoid_: favorito, estrela, voto em comentário
+
+**Comentário de resenha**:
+Texto de até 500 caracteres escrito sobre uma resenha visível. Pode receber respostas em um nível. Uma resposta a uma resposta entra na mesma conversa, citada como resposta à pessoa. O autor do comentário e o autor da resenha podem excluí-lo.
+_Avoid_: comentário da leitura coletiva, resenha

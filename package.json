@@ -14,6 +14,7 @@
     "db:query": "npx supabase db query --linked",
     "db:migrate:stats-rpc": "npx supabase db query --linked -f supabase/migrations/20260810120000_stats_rpc_security_definer.sql",
     "db:migrate:followers-books": "npx supabase db query --linked -f supabase/migrations/20260810130000_books_visible_to_followers.sql",
+    "db:migrate:reviews": "npx supabase db query --linked -f supabase/migrations/20261118120000_book_reviews.sql",
     "test": "vitest --coverage",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
