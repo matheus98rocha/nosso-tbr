@@ -392,10 +392,6 @@ BEGIN
     r.created_at,
     r.updated_at,
     (
-      array_length(COALESCE(b.readers, ARRAY[]::uuid[]), 1) = 1
-      AND (COALESCE(b.readers, ARRAY[]::uuid[]))[1] = b.chosen_by
-    ),
-    (
       SELECT count(*)
       FROM public.book_review_reactions AS rr
       WHERE rr.review_id = r.id
@@ -418,6 +414,10 @@ BEGIN
       WHERE rr.review_id = r.id
         AND rr.user_id = auth.uid()
       LIMIT 1
+    ),
+    (
+      array_length(COALESCE(b.readers, ARRAY[]::uuid[]), 1) = 1
+      AND (COALESCE(b.readers, ARRAY[]::uuid[]))[1] = b.chosen_by
     )
   FROM public.book_reviews AS r
   JOIN public.users AS u ON u.id = r.user_id
