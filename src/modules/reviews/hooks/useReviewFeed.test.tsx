@@ -106,4 +106,32 @@ describe("useReviewFeed", () => {
 
     expect(listFeed).toHaveBeenCalledTimes(1);
   });
+
+  it("busca a página seguinte pelo cursor e junta as duas", async () => {
+    const cursor = { createdAt: "2026-11-01T00:00:00.000Z", id: "a" };
+    listFeed.mockReset();
+    listFeed.mockResolvedValueOnce({
+      reviews: [review({ id: "a", userId: OTHER_ID })],
+      nextCursor: cursor,
+    });
+    listFeed.mockResolvedValueOnce({
+      reviews: [review({ id: "b", userId: OTHER_ID })],
+      nextCursor: null,
+    });
+
+    const { result } = renderHook(() => useReviewFeed("following"), { wrapper });
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    await waitFor(() =>
+      expect(result.current.reviews.map((item) => item.id)).toEqual(["a", "b"]),
+    );
+    expect(listFeed).toHaveBeenNthCalledWith(1, "following", null, null, 10);
+    expect(listFeed).toHaveBeenNthCalledWith(2, "following", cursor, null, 10);
+    expect(result.current.hasNextPage).toBe(false);
+  });
 });

@@ -156,6 +156,7 @@ async function loadRecordingRoute(options: {
   review?: { id: string } | null;
   reviewError?: string;
   parent?: { id: string; review_id: string; parent_id: string | null } | null;
+  parentError?: string;
 }) {
   vi.resetModules();
   const calls: QueryCall[] = [];
@@ -188,6 +189,9 @@ async function loadRecordingRoute(options: {
             },
             error: null,
           };
+        }
+        if (options.parentError) {
+          return { data: null, error: { message: options.parentError } };
         }
         const parent =
           options.parent === undefined
@@ -264,6 +268,47 @@ describe("POST /api/review-comments threading", () => {
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({ error: "review down" });
+    expect(client.calls.filter((call) => call.op === "insert")).toEqual([]);
+  });
+
+  it("grava um comentário na raiz sem consultar o pai", async () => {
+    const { route, client } = await loadRecordingRoute({});
+    const response = await route.POST(post({ reviewId: REVIEW_ID, content: "  Na raiz  " }));
+
+    expect(response.status).toBe(201);
+    expect(client.calls.map((call) => `${call.table}:${call.op}`)).toEqual([
+      "book_reviews:select",
+      "book_review_comments:insert",
+    ]);
+    expect(client.calls.find((call) => call.op === "insert")?.payload).toEqual({
+      review_id: REVIEW_ID,
+      user_id: USER_ID,
+      parent_id: null,
+      content: "Na raiz",
+    });
+  });
+
+  it("recusa um pai que não existe e não insere", async () => {
+    const { route, client } = await loadRecordingRoute({ parent: null });
+    const response = await route.POST(
+      post({ reviewId: REVIEW_ID, content: "Órfã", parentId: PARENT_ID }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "Comentário pai não encontrado",
+    });
+    expect(client.calls.filter((call) => call.op === "insert")).toEqual([]);
+  });
+
+  it("não insere quando a leitura do pai falha", async () => {
+    const { route, client } = await loadRecordingRoute({ parentError: "parent down" });
+    const response = await route.POST(
+      post({ reviewId: REVIEW_ID, content: "Órfã", parentId: PARENT_ID }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "parent down" });
     expect(client.calls.filter((call) => call.op === "insert")).toEqual([]);
   });
 });

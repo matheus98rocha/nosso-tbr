@@ -138,7 +138,9 @@ function recordingTable(
 function reactionClient(options: {
   userId?: string | null;
   review?: { id: string; user_id: string } | null;
+  reviewError?: string;
   rows?: Array<{ user_id: string; reaction: string }>;
+  writeError?: string;
 }) {
   const userId = options.userId === undefined ? USER_ID : options.userId;
   const review =
@@ -156,7 +158,18 @@ function reactionClient(options: {
     },
     from: vi.fn((name: string) =>
       recordingTable(calls, name, (op) => {
-        if (name === "book_reviews") return { data: review, error: null };
+        if (name === "book_reviews") {
+          if (options.reviewError) {
+            return { data: null, error: { message: options.reviewError } };
+          }
+          return { data: review, error: null };
+        }
+        if (op === "upsert" || op === "delete") {
+          return {
+            data: null,
+            error: options.writeError ? { message: options.writeError } : null,
+          };
+        }
         if (op === "select") {
           return { data: options.rows ?? [], error: null };
         }
@@ -229,6 +242,38 @@ describe("POST /api/review-reactions writes", () => {
           ["user_id", USER_ID],
         ],
         payload: undefined,
+      },
+    ]);
+  });
+
+  it("não grava quando a leitura da resenha falha", async () => {
+    const client = reactionClient({ reviewError: "review down" });
+    const route = await loadRecordingRoute(client);
+    const response = await route.POST(post({ reviewId: REVIEW_ID, reaction: "like" }));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "review down" });
+    expect(writes(client.calls)).toEqual([]);
+    expect(client.calls.map((call) => call.table)).toEqual(["book_reviews"]);
+  });
+
+  it("grava a curtida na sessão e não finge sucesso se a gravação falha", async () => {
+    const client = reactionClient({ writeError: "reaction down" });
+    const route = await loadRecordingRoute(client);
+    const response = await route.POST(post({ reviewId: REVIEW_ID, reaction: "like" }));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "reaction down" });
+    expect(client.calls.filter((call) => call.table === "book_review_reactions")).toEqual([
+      {
+        table: "book_review_reactions",
+        op: "upsert",
+        filters: [],
+        payload: {
+          review_id: REVIEW_ID,
+          user_id: USER_ID,
+          reaction: "like",
+        },
       },
     ]);
   });
