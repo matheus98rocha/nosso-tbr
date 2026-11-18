@@ -8,6 +8,7 @@ import { useModal } from "@/hooks";
 import { BookUpsertService } from "@/modules/bookUpsert/services/bookUpsert.service";
 import { buildFinishedBookShareSubject } from "@/modules/finishedBookShare";
 import { openReviewAfterFinish } from "@/modules/reviews";
+import { invalidateReviewBookStatus } from "@/modules/reviews/utils";
 import { BookMapper } from "@/services/books/books.mapper";
 import { useReadingProgressMany } from "@/modules/schedule/hooks/useReadingProgressMany";
 import { BookService } from "@/services/books/books.service";
@@ -271,6 +272,7 @@ export function useReadingNow(scope: ReadingNowScope = "solo") {
         queryKey: ["books"],
         exact: false,
       });
+      await invalidateReviewBookStatus(queryClient);
 
       if (pathname === "/") {
         router.replace(
