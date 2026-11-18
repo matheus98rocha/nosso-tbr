@@ -4,6 +4,8 @@ import { useMutation, useQueryClient, type InfiniteData } from "@tanstack/react-
 import { useCallback, useRef } from "react";
 import { toast } from "sonner";
 
+import { useUserStore } from "@/stores/userStore";
+
 import { REVIEWS_COPY } from "../constants";
 import { ReviewsService } from "../services";
 import type { ReviewFeedPage, ReviewReaction, ReviewScope } from "../types";
@@ -20,8 +22,9 @@ type ReactionInput = {
 
 export function useReviewReaction(scope: ReviewScope) {
   const queryClient = useQueryClient();
+  const viewerUserId = useUserStore((state) => state.user?.id ?? null);
   const pendingIds = useRef(new Set<string>());
-  const queryKey = reviewQueryKeys.feed(scope);
+  const queryKey = reviewQueryKeys.feed(scope, viewerUserId);
 
   const mutation = useMutation({
     mutationFn: (input: ReactionInput) => service.setReaction(input.reviewId, input.next),
@@ -71,7 +74,7 @@ export function useReviewReaction(scope: ReviewScope) {
       const item = current?.pages
         .flatMap((page) => page.reviews)
         .find((review) => review.id === reviewId);
-      if (!item || item.isOwn) return;
+      if (!item || !viewerUserId || item.userId === viewerUserId) return;
 
       const next = toggleReviewReaction(item, reaction);
       pendingIds.current.add(reviewId);
@@ -82,7 +85,7 @@ export function useReviewReaction(scope: ReviewScope) {
         dislikeCount: next.dislikeCount,
       });
     },
-    [mutation, queryClient, queryKey],
+    [mutation, queryClient, queryKey, viewerUserId],
   );
 
   return { react };

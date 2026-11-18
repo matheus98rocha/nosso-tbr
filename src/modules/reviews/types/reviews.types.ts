@@ -22,6 +22,7 @@ export type ReviewFeedItem = {
   bookTitle: string;
   bookImageUrl: string | null;
   bookAuthors: string;
+  bookIsSolo: boolean;
   stars: number;
   content: string;
   readingStatus: Status;

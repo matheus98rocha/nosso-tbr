@@ -27,6 +27,7 @@ export type ReviewFeedRow = {
   book_title: string | null;
   book_image_url: string | null;
   book_authors: string | null;
+  book_is_solo?: boolean | null;
   stars: number;
   content: string;
   reading_status: string;
@@ -68,6 +69,7 @@ export function mapReviewFeedRow(
     bookTitle: row.book_title?.trim() || "Livro",
     bookImageUrl: row.book_image_url,
     bookAuthors: row.book_authors?.trim() || "",
+    bookIsSolo: row.book_is_solo === true,
     stars: Number(row.stars),
     content: row.content,
     readingStatus: asStatus(row.reading_status),

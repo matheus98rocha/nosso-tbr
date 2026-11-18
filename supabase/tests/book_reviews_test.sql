@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(14);
+SELECT plan(15);
 
 INSERT INTO public.users (id, display_name, email)
 VALUES
@@ -284,6 +284,25 @@ SELECT is(
   ),
   2::smallint,
   'saving the private rating updates the review stars'
+);
+
+UPDATE public.books
+SET status = 'paused'
+WHERE id = '00000000-0000-4000-8000-000000000282';
+
+UPDATE public.book_reading_ratings
+SET stars = 1
+WHERE user_id = '00000000-0000-4000-8000-000000000081'
+  AND book_id = '00000000-0000-4000-8000-000000000282';
+
+SELECT is(
+  (
+    SELECT reading_status::text || ':' || stars::text
+    FROM public.book_reviews
+    WHERE book_id = '00000000-0000-4000-8000-000000000282'
+  ),
+  'finished:1',
+  'a stars-only rating keeps the review status snapshot'
 );
 
 DO $$

@@ -147,4 +147,58 @@ describe("PUT /api/reviews", () => {
     expect(client.from).not.toHaveBeenCalledWith("book_reviews");
     expect(client.from).toHaveBeenCalledWith("book_reading_ratings");
   });
+
+  it("publica a resenha de um livro em andamento sem gravar a avaliação privada", async () => {
+    const client = clientFor({
+      book: {
+        status: "reading",
+        user_id: USER_ID,
+        chosen_by: USER_ID,
+        readers: [USER_ID],
+      },
+    });
+    const route = await loadRoute(client);
+    const response = await route.PUT(
+      put({ bookId: BOOK_ID, stars: 4, content: "  Ainda estou lendo  " }),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      published: true,
+      reviewId: "review-1",
+      stars: 4,
+    });
+    expect(client.from).toHaveBeenCalledWith("book_reviews");
+    expect(client.from).not.toHaveBeenCalledWith("book_reading_ratings");
+  });
+
+  it("retorna 404 quando o livro não existe e não grava resenha nem estrelas", async () => {
+    const client = clientFor({ book: null });
+    const route = await loadRoute(client);
+    const response = await route.PUT(put({ bookId: BOOK_ID, stars: 4, content: "Texto" }));
+    expect(response.status).toBe(404);
+    expect(client.from).not.toHaveBeenCalledWith("book_reviews");
+    expect(client.from).not.toHaveBeenCalledWith("book_reading_ratings");
+  });
+
+  it("retorna 400 com JSON inválido ou texto acima de 500 caracteres", async () => {
+    const invalidJson = clientFor({});
+    const invalidRoute = await loadRoute(invalidJson);
+    const broken = await invalidRoute.PUT(
+      new Request("http://localhost/api/reviews", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: "{",
+      }),
+    );
+    expect(broken.status).toBe(400);
+    expect(invalidJson.from).not.toHaveBeenCalled();
+
+    const tooLong = clientFor({});
+    const longRoute = await loadRoute(tooLong);
+    const response = await longRoute.PUT(
+      put({ bookId: BOOK_ID, stars: 4, content: "a".repeat(501) }),
+    );
+    expect(response.status).toBe(400);
+    expect(tooLong.from).not.toHaveBeenCalled();
+  });
 });

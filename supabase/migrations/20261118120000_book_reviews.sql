@@ -75,8 +75,12 @@ BEGIN
 
   IF TG_OP = 'INSERT' THEN
     NEW.reading_status := v_status;
-  ELSE
-    NEW.reading_status := OLD.reading_status;
+    RETURN NEW;
+  END IF;
+
+  NEW.reading_status := OLD.reading_status;
+
+  IF NEW.content IS DISTINCT FROM OLD.content THEN
     NEW.updated_at := now();
   END IF;
 
@@ -342,7 +346,8 @@ RETURNS TABLE (
   like_count bigint,
   dislike_count bigint,
   comment_count bigint,
-  user_reaction text
+  user_reaction text,
+  book_is_solo boolean
 )
 LANGUAGE plpgsql
 STABLE
@@ -410,6 +415,10 @@ BEGIN
       WHERE rr.review_id = r.id
         AND rr.user_id = auth.uid()
       LIMIT 1
+    ),
+    (
+      array_length(COALESCE(b.readers, ARRAY[]::uuid[]), 1) = 1
+      AND (COALESCE(b.readers, ARRAY[]::uuid[]))[1] = b.chosen_by
     )
   FROM public.book_reviews AS r
   JOIN public.users AS u ON u.id = r.user_id
