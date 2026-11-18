@@ -115,4 +115,21 @@ describe("resenhas", () => {
     expect(long.endsWith("— Ana")).toBe(true);
     expect(long).toContain("…");
   });
+
+  it("pesa um caractere fora do BMP como dois e omite autor em branco", () => {
+    const text = buildReviewTweetText({
+      title: "  ",
+      author: "   ",
+      content: "𠀋".repeat(200),
+      readerName: " ",
+    });
+
+    expect(xWeightedLength("𠀋")).toBe(2);
+    expect(xWeightedLength(text)).toBeLessThanOrEqual(280);
+    expect(text.startsWith("Resenha de “um livro”: ")).toBe(true);
+    expect(text.endsWith("— um leitor")).toBe(true);
+    expect(text).not.toContain(", de ");
+    expect(text).toContain("…");
+    expect(Array.from(text).filter((char) => char === "𠀋").length).toBeLessThan(200);
+  });
 });

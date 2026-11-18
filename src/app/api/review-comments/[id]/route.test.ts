@@ -16,6 +16,10 @@ async function loadRoute(
     },
     error: null,
   },
+  review: { data: unknown; error: { message: string } | null } = {
+    data: { user_id: REVIEW_AUTHOR_ID },
+    error: null,
+  },
 ) {
   vi.resetModules();
   const ops: string[] = [];
@@ -27,10 +31,7 @@ async function loadRoute(
       }),
     },
     from: vi.fn((name: string) => {
-      const result = name === "book_review_comments" ? found : {
-        data: { user_id: REVIEW_AUTHOR_ID },
-        error: null,
-      };
+      const result = name === "book_review_comments" ? found : review;
       const promise = Promise.resolve(result);
       const proxy: object = new Proxy(
         {},
@@ -92,6 +93,25 @@ describe("DELETE /api/review-comments/[id]", () => {
     const response = await route.DELETE(...remove());
     expect(response.status).toBe(404);
     expect(client.from).not.toHaveBeenCalledWith("book_reviews");
+    expect(ops).not.toContain("delete");
+  });
+
+  it("não apaga quando a leitura da resenha falha", async () => {
+    const { route, ops } = await loadRoute(
+      AUTHOR_ID,
+      {
+        data: {
+          id: COMMENT_ID,
+          user_id: AUTHOR_ID,
+          review_id: REVIEW_ID,
+        },
+        error: null,
+      },
+      { data: null, error: { message: "review down" } },
+    );
+    const response = await route.DELETE(...remove());
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "review down" });
     expect(ops).not.toContain("delete");
   });
 });
