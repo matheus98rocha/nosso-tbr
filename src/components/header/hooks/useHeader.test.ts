@@ -160,6 +160,18 @@ describe("useHeader — menu desktop", () => {
 
     expect(nextNavigationTestState.router.push).toHaveBeenCalledWith("/");
   });
+
+  it("action de Foco navega para /focus", () => {
+    const { result } = renderHook(() => useHeader());
+
+    const focusItem = result.current.menuItems
+      .find((menu) => menu.label === "Foco")
+      ?.items.find((item) => item.label === "Foco");
+
+    focusItem?.action();
+
+    expect(nextNavigationTestState.router.push).toHaveBeenCalledWith("/focus");
+  });
 });
 
 describe("useHeader — destinações por superfície", () => {
@@ -175,6 +187,7 @@ describe("useHeader — destinações por superfície", () => {
 
     expect(names).toEqual([
       "Início",
+      "Foco",
       "Estatisticas",
       "Resenhas",
       "Comunidade",
@@ -193,6 +206,7 @@ describe("useHeader — destinações por superfície", () => {
 
     expect(names).toEqual([
       "Início",
+      "Foco",
       "Estatisticas",
       "Resenhas",
       "Comunidade",
@@ -237,6 +251,7 @@ describe("useHeader — destinações por superfície", () => {
 
     expect(itemLabels(surfaces.desktopNavItems)).toEqual([
       "Início",
+      "Foco",
       "Estatisticas",
       "Ver Estantes",
     ]);
@@ -245,6 +260,7 @@ describe("useHeader — destinações por superfície", () => {
       "Ver Estantes",
     ]);
     expect(overflowLabels(result.current)).toEqual([
+      "Foco",
       "Estatisticas",
       "Adicionar Estante",
     ]);

@@ -1,4 +1,5 @@
 import { COMMUNITY_PATH } from "@/lib/routes/community";
+import { FOCUS_PATH } from "@/lib/routes/focus";
 import { REVIEWS_PATH } from "@/lib/routes/reviews";
 import { SHELVES_LIST_PATH } from "@/lib/routes/shelves";
 
@@ -11,6 +12,11 @@ export const NAV_DESTINATIONS: NavDestination[] = [
     label: "Início",
     path: "/",
     surfaces: ["desktop", "mobilePrimary"],
+  },
+  {
+    label: "Foco",
+    path: FOCUS_PATH,
+    surfaces: ["desktop", "mobileOverflow"],
   },
   {
     label: "Estatisticas",

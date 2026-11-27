@@ -131,3 +131,13 @@ _Avoid_: favorito, estrela, voto em comentário
 **Comentário de resenha**:
 Texto de até 500 caracteres escrito sobre uma resenha visível. Pode receber respostas em um nível. Uma resposta a uma resposta entra na mesma conversa, citada como resposta à pessoa. O autor do comentário e o autor da resenha podem excluí-lo.
 _Avoid_: comentário da leitura coletiva, resenha
+
+## Foco de leitura
+
+**Foco de leitura**:
+Período que o Leitor define na tela `/focus` para ler sem interrupções. Vale de 1 a 180 minutos (padrão: 25), pode ser pausado e retomado, e não fica associado a livro, cronograma ou outro leitor. Não é persistido nem compartilhado.
+_Avoid_: pomodoro, sessão de estudo, cronograma
+
+**Aviso sonoro do foco**:
+Som emitido pelo navegador quando o Foco de leitura chega a zero, sem usar a API de notificações do sistema e sem exigir permissão adicional.
+_Avoid_: notificação push, alarme do servidor
