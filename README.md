@@ -152,6 +152,14 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 - Criar/editar livro via `BookUpsert`.
   - Criar/editar estantes associadas aos livros.
 
+### 🧘 Foco de leitura (`/focus`)
+
+- Tela pública com um cronômetro para reservar um período de leitura.
+- O Leitor escolhe a duração pelos atalhos de 15, 25 e 45 minutos ou informa um valor entre 1 e 180 minutos; o padrão é 25 minutos.
+- Controles de **Iniciar foco**, **Pausar** / **Continuar**, **Começar de novo** e **Reiniciar**. O tempo restante e uma barra de progresso acompanham a sessão.
+- Ao chegar a zero, o navegador emite o Aviso sonoro do foco (Web Audio API), com o áudio desbloqueado no clique de iniciar/continuar. O cronômetro usa o horário de término como referência, então também acerta o fim após a aba ficar em segundo plano; em abas ocultas o som pode atrasar até o navegador executar o timer.
+- A sessão é local ao navegador: não cria registros, não mexe em livros e não pede notificação do sistema.
+
 ### 🗂 Estantes (`/shelves` e `/bookshelves/[id]`)
 
 - **`/shelves`** – gestão de estantes:
@@ -344,6 +352,7 @@ src/
     shelves/
     bookshelves/
     quotes/
+    focus/
     schedule/
     authors/
     stats/

@@ -10,7 +10,7 @@ function labels(destinations: { label: string }[]) {
 
 describe("filterNavDestinations", () => {
   describe("visitante", () => {
-    it("expõe Início, Estatisticas, Ver Estantes, Adicionar Estante e Login", () => {
+    it("expõe Início, Foco, Estatisticas, Ver Estantes, Adicionar Estante e Login", () => {
       const visible = filterNavDestinations(NAV_DESTINATIONS, {
         isLoggedIn: false,
         isAdmin: false,
@@ -18,6 +18,7 @@ describe("filterNavDestinations", () => {
 
       expect(labels(visible)).toEqual([
         "Início",
+        "Foco",
         "Estatisticas",
         "Ver Estantes",
         "Adicionar Estante",
@@ -82,7 +83,7 @@ describe("filterNavDestinations", () => {
 
 describe("selectBySurface", () => {
   describe("desktop", () => {
-    it("lista Início, Estatisticas, Comunidade e Ver Estantes para common-user", () => {
+    it("lista Início, Foco, Estatisticas, Comunidade e Ver Estantes para common-user", () => {
       const visible = filterNavDestinations(NAV_DESTINATIONS, {
         isLoggedIn: true,
         isAdmin: false,
@@ -90,6 +91,7 @@ describe("selectBySurface", () => {
 
       expect(labels(selectBySurface(visible, "desktop"))).toEqual([
         "Início",
+        "Foco",
         "Estatisticas",
         "Resenhas",
         "Comunidade",
@@ -105,6 +107,7 @@ describe("selectBySurface", () => {
 
       expect(labels(selectBySurface(visible, "desktop"))).toEqual([
         "Início",
+        "Foco",
         "Estatisticas",
         "Resenhas",
         "Comunidade",
