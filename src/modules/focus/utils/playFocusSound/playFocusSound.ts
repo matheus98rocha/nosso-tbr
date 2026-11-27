@@ -14,26 +14,38 @@ function getAudioContextConstructor(): AudioContextConstructor | null {
   return window.AudioContext ?? audioWindow.webkitAudioContext ?? null;
 }
 
-export function playFocusNotificationSound(): void {
+export function createFocusAudioContext(): AudioContext | null {
   const AudioContextConstructor = getAudioContextConstructor();
 
-  if (!AudioContextConstructor) return;
-
-  let context: AudioContext;
+  if (!AudioContextConstructor) return null;
 
   try {
-    context = new AudioContextConstructor();
+    return new AudioContextConstructor();
   } catch {
-    return;
+    return null;
   }
+}
+
+export function resumeFocusAudioContext(context: AudioContext | null): void {
+  if (!context) return;
+
+  void context.resume().catch(() => undefined);
+}
+
+export function playFocusSound(context: AudioContext | null): void {
+  const audioContext = context ?? createFocusAudioContext();
+
+  if (!audioContext) return;
+
+  resumeFocusAudioContext(audioContext);
 
   NOTE_FREQUENCIES.forEach((frequency, index) => {
     const startAt =
-      context.currentTime +
+      audioContext.currentTime +
       index * (NOTE_DURATION_SECONDS + NOTE_GAP_SECONDS);
 
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
 
     oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(frequency, startAt);
@@ -46,19 +58,8 @@ export function playFocusNotificationSound(): void {
     );
 
     oscillator.connect(gain);
-    gain.connect(context.destination);
+    gain.connect(audioContext.destination);
     oscillator.start(startAt);
     oscillator.stop(startAt + NOTE_DURATION_SECONDS);
   });
-
-  void context.resume().catch(() => undefined);
-
-  const totalDurationMs =
-    (NOTE_FREQUENCIES.length * (NOTE_DURATION_SECONDS + NOTE_GAP_SECONDS) +
-      0.2) *
-    1000;
-
-  window.setTimeout(() => {
-    void context.close().catch(() => undefined);
-  }, totalDurationMs);
 }

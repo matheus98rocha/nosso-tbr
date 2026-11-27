@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { playFocusNotificationSound } from "./playFocusNotificationSound";
+import {
+  createFocusAudioContext,
+  playFocusSound,
+  resumeFocusAudioContext,
+} from "./playFocusSound";
 
 const { mockClose, mockResume } = vi.hoisted(() => ({
   mockClose: vi.fn<() => Promise<void>>(),
@@ -64,9 +68,8 @@ class FakeAudioContext {
   }
 }
 
-describe("playFocusNotificationSound", () => {
+describe("playFocusSound", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     vi.clearAllMocks();
     FakeAudioContext.instances = [];
     mockResume.mockResolvedValue(undefined);
@@ -75,32 +78,70 @@ describe("playFocusNotificationSound", () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
-  it("toca três notas em sequência e fecha o contexto ao terminar", () => {
-    playFocusNotificationSound();
+  it("toca três notas em sequência em um contexto já desbloqueado", () => {
+    const context = createFocusAudioContext();
 
-    const context = FakeAudioContext.instances[0];
+    playFocusSound(context);
 
-    expect(context.oscillators).toHaveLength(3);
-    expect(context.gains).toHaveLength(3);
-    expect(context.oscillators[0].start).toHaveBeenCalledWith(0);
-    expect(context.oscillators[1].start).toHaveBeenCalledWith(0.24);
-    expect(context.oscillators[2].start).toHaveBeenCalledWith(0.48);
+    const fakeContext = FakeAudioContext.instances[0];
+
+    expect(FakeAudioContext.instances).toHaveLength(1);
+    expect(fakeContext.oscillators).toHaveLength(3);
+    expect(fakeContext.gains).toHaveLength(3);
+    expect(fakeContext.oscillators[0].start).toHaveBeenCalledWith(0);
+    expect(fakeContext.oscillators[1].start).toHaveBeenCalledWith(0.24);
+    expect(fakeContext.oscillators[2].start).toHaveBeenCalledWith(0.48);
     expect(mockResume).toHaveBeenCalledTimes(1);
     expect(mockClose).not.toHaveBeenCalled();
+  });
 
-    vi.advanceTimersByTime(1000);
+  it("cria e reutiliza um contexto quando ainda não há um desbloqueado", () => {
+    playFocusSound(null);
 
-    expect(mockClose).toHaveBeenCalledTimes(1);
+    expect(FakeAudioContext.instances).toHaveLength(1);
+
+    playFocusSound(FakeAudioContext.instances[0] as unknown as AudioContext);
+
+    expect(FakeAudioContext.instances).toHaveLength(1);
   });
 
   it("não lança erro quando o navegador não oferece Web Audio", () => {
     vi.stubGlobal("AudioContext", undefined);
 
-    expect(() => playFocusNotificationSound()).not.toThrow();
+    expect(createFocusAudioContext()).toBeNull();
+    expect(() => playFocusSound(null)).not.toThrow();
     expect(FakeAudioContext.instances).toHaveLength(0);
+  });
+
+  it("usa o prefixo webkit quando disponível", () => {
+    vi.stubGlobal("AudioContext", undefined);
+    vi.stubGlobal("webkitAudioContext", FakeAudioContext);
+
+    const context = createFocusAudioContext();
+
+    expect(context).toBeInstanceOf(FakeAudioContext);
+  });
+
+  it("não lança erro quando o construtor do áudio é bloqueado", () => {
+    vi.stubGlobal(
+      "AudioContext",
+      class {
+        constructor() {
+          throw new Error("blocked");
+        }
+      },
+    );
+
+    expect(createFocusAudioContext()).toBeNull();
+    expect(() => playFocusSound(null)).not.toThrow();
+    expect(mockResume).not.toHaveBeenCalled();
+  });
+
+  it("ignora um contexto nulo ao retomar o áudio", () => {
+    expect(() => resumeFocusAudioContext(null)).not.toThrow();
+    expect(mockResume).not.toHaveBeenCalled();
   });
 });

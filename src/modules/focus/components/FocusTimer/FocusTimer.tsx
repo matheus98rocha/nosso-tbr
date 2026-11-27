@@ -13,23 +13,28 @@ import {
   FOCUS_MAX_MINUTES,
   FOCUS_MIN_MINUTES,
 } from "../../constants/focusTimer";
+import { useFocusSound } from "../../hooks/useFocusSound";
 import { useFocusTimer } from "../../hooks/useFocusTimer";
 import type { FocusTimerStatus } from "../../types/focus.types";
 import { formatFocusTime } from "../../utils/formatFocusTime";
-import { playFocusNotificationSound } from "../../utils/playFocusNotificationSound";
+import { normalizeFocusMinutes } from "../../utils/normalizeFocusMinutes";
 
 const PRESET_MINUTES = [15, 25, 45];
 
-const STATUS_LABEL: Record<FocusTimerStatus, string> = {
-  idle: "Pronto para começar",
-  running: "Foco em andamento",
-  paused: "Tempo pausado",
-  finished: "Tempo concluído",
+const STATUS_VIEW: Record<
+  FocusTimerStatus,
+  { label: string; actionLabel: string }
+> = {
+  idle: { label: "Pronto para começar", actionLabel: "Iniciar foco" },
+  running: { label: "Foco em andamento", actionLabel: "Pausar" },
+  paused: { label: "Tempo pausado", actionLabel: "Continuar" },
+  finished: { label: "Tempo concluído", actionLabel: "Começar de novo" },
 };
 
 export function FocusTimer() {
   const [customMinutes, setCustomMinutes] = useState("25");
   const [inputError, setInputError] = useState<string | null>(null);
+  const { unlock, play } = useFocusSound();
   const {
     durationSeconds,
     remainingSeconds,
@@ -39,20 +44,17 @@ export function FocusTimer() {
     start,
     pause,
     reset,
-  } = useFocusTimer({ onFinish: playFocusNotificationSound });
+  } = useFocusTimer({ onFinish: play });
 
   const durationMinutes = Math.round(durationSeconds / 60);
+  const statusView = STATUS_VIEW[status];
   const isRunning = status === "running";
 
   const applyMinutes = useCallback(
     (minutes: number) => {
-      const roundedMinutes = Math.round(minutes);
+      const normalizedMinutes = normalizeFocusMinutes(minutes);
 
-      if (
-        !Number.isFinite(roundedMinutes) ||
-        roundedMinutes < FOCUS_MIN_MINUTES ||
-        roundedMinutes > FOCUS_MAX_MINUTES
-      ) {
+      if (normalizedMinutes === null) {
         setInputError(
           `Escolha entre ${FOCUS_MIN_MINUTES} e ${FOCUS_MAX_MINUTES} minutos.`,
         );
@@ -60,8 +62,8 @@ export function FocusTimer() {
       }
 
       setInputError(null);
-      setCustomMinutes(String(roundedMinutes));
-      setDurationMinutes(roundedMinutes);
+      setCustomMinutes(String(normalizedMinutes));
+      setDurationMinutes(normalizedMinutes);
     },
     [setDurationMinutes],
   );
@@ -70,15 +72,6 @@ export function FocusTimer() {
     event.preventDefault();
     applyMinutes(Number(customMinutes));
   };
-
-  const primaryLabel =
-    status === "running"
-      ? "Pausar"
-      : status === "paused"
-        ? "Continuar"
-        : status === "finished"
-          ? "Começar de novo"
-          : "Iniciar foco";
 
   return (
     <Card className="gap-0 overflow-hidden">
@@ -103,7 +96,7 @@ export function FocusTimer() {
             className="h-2.5"
           />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span aria-live="polite">{STATUS_LABEL[status]}</span>
+            <span aria-live="polite">{statusView.label}</span>
             <span className="tabular-nums">{progress}% concluído</span>
           </div>
         </div>
@@ -179,10 +172,18 @@ export function FocusTimer() {
             type="button"
             size="lg"
             className="flex-1"
-            onClick={isRunning ? pause : start}
+            onClick={() => {
+              if (isRunning) {
+                pause();
+                return;
+              }
+
+              unlock();
+              start();
+            }}
           >
             {isRunning ? <Pause aria-hidden /> : <Play aria-hidden />}
-            {primaryLabel}
+            {statusView.actionLabel}
           </Button>
           <Button
             type="button"

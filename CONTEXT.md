@@ -139,5 +139,5 @@ Período que o Leitor define na tela `/focus` para ler sem interrupções. Vale 
 _Avoid_: pomodoro, sessão de estudo, cronograma
 
 **Aviso sonoro do foco**:
-Som emitido pelo navegador quando o Foco de leitura chega a zero, sem usar a API de notificações do sistema e sem exigir permissão adicional.
+Som emitido pelo navegador quando o Foco de leitura chega a zero, sem usar a API de notificações do sistema e sem exigir permissão adicional. O áudio é desbloqueado no gesto de iniciar ou continuar o foco e reutilizado no aviso.
 _Avoid_: notificação push, alarme do servidor

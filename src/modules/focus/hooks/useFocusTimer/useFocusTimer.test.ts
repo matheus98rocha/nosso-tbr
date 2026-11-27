@@ -160,4 +160,53 @@ describe("useFocusTimer", () => {
     expect(result.current.status).toBe("idle");
     expect(result.current.progress).toBe(0);
   });
+
+  it("reinicia o aviso ao começar de novo após terminar", () => {
+    const onFinish = vi.fn();
+    const { result } = renderHook(() => useFocusTimer({ onFinish }));
+
+    act(() => {
+      result.current.setDurationMinutes(1);
+    });
+    act(() => {
+      result.current.start();
+    });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe("finished");
+
+    act(() => {
+      result.current.start();
+    });
+
+    expect(result.current.remainingSeconds).toBe(60);
+    expect(result.current.status).toBe("running");
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(onFinish).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignora mudança de duração enquanto o cronômetro está ativo", () => {
+    const { result } = renderHook(() => useFocusTimer());
+
+    act(() => {
+      result.current.setDurationMinutes(2);
+    });
+    act(() => {
+      result.current.start();
+    });
+    act(() => {
+      result.current.setDurationMinutes(5);
+    });
+
+    expect(result.current.durationSeconds).toBe(120);
+    expect(result.current.remainingSeconds).toBe(120);
+    expect(result.current.status).toBe("running");
+  });
 });

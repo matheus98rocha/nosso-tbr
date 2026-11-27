@@ -2,12 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  FOCUS_DEFAULT_MINUTES,
-  FOCUS_MAX_MINUTES,
-  FOCUS_MIN_MINUTES,
-} from "../../constants/focusTimer";
+import { FOCUS_DEFAULT_MINUTES } from "../../constants/focusTimer";
 import type { FocusTimerStatus } from "../../types/focus.types";
+import { normalizeFocusMinutes } from "../../utils/normalizeFocusMinutes";
 
 type UseFocusTimerOptions = {
   onFinish?: () => void;
@@ -70,26 +67,26 @@ export function useFocusTimer({ onFinish }: UseFocusTimerOptions = {}) {
     };
   }, [status]);
 
-  const setDurationMinutes = useCallback((minutes: number) => {
-    if (!Number.isFinite(minutes)) return;
-
-    const roundedMinutes = Math.round(minutes);
-
-    if (
-      roundedMinutes < FOCUS_MIN_MINUTES ||
-      roundedMinutes > FOCUS_MAX_MINUTES
-    ) {
-      return;
-    }
-
-    const nextDuration = roundedMinutes * 60;
-
+  const resetTo = useCallback((nextDuration: number) => {
     deadlineRef.current = null;
     finishNotifiedRef.current = false;
     setDurationSeconds(nextDuration);
     setRemainingSeconds(nextDuration);
     setStatus("idle");
   }, []);
+
+  const setDurationMinutes = useCallback(
+    (minutes: number) => {
+      if (status === "running") return;
+
+      const normalizedMinutes = normalizeFocusMinutes(minutes);
+
+      if (normalizedMinutes === null) return;
+
+      resetTo(normalizedMinutes * 60);
+    },
+    [resetTo, status],
+  );
 
   const start = useCallback(() => {
     if (status === "running") return;
@@ -123,11 +120,8 @@ export function useFocusTimer({ onFinish }: UseFocusTimerOptions = {}) {
   }, [status]);
 
   const reset = useCallback(() => {
-    deadlineRef.current = null;
-    finishNotifiedRef.current = false;
-    setRemainingSeconds(durationSeconds);
-    setStatus("idle");
-  }, [durationSeconds]);
+    resetTo(durationSeconds);
+  }, [durationSeconds, resetTo]);
 
   const progress =
     durationSeconds > 0
