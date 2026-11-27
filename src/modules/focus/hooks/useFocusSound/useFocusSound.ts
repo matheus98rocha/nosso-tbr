@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   createFocusAudioContext,
@@ -8,17 +8,35 @@ import {
   resumeFocusAudioContext,
 } from "../../utils/playFocusSound";
 
-export function useFocusSound() {
+export function useFocusSound(initialMuted = false) {
+  const [muted, setMuted] = useState(initialMuted);
   const contextRef = useRef<AudioContext | null>(null);
+  const mutedRef = useRef(initialMuted);
 
-  const unlock = useCallback(() => {
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
+
+  const unlock = useCallback((force = false) => {
+    if (mutedRef.current && !force) return;
+
     contextRef.current ??= createFocusAudioContext();
     resumeFocusAudioContext(contextRef.current);
   }, []);
 
   const play = useCallback(() => {
+    if (mutedRef.current) return;
+
     playFocusSound(contextRef.current);
   }, []);
 
-  return { unlock, play };
+  const toggleMuted = useCallback(() => {
+    setMuted((current) => !current);
+  }, []);
+
+  const setMutedState = useCallback((value: boolean) => {
+    setMuted(value);
+  }, []);
+
+  return { muted, unlock, play, toggleMuted, setMuted: setMutedState };
 }

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import FocusPage, { metadata } from "./page";
 
 vi.mock("@/modules/focus", () => ({
-  FocusScreen: () => <div>Foco de leitura</div>,
+  default: () => <div>Foco de leitura</div>,
 }));
 
 describe("FocusPage", () => {

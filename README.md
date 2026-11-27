@@ -154,11 +154,14 @@ Abaixo um mapa das principais telas e domínios da aplicação. Sempre que uma n
 
 ### 🧘 Foco de leitura (`/focus`)
 
-- Tela pública com um cronômetro para reservar um período de leitura.
-- O Leitor escolhe a duração pelos atalhos de 15, 25 e 45 minutos ou informa um valor entre 1 e 180 minutos; o padrão é 25 minutos.
-- Controles de **Iniciar foco**, **Pausar** / **Continuar**, **Começar de novo** e **Reiniciar**. O tempo restante e uma barra de progresso acompanham a sessão.
-- Ao chegar a zero, o navegador emite o Aviso sonoro do foco (Web Audio API), com o áudio desbloqueado no clique de iniciar/continuar. O cronômetro usa o horário de término como referência, então também acerta o fim após a aba ficar em segundo plano; em abas ocultas o som pode atrasar até o navegador executar o timer.
-- A sessão é local ao navegador: não cria registros, não mexe em livros e não pede notificação do sistema.
+- Tela pública para reservar um período de leitura, com alternância entre **Timer regressivo** e **Cronômetro livre**.
+- O Leitor pode vincular um livro em leitura (capa, título, autor e progresso) ou usar o **modo livre**. A lista vem dos livros com `status: reading` do usuário.
+- Meta de páginas com preenchimento rápido (5, 10 e 20) ou valor livre, limitado ao total de páginas do livro vinculado. A duração é sugerida automaticamente (`ceil(páginas / velocidade)`) e pode ser aceita em um clique ou editada; sem meta, a tela mostra quantas páginas o tempo selecionado deve render (`floor(minutos × velocidade)`) e o tempo estimado para concluir o livro.
+- A velocidade começa em 1,0 página/minuto e passa a ser calculada pela média páginas/minuto das sessões registradas após três sessões válidas.
+- Controles de **Iniciar foco**, **Pausar** / **Continuar**, **Começar de novo**, **Encerrar e registrar** e **Reiniciar**. O tempo e uma barra de progresso acompanham a sessão; o mudo fica na própria tela.
+- Ao chegar a zero ou ao encerrar manualmente uma sessão de pelo menos 1 minuto, um diálogo pré-sugere a página final (página atual + meta ou páginas estimadas). O registro salva duração efetiva, livro, meta, páginas lidas e data; ao atingir a última página, o livro é finalizado pela regra existente de transição de status.
+- Estado ativo (início, término previsto, livro, meta, pausa e mudo) fica persistido no navegador e é restaurado após recarregamento. Página atual e histórico de sessões também são locais, por usuário; o resumo da PR relaciona a migração de banco necessária para torná-los canônicos.
+- O Aviso sonoro do foco usa Web Audio API, é desbloqueado no clique de iniciar/continuar e não pede notificação do sistema. O cronômetro usa o horário de término como referência, então também acerta o fim após a aba ficar em segundo plano.
 
 ### 🗂 Estantes (`/shelves` e `/bookshelves/[id]`)
 

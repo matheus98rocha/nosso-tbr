@@ -1,25 +1,23 @@
 "use client";
 
-import { useCallback, useState, type FormEvent } from "react";
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Pause, Play, RotateCcw, SquareCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 
 import {
-  FOCUS_MAX_MINUTES,
-  FOCUS_MIN_MINUTES,
-} from "../../constants/focusTimer";
-import { useFocusSound } from "../../hooks/useFocusSound";
-import { useFocusTimer } from "../../hooks/useFocusTimer";
+  FOCUS_MAX_PAGES,
+  FOCUS_PAGE_PRESETS,
+} from "../../constants/focusSession";
 import type { FocusTimerStatus } from "../../types/focus.types";
+import type { FocusTimerProps } from "../../types/focus.components.types";
 import { formatFocusTime } from "../../utils/formatFocusTime";
-import { normalizeFocusMinutes } from "../../utils/normalizeFocusMinutes";
-
-const PRESET_MINUTES = [15, 25, 45];
+import FocusBookCard from "../FocusBookCard";
+import FocusBookPicker from "../FocusBookPicker";
+import FocusGoalFields from "../FocusGoalFields";
+import FocusModeToggle from "../FocusModeToggle";
+import FocusSoundToggle from "../FocusSoundToggle";
 
 const STATUS_VIEW: Record<
   FocusTimerStatus,
@@ -31,73 +29,98 @@ const STATUS_VIEW: Record<
   finished: { label: "Tempo concluído", actionLabel: "Começar de novo" },
 };
 
-export function FocusTimer() {
-  const [customMinutes, setCustomMinutes] = useState("25");
-  const [inputError, setInputError] = useState<string | null>(null);
-  const { unlock, play } = useFocusSound();
-  const {
-    durationSeconds,
-    remainingSeconds,
-    status,
-    progress,
-    setDurationMinutes,
-    start,
-    pause,
-    reset,
-  } = useFocusTimer({ onFinish: play });
-
-  const durationMinutes = Math.round(durationSeconds / 60);
+export default function FocusTimer({
+  mode,
+  status,
+  displaySeconds,
+  progress,
+  durationMinutes,
+  goalPages,
+  estimatedPages,
+  remainingMinutes,
+  suggestedMinutes,
+  speed,
+  book,
+  books,
+  booksLoading,
+  booksError,
+  goalInput,
+  inputError,
+  muted,
+  canFinish,
+  onModeChange,
+  onBookChange,
+  onGoalInputChange,
+  onGoalSubmit,
+  onGoalPreset,
+  onGoalClear,
+  onAcceptSuggestion,
+  onDurationChange,
+  onToggleMute,
+  onStart,
+  onPause,
+  onReset,
+  onFinishSession,
+}: FocusTimerProps) {
   const statusView = STATUS_VIEW[status];
   const isRunning = status === "running";
+  const controlsDisabled = isRunning || status === "finished";
 
-  const applyMinutes = useCallback(
-    (minutes: number) => {
-      const normalizedMinutes = normalizeFocusMinutes(minutes);
+  const handlePrimaryAction = () => {
+    if (isRunning) {
+      onPause();
+      return;
+    }
 
-      if (normalizedMinutes === null) {
-        setInputError(
-          `Escolha entre ${FOCUS_MIN_MINUTES} e ${FOCUS_MAX_MINUTES} minutos.`,
-        );
-        return;
-      }
-
-      setInputError(null);
-      setCustomMinutes(String(normalizedMinutes));
-      setDurationMinutes(normalizedMinutes);
-    },
-    [setDurationMinutes],
-  );
-
-  const handleCustomSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    applyMinutes(Number(customMinutes));
+    onStart();
   };
 
   return (
     <Card className="gap-0 overflow-hidden">
       <CardContent className="px-5 py-8 sm:px-8">
-        <div className="text-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <FocusModeToggle mode={mode} disabled={isRunning} onChange={onModeChange} />
+          <FocusSoundToggle muted={muted} onToggle={onToggleMute} />
+        </div>
+
+        <div className="mt-8">
+          <FocusBookPicker
+            books={books}
+            selectedBookId={book?.id ?? null}
+            disabled={isRunning}
+            isLoading={booksLoading}
+            isError={booksError}
+            onSelect={onBookChange}
+          />
+          {book ? <FocusBookCard book={book} /> : null}
+        </div>
+
+        <div className="mt-8 text-center">
           <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
-            Tempo restante
+            {mode === "timer" ? "Tempo restante" : "Tempo de foco"}
           </p>
           <div
             role="timer"
-            aria-label="Tempo restante"
+            aria-label={mode === "timer" ? "Tempo restante" : "Tempo de foco"}
             className="brand-display mt-2 text-6xl font-semibold tracking-tight tabular-nums text-[var(--reading-ink)] sm:text-7xl"
           >
-            {formatFocusTime(remainingSeconds)}
+            {formatFocusTime(displaySeconds)}
           </div>
         </div>
 
-        <div className="mt-8 space-y-2">
+        <div className="mt-6 space-y-2">
           <Progress
-            value={progress}
+            value={mode === "timer" ? progress : 0}
             aria-label="Progresso do foco"
             className="h-2.5"
           />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span aria-live="polite">{statusView.label}</span>
-            <span className="tabular-nums">{progress}% concluído</span>
+            <span className="tabular-nums">
+              {goalPages === null
+                ? `${Math.round(durationMinutes)} min selecionados`
+                : `Meta: ${goalPages} páginas`}
+            </span>
           </div>
         </div>
 
@@ -106,92 +129,59 @@ export function FocusTimer() {
             role="status"
             className="mt-5 rounded-lg bg-secondary px-4 py-3 text-center text-sm font-medium text-secondary-foreground"
           >
-            Seu tempo acabou. Faça uma pausa e volte quando quiser.
+            Seu tempo acabou. Registre em qual página você parou.
           </p>
         ) : null}
 
-        <fieldset className="mt-8">
-          <legend className="text-sm font-medium">Durações sugeridas</legend>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {PRESET_MINUTES.map((minutes) => (
-              <Button
-                key={minutes}
-                type="button"
-                variant={durationMinutes === minutes ? "default" : "outline"}
-                size="sm"
-                className="min-w-20 rounded-full"
-                aria-pressed={durationMinutes === minutes}
-                disabled={isRunning}
-                onClick={() => applyMinutes(minutes)}
-              >
-                {minutes} min
-              </Button>
-            ))}
-          </div>
-        </fieldset>
-
-        <form
-          noValidate
-          onSubmit={handleCustomSubmit}
-          className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end"
-        >
-          <div className="flex-1 space-y-1.5">
-            <Label htmlFor="focus-custom-minutes">Ou defina seu tempo</Label>
-            <Input
-              id="focus-custom-minutes"
-              type="number"
-              inputMode="numeric"
-              min={FOCUS_MIN_MINUTES}
-              max={FOCUS_MAX_MINUTES}
-              step={1}
-              value={customMinutes}
-              disabled={isRunning}
-              aria-invalid={Boolean(inputError)}
-              aria-describedby="focus-custom-help"
-              onChange={(event) => {
-                setCustomMinutes(event.target.value);
-                setInputError(null);
-              }}
-            />
-            <p id="focus-custom-help" className="text-xs text-muted-foreground">
-              Entre {FOCUS_MIN_MINUTES} e {FOCUS_MAX_MINUTES} minutos.
-            </p>
-            {inputError ? (
-              <p role="alert" className="text-xs font-medium text-destructive">
-                {inputError}
-              </p>
-            ) : null}
-          </div>
-          <Button type="submit" variant="outline" disabled={isRunning}>
-            Definir
-          </Button>
-        </form>
+        <FocusGoalFields
+          durationMinutes={durationMinutes}
+          goalInput={goalInput}
+          goalPages={goalPages}
+          error={inputError}
+          presets={FOCUS_PAGE_PRESETS}
+          maxPages={book?.pages ?? FOCUS_MAX_PAGES}
+          suggestedMinutes={suggestedMinutes}
+          estimatedPages={estimatedPages}
+          remainingMinutes={remainingMinutes}
+          speed={speed}
+          disabled={controlsDisabled}
+          onInputChange={onGoalInputChange}
+          onSubmit={onGoalSubmit}
+          onPreset={onGoalPreset}
+          onClear={onGoalClear}
+          onAcceptSuggestion={onAcceptSuggestion}
+          onDurationChange={onDurationChange}
+        />
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button
             type="button"
             size="lg"
             className="flex-1"
-            onClick={() => {
-              if (isRunning) {
-                pause();
-                return;
-              }
-
-              unlock();
-              start();
-            }}
+            onClick={handlePrimaryAction}
           >
             {isRunning ? <Pause aria-hidden /> : <Play aria-hidden />}
             {statusView.actionLabel}
           </Button>
+          {canFinish ? (
+            <Button
+              type="button"
+              size="lg"
+              variant="secondary"
+              className="flex-1"
+              onClick={onFinishSession}
+            >
+              <SquareCheck aria-hidden />
+              Encerrar e registrar
+            </Button>
+          ) : null}
           <Button
             type="button"
             size="lg"
             variant="outline"
             className="flex-1"
             disabled={status === "idle"}
-            onClick={reset}
+            onClick={onReset}
           >
             <RotateCcw aria-hidden />
             Reiniciar

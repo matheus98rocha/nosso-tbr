@@ -209,4 +209,96 @@ describe("useFocusTimer", () => {
     expect(result.current.remainingSeconds).toBe(120);
     expect(result.current.status).toBe("running");
   });
+
+  it("conta para frente no modo cronômetro livre", () => {
+    const { result } = renderHook(() => useFocusTimer({ mode: "stopwatch" }));
+
+    act(() => {
+      result.current.start();
+    });
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(result.current.displaySeconds).toBe(3);
+    expect(result.current.elapsedSeconds).toBe(3);
+    expect(result.current.progress).toBe(0);
+
+    act(() => {
+      result.current.pause();
+    });
+    act(() => {
+      result.current.setMode("timer");
+    });
+
+    expect(result.current.mode).toBe("timer");
+    expect(result.current.displaySeconds).toBe(1500);
+  });
+
+  it("restaura uma sessão ativa e mantém o tempo decorrido", () => {
+    const { result } = renderHook(() => useFocusTimer());
+
+    act(() => {
+      result.current.restore({
+        mode: "timer",
+        status: "paused",
+        startedAt: null,
+        endsAt: null,
+        accumulatedSeconds: 42,
+        durationSeconds: 600,
+        selectedBookId: null,
+        goalPages: null,
+        muted: false,
+        updatedAt: new Date().toISOString(),
+      });
+    });
+
+    expect(result.current.status).toBe("paused");
+    expect(result.current.remainingSeconds).toBe(558);
+    expect(result.current.elapsedSeconds).toBe(42);
+  });
+
+  it("detecta o fim de uma sessão restaurada que venceu fora da aba", () => {
+    const onFinish = vi.fn();
+    const startedAt = new Date("2026-01-01T11:59:00Z").toISOString();
+    const endsAt = new Date("2026-01-01T12:00:00Z").toISOString();
+    const { result } = renderHook(() => useFocusTimer({ onFinish }));
+
+    act(() => {
+      result.current.restore({
+        mode: "timer",
+        status: "running",
+        startedAt,
+        endsAt,
+        accumulatedSeconds: 0,
+        durationSeconds: 600,
+        selectedBookId: null,
+        goalPages: null,
+        muted: false,
+        updatedAt: startedAt,
+      });
+    });
+
+    expect(result.current.status).toBe("finished");
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+
+  it("devolve o tempo efetivo ao encerrar manualmente", () => {
+    const { result } = renderHook(() => useFocusTimer({ mode: "stopwatch" }));
+
+    act(() => {
+      result.current.start();
+    });
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
+
+    let seconds = 0;
+    act(() => {
+      seconds = result.current.finish();
+    });
+
+    expect(seconds).toBe(5);
+    expect(result.current.status).toBe("finished");
+  });
 });
