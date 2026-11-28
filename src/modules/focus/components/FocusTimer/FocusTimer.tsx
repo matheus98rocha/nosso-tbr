@@ -46,6 +46,10 @@ export default function FocusTimer({
   booksError,
   goalInput,
   inputError,
+  currentPageInput,
+  targetPageInput,
+  targetPage,
+  pageRangeError,
   muted,
   canFinish,
   onModeChange,
@@ -54,6 +58,8 @@ export default function FocusTimer({
   onGoalSubmit,
   onGoalPreset,
   onGoalClear,
+  onCurrentPageChange,
+  onTargetPageChange,
   onAcceptSuggestion,
   onDurationChange,
   onToggleMute,
@@ -144,11 +150,18 @@ export default function FocusTimer({
           estimatedPages={estimatedPages}
           remainingMinutes={remainingMinutes}
           speed={speed}
+          book={book}
+          currentPageInput={currentPageInput}
+          targetPageInput={targetPageInput}
+          targetPage={targetPage}
+          pageRangeError={pageRangeError}
           disabled={controlsDisabled}
           onInputChange={onGoalInputChange}
           onSubmit={onGoalSubmit}
           onPreset={onGoalPreset}
           onClear={onGoalClear}
+          onCurrentPageChange={onCurrentPageChange}
+          onTargetPageChange={onTargetPageChange}
           onAcceptSuggestion={onAcceptSuggestion}
           onDurationChange={onDurationChange}
         />

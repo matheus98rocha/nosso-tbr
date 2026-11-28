@@ -2,7 +2,7 @@
 
 **Status**: accepted
 
-O Foco de leitura passou a aceitar um livro em leitura opcional, uma meta de páginas e dois modos de contagem (Timer regressivo e Cronômetro livre). Ao encerrar uma sessão válida, o Leitor informa a página final e a sessão é registrada localmente com duração efetiva, livro, meta, páginas lidas e data. A duração do Timer é sugerida por `ceil(páginas / V)`, as páginas prováveis por `floor(minutos × V)` e o tempo restante do livro por `(páginas - página atual) / V`, com velocidade inicial de 1,0 página/minuto até três sessões válidas.
+O Foco de leitura passou a aceitar um livro em leitura opcional e dois modos de contagem (Timer regressivo e Cronômetro livre). Com um livro vinculado, o Leitor informa a página atual e a página pretendida; a meta de páginas é `página pretendida - página atual`. No modo livre, a meta é informada diretamente. Ao encerrar uma sessão válida, o Leitor informa a página final e a sessão é registrada localmente com duração efetiva, livro, meta, páginas lidas e data. A duração do Timer é sugerida por `ceil(páginas restantes / V)`, as páginas prováveis por `floor(minutos × V)` e o tempo restante por `(página alvo - página atual) / V`, onde a página alvo é a pretendida ou a última do livro, com velocidade inicial de 1,0 página/minuto até três sessões válidas.
 
 O domínio atual não possui `current_page`, páginas lidas por sessão nem histórico de foco, e o progresso da plataforma é derivado dos dias do cronograma. Por isso, página atual e sessões ficam no `localStorage` por usuário, com chaves versionadas pelo prefixo `nosso-tbr:focus`. A conclusão do livro na última página reusa a transição existente para `finished` via `BookUpsertService.edit`, que já garante `end_date`.
 

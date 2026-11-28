@@ -22,6 +22,7 @@ const active: FocusActiveSession = {
   durationSeconds: 1500,
   selectedBookId: "book-1",
   goalPages: 10,
+  targetPage: 40,
   muted: true,
   updatedAt: "2026-01-01T12:01:00Z",
 };

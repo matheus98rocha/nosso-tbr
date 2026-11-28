@@ -143,12 +143,16 @@ Registro local de um Foco de leitura encerrado, com início, fim, duração efet
 _Avoid_: cronograma, resenha, estatística agregada
 
 **Meta de páginas**:
-Quantidade de páginas que o Leitor pretende ler em uma Sessão de foco. Pode ser informada livremente ou por preenchimento rápido e serve para sugerir a duração do Timer regressivo.
+Quantidade de páginas que o Leitor pretende ler em uma Sessão de foco. Com um livro vinculado, é a diferença entre a Página pretendida do foco e a Página atual do foco; no modo livre, é informada diretamente. Serve para sugerir a duração do Timer regressivo.
 _Avoid_: páginas totais, páginas lidas no dia
 
 **Página atual do foco**:
-Última página registrada para um livro nas Sessões de foco do Leitor. Enquanto a plataforma não tiver esse campo no domínio do livro, ela vive no armazenamento local por leitor.
+Última página registrada para um livro nas Sessões de foco do Leitor, ajustável na tela antes de iniciar. Enquanto a plataforma não tiver esse campo no domínio do livro, ela vive no armazenamento local por leitor.
 _Avoid_: progresso do cronograma, `pages`
+
+**Página pretendida do foco**:
+Página em que o Leitor quer chegar ao final da Sessão de foco. Combine com a Página atual do foco para definir as páginas restantes usadas na sugestão de tempo.
+_Avoid_: meta de páginas, páginas totais
 
 **Velocidade de leitura**:
 Média de páginas por minuto calculada sobre as Sessões de foco concluídas com páginas lidas. Começa em 1,0 página/minuto até que existam sessões suficientes para a média.

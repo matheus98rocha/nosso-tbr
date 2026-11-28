@@ -42,6 +42,7 @@ export type FocusActiveSession = {
   durationSeconds: number;
   selectedBookId: string | null;
   goalPages: number | null;
+  targetPage: number | null;
   muted: boolean;
   updatedAt: string;
 };

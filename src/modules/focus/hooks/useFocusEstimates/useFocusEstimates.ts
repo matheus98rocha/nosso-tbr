@@ -14,6 +14,7 @@ type UseFocusEstimatesOptions = {
   sessions: readonly FocusSession[];
   book: FocusBook | null;
   goalPages: number | null;
+  targetPage?: number | null;
   durationMinutes: number;
 };
 
@@ -21,6 +22,7 @@ export function useFocusEstimates({
   sessions,
   book,
   goalPages,
+  targetPage = null,
   durationMinutes,
 }: UseFocusEstimatesOptions) {
   const speed = useMemo(() => computeFocusSpeed(sessions), [sessions]);
@@ -37,8 +39,14 @@ export function useFocusEstimates({
 
   const remainingMinutes = useMemo(
     () =>
-      book ? estimateBookRemainingMinutes(book.currentPage, book.pages, speed) : null,
-    [book, speed],
+      book
+        ? estimateBookRemainingMinutes(
+            book.currentPage,
+            targetPage ?? book.pages,
+            speed,
+          )
+        : null,
+    [book, targetPage, speed],
   );
 
   return { speed, suggestedMinutes, estimatedPages, remainingMinutes };

@@ -35,11 +35,18 @@ export type FocusGoalFieldsProps = {
   estimatedPages: number;
   remainingMinutes: number | null;
   speed: number;
+  book: FocusBook | null;
+  currentPageInput: string;
+  targetPageInput: string;
+  targetPage: number | null;
+  pageRangeError: string | null;
   disabled?: boolean;
   onInputChange: (value: string) => void;
   onSubmit: () => void;
   onPreset: (pages: number) => void;
   onClear: () => void;
+  onCurrentPageChange: (value: string) => void;
+  onTargetPageChange: (value: string) => void;
   onAcceptSuggestion: () => void;
   onDurationChange: (minutes: number) => void;
 };
@@ -66,6 +73,10 @@ export type FocusTimerProps = {
   booksError: boolean;
   goalInput: string;
   inputError: string | null;
+  currentPageInput: string;
+  targetPageInput: string;
+  targetPage: number | null;
+  pageRangeError: string | null;
   muted: boolean;
   canFinish: boolean;
   onModeChange: (mode: FocusMode) => void;
@@ -74,6 +85,8 @@ export type FocusTimerProps = {
   onGoalSubmit: () => void;
   onGoalPreset: (pages: number) => void;
   onGoalClear: () => void;
+  onCurrentPageChange: (value: string) => void;
+  onTargetPageChange: (value: string) => void;
   onAcceptSuggestion: () => void;
   onDurationChange: (minutes: number) => void;
   onToggleMute: () => void;
