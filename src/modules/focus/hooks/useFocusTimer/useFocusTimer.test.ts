@@ -248,6 +248,7 @@ describe("useFocusTimer", () => {
         durationSeconds: 600,
         selectedBookId: null,
         goalPages: null,
+        targetPage: null,
         muted: false,
         updatedAt: new Date().toISOString(),
       });
@@ -274,6 +275,7 @@ describe("useFocusTimer", () => {
         durationSeconds: 600,
         selectedBookId: null,
         goalPages: null,
+        targetPage: null,
         muted: false,
         updatedAt: startedAt,
       });

@@ -128,6 +128,65 @@ describe("useFocusScreen", () => {
     expect(result.current.durationMinutes).toBe(20);
   });
 
+  it("deriva a meta e sugere o tempo a partir da página atual e da pretendida", async () => {
+    const { result } = renderHook(() => useFocusScreen(), { wrapper });
+
+    await waitFor(() => expect(result.current.books).toHaveLength(1));
+
+    act(() => {
+      result.current.onBookChange("book-1");
+    });
+    act(() => {
+      result.current.onCurrentPageChange("30");
+    });
+    act(() => {
+      result.current.onTargetPageChange("50");
+    });
+
+    await waitFor(() => expect(result.current.goalPages).toBe(20));
+
+    expect(result.current.targetPage).toBe(50);
+    expect(result.current.suggestedMinutes).toBe(20);
+    expect(window.localStorage.getItem("nosso-tbr:focus:pages:user-1")).toBe(
+      JSON.stringify({ "book-1": 30 }),
+    );
+
+    act(() => {
+      result.current.onTargetPageChange("25");
+    });
+
+    expect(result.current.targetPage).toBeNull();
+    expect(result.current.pageRangeError).toContain("entre 31 e 200");
+  });
+
+  it("hidrata a página pretendida de uma sessão persistida", async () => {
+    window.localStorage.setItem("nosso-tbr:focus:pages:user-1", "{\"book-1\":30}");
+    window.localStorage.setItem(
+      "nosso-tbr:focus:active:user-1",
+      JSON.stringify({
+        mode: "timer",
+        status: "paused",
+        startedAt: null,
+        endsAt: null,
+        accumulatedSeconds: 42,
+        durationSeconds: 1500,
+        selectedBookId: "book-1",
+        goalPages: 20,
+        targetPage: 50,
+        muted: false,
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+
+    const { result } = renderHook(() => useFocusScreen(), { wrapper });
+
+    await waitFor(() => expect(result.current.book?.currentPage).toBe(30));
+
+    expect(result.current.targetPage).toBe(50);
+    expect(result.current.targetPageInput).toBe("50");
+    expect(result.current.currentPageInput).toBe("30");
+  });
+
   it("alterna o modo de contagem e o mudo", async () => {
     const { result } = renderHook(() => useFocusScreen(), { wrapper });
 

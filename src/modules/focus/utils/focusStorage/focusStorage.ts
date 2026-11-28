@@ -90,6 +90,7 @@ function parseActiveSession(value: unknown): FocusActiveSession | null {
     durationSeconds,
     selectedBookId: parseString(value.selectedBookId),
     goalPages: parseNumber(value.goalPages),
+    targetPage: parseNumber(value.targetPage),
     muted: value.muted === true,
     updatedAt,
   };

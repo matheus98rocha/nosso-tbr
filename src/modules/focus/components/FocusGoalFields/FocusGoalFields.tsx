@@ -30,11 +30,18 @@ export default function FocusGoalFields({
   estimatedPages,
   remainingMinutes,
   speed,
+  book,
+  currentPageInput,
+  targetPageInput,
+  targetPage,
+  pageRangeError,
   disabled = false,
   onInputChange,
   onSubmit,
   onPreset,
   onClear,
+  onCurrentPageChange,
+  onTargetPageChange,
   onAcceptSuggestion,
   onDurationChange,
 }: FocusGoalFieldsProps) {
@@ -57,70 +64,138 @@ export default function FocusGoalFields({
 
   return (
     <div className="mt-8 space-y-6">
-      <form noValidate onSubmit={handleGoalSubmit} className="space-y-2">
-        <Label htmlFor="focus-goal-pages">Páginas pretendidas</Label>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Input
-            id="focus-goal-pages"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={maxPages}
-            step={1}
-            value={goalInput}
-            disabled={disabled}
-            aria-invalid={Boolean(error)}
-            aria-describedby="focus-goal-help"
-            placeholder="Ex.: 20"
-            onChange={(event) => onInputChange(event.target.value)}
-          />
-          <Button type="submit" variant="outline" disabled={disabled}>
-            Definir meta
-          </Button>
-        </div>
-        <p id="focus-goal-help" className="text-xs text-muted-foreground">
-          Entre 1 e {maxPages} páginas. Deixe em branco para ler livremente.
-        </p>
-        {error ? (
-          <p role="alert" className="text-xs font-medium text-destructive">
-            {error}
+      {book ? (
+        <div className="space-y-2">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="focus-current-page">Página atual</Label>
+              <Input
+                id="focus-current-page"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={book.pages}
+                step={1}
+                value={currentPageInput}
+                disabled={disabled}
+                aria-invalid={Boolean(pageRangeError)}
+                aria-describedby="focus-page-range-help"
+                onChange={(event) => onCurrentPageChange(event.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="focus-target-page">Página pretendida</Label>
+              <Input
+                id="focus-target-page"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={book.pages}
+                step={1}
+                value={targetPageInput}
+                disabled={disabled}
+                aria-invalid={Boolean(pageRangeError)}
+                aria-describedby="focus-page-range-help"
+                placeholder={`Ex.: ${Math.min(book.currentPage + 10, book.pages)}`}
+                onChange={(event) => onTargetPageChange(event.target.value)}
+              />
+            </div>
+          </div>
+          <p id="focus-page-range-help" className="text-xs text-muted-foreground">
+            Informe de qual página você vai ler até qual página quer chegar.
           </p>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          {presets.map((pages) => (
-            <Button
-              key={pages}
-              type="button"
-              variant={goalPages === pages ? "default" : "outline"}
-              size="sm"
-              className="min-w-16 rounded-full"
-              aria-pressed={goalPages === pages}
-              disabled={disabled}
-              onClick={() => onPreset(pages)}
-            >
-              {pages} pág.
-            </Button>
-          ))}
-          {goalPages !== null ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={disabled}
-              onClick={onClear}
-            >
-              Limpar meta
-            </Button>
+          {pageRangeError ? (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {pageRangeError}
+            </p>
+          ) : null}
+          {targetPage !== null && goalPages !== null ? (
+            <p className="text-sm text-muted-foreground">
+              Você pretende ler{" "}
+              <strong className="tabular-nums text-foreground">
+                {goalPages} páginas
+              </strong>
+              , da página {book.currentPage} até a {targetPage}.
+            </p>
           ) : null}
         </div>
-      </form>
+      ) : (
+        <form noValidate onSubmit={handleGoalSubmit} className="space-y-2">
+          <Label htmlFor="focus-goal-pages">Páginas pretendidas</Label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              id="focus-goal-pages"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={maxPages}
+              step={1}
+              value={goalInput}
+              disabled={disabled}
+              aria-invalid={Boolean(error)}
+              aria-describedby="focus-goal-help"
+              placeholder="Ex.: 20"
+              onChange={(event) => onInputChange(event.target.value)}
+            />
+            <Button type="submit" variant="outline" disabled={disabled}>
+              Definir meta
+            </Button>
+          </div>
+          <p id="focus-goal-help" className="text-xs text-muted-foreground">
+            Entre 1 e {maxPages} páginas. Deixe em branco para ler livremente.
+          </p>
+          {error ? (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {error}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {presets.map((pages) => (
+              <Button
+                key={pages}
+                type="button"
+                variant={goalPages === pages ? "default" : "outline"}
+                size="sm"
+                className="min-w-16 rounded-full"
+                aria-pressed={goalPages === pages}
+                disabled={disabled}
+                onClick={() => onPreset(pages)}
+              >
+                {pages} pág.
+              </Button>
+            ))}
+            {goalPages !== null ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={disabled}
+                onClick={onClear}
+              >
+                Limpar meta
+              </Button>
+            ) : null}
+          </div>
+        </form>
+      )}
 
       {suggestedMinutes !== null &&
       suggestedMinutes !== Math.round(durationMinutes) ? (
         <div className="flex flex-col gap-3 rounded-lg bg-secondary px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-secondary-foreground">
-            Para {goalPages} páginas, sugerimos{" "}
-            <strong className="tabular-nums">{suggestedMinutes} min</strong>.
+            {book && targetPage !== null && goalPages !== null ? (
+              <>
+                Para ler até a página{" "}
+                <strong className="tabular-nums">{targetPage}</strong> (
+                {goalPages} páginas), sugerimos{" "}
+                <strong className="tabular-nums">{suggestedMinutes} min</strong>.
+              </>
+            ) : (
+              <>
+                Para {goalPages} páginas, sugerimos{" "}
+                <strong className="tabular-nums">{suggestedMinutes} min</strong>.
+              </>
+            )}
           </p>
           <Button
             type="button"
@@ -150,7 +225,9 @@ export default function FocusGoalFields({
           <strong className="tabular-nums text-foreground">
             {Math.ceil(remainingMinutes)} min
           </strong>{" "}
-          para concluir o livro.
+          {book && targetPage !== null
+            ? `para chegar à página ${targetPage}.`
+            : "para concluir o livro."}
         </p>
       ) : null}
 

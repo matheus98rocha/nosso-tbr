@@ -11,6 +11,7 @@ import {
 } from "../../constants/focusSession";
 import type { FocusActiveSession, FocusMode } from "../../types/focus.types";
 import type { FocusScreenViewModel } from "../../types/focus.components.types";
+import { computeFocusPageRange, normalizeFocusBookPage } from "../../utils/focusPageRange";
 import { estimateFocusPages } from "../../utils/focusEstimates";
 import { normalizeFocusPages } from "../../utils/normalizeFocusPages";
 import { useFocusBooks } from "../useFocusBooks";
@@ -42,6 +43,10 @@ export function useFocusScreen(): FocusScreenViewModel {
   const [goalPages, setGoalPages] = useState<number | null>(null);
   const [goalInput, setGoalInput] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
+  const [currentPageInput, setCurrentPageInput] = useState("");
+  const [targetPageInput, setTargetPageInput] = useState("");
+  const [targetPage, setTargetPage] = useState<number | null>(null);
+  const [pageRangeError, setPageRangeError] = useState<string | null>(null);
   const hydratedRef = useRef(false);
   const skipPersistRef = useRef(true);
   const pendingSummaryRef = useRef<FocusActiveSession | null>(null);
@@ -73,6 +78,7 @@ export function useFocusScreen(): FocusScreenViewModel {
     sessions,
     book: selectedBook,
     goalPages,
+    targetPage,
     durationMinutes,
   });
 
@@ -123,12 +129,17 @@ export function useFocusScreen(): FocusScreenViewModel {
     setSelectedBookId(active.selectedBookId);
     setGoalPages(active.goalPages);
     setGoalInput(active.goalPages === null ? "" : String(active.goalPages));
+    setTargetPage(active.targetPage);
+    setTargetPageInput(active.targetPage === null ? "" : String(active.targetPage));
+    setCurrentPageInput(
+      active.selectedBookId ? String(pages[active.selectedBookId] ?? 1) : "",
+    );
     restoreTimer(active);
 
     if (active.status === "finished") {
       pendingSummaryRef.current = active;
     }
-  }, [isReady, active, setSoundMuted, restoreTimer]);
+  }, [isReady, active, pages, setSoundMuted, restoreTimer]);
 
   useEffect(() => {
     const pending = pendingSummaryRef.current;
@@ -160,7 +171,12 @@ export function useFocusScreen(): FocusScreenViewModel {
       return;
     }
 
-    if (timer.status === "idle" && selectedBookId === null && goalPages === null) {
+    if (
+      timer.status === "idle" &&
+      selectedBookId === null &&
+      goalPages === null &&
+      targetPage === null
+    ) {
       discardActive();
       return;
     }
@@ -174,6 +190,7 @@ export function useFocusScreen(): FocusScreenViewModel {
       durationSeconds: timer.durationSeconds,
       selectedBookId,
       goalPages,
+      targetPage,
       muted,
       updatedAt: new Date().toISOString(),
     });
@@ -190,6 +207,7 @@ export function useFocusScreen(): FocusScreenViewModel {
     timer.durationSeconds,
     selectedBookId,
     goalPages,
+    targetPage,
     muted,
   ]);
 
@@ -245,6 +263,78 @@ export function useFocusScreen(): FocusScreenViewModel {
     setInputError(null);
   }, []);
 
+  const commitPageRange = useCallback(
+    (currentValue: string, nextTargetValue: string) => {
+      const book = selectedBook;
+
+      if (!book) return;
+
+      if (!currentValue.trim() || !nextTargetValue.trim()) {
+        setTargetPage(null);
+        setGoalPages(null);
+        setGoalInput("");
+        setPageRangeError(null);
+        return;
+      }
+
+      const current = normalizeFocusBookPage(
+        Number(currentValue.trim().replace(",", ".")),
+        book.pages,
+      );
+
+      if (current === null) {
+        setTargetPage(null);
+        setGoalPages(null);
+        setGoalInput("");
+        setPageRangeError(`Informe a página atual entre 1 e ${book.pages}.`);
+        return;
+      }
+
+      if (current !== book.currentPage) {
+        savePage(book.id, current);
+      }
+
+      const target = normalizeFocusBookPage(
+        Number(nextTargetValue.trim().replace(",", ".")),
+        book.pages,
+      );
+      const range = computeFocusPageRange(current, target ?? -1, book.pages);
+
+      if (range === null) {
+        setTargetPage(null);
+        setGoalPages(null);
+        setGoalInput("");
+        setPageRangeError(
+          `A página pretendida deve estar entre ${current + 1} e ${book.pages}.`,
+        );
+        return;
+      }
+
+      setTargetPage(target);
+      setGoalPages(range);
+      setGoalInput(String(range));
+      setPageRangeError(null);
+      setInputError(null);
+    },
+    [selectedBook, savePage],
+  );
+
+  const handleCurrentPageChange = useCallback(
+    (value: string) => {
+      setCurrentPageInput(value);
+      commitPageRange(value, targetPageInput);
+    },
+    [commitPageRange, targetPageInput],
+  );
+
+  const handleTargetPageChange = useCallback(
+    (value: string) => {
+      setTargetPageInput(value);
+      commitPageRange(currentPageInput, value);
+    },
+    [commitPageRange, currentPageInput],
+  );
+
   const handleAcceptSuggestion = useCallback(() => {
     if (estimates.suggestedMinutes === null) return;
 
@@ -267,23 +357,18 @@ export function useFocusScreen(): FocusScreenViewModel {
 
   const handleBookChange = useCallback(
     (bookId: string | null) => {
+      const book = books.find((item) => item.id === bookId) ?? null;
+
       setSelectedBookId(bookId);
+      setGoalPages(null);
+      setGoalInput("");
       setInputError(null);
-
-      if (bookId === null) {
-        setGoalPages(null);
-        setGoalInput("");
-        return;
-      }
-
-      const book = books.find((item) => item.id === bookId);
-
-      if (book && goalPages !== null && goalPages > book.pages) {
-        setGoalPages(book.pages);
-        setGoalInput(String(book.pages));
-      }
+      setCurrentPageInput(book ? String(book.currentPage) : "");
+      setTargetPageInput("");
+      setTargetPage(null);
+      setPageRangeError(null);
     },
-    [books, goalPages],
+    [books],
   );
 
   const handleToggleMute = useCallback(() => {
@@ -355,6 +440,10 @@ export function useFocusScreen(): FocusScreenViewModel {
     booksError,
     goalInput,
     inputError,
+    currentPageInput,
+    targetPageInput,
+    targetPage,
+    pageRangeError,
     muted,
     canFinish,
     onModeChange: handleModeChange,
@@ -363,6 +452,8 @@ export function useFocusScreen(): FocusScreenViewModel {
     onGoalSubmit: () => commitGoal(goalInput),
     onGoalPreset: handleGoalPreset,
     onGoalClear: handleGoalClear,
+    onCurrentPageChange: handleCurrentPageChange,
+    onTargetPageChange: handleTargetPageChange,
     onAcceptSuggestion: handleAcceptSuggestion,
     onDurationChange: handleDurationChange,
     onToggleMute: handleToggleMute,

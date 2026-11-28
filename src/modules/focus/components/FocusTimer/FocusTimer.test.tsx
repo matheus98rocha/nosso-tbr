@@ -45,6 +45,10 @@ function makeProps(overrides: Partial<FocusTimerProps> = {}): FocusTimerProps {
     booksError: false,
     goalInput: "",
     inputError: null,
+    currentPageInput: "",
+    targetPageInput: "",
+    targetPage: null,
+    pageRangeError: null,
     muted: false,
     canFinish: false,
     onModeChange: vi.fn(),
@@ -53,6 +57,8 @@ function makeProps(overrides: Partial<FocusTimerProps> = {}): FocusTimerProps {
     onGoalSubmit: vi.fn(),
     onGoalPreset: vi.fn(),
     onGoalClear: vi.fn(),
+    onCurrentPageChange: vi.fn(),
+    onTargetPageChange: vi.fn(),
     onAcceptSuggestion: vi.fn(),
     onDurationChange: vi.fn(),
     onToggleMute: vi.fn(),
@@ -87,6 +93,29 @@ describe("FocusTimer", () => {
     expect(screen.getAllByText("O nome do vento").length).toBeGreaterThan(0);
     expect(screen.getByText("Patrick Rothfuss")).toBeInTheDocument();
     expect(screen.getByText("Página 30 de 200")).toBeInTheDocument();
+  });
+
+  it("permite informar página atual e pretendida com sugestão de tempo", async () => {
+    const user = userEvent.setup();
+    const props = makeProps({
+      book,
+      currentPageInput: "30",
+      targetPageInput: "50",
+      targetPage: 50,
+      goalPages: 20,
+      durationMinutes: 25,
+      suggestedMinutes: 20,
+    });
+    render(<FocusTimer {...props} />);
+
+    expect(screen.getByLabelText("Página atual")).toHaveValue(30);
+    expect(screen.getByLabelText("Página pretendida")).toHaveValue(50);
+    expect(screen.getByText(/sugerimos/)).toHaveTextContent("20 min");
+
+    await user.clear(screen.getByLabelText("Página pretendida"));
+    await user.type(screen.getByLabelText("Página pretendida"), "45");
+
+    expect(props.onTargetPageChange).toHaveBeenCalled();
   });
 
   it("mostra a sugestão de tempo e permite aceitá-la em um clique", async () => {
