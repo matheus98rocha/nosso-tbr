@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { FocusScreen } from "@/modules/focus";
+import FocusScreen from "@/modules/focus";
 
 export const metadata: Metadata = {
   title: "Foco de leitura",

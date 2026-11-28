@@ -135,9 +135,25 @@ _Avoid_: comentário da leitura coletiva, resenha
 ## Foco de leitura
 
 **Foco de leitura**:
-Período que o Leitor define na tela `/focus` para ler sem interrupções. Vale de 1 a 180 minutos (padrão: 25), pode ser pausado e retomado, e não fica associado a livro, cronograma ou outro leitor. Não é persistido nem compartilhado.
+Período que o Leitor define na tela `/focus` para ler sem interrupções. Pode ser contado como Timer regressivo (1 a 180 minutos, padrão 25) ou Cronômetro livre, ser pausado e retomado, e ficar vinculado a um livro em leitura ou ao modo livre. Seu estado ativo é persistido no navegador para sobreviver a recarregamento.
 _Avoid_: pomodoro, sessão de estudo, cronograma
 
+**Sessão de foco**:
+Registro local de um Foco de leitura encerrado, com início, fim, duração efetiva, modo, livro opcional, meta de páginas e páginas efetivamente lidas. Alimenta a Velocidade de leitura do Leitor.
+_Avoid_: cronograma, resenha, estatística agregada
+
+**Meta de páginas**:
+Quantidade de páginas que o Leitor pretende ler em uma Sessão de foco. Pode ser informada livremente ou por preenchimento rápido e serve para sugerir a duração do Timer regressivo.
+_Avoid_: páginas totais, páginas lidas no dia
+
+**Página atual do foco**:
+Última página registrada para um livro nas Sessões de foco do Leitor. Enquanto a plataforma não tiver esse campo no domínio do livro, ela vive no armazenamento local por leitor.
+_Avoid_: progresso do cronograma, `pages`
+
+**Velocidade de leitura**:
+Média de páginas por minuto calculada sobre as Sessões de foco concluídas com páginas lidas. Começa em 1,0 página/minuto até que existam sessões suficientes para a média.
+_Avoid_: ritmo do cronograma, páginas por dia
+
 **Aviso sonoro do foco**:
-Som emitido pelo navegador quando o Foco de leitura chega a zero, sem usar a API de notificações do sistema e sem exigir permissão adicional. O áudio é desbloqueado no gesto de iniciar ou continuar o foco e reutilizado no aviso.
+Som emitido pelo navegador quando o Foco de leitura chega a zero ou é encerrado, sem usar a API de notificações do sistema e sem exigir permissão adicional. O áudio é desbloqueado no gesto de iniciar ou continuar o foco, é reutilizado no aviso e pode ser silenciado na própria tela.
 _Avoid_: notificação push, alarme do servidor

@@ -49,4 +49,31 @@ describe("useFocusSound", () => {
 
     expect(mockPlay).toHaveBeenCalledWith(fakeContext);
   });
+
+  it("silencia o aviso e volta a tocar depois de reativado", () => {
+    const { result } = renderHook(() => useFocusSound());
+
+    act(() => {
+      result.current.toggleMuted();
+    });
+    act(() => {
+      result.current.unlock();
+      result.current.play();
+    });
+
+    expect(result.current.muted).toBe(true);
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockPlay).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.setMuted(false);
+    });
+    act(() => {
+      result.current.unlock();
+      result.current.play();
+    });
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockPlay).toHaveBeenCalledWith(fakeContext);
+  });
 });
